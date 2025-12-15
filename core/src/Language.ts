@@ -40,4 +40,13 @@ export class Language {
             default: throw new Error(`Unsupported language ${name}`)
         }
     }
+
+    static supportNS(lang: Language): boolean {
+        switch (lang.name) {
+            case "ArkTS": return true
+            case "TS": return true
+            case "C++": return true
+            default: return false
+        }
+    }
 }

@@ -14,6 +14,8 @@
  */
 
 import * as idl from "@idlizer/core/idl"
+import { Hs, Ts } from "../../ost/stdlib"
+import { E, lw } from "../../ost"
 import { createProducer, GeneratorContext, MakeSelectorPattern, MakeSelectorQuery, ProducerBox, ProducerDescription } from "../engine/context"
 
 export const MANAGED_PREFIX = 'managed'
@@ -93,3 +95,10 @@ export function createSpecialProducer<N extends idl.IDLNode>(pattern: MakeSelect
     })
 }
 
+export function typeNameExpr(typeName: string): lw.LWExpression {
+    return E.v(managedName(typeName), [Hs.isType()])
+}
+
+export function isDirectInteropType(type: lw.LWType) {
+    return type !== Ts.prim.interopReturnBuffer
+}

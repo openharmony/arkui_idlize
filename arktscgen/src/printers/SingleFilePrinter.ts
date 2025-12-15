@@ -14,7 +14,7 @@
  */
 
 import { Typechecker } from "../general/Typechecker"
-import { IDLEntry, IDLEnum, IDLFile, IDLInterface, IDLNode, isEnum, isFile, isInterface, isNamespace } from "@idlizer/core"
+import { IDLEntry, IDLEnum, IDLFile, IDLInterface, IDLNode, IDLTypedef, isEnum, isFile, isInterface, isNamespace, isTypedef } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core"
 import { Importer } from "./library/Importer";
 
@@ -39,6 +39,7 @@ export abstract class SingleFilePrinter extends AbstractVisitor {
     protected abstract printInterface(node: IDLInterface): void
     protected abstract filterInterface(node: IDLInterface): boolean
     protected printEnum(node: IDLEnum): void {}
+    protected printTypedef(node: IDLTypedef): void {}
 
     visit(node: IDLNode): void {
         if (isInterface(node) && !this.filterInterface(node)) {
@@ -46,6 +47,9 @@ export abstract class SingleFilePrinter extends AbstractVisitor {
         }
         if (isEnum(node)) {
             this.printEnum(node)
+        }
+        if (isTypedef(node)) {
+            this.printTypedef(node)
         }
         this.visitChildren(node)
     }

@@ -13,17 +13,12 @@
  * limitations under the License.
  */
 
-import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
-import { Language } from '../Language'
-import { ArgConvertor, VoidConvertor } from '../LanguageWriters/ArgConvertors'
-import { CppReturnTypeConvertor } from '../LanguageWriters/convertors/CppConvertors'
-import { copyMethod, Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
-import { capitalize } from '../util'
-import { qualifiedName } from './idl/common'
+import { ArgConvertor } from '../LanguageWriters/ArgConvertors'
+import { copyMethod, Field, FieldModifier, Method, METHOD_ACCESS_MODIFIERS, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
+import { getInternalClassName } from './isMaterialized'
 import { PeerClassBase } from './PeerClass'
 import { PeerMethod, PeerMethodSignature } from './PeerMethod'
-import { ReferenceResolver } from './ReferenceResolver'
 
 export class MaterializedField {
     constructor(
@@ -88,18 +83,18 @@ export class MaterializedMethod extends PeerMethod {
 
     getPrivateMethod(asProtected: boolean = false) {
         let privateMethod: MaterializedMethod = this
-        if (!privateMethod.method.modifiers?.includes(MethodModifier.PRIVATE)) {
-            privateMethod = copyMaterializedMethod(this, {
-                method: copyMethod(this.method, {
-                    modifiers: (this.method.modifiers ?? [])
-                        .filter(it => it !== MethodModifier.PUBLIC)
-                        .filter(it => it !== MethodModifier.OVERRIDE)
-                        .filter(it => !asProtected || (it !== MethodModifier.PRIVATE))
-                        .concat([asProtected ? MethodModifier.PROTECTED : MethodModifier.PRIVATE])
-                })
-            })
+        const neededModifier = asProtected ? MethodModifier.PROTECTED : MethodModifier.PRIVATE
+        if (privateMethod.method.modifiers?.includes(neededModifier)) {
+            return privateMethod
         }
-        return privateMethod
+        return copyMaterializedMethod(this, {
+            method: copyMethod(this.method, {
+                modifiers: (this.method.modifiers ?? [])
+                    .filter(it => !METHOD_ACCESS_MODIFIERS.has(it))
+                    .filter(it => it !== MethodModifier.OVERRIDE)
+                    .concat([neededModifier])
+            })
+        })
     }
 
     withReturnType(returnType: idl.IDLType): MaterializedMethod {
@@ -167,39 +162,26 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
         return undefined
     }
     return new MaterializedMethod(
-            undefined,
-            new PeerMethodSignature(
-                PeerMethodSignature.DESTROY,
-                '%NEVER_USED$',
-                [],
-                idl.IDLVoidType,
-                clazz.decl,
-            ),
-            idl.getQualifiedName(clazz.decl, "namespace.name").split('.').join('_'),
-            clazz.getImplementationName(),
-            idl.IDLVoidType,
-            false,
+        undefined,
+        new PeerMethodSignature(
             PeerMethodSignature.DESTROY,
-            new Method(
-                PeerMethodSignature.DESTROY,
-                new NamedMethodSignature(
-                    idl.IDLVoidType,
-                    [idl.createReferenceType(clazz.decl)],
-                    ['peer']
-                )
+            '%NEVER_USED$',
+            [],
+            idl.IDLVoidType,
+            clazz.decl,
+        ),
+        idl.getQualifiedName(clazz.decl, "namespace.name").split('.').join('_'),
+        clazz.getImplementationName(),
+        idl.IDLVoidType,
+        false,
+        PeerMethodSignature.DESTROY,
+        new Method(
+            PeerMethodSignature.DESTROY,
+            new NamedMethodSignature(
+                idl.IDLVoidType,
+                [idl.createReferenceType(clazz.decl)],
+                ['peer']
             )
         )
-}
-
-export function getInternalClassName(name: string): string {
-    return `${name}Internal`
-}
-
-export function getInternalClassQualifiedName(target: idl.IDLEntry, pattern: idl.QNPattern = "package.namespace.name", language?: Language): string {
-    return getInternalClassName(qualifiedName(target, language ?? ".", pattern))
-}
-
-export function getMaterializedFileName(name:string): string {
-    const pascalCase = name.split('_').map(x => capitalize(x)).join('')
-    return `Ark${pascalCase}Materialized`
+    )
 }

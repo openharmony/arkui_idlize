@@ -32,6 +32,7 @@ import * as idl from "@idlizer/core/idl"
 import * as path from "node:path"
 import * as fs from "node:fs"
 import { ETSVisitorConfig } from "./config"
+import { PlotVisitor } from "./plot"
 
 const MaxSyntheticTypeLength = 60
 
@@ -84,7 +85,7 @@ function processFile(program: arkts.Program, outDir: string, baseDir: string, co
     const paths = configContent.compilerOptions.paths ?? {};
     const pathMap = new Map()
     for (const key in paths) {
-        pathMap.set(key, path.normalize(path.join(path.dirname(configPath), paths[key][0])))
+        pathMap.set(key, path.normalize(path.resolve(path.dirname(configPath), paths[key][0])))
     }
     let localStatus = new StatusTracker(status.enabled)
     let idlVisitor = new IDLVisitor(baseDir, file, pathMap, config, localStatus)
@@ -102,7 +103,7 @@ function processFile(program: arkts.Program, outDir: string, baseDir: string, co
     idlVisitor.visitor(program.ast)
     const idlFile = idlVisitor.toIDLSuperFile()
     const fileRelativePath = path.relative(baseDir, file)
-    const outFile = path.join(outDir, fileRelativePath.replace(".d.ets", ".idl"))
+    const outFile = path.join(outDir, fileRelativePath.replace(/(\.d)?\.e?ts$/, ".idl"))
     const outFileDir = path.dirname(outFile)
     if (!fs.existsSync(outFileDir)) {
         fs.mkdirSync(outFileDir, { recursive: true })
@@ -125,9 +126,10 @@ export interface GenerateFromSTSContext {
     etsConfigPath: string
     config: ETSVisitorConfig
     traceStatus: string
+    plotDeps?: boolean
 }
 
-export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, config, traceStatus }: GenerateFromSTSContext): PeerLibrary {
+export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, config, traceStatus, plotDeps }: GenerateFromSTSContext): PeerLibrary {
     if (!process.env.PANDA_SDK_PATH) {
         process.env.PANDA_SDK_PATH = path.resolve(__dirname, "../../external/incremental/tools/panda/node_modules/@panda/sdk")
     }
@@ -163,13 +165,21 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
     ]).peer
     if (!arkts.global.configIsInitialized()) throw new Error(`Wrong config: path=${etsConfigPath}`);
     arkts.arktsGlobal.compilerContext = arkts.Context.createContextGenerateAbcForExternalSourceFiles(inputFiles)
-    arkts.global.isContextGenerateAbcForExternalSourceFiles = true;
     const options = arkts.Options.createOptions(new arkts.Config(arkts.global.config));
     arkts.global.arktsconfig = options.getArkTsConfig();
 
     arkts.proceedToState(arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED)
     const pluginContext = new arkts.PluginContextImpl()
     const program = arkts.arktsGlobal.compilerContext!.program
+
+    if (plotDeps) {
+        const visitor = new PlotVisitor(baseDir)
+        arkts.runTransformer(program, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED, (program, pluginContext, context) => {
+            visitor.process(program.ast)
+        }, pluginContext)
+        visitor.dump(path.join(outDir, "./deps.dot"))
+        process.exit(0)
+    }
     arkts.runTransformer(program, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED, (program, pluginContext, context) => {
         if (!inputFiles.includes(program.absoluteName))
             return
@@ -194,7 +204,7 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
                 fileName: program.absoluteName
             })
         }
-    }, pluginContext, undefined, undefined)
+    }, pluginContext)
 
     if (traceStatus) {
         fs.writeFileSync(traceStatus, status.Print())
@@ -241,7 +251,7 @@ function adjustExports(library: IDLSuperFile[], config: ETSVisitorConfig): void 
             }
             adjustFileExports(reexportedFile)
             for (const entry of reexportedFile.file.entries) {
-                if (idl.isTypedef(entry) || idl.isInterface(entry) || idl.isNamespace(entry)) {
+                if (idl.isTypedef(entry) || idl.isInterface(entry) || idl.isEnum(entry) || idl.isCallback(entry) || idl.isNamespace(entry)) {
                     file.exports.set(entry.name, reexportedFile.file.packageClause.concat(entry.name).join("."))
                 }
             }
@@ -518,7 +528,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         protected status: StatusTracker,
     ) {
         super()
-        this.fileName = this.originalFileName.replace(".d.ets", ".idl")
+        this.fileName = this.originalFileName.replace(/(\.d)?\.e?ts$/, ".idl")
         this.packageClause = this.detectPackageNameByPath(this.originalFileName)
     }
     visitor(node: arkts.AstNode): arkts.AstNode {
@@ -639,7 +649,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
         let extendedAttributes = this.traceAttrs()
         let result = idl.createEnum(name, [], { extendedAttributes })
         let currentValue = 0
-        let enumNames = nameEnumValues(node.members.map(it => (it as arkts.TSEnumMember).name))
+        let enumNames = nameEnumValues(node.members
+            .map(it => (it as arkts.TSEnumMember).name)
+            // TBD: Woraround for Number enum member
+            .map(it => fixEnumMemberName(it))
+        )
         result.elements =
             node.members.map((it, index) => this.processNode((it, index) => {
                 let element = (it as arkts.TSEnumMember)
@@ -652,7 +666,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 }
                 let extendedAttributes: idl.IDLExtendedAttribute[] = this.traceAttrs()
                 if (enumNames[index] != element.name) {
-                    extendedAttributes.push({ name: idl.IDLExtendedAttributes.OriginalEnumMemberName, value: element.name })
+                    extendedAttributes.push({ name: idl.IDLExtendedAttributes.OriginalEnumMemberName, value: fixEnumMemberName(element.name, true) })
                 }
                 return idl.createEnumMember(enumNames[index], result, type, value, { extendedAttributes })
             }, it, index))
@@ -1280,12 +1294,12 @@ class IDLVisitor extends arkts.AbstractVisitor {
     serializeClassProperty(property: arkts.ClassProperty): idl.IDLProperty {
         const name = (property.key as arkts.Identifier).name
         return this.contextual.extend(name, false, () => {
-            const prop = idl.createProperty(name, this.serializeType(property.typeAnnotation!))
+            const [type, _] = this.guessTypeAndValue(name, property.typeAnnotation, property.value)
+            const prop = idl.createProperty(name, type)
             prop.extendedAttributes ??= []
             prop.extendedAttributes.push(...this.traceAttrs())
             if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_OPTIONAL)) {
                 prop.isOptional = true
-                prop.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Optional })
             }
             if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
                 prop.isStatic = true
@@ -1387,7 +1401,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Any': return idl.IDLAnyType
                 case 'string': return idl.IDLStringType
                 case 'Promise': return idl.createContainerType('Promise', typeArgs ?? [] /* better check here? */)
-                case 'Record': return idl.createContainerType('record', typeArgs ?? [] /* better check here? */)
+                case 'Record': return idl.createContainerType('record', typeArgs ?? [] /* better check here? */, { extendedAttributes: [{ name: idl.IDLExtendedAttributes.AsRecord }] })
                 case 'Map': return idl.createContainerType('record', typeArgs ?? [] /* better check here? */)
                 case 'Array': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'Date': return idl.IDLDate
@@ -1830,14 +1844,25 @@ class IDLVisitor extends arkts.AbstractVisitor {
     }
 
     private guessTypeAndValue(name: string, type?: arkts.TypeNode, initExpr?: arkts.Expression): [idl.IDLType, string | undefined] {
-        if (type) return [this.serializeType(type), arkts.isStringLiteral(initExpr) ? `"${initExpr.toString}"` : initExpr?.toString]
+        if (type) {
+            const idlType = this.serializeType(type)
+            const value = !idl.isPrimitiveType(idlType) ? undefined
+                : arkts.isStringLiteral(initExpr) ? `"${initExpr.toString}"`
+                : initExpr?.toString
+            return [idlType, value]
+        }
         if (!initExpr) throw new Error(`Constant ${name} neither has type nor the initializer`)
         const value = initExpr.toString
         if (arkts.isBooleanLiteral(initExpr)) return [idl.IDLBooleanType, value]
         if (arkts.isNumberLiteral(initExpr)) return [idl.IDLNumberType, value]
         if (arkts.isStringLiteral(initExpr)) return [idl.IDLStringType, `"${value}"`]
         if (arkts.isBigIntLiteral(initExpr)) return [idl.IDLNumberType, value]
+        if (arkts.isETSNewClassInstanceExpression(initExpr)) return [this.serializeType(initExpr.typeRef), undefined]
         console.error(`Unknown initExpr type for constant: ${name} with value: ${value}`)
         return [idl.IDLAnyType, undefined]
     }
+}
+
+function fixEnumMemberName(name: string, original: boolean = false): string {
+    return name == "*ERROR_LITERAL*" ? (original ? "RenamedNumber" : "RENAMED_NUMBER") : name
 }

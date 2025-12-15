@@ -52,7 +52,7 @@ function listIdl(listPath: string | string[], what: string, excluding?: Set<stri
             return new Set([path.normalize(listPath)].filter((n) => !excluding || !excluding.has(n)))
         }
         if (stat.isDirectory()) {
-            let files = fs.readdirSync(listPath, { recursive: true, withFileTypes: true }).map((n) => path.join(n.parentPath ?? n.path, n.name)).filter((n) => n.endsWith(".idl")).map(path.normalize).filter((n) => !excluding || !excluding.has(n))
+            let files = fs.readdirSync(listPath, { recursive: true, withFileTypes: true }).map((n) => path.join((n as any/* support node<18 */).parentPath ?? n.path, n.name)).filter((n) => n.endsWith(".idl")).map(path.normalize).filter((n) => !excluding || !excluding.has(n))
             return new Set(files)
         }
     } catch (e) {
@@ -79,8 +79,9 @@ function validateIdl(paths: string[], options: { load: string[], features: strin
     }
 }
 
-function checkCompatDirs(baseDir: string, targetDir: string) {
-    checkCompat(listIdl(baseDir, "base"), listIdl(targetDir, "target"))
+function checkCompatDirs(baseDir: string, commitDir: string, options: { load?: string[] }) {
+    const loadFiles = options.load ? listIdl(options.load!, "--load") : new Set<string>()
+    checkCompat(listIdl(baseDir, "base"), listIdl(commitDir, "commit"), loadFiles)
     outputDiagnosticResultsFormatted(DiagnosticMessageGroup.collectedResults)
     if (DiagnosticMessageGroup.collectedResults.hasErrors) {
         process.exit(2)
@@ -95,6 +96,7 @@ export function idlinterMain() {
 
     program.command('compat <dir0> <dir1>')
         .description('check if dir1 is API-wise compatible with dir0')
+        .option("--load <paths...>", "Paths to individual .idl files (or directories recursively containing them) for loading and symbol search\n(these files will not be checked)")
         .action(checkCompatDirs)
 
     program.command('check <paths...>')

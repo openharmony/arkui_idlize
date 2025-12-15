@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { camelCaseToUpperSnakeCase, capitalize } from '@idlizer/core'
+import { camelCaseToUpperSnakeCase, capitalize, IDLKind } from '@idlizer/core'
 import { AceTypes } from './AceTypes'
 import { TypeHelper } from './TypeHelper'
 
@@ -38,6 +38,11 @@ export class TestValue {
         if (this.argIndex !== undefined) return this.argIndex
         if (!this.parent) throw `TestValue ${this.name} doesn't have either parent or argIndex`
         return this.parent.getArgIndex()
+    }
+
+    isArgOptional(): boolean {
+        if (this.parent) return this.parent.isArgOptional()
+        return this.type.isOptional()
     }
 
     getParentsSeq(ignore: boolean = false, unions: boolean = false): TestValue[] {
@@ -128,5 +133,43 @@ export class TestValue {
                 return false
         }
         return true
+    }
+
+    getParentName(): string {
+        let name = this.name
+        let parent = this.parent
+        while (name === "|" && parent) {
+            name = parent.name
+            parent = parent.parent
+        }
+        return name
+    }
+
+    getFullTsName(): string {
+        const itemsInfo: { name: string, kind: IDLKind }[] = []
+        for (let item: TestValue|undefined = this; item; item = item.parent) {
+            itemsInfo.unshift({ name: item.safeName(), kind: item.type.getIdlDecl().kind })
+        }
+        const result: string[] = []
+        for (const [index, info] of itemsInfo.entries()) {
+            if (info.kind === IDLKind.Interface || index === itemsInfo.length - 1) {
+                result.push(info.name)
+            } else if (info.kind === IDLKind.UnionType && itemsInfo.at(index + 1)?.kind === IDLKind.Interface) {
+                result.push(info.name)
+                itemsInfo[index + 1].kind = IDLKind.PrimitiveType // Skip next Interface
+            }
+        }
+        return result.join(".")
+    }
+
+    getArgTsType(): string {
+        if (this.parent) {
+            const typeName = this.parent.getArgTsType()
+            if (typeName.startsWith("Union_")) {
+                return this.type.tsName()
+            }
+            return typeName
+        }
+        return this.type.tsName()
     }
 }

@@ -1,0 +1,5 @@
+package external;
+
+interface ExternalInterface {
+    attribute String name;
+};

@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
-import("${idlize.imports_prefix}/node.gni")
+import("../gn/import/npm.gni")
+import("../gn/import/node.gni")
 
 
 node_cmd("download:sdk") {
@@ -29,7 +29,7 @@ node_cmd("prepare:sdk") {
         rebase_path("../sdk-patched"),
     ]
     deps = [
-        "${idlize.root_path}/runner:compile",
+        "../runner:compile",
         ":download:sdk",
     ]
 }

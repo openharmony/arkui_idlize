@@ -57,12 +57,6 @@ export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
 }
 
-export function componentToStyleClass(component: string) {
-    if (component.endsWith("Attribute"))
-        component = component.substring(0, component.length - 9)
-    return `Ark${component}Style`
-}
-
 export function componentToAttributesInterface(component: string) {
     return `${component}`
 }
@@ -108,9 +102,11 @@ class PeerFileVisitor {
             imports.addFeature('GestureComponent', './framework/shared/generated-utils')
         }
 
-        if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
+        if ([Language.TS, Language.ARKTS, Language.KOTLIN].includes(this.library.language)) {
+            if ([Language.TS, Language.ARKTS].includes(this.library.language)) {
+                imports.addFeature('CallbackTransformer', './CallbackTransformer')
+            }
             collectDeclItself(this.library, idl.createReferenceType("idlize.internal.CallbackKind"), imports)
-            imports.addFeature('CallbackTransformer', './CallbackTransformer')
             collectDeclItself(this.library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), imports)
 
             const hookClassName = peer.componentName == "CommonMethod"
@@ -127,8 +123,13 @@ class PeerFileVisitor {
         if (this.library.language == Language.TS) {
             imports.addFeature("unsafeCast", "@koalaui/common")
         }
-        imports.addFeatures(["MaterializedBase", "toPeerPtr"], "@koalaui/interop")
-        // collectMaterializedImports(imports, this.library)
+        if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
+            imports.addFeatures(["MaterializedBase", "toPeerPtr"], "@koalaui/interop")
+            // collectMaterializedImports(imports, this.library)
+        }
+        else {
+            imports.addFeatures(["MaterializedBase", "toPeerPtr"], "koalaui.interop")
+        }
     }
 
     protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
@@ -154,7 +155,7 @@ class PeerFileVisitor {
             [undefined, '0'],
             [[ArgumentModifier.OPTIONAL], undefined]
         )
-        writer.makeStaticBlock(() => {
+        writer.writeStaticEntitiesBlock(() => {
             writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
                 const peerId = 'peerId'
                 writer.writeStatement(
@@ -187,7 +188,7 @@ class PeerFileVisitor {
 
     protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
         this.library.setCurrentContext(`${method.originalParentName}.${method.sig.name}`)
-        writePeerMethod(this.library, printer, method, true, this.dumpSerialized, "Attribute", "this.peer.ptr")
+        writePeerMethod(this.library, printer, method, this.dumpSerialized, "Attribute", "this.peer.ptr")
         this.library.setCurrentContext(undefined)
     }
 
@@ -288,13 +289,18 @@ class KotlinPeerFileVisitor extends PeerFileVisitor {
                     role: LayoutNodeRole.PEER,
                 },
                 generate: () => {
-                    const printer = this.library.createLanguageWriter()
-                    this.printPeer(peer, printer)
-                    return printer
-                },
-                collector: new ImportsCollector()
+                    const imports = new ImportsCollector()
+                    const content = this.library.createLanguageWriter(this.library.language)
+                    this.printImports(peer, imports)
+                    this.printPeer(peer, content)
+                    return { imports, content }
+                }
             }
         })
+    }
+
+    protected getDefaultPeerImports(lang: Language, imports: ImportsCollector) {
+        imports.addFeatures(["nullptr", "KPointer", "KInt", "KBoolean", "KStringPtr", "RuntimeType"], "koalaui.interop")
     }
 }
 
@@ -324,9 +330,4 @@ class PeersVisitor {
 
 export function createPeersPrinter(dumpSerialized: boolean): PrinterFunction {
     return (library: PeerLibrary) => new PeersVisitor(library, dumpSerialized).printPeers()
-}
-
-export function generateStyleParentClass(peer: PeerClass): string | undefined {
-     if (!isHeir(peer.originalClassName!)) return undefined
-     return componentToStyleClass(peer.parentComponentName!)
 }

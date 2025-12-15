@@ -1,0 +1,28 @@
+package arkui.component;
+
+dictionary Color {
+    [OriginalEnumMemberName=White]
+    number WHITE = 0;
+    [OriginalEnumMemberName=Black]
+    number BLACK = 1;
+    [OriginalEnumMemberName=Blue]
+    number BLUE = 2;
+    [OriginalEnumMemberName=Brown]
+    number BROWN = 3;
+    [OriginalEnumMemberName=Gray]
+    number GRAY = 4;
+    [OriginalEnumMemberName=Green]
+    number GREEN = 5;
+    [OriginalEnumMemberName=Grey]
+    number GREY = 6;
+    [OriginalEnumMemberName=Orange]
+    number ORANGE = 7;
+    [OriginalEnumMemberName=Pink]
+    number PINK = 8;
+    [OriginalEnumMemberName=Red]
+    number RED = 9;
+    [OriginalEnumMemberName=Yellow]
+    number YELLOW = 10;
+    [OriginalEnumMemberName=Transparent]
+    number TRANSPARENT = 11;
+};

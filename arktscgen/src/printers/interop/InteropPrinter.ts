@@ -18,6 +18,7 @@ import { IDLEntry, IDLInterface, IDLNode, isEnum, isInterface, isNamespace, } fr
 import { IDLFile } from "@idlizer/core"
 import { Typechecker } from "../../general/Typechecker"
 import { AbstractVisitor } from "../SingleFilePrinter"
+import { Filter } from "../Filter"
 
 export abstract class InteropPrinter extends AbstractVisitor {
     constructor(protected file: IDLFile) {
@@ -41,7 +42,8 @@ export abstract class InteropPrinter extends AbstractVisitor {
     }
 
     visitInterface(node: IDLInterface): void {
-        node.methods.forEach(it => this.visitMethod(node, it))
+        Filter.filterMethods(node.methods)
+            .forEach(it => this.visitMethod(node, it))
     }
 
     visitMethod(iface: IDLInterface, node: IDLMethod): void {

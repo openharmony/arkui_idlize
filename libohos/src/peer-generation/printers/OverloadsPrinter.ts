@@ -20,7 +20,8 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, PeerMethodSignature } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, copyMethod, hasAccessModifier,
+    PeerMethodSignature, maybeRestoreThrows } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { UndefinedConvertor } from "@idlizer/core"
 import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -117,9 +118,9 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
             undefined,
             argsModifiers
         ),
-        methods[0].modifiers?.includes(MethodModifier.PRIVATE) ?
-        methods[0].modifiers :
-        [MethodModifier.PUBLIC].concat(methods[0].modifiers ?? []),
+        hasAccessModifier(methods[0].modifiers) ?
+            methods[0].modifiers :
+            [MethodModifier.PUBLIC].concat(methods[0].modifiers ?? []),
         methods[0].generics,
     )
 }
@@ -271,7 +272,7 @@ export class OverloadsPrinter {
         this.posfix = postfix ?? ""
     }
 
-    printGroupedComponentOverloads(peer: string, peerMethods: (PeerMethod)[]) {
+    printGroupedComponentOverloads(peer: string, peerMethods: (PeerMethod)[], interfaceDeclaration?: idl.IDLInterface) {
         const orderedMethods = Array.from(peerMethods)
             .sort((a, b) => b.sig.args.length - a.sig.args.length)
             // Methods with a large number of runtime types should have low priority(place below) and we go from specific to general
@@ -284,47 +285,68 @@ export class OverloadsPrinter {
             })
 
         if (!allowsOverloads(this.language)) {
-            this.printCollapsedOverloads(peer, orderedMethods)
+            this.printCollapsedOverloads(peer, orderedMethods, interfaceDeclaration)
         } else {
             // Handle special case for same name AND same signature methods.
             // Collapse same signature methods
             let copy = Array.from([...orderedMethods])
             const groups = groupSameSignatureMethods([...copy])
             for (let group of groups) {
-                this.printCollapsedOverloads(peer, group)
+                this.printCollapsedOverloads(peer, group, interfaceDeclaration)
             }
         }
     }
 
-    private printCollapsedOverloads(peer: string, methods: PeerMethod[]) {
+    private printCollapsedOverloads(peer: string, methods: PeerMethod[], interfaceDeclaration?: idl.IDLInterface) {
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language, this.posfix)
-        if (collapsedMethod.signature.returnType == idl.IDLThisType && this.printer.language == Language.CJ) {
+        let collapsedMethodToPrint = collapsedMethod
+        const methodReturnsThis = collapsedMethod.signature.returnType == idl.IDLThisType
+            || maybeRestoreThrows(collapsedMethod.signature.returnType, this.library) === idl.IDLThisType
+        if (methodReturnsThis && this.printer.language == Language.CJ) {
             // compiler clashes on memo methods returning this
             collapsedMethod.signature.returnType = idl.IDLVoidType
+        }
+        if (this.printer.language == Language.KOTLIN) {
+            if (this.isComponent) {
+                // component methods must be marked with override
+                collapsedMethod.modifiers = [...collapsedMethod.modifiers ?? [], MethodModifier.OVERRIDE]
+            }
+            if (methodReturnsThis) {
+                // this keyword cannot be used as type, so replace it with an actual interface
+                if (!interfaceDeclaration) {
+                    throw new Error(`Non-null interfaceDeclaration must be passed to print methods with 'this' return type in Kotlin`)
+                }
+                collapsedMethodToPrint = copyMethod(collapsedMethodToPrint, {
+                    signature: new NamedMethodSignature(
+                        idl.createReferenceType(interfaceDeclaration),
+                        collapsedMethodToPrint.signature.args,
+                        collapsedMethodToPrint.signature.args.map((_, index) => collapsedMethodToPrint.signature.argName(index)),
+                        collapsedMethodToPrint.signature.defaults,
+                        collapsedMethodToPrint.signature.argsModifiers,
+                        collapsedMethodToPrint.signature.printHints,
+                    )
+                })
+            }
         }
         if (allowNamedOverloads(this.language)) {
             collapsedMethod.name = methods[0].uniqueOverloadName
         }
         const key = peer + '.' + collapsedMethod.name
-        this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
+        this.printer.writeMethodImplementation(collapsedMethodToPrint, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
-            if (this.isComponent) {
-                writer.print(`if (this.checkPriority('${collapsedMethod.name}')) {`)
-                this.printer.pushIndent()
-            }
-            const hookMethod = getHookMethod(peer, collapsedMethod.name)
+            const hookMethod = getHookMethod(methods[0].originalParentName, collapsedMethod.name)
             if (hookMethod) {
                 this.printHookedMethodBody(peer, collapsedMethod, hookMethod.hookName, writer)
-                if (!hookMethod.replaceImplementation) {
+                if (hookMethod.replaceImplementation) {
+                    if (this.isComponent && methodReturnsThis) {
+                        this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
+                    }
+                }
+                else {
                     this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
                 }
             } else {
                 this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
-            }
-            if (this.isComponent) {
-                this.printer.popIndent()
-                this.printer.print(`}`)
-                this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
     }
@@ -424,7 +446,9 @@ export class OverloadsPrinter {
             : this.isComponent ? `this.getPeer()` : `this`
         const namePostifx = this.isComponent ? "Attribute" : `${this.posfix}_serialize`
         const methodName = `${peerMethod.sig.name}${namePostifx}`
-        if (collapsedMethod.signature.returnType === idl.IDLThisType) {
+        const methodReturnsThis = collapsedMethod.signature.returnType == idl.IDLThisType
+            || maybeRestoreThrows(collapsedMethod.signature.returnType, this.library) === idl.IDLThisType
+        if (methodReturnsThis) {
             if (this.printer.language == Language.CJ) {
                 if (isStatic) {
                     this.printer.writeMethodCall(receiver, methodName, argsNames, false)
@@ -434,6 +458,9 @@ export class OverloadsPrinter {
                 }
             } else {
                 this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            }
+            if (peerMethod.isCallSignature) {
+                this.printer.writeMethodCall("this", "applyOptionsFinish", [`"${peer}"`])
             }
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
         } else if (collapsedMethod.signature.returnType === idl.IDLVoidType) {

@@ -58,6 +58,9 @@ const specialTypeNames = {
 
     union: '@UNION',
     intersection: '@INTERSECTION',
+    array: '@ARRAY',
+    map: '@MAP',
+    optional: '@OPTIONAL',
 
     auto: '@LW.AUTO',
 
@@ -72,13 +75,17 @@ const specialTypeNames = {
     object: '@LW.Object',
     nativePointer: '@LW.NativePointer',
     number: '@LW.Number',
-    returnBuffer: '@LW.ReturnBuffer',
     serializerBuffer: '@LW.SerializerBuffer',
     string: '@LW.String',
     u8: '@LW.U8',
     u32: '@LW.U32',
     u64: '@LW.U64',
+    undefined: '@LW.Undefined',
     void: '@LW.Void',
+
+    interopNumber: '@LW.InteropNumber',
+    interopString: '@LW.InteropString',
+    interopReturnBuffer: '@LW.InteropReturnBuffer',
 }
 
 export const std = {
@@ -144,6 +151,7 @@ const knownOperations = {
     dec: '--',
     postinc: '_++',
     postdec: '_--',
+    assert: '_!',
 }
 
 export const Op = knownOperations
@@ -161,13 +169,17 @@ const primitiveTypes = {
     tag: T.c(specialTypeNames.tag),
     object: T.c(specialTypeNames.object),
     number: T.c(specialTypeNames.number),
-    returnBuffer: T.c(specialTypeNames.returnBuffer),
     serializerBuffer: T.c(specialTypeNames.serializerBuffer),
     str: T.c(specialTypeNames.string),
     u8: T.c(specialTypeNames.u8),
     u32: T.c(specialTypeNames.u32),
     u64: T.c(specialTypeNames.u64),
+    undefined: T.c(specialTypeNames.undefined),
     void: T.c(specialTypeNames.void),
+
+    interopNumber: T.c(specialTypeNames.interopNumber),
+    interopString: T.c(specialTypeNames.interopString),
+    interopReturnBuffer: T.c(specialTypeNames.interopReturnBuffer),
 }
 
 export const Ts = {
@@ -180,4 +192,7 @@ export const Ts = {
 
     union: (types: LWType[]) => T.c(specialTypeNames.union, ...types),
     intersection: (types: LWType[]) => T.c(specialTypeNames.intersection, ...types),
+    optional: (type: LWType) => T.c(specialTypeNames.optional, type),
+    array: (elemType: LWType) => T.c(specialTypeNames.array, elemType),
+    map: (keyType: LWType, valueType: LWType) => T.c(specialTypeNames.map, keyType, valueType),
 }

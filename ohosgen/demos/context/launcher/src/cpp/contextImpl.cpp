@@ -33,6 +33,7 @@ OH_Boolean BaseContext_getStageModeImpl(OH_NativePointer thisPtr) {
 }
 void BaseContext_setStageModeImpl(OH_NativePointer thisPtr, OH_Boolean value) {
 }
+void BaseContext_callHolderImpl(OH_NativePointer thisPtr) {}
 // Context
 OH_APPLICATION_ContextHandle Context_constructImpl() {
     ContextPeer* peer = new ContextPeer();
@@ -115,6 +116,8 @@ Opt_ApplicationInfo Context_getApplicationInfoImpl(OH_NativePointer thisPtr) {
 void Context_setApplicationInfoImpl(OH_NativePointer thisPtr, const Opt_ApplicationInfo* value) {
 }
 
+void Context_callHolderImpl(OH_NativePointer thisPtr) {}
+
 // ApplicationContext
 OH_APPLICATION_ApplicationContextHandle ApplicationContext_constructImpl() {
     ApplicationContextPeer* peer = new ApplicationContextPeer();
@@ -132,6 +135,7 @@ void ApplicationContext_killAllProcesses1Impl(OH_APPLICATION_VMContext vmContext
 }
 void ApplicationContext_setLanguageImpl(OH_NativePointer thisPtr, const OH_String* language) {
 }
+void ApplicationContext_callHolderImpl(OH_NativePointer thisPtr) {}
 void ApplicationContext_clearUpApplicationDataImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
 void ApplicationContext_setSupportedProcessCacheImpl(OH_NativePointer thisPtr, OH_Boolean isSupported) {

@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription } from '@idlizer/core'
+import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription, maybeRestoreThrows } from '@idlizer/core'
 import { Method, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -23,7 +23,6 @@ import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
 } from '../idl/IdlPeerGeneratorVisitor'
-import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../printers/StructPrinter'
 import { MethodModifier } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
 import { LayoutNodeRole } from '@idlizer/core'
@@ -32,6 +31,7 @@ import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { flattenUnionType } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { isComponentDeclaration } from '../ComponentsCollector'
+import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../propertyCollectors'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -305,7 +305,7 @@ class SerializerPrinter {
                 writer.changeModeTo('detached')
             }
             writer.writeClass(className, writer => {
-                writer.makeStaticBlock(() => {
+                writer.writeStaticEntitiesBlock(() => {
                     if (idl.isInterface(target)) {
                         this.generateInterfaceSerializer(writer, imports, target)
                         this.generateInterfaceDeserializer(writer, imports, target)
@@ -389,6 +389,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
         .filter(it => !it.typeParameters?.length
             || it.typeParameters.every(it => it.includes('='))
             || idl.isInterface(it) && isMaterialized(it, library))
+        .filter(it => !maybeRestoreThrows(it, library))
         .filter(it => {
             const fullName = nameConvertor.convert(it)
             const seen = seenNames.has(fullName)

@@ -11,12 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
-import("${idlize.imports_prefix}/node.gni")
+import("../gn/import/npm.gni")
+import("../gn/import/node.gni")
 
 npm_cmd("compile") {
     deps = [
-        "${idlize.root_path}/core:compile"
+        "../core:compile"
     ]
     project_path = rebase_path(".")
     run_tasks = [ "compile:self" ]
@@ -34,8 +34,8 @@ node_cmd("etsgen:generate") {
         rebase_path("../sdk-patched-arkts/api"),
     ]
     deps = [
-        "${idlize.root_path}/etsgen:compile",
-        "${idlize.root_path}/tools:sdk"
+        "../etsgen:compile",
+        "../tools:sdk"
     ]
 }
 

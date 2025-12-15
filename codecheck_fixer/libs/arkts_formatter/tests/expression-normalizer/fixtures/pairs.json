@@ -1,0 +1,86 @@
+{
+  "equivalent": [
+    {
+      "description": "Whitespace between \"(\" and \"value\"",
+      "original": "color(\nvalue: ResourceColor | undefined): this {\n        if (((this._color_0_flag) == (AttributeUpdaterFlag.INITIAL)) || (true))\n        {\n            this._color_0_flag = AttributeUpdaterFlag.UPDATE\n            this._color_0_0value = value\n        } else\n        {\n            this._color_0_flag = AttributeUpdaterFlag.SKIP\n        }\n        return this\n    }",
+      "expected": "color(value:ResourceColor|undefined):this{if(((this._color_0_flag)==(AttributeUpdaterFlag.INITIAL))||(true)){this._color_0_flag=AttributeUpdaterFlag.UPDATE this._color_0_0value=value}else{this._color_0_flag=AttributeUpdaterFlag.SKIP}return this}",
+      "expectEqual": true
+    },
+    {
+      "description": "Whitespace between alphanumeric tokens (space insertion) 1",
+      "original": "const a = 1;",
+      "expected": "const a=1;",
+      "expectEqual": true
+    },
+    {
+      "description": "Whitespace between alphanumeric tokens (space insertion) 2",
+      "original": "const a =1;",
+      "expected": "const a=1;",
+      "expectEqual": true
+    },
+    {
+      "description": "Newline between words becomes a single space",
+      "original": "return value",
+      "expected": "return value",
+      "expectEqual": true
+    },
+    {
+      "description": "Whitespace around parentheses and operators is insignificant",
+      "original": "( \n x ) +\n y",
+      "expected": "(x)+y",
+      "expectEqual": true
+    },
+    {
+      "description": "Comments are removed by normalizer (block and line)",
+      "original": "a/*c*/+// d\ne",
+      "expected": "a+e",
+      "expectEqual": true
+    },
+    {
+      "description": "Mixed whitespace collapses correctly around operators",
+      "original": "a  \t \n  +  \n  b",
+      "expected": "a+b",
+      "expectEqual": true
+    }
+  ],
+  "notEquivalent": [
+    {
+      "description": "Return + newline is significant (must not be collapsed)",
+      "original": "return\nvalue",
+      "expected": "return value",
+      "expectEqual": false
+    },
+    {
+      "description": "Whitespace changes inside string literals are significant",
+      "original": "const s = \"a b\";",
+      "expected": "const s = \"a   b\";",
+      "expectEqual": false
+    },
+    {
+      "description": "Whitespace changes inside template literals are significant",
+      "original": "const t = `a ${1} b`;",
+      "expected": "const t = `a ${ 1 } b`;",
+      "expectEqual": false
+    },
+    {
+      "description": "Comment removal may remove a required separator (return/value)",
+      "original": "return/*c*/value",
+      "expected": "return value",
+      "expectEqual": false
+    },
+    {
+      "description": "Joined identifiers vs separated identifiers",
+      "original": "return value",
+      "expected": "returnvalue",
+      "expectEqual": false
+    },
+    {
+      "description": "Operator change must be detected as non-equivalent",
+      "original": "a+b",
+      "expected": "a-b",
+      "expectEqual": false
+    }
+  ]
+}
+
+

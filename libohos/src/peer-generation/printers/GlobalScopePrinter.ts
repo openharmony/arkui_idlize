@@ -133,7 +133,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
             const realizationWriter = library.createLanguageWriter()
             realizationWriter.writeClass(realizationHolder.name, w => {
-                w.makeStaticBlock(() => {
+                w.writeStaticEntitiesBlock(() => {
                     const allGroupedMethods = library.globals.flatMap(scope => {
                     const filteredScopeMethods = scope.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
                         return groupOverloadsIDL(filteredScopeMethods, library.language)
@@ -148,11 +148,9 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                                 library,
                                 realizationWriter,
                                 peerMethod,
-                                true,
                                 false,
                                 '_serialize',
                                 '',
-                                peerMethod.returnType,
                             )
                         })
                     })

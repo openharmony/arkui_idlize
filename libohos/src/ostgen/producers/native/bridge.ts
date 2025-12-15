@@ -14,14 +14,14 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer, bridgeName, roles, AdvancedGeneratorContext } from "../common"
+import { createSpecialProducer, bridgeName, roles, isDirectInteropType } from "../common"
 import { E, T } from "../../../ost/builder"
 import { Builders } from "../../../ost/builders"
-import { ArgConvertor } from "../components/argConvertor"
+import { argConvertor } from "../components/argConvertor"
 import { generatorConfiguration } from "@idlizer/core"
-import { Op, std, Ts } from "../../../ost/stdlib"
+import { Op, Ts } from "../../../ost/stdlib"
 import { fqName, modifierClassName, moduleName } from "../../engine"
-import { LWExpression, LWType, VariableExpression } from "../../../ost/lws"
+import { LWExpression, LWStatement, LWType, VariableExpression } from "../../../ost/lws"
 
 export const functionBridgeProducer = createSpecialProducer(
   { is: idl.isMethod, role: roles.bridge },
@@ -36,41 +36,49 @@ export const functionBridgeProducer = createSpecialProducer(
             { name: 'thisArray', type: Ts.prim.serializerBuffer },
             { name: 'thisLength', type: Ts.prim.i32 },
           ]
-          const convertor = new ArgConvertor(ctx, E.v('deserializer'), true)
-          const argReads = method.parameters.map(it => convertor.read(it.name, it.type))
-          const apiCallArgs: LWExpression[] = argReads.map(([_, expr]) => E.unary(Op.ref, expr))
-          const macroArgs = [funcName]
-          const [returnType, koalaReturnType, isDirect] = interopReturnType(method.returnType, ctx)
-          if (koalaReturnType)
-            macroArgs.push(koalaReturnType)
+          const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
+            const conv = argConvertor(ctx, it.type, it.isOptional)
+            const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
+            return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
+          })
+          const apiCallArgs = argReads.map(([_, expr]) => expr)
+          const macroName = ['KOALA_INTEROP_']
+          const macroArgs: (string | LWType)[] = [funcName]
+          const returnConv = argConvertor(ctx, method.returnType)
+          const interopReturnType = returnConv.interopType(true)
+          if (isDirectInteropType(interopReturnType))
+            macroName.push('DIRECT_')
+          if (interopReturnType === Ts.prim.void)
+            macroName.push('V')
+          else
+            macroArgs.push(interopReturnType)
           if (!method.isFree && !method.isStatic) {
             params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
             apiCallArgs.unshift(E.v('thisPtr'))
-            macroArgs.push('OH_NativePointer')
+            macroArgs.push(Ts.prim.pointer)
           }
-          const macroArity = macroArgs.length + (koalaReturnType ? 0 : 1)
-          const apiCall = Builders.call().functionExpr(apiAccessor(method, funcName)).args(apiCallArgs).$()
+          macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
+
+          const apiCall = Builders.call(apiAccessor(method, funcName)).args(apiCallArgs).$()
           const body = Builders.block()
-            .decl('deserializer', T.c('DeserializerBase')).value()
-              .ctor('DeserializerBase').stack().args([E.v('thisArray'), E.v('thisLength')]).$().$().$()
+            .decl('deserializer', T.c('DeserializerBase')).mutable().value()
+              .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
             .statements(argReads.flatMap(([stmts, _]) => stmts))
-          if (returnType === Ts.prim.returnBuffer) {
-            const conv = new ArgConvertor(ctx, E.v('returnSerializer'), true)
+          if (interopReturnType === Ts.prim.interopReturnBuffer) {
             body
-              .decl('returnValue', T.c(std.names.types.auto)).valueExpr(apiCall).$()///make decl.type optional?
-              .decl('returnSerializer', T.c('SerializerBase')).value().ctor().asStruct().$().$().$()
-              .statements([conv.write(E.v('returnValue'), method.returnType)])
-              .return().call().receiverName('returnSerializer').functionName('toReturnBuffer').$().$()
+              .decl('returnBuffer').value(apiCall).$()
+              .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
+              .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
+              .return().call('toReturnBuffer').receiver('returnSerializer').$().$()
           } else {
-            body.return(returnType).valueExpr(apiCall).$()
+            body.return(interopReturnType).value(apiCall).$()
           }
           return [
             Builders.func(declName)
               .parameters(params)
-              .returns(returnType)
+              .returns(interopReturnType)
               .body(body.$())
-              .macro(`KOALA_INTEROP_${isDirect ? 'DIRECT_' : ''}${koalaReturnType ? '' : 'V'}${macroArity}`,
-                ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+              .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
           ]
         }
       }
@@ -88,19 +96,18 @@ export const constructorBridgeProducer = createSpecialProducer(
         reference: E.v(declName),
         implementationGenerator: () => {
           const funcName = (ctx.useCApi(ctor).name() as VariableExpression).name
-          const interopParamTypes = ctor.parameters.map(it => interopType(it.type, ctx))
+          const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
           const callArgs = ctor.parameters.map(it =>
             Builders.cast(Ts.ptr(ctx.useCApi(it.type).reference())).value()
-              .unary(Op.ref).valueStr(it.name).$().$().$());
+              .unary(Op.ref).value(it.name).$().$().$());
           return [Builders.func(declName)
             .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
             .returns(Ts.prim.pointer)
             .block()
               .return(Ts.prim.pointer)
-                .call().functionExpr(apiAccessor(ctor, funcName))
+                .call(apiAccessor(ctor, funcName))
                 .args(callArgs).$().$().$()
-            .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`,
-              funcName, 'OH_NativePointer', ...interopParamTypes)
+            .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
             .$()
           ]
         }
@@ -112,7 +119,7 @@ export const constructorBridgeProducer = createSpecialProducer(
 
 export const materializedBridgeProducer = createSpecialProducer(
   { is: idl.isInterface, role: roles.bridge },
-  (node, ctx) => {
+  node => {
     const fqn = fqName(node)
     const finalizerName = fqn + '_getFinalizer'
     const declName = bridgeName('modifier.impl_' + finalizerName)
@@ -122,7 +129,7 @@ export const materializedBridgeProducer = createSpecialProducer(
         implementationGenerator: () => [
           Builders.func(declName).returns(Ts.prim.pointer).block()
             .return(Ts.prim.pointer)
-              .cast(Ts.prim.pointer).valueExpr(apiAccessor(node, fqn + '_destruct')).$().$().$()
+              .cast(Ts.prim.pointer).value(apiAccessor(node, fqn + '_destruct')).$().$().$()
             .macro('KOALA_INTEROP_DIRECT_0', finalizerName, Ts.prim.pointer).$()
           ]
       }
@@ -130,43 +137,9 @@ export const materializedBridgeProducer = createSpecialProducer(
   }
 )
 
-function interopReturnType(
-  type: idl.IDLType, ctx: AdvancedGeneratorContext
-): [returnType: LWType, koalaReturnType: string | undefined, isDirect: boolean] {
-  const returnType = ctx.useCApi(type).reference()
-  switch (type) {
-    case idl.IDLVoidType:
-      return [returnType, undefined, true]
-    case idl.IDLNumberType:
-    case idl.IDLI8Type: case idl.IDLU8Type:
-    case idl.IDLI16Type: case idl.IDLU16Type: case idl.IDLF16Type:
-    case idl.IDLI32Type: case idl.IDLU32Type: case idl.IDLF32Type:
-      return [returnType, 'KInteropNumber', true]
-    case idl.IDLStringType:
-      return [returnType, 'KStringPtr', true]
-    default:
-      return [Ts.prim.returnBuffer, 'KInteropReturnBuffer', false]
-  }
-}
-
-function interopType(type: idl.IDLType, ctx: AdvancedGeneratorContext): LWType {
-  switch (type) {
-    case idl.IDLNumberType: return T.c('KInteropNumber')
-    case idl.IDLBufferType: return T.c('KInteropBuffer')
-    case idl.IDLSerializerBuffer: return T.c('KSerializerBuffer')
-    case idl.IDLFunctionType: return Ts.prim.i32
-    case idl.IDLDate: return Ts.prim.i64
-    default: return ctx.useCApi(type).reference()
-  }
-}
-
 function apiAccessor(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, modifierName: string): LWExpression {
-  return Builders.access()
-    .object().call().function().access()
-      .object()
-        .call()
-          .functionName(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
-          .arg(moduleName('_API_VERSION')).$().$().$()
-      .member(modifierClassName(node)).ptr().$().$().$().$()
-    .member(modifierName).ptr().$()
+  return Builders
+    .access(modifierName).ptr().receiver().call().function()
+      .access(modifierClassName(node)).ptr().receiver().call(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
+        .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
 }

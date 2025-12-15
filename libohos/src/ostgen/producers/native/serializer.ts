@@ -19,5 +19,5 @@ import { makeSerializer } from "../components/serializer";
 
 export const serializerProducer = createSpecialProducer(
   { is: idl.isInterface, role: roles.serializerNative },
-  (node, ctx) => makeSerializer(true, node, ctx)
+  (node, ctx) => makeSerializer(ctx, node, true)
 )

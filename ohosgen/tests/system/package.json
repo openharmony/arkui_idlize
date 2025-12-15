@@ -2,10 +2,10 @@
     "name": "run-system-test-cases",
     "private": true,
     "devDependencies": {
-        "@koalaui/fast-arktsc": "1.7.10",
+        "@koalaui/fast-arktsc": "1.7.14",
         "@rollup/plugin-inject": "^5.0.5",
         "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-typescript": "^12.1.1",
+        "@rollup/plugin-typescript": "^11.1.6",
         "rollup": "^4.24.4"
     },
     "scripts": {
@@ -19,8 +19,8 @@
         "compile:interop:native:arkts": "TARGET_VM=panda npm run compile:interop:native",
 
         "clean": "rm -rf ./${TEST_CASE}/build ./${TEST_CASE}/generated",
-        "generate:dts:arkts": "node ../../../dtsgen --dts2idl --input-dir ./${TEST_CASE}/dts --output-dir ./${TEST_CASE}/generated/idl && node ../.. --idl2peer --use-new-ohos ${USE_OST} --language=arkts --input-dir ./${TEST_CASE}/generated/idl",
-        "generate:idl:arkts": "node ../.. --use-new-ohos ${USE_OST} --language=arkts --idl2peer --input-dir ./${TEST_CASE}/idl",
+        "generate:dts:arkts": "node ../../../dtsgen --dts2idl --input-dir ./${TEST_CASE}/dts --output-dir ./${TEST_CASE}/generated/idl && node ../.. --idl2peer ${USE_OST} --language=arkts --input-dir ./${TEST_CASE}/generated/idl",
+        "generate:idl:arkts": "node ../.. --language=arkts --idl2peer ${USE_OST} --input-dir ./${TEST_CASE}/idl",
         "generate:arkts": "npm run generate:${INPUT_TYPE}:arkts -- --options-file ./${TEST_CASE}/generation_config.json --output-dir ./${TEST_CASE}",
         "compile:arkts": "bash ./build-panda.sh ${TEST_CASE}",
         "compile:native": "npm run _meson:setup && npm run _meson:compile && npm run _meson:install",

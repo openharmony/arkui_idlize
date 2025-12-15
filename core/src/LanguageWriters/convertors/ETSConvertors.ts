@@ -36,6 +36,9 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         if (idl.IDLContainerUtils.isSequence(type)) {
             return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
         }
+        if (idl.IDLContainerUtils.isRecord(type) && idl.hasExtAttribute(type, idl.IDLExtendedAttributes.AsRecord)) {
+            return isInsideInstanceof() ? 'Record' : `Record<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
+        }
         return super.convertContainer(type)
     }
     override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
@@ -94,7 +97,9 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
 
     protected mapCallback(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it => {
-            return `${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}`
+            // HACK: callbacks can have ThrowsWrapper<T> in argument but not in return type. Maybe there is more beautiful solution?
+            const paramType = LanguageWriter.managedThrowsTypeUnwrapped(false, () => this.convert(it.type!))
+            return `${it.name}${it.isOptional ? "?" : ""}: ${paramType}`
         })
         return `((${params.join(",")}) => ${this.convert(decl.returnType)})`
     }

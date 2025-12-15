@@ -18,8 +18,9 @@ import { Language } from '../../Language'
 import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
-import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
-import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor } from '../nameConvertor'
+import { maybeRestoreGenerics, maybeRestoreThrows } from '../../transformers/transformUtils'
+import { LanguageWriter } from '../LanguageWriter'
+import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor, withInsideInstanceof } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
@@ -125,6 +126,14 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 }
             }
 
+            let restoredThrow: idl.IDLType | undefined
+            if (restoredThrow = maybeRestoreThrows(decl, this.library)) {
+                if (LanguageWriter.isManagedThrowsTypeUnwrapped)
+                    return this.convert(restoredThrow)
+                if (restoredThrow === idl.IDLThisType)
+                    return this.convert(idl.createReferenceType(idl.IDLThrowsTypeName, [idl.IDLVoidType]))
+            }
+
             // FIXME: isEnumMember is not TYPE!
             if (decl && idl.isEnumMember(decl) && decl.parent) {
                 // when `interface A { field?: MyEnum.Value1 }` is generated, it is not possible
@@ -140,7 +149,8 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             }
             let typeSpec = type.name
             let typeArgs = !isInsideInstanceof() || decl && idl.isCallback(decl)
-                ? type.typeArguments?.map(it => this.convert(it)) ?? []
+                // there is a bug with panda - if we're inside callback generics, we need to expand other generics too. So withInsideInstanceof is used
+                ? type.typeArguments?.map(it => withInsideInstanceof(false, () => this.convert(it))) ?? []
                 : []
             if (typeSpec === `Optional`)
                 return `${typeArgs} | undefined`
@@ -230,8 +240,11 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             param.type = type
             return param
         })
-        const params = parameters.map(it =>
-            `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}${it.isVariadic ? "[]" : ""}`)
+        const params = parameters.map(it => {
+            // HACK: callbacks can have ThrowsWrapper<T> in argument but not in return type. Maybe there is more beautiful solution?
+            const paramType = LanguageWriter.managedThrowsTypeUnwrapped(false, () => this.convert(it.type!))
+            return `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${paramType}${it.isVariadic ? "[]" : ""}`
+        })
         return `((${params.join(", ")}) => ${this.convert(decl.returnType)})`
     }
     protected productType(decl: idl.IDLInterface, args:idl.IDLType[] | undefined, isTuple: boolean, includeFieldNames: boolean): string {

@@ -2,6 +2,8 @@ import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loa
 import { stdout } from "node:process";
 import { registerUnitApiHandler } from "../../generated/ts";
 
+export { int32 } from "@koalaui/common"
+
 export {
     CONST_BOOLEAN_FALSE,
     CONST_BOOLEAN_TRUE,
@@ -39,14 +41,17 @@ export {
 } from '../../generated/ts'
 
 export {
+    SingleGenericType,
+    DoubleGenericType,
     UnionSampleEnum,
     checkUnionEnumSample,
     checkUnionArraySample,
     checkUnionNumberArraySample,
     checkUnionTupleArraySample,
+    checkUnionGenericTypeSample,
 } from "../../generated/ts"
 
-export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts"
+export { CheckExceptionClass, CheckExceptionInterface, CheckCallbackExceptions } from "../../generated/ts"
 
 export {
     testLength
@@ -58,12 +63,35 @@ export { InternalModuleDataInterface } from "./modules/internal_lib"
 export { RenamedModuleDataInterface } from "./modules/newname_lib"
 export { DTSCheckInternalLib } from "../../generated/ts"
 
-export { DTSHookClass, DTSHookValue } from "../../generated/ts"
+export {
+    HookClass,
+    HookValue,
+    HookInterface,
+    getHookInterface,
+} from "../../generated/ts"
+
 export { ImportedHookValue } from "./handwritten/external_lib"
 export { ExternalType, hookns } from "./handwritten/external_lib"
 
 export { DTSCheckExternalLib, InternalType } from "../../generated/ts"
 export { PromiseTester } from "../../generated/ts"
+export { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "../../generated/ts"
+export { getSomeClassInstance, SomeClass } from "../../generated/ts"
+
+export {
+    TransformSrcI,
+    TransformDstI,
+    TransformSrcC,
+    TransformDstC,
+    TransformSrcCallbackI,
+    TransformDstCallbackI,
+    TransformSrcCallbackC,
+    TransformDstCallbackC,
+    checkTransformDstI,
+    checkTransformDstC,
+    checkTransformSrcIToCallback,
+    checkTransformSrcCToCallback,
+} from "../../generated/ts"
 
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
@@ -128,7 +156,7 @@ export function checkNotEQ(value1: unknown, value2: unknown, comment?: string): 
 class Test {
     constructor(
         public readonly name: string,
-        public readonly test: () => void
+        public readonly test: () => Promise<void> | void
     ) {}
 }
 
@@ -142,11 +170,15 @@ export class UnitTestsuite {
         this.tests.push(new Test(testName, test))
     }
 
-    run(): void {
+    addAsyncTest(testName: string, test: () => Promise<void>): void {
+        this.tests.push(new Test(testName, test))
+    }
+
+    async run() {
         const failedTests: string[] = []
         for (const t of this.tests) {
             try {
-                t.test()
+                await t.test()
                 console.log('[ \x1b[32m%s\x1b[0m ] %s', 'PASSED', t.name);
             } catch (ex) {
                 if (ex instanceof UnitTestError) {

@@ -13,34 +13,33 @@
  * limitations under the License.
  */
 
-import { T } from "../../../ost";
-import { createProducer } from "../../engine/context"
+import { Ts } from "../../../ost";
 import * as idl from "@idlizer/core/idl";
 import { createSpecialProducer } from "../common";
 
 export const containerProducer = createSpecialProducer(
   { is: idl.isContainerType },
-  (node, ctx) => {
+  (type, ctx, query) => {
     return {
       recursive: () => {
-        if (idl.IDLContainerUtils.isSequence(node)) {
-          const elemRef = ctx.useManaged(node.elementType[0]).reference()
+        if (idl.IDLContainerUtils.isSequence(type)) {
+          const elemRef = ctx.base.use({ node: type.elementType[0], role: query.role }).reference()
           return {
             artifact: {
-              reference: T.c('idlize.Array', elemRef)
+              reference: Ts.array(elemRef)
             }
           }
         }
-        if (idl.IDLContainerUtils.isRecord(node)) {
-          const keyRef = ctx.useManaged(node.elementType[0]).reference()
-          const valRef = ctx.useManaged(node.elementType[1]).reference()
+        if (idl.IDLContainerUtils.isRecord(type)) {
+          const keyRef = ctx.base.use({ node: type.elementType[0], role: query.role }).reference()
+          const valRef = ctx.base.use({ node: type.elementType[1], role: query.role }).reference()
           return {
             artifact: {
-              reference: T.c('idlize.Map', keyRef, valRef)
+              reference: Ts.map(keyRef, valRef)
             }
           }
         }
-        throw new Error(`Unknown type "${idl.DebugUtils.debugPrintType(node)}"`)
+        throw new Error(`Unknown type "${idl.DebugUtils.debugPrintType(type)}"`)
       }
     }
   }

@@ -746,7 +746,7 @@ declare interface ButtonLabelStyle {
    * @since 20
    * @arkts 1.2
    */
-  maxLines?: number;
+  maxLines?: int;
 
   /**
    * Min font size for adapted height.

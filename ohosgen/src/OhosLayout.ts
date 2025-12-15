@@ -24,8 +24,8 @@ function cropCurrentModulePrefix(fqname: string): string {
 // TBD: code duplication with the ArkoalaLayout
 export function HandwrittenModule(language: Language): string {
     switch (language) {
-        case Language.TS: return "../handwritten"
-        case Language.ARKTS: return "../handwritten"
+        case Language.TS: return "./handwritten"
+        case Language.ARKTS: return "./handwritten"
         default: throw new Error("Not implemented")
     }
 }
@@ -47,7 +47,8 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     protected readonly interopObjects = [
         'SerializerBase', 
         'DeserializerBase',
-        'Finalizable'
+        'Finalizable',
+        'resourceFinalizerRegister'
     ]
 
     protected selectInterface(node: idl.IDLEntry): string {
@@ -111,13 +112,14 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
     ) { }
 
     handwrittenPackage(): string {
-        return "#handwritten"
+        return "handwritten"
     }
 
     protected readonly interopObjects = [
-        'SerializerBase', 
-        'DeserializerBase',
-        'Finalizable'
+        "SerializerBase", 
+        "DeserializerBase",
+        "Finalizable",
+        "resourceFinalizerRegister"
     ]
 
     private selectInteropPath() {
@@ -125,6 +127,16 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
     }
 
     protected selectInterface(node: idl.IDLEntry): string {
+        const packageName = idl.getPackageNameSafe(node)
+        const arkuiPackages = ["arkui.component"]
+        if (packageName) {
+            for (const pkg of arkuiPackages) {
+                if (packageName === pkg || packageName.startsWith(`${pkg}.`)) {
+                    return "koalaui.arkoala"
+                }
+            }
+        }
+
         if (isInIdlize(node)) {
             if (this.interopObjects.includes(node.name)) {
                 return this.selectInteropPath()
@@ -138,12 +150,6 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
             return getSyntheticTypesFileName()
         }
         if (isInCurrentModule(node)) {
-            if (canCropCurrentModulePrefix()) {
-                const cropped = cropCurrentModulePrefix(idl.getPackageName(node))
-                return currentModule().useFoldersLayout
-                    ? cropped.split('.').join("/") || 'synthetic'
-                    : cropped
-            }
             return currentModule().useFoldersLayout
                 ? idl.getPackageClause(node).join("/") || 'synthetic'
                 : idl.getPackageName(node)

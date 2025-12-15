@@ -15,6 +15,7 @@
 
 import {
     ArgumentModifier,
+    capitalize,
     CppLanguageWriter,
     createEmptyReferenceResolver,
     IDLMethod,
@@ -29,7 +30,7 @@ import {
 import { createReferenceType, IDLFile, IDLInterface, IDLType, IDLVoidType } from "@idlizer/core/idl"
 import { BridgesConstructions } from "../../constuctions/BridgesConstructions"
 import { InteropPrinter } from "./InteropPrinter"
-import { isSequence, isString, makeSignature, makeStatement } from "../../utils/idl"
+import { isSequence, isString, makeSignature, makeStatement, nodeNamespace } from "../../utils/idl"
 import { ReturnTypeConvertor } from "../../type-convertors/interop/bridges/ReturnTypeConvertor"
 import { InteropMacroTypeConvertor } from "../../type-convertors/interop/bridges/InteropMacroTypeConvertor"
 import { NativeTypeConvertor } from "../../type-convertors/interop/bridges/NativeTypeConvertor"
@@ -68,7 +69,8 @@ export class BridgesPrinter extends InteropPrinter {
             (_) => {
                 let pandaMethodName = BridgesConstructions.callMethod(methodName)
                 if (this.config.irHack.isIrHackInterface(iface.name)) {
-                    pandaMethodName = pandaMethodName.replace(iface.name, `${iface.name}Ir`)
+                    const nsName = nodeNamespace(iface) ?? 'ir'
+                    pandaMethodName = pandaMethodName.replace(iface.name, `${iface.name}${capitalize(nsName)}`)
                 }
                 this.printBody(node, signature, pandaMethodName)
             }

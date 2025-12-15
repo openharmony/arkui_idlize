@@ -95,9 +95,9 @@ const globalContent = new Set<idl.IDLKind>([idl.IDLKind.Namespace, idl.IDLKind.I
 
 const havingBlocks = new Set<idl.IDLKind>([idl.IDLKind.Namespace, idl.IDLKind.Interface, idl.IDLKind.Enum])
 
-type ModifierToken = "static" | "readonly" | "async"
+type ModifierToken = "static" | "readonly" | "async" | "optional"
 type ModifiersContainer = {[Key in ModifierToken]?: Token}
-const modifierTokens = new Set<ModifierToken>(["static", "readonly", "async"])
+const modifierTokens = new Set<ModifierToken>(["static", "readonly", "async", "optional"])
 
 // Uncomment in case of parser debugging
 function trac(s: string) {
@@ -478,7 +478,7 @@ export class Parser {
             }
             switch (this.curValue) {
                 case "attribute":
-                    this.assertPossibleModifiers("static", "readonly")
+                    this.assertPossibleModifiers("static", "readonly", "optional")
                     return this.parseAttribute()
                 case "callback":
                     return this.parseCallback()
@@ -825,7 +825,7 @@ export class Parser {
         const ext = this.consumeCurrentExtended()
         const isReadonly = !!this.currentModifiers.readonly
         const isStatic = !!this.currentModifiers.static
-        const isOptional = extractOptional(ext)
+        let isOptional = !!this.currentModifiers.optional || extractOptional(ext)
         this.skip("attribute")
         const type = this.parseType()
         const name = this.parseSingleIdentifier()

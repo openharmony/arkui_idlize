@@ -15,7 +15,10 @@
 
 import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
+import { Language } from '../Language'
+import { capitalize } from '../util'
 import { getSuper } from './getSuperType'
+import { qualifiedName } from './idl/common'
 import { ReferenceResolver } from './ReferenceResolver'
 
 export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
@@ -101,3 +104,17 @@ export function isMaterializedType(type: idl.IDLType, resolver: ReferenceResolve
     if (!decl) return false
     return (idl.isInterface(decl) && isMaterialized(decl, resolver))
 }
+
+export function getInternalClassName(name: string): string {
+    return `${name}Internal`
+}
+
+export function getInternalClassQualifiedName(target: idl.IDLEntry, pattern: idl.QNPattern = "package.namespace.name", language?: Language): string {
+    return getInternalClassName(qualifiedName(target, language ?? ".", pattern))
+}
+
+export function getMaterializedFileName(name:string): string {
+    const pascalCase = name.split('_').map(x => capitalize(x)).join('')
+    return `Ark${pascalCase}Materialized`
+}
+

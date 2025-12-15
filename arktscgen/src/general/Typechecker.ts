@@ -24,12 +24,15 @@ import {
     IDLNode,
     IDLReferenceType,
     IDLType,
+    IDLTypedef,
     isEnum,
     isInterface,
     isNamespace,
     isPrimitiveType,
     isReferenceType,
-    resolveNamedNode
+    isTypedef,
+    resolveNamedNode,
+    throwException
 } from "@idlizer/core"
 import { Config } from "./Config"
 import { flatParentsImpl, fqName, nodeType } from "../utils/idl"
@@ -77,6 +80,13 @@ export class Typechecker {
         }
 
         return entry
+    }
+
+    resolveRecursive(ref: IDLReferenceType): IDLNamedNode|undefined {
+        const decl = this.resolveReference(ref)
+        return decl && isTypedef(decl) && isReferenceType(decl.type)
+            ? this.resolveRecursive(decl.type)
+            : decl
     }
 
     flatParents(ref: IDLReferenceType | IDLInterface): IDLInterface[] {
@@ -152,9 +162,17 @@ export class Typechecker {
     }
 
     isConstReturnValue(node: IDLMethod): boolean {
-        if (isPrimitiveType(node.returnType) || this.isReferenceTo(node.returnType, isEnum)) {
+        const isPrimitive = (returnType: IDLNode): boolean => {
+            const type = isReferenceType(returnType)
+                ? this.resolveReference(returnType) ?? throwException(`Unresolved type ${returnType.name}`)
+                : returnType
+            return isPrimitiveType(type) || isEnum(type) || (isTypedef(type) && isPrimitive(type.type))
+        }
+
+        if (isPrimitive(node.returnType)) {
             return false
         }
+
         return node.name.endsWith(Config.constPostfix)
     }
 

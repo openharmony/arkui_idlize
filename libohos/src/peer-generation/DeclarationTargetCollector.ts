@@ -1,10 +1,23 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized, isInCurrentModule, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core";
+import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized, isInCurrentModule, maybeTransformManagedCallback, getSuper, maybeRestoreGenerics } from "@idlizer/core";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { UnionFlatteningMode, DependencySorter } from "./idl/DependencySorter";
 import { IdlNameConvertor } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
-import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
 const collectDeclarationTargets_cache_flatten = new Map<LibraryInterface, idl.IDLNode[]>()
@@ -26,7 +39,8 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (peerGeneratorConfiguration().ignoreEntry(entry.name, library.language) ||
                 isInIdlize(entry) ||
-                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation)
+                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation) ||
+                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TransformOnSerialize)
                 )
                 continue
             if (idl.isInterface(entry)) {

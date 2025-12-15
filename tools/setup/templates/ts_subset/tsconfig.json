@@ -16,6 +16,7 @@
         "rootDir": "generated",
         "module": "CommonJS",
         "paths": {
+            "#arktheme": ["./generated/sig/arkoala/arkui/src/ArkThemeScopeManager"],
             "@arkoala/arkui": ["./generated/sig/arkoala/arkui/src", "./"],
             "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"],
             "@ohos.multimedia.image": ["./generated/sig/arkoala/external/src"]

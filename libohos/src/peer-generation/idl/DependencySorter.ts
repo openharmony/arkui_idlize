@@ -14,9 +14,9 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { convertNode, convertType, isMaterialized, Language, LibraryInterface, NodeConvertor, ReferenceResolver, sorted } from "@idlizer/core";
-import { collectProperties } from "../printers/StructPrinter";
+import { convertNode, isMaterialized, Language, LibraryInterface, NodeConvertor, ReferenceResolver, sorted } from "@idlizer/core";
 import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
+import { collectProperties } from '../propertyCollectors';
 
 class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     constructor(
@@ -25,9 +25,12 @@ class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     {}
 
     private toDeclarations(node: idl.IDLNode | idl.IDLType, isOptional = false): idl.IDLNode[] {
-        const one = (node: idl.IDLNode | idl.IDLType) => {
+        const one = (node: idl.IDLNode | idl.IDLType): idl.IDLNode => {
             if (idl.isType(node) && isOptional)
                 node = idl.maybeOptional(node, isOptional)
+            if (node === idl.IDLThisType)
+                // reason: Throws<this> is possible declaration and must be handled as Throws<void> for CPP
+                return idl.IDLVoidType
             return this.library.toDeclaration(node)
         }
 

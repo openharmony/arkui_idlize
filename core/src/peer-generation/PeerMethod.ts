@@ -16,7 +16,6 @@ import * as idl from '../idl'
 import { IDLType } from "../idl"
 import { ArgConvertor, createOutArgConvertor } from "../LanguageWriters/ArgConvertors"
 import { Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
-import { isDefined } from "../util"
 import { PeerLibrary } from './PeerLibrary'
 
 export class PeerMethodArg {
@@ -80,6 +79,7 @@ export class PeerMethodSignature {
 
     static get CTOR(): string { return "construct" }
     static get GET_FINALIZER(): string { return "getFinalizer" }
+    static get CALL_HOLDER(): string { return "callHolder" }
     static get DESTROY(): string { return "destroyPeer" }
 }
 

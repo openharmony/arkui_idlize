@@ -1,0 +1,42 @@
+Starting demo: test_ost
+[loadLibraries] Registered TEST_OSTNativeModule as InteropNativeModule
+[loadLibraries] Loading InteropNativeModule [TEST_OSTNativeModule]
+==== Buffers
+[loadLibraries] Loading TEST_OSTNativeModule [TEST_OSTNativeModule]
+Buffers_ConstructImpl()
+  new Counted(1)
+Buffers_getResultImpl()
+AllocationManager::Allocate(sizeBytes=64)
+InteropCallbackResource.hold called with resourceId = 0
+InteropCallbackResource.hold called with resourceId = 0
+InteropCallbackResource.release called with resourceId = 0
+Buffers.getResult():
+  .index = 100
+  .inData.length = 64
+Buffers_getDataImpl()
+AllocationManager::Allocate(sizeBytes=32)
+InteropCallbackResource.hold called with resourceId = 1
+InteropCallbackResource.hold called with resourceId = 1
+InteropCallbackResource.release called with resourceId = 1
+foo.getData():
+  .length = 32
+==== Callbacks
+Callbacks_ConstructImpl()
+  new Counted(2)
+Callbacks_getXImpl()
+foo.getX() = 2
+Callbacks_callNumberImpl(thisPtr, y, cb)
+  y = 42 (int32)
+Callbacks_callVoidImpl(thisPtr, cb)
+Callback invoked with arg 44
+Void callback invoked
+==== FQN
+resize(intSize=21x11)
+resize(floatSize=0.26x0.23)
+resize(numSize=6 (int32)x3 (int32))
+resize(numSize=4 (int32)x8 (int32))
+resize(intSize=14x18)
+resize(floatSize=24x28)
+resize(numSize=6 (int32)x3 (int32))
+resize(intSize=16x13)
+resize(floatSize=0.26x0.23)

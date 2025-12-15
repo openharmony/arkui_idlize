@@ -86,6 +86,7 @@ export const PeerGeneratorConfigurationSchema = D.combine(
         forceContext: T.stringArray(),
         hooks: D.map(D.string(), D.map(D.string(), HookMethodSchema)).onMerge('replace'),
         libraryNameMapping: D.maybe(D.map(D.string(), D.map(D.string(), D.string())).onMerge('replace')),
+        handwrittenDeserializers: T.stringArray(),
     })
 )
 

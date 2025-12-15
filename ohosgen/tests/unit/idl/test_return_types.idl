@@ -5,6 +5,7 @@ interface test_ret_A {
 interface test_ret_B {
     number action();
 };
+callback test_ret_Callback = void ();
 namespace test_return_types {
     void returnNothing();
     number returnNumber();
@@ -17,4 +18,5 @@ namespace test_return_types {
     sequence<String> returnStringArray();
     sequence<test_ret_A> returnInterfaceArray();
     sequence<test_ret_B> returnMaterializedArray();
+    test_ret_Callback returnCallback();
 };

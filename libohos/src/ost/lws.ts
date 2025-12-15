@@ -14,7 +14,6 @@
  */
 
 export enum LWKind {
-  UnionDeclaration,
   EnumDeclaration,
   StructureDeclaration,
   ClassDeclaration,
@@ -28,6 +27,7 @@ export enum LWKind {
   ReturnStatement,
   LoopStatement,
   IfStatement,
+  SwitchStatement,
   NoneStatement,
 
   VariableExpression,
@@ -39,6 +39,7 @@ export enum LWKind {
   AccessorExpression,
   ConstructorExpression,
   CheckCastExpression,
+  LambdaExpression,
 
   ValueType,
   FunctionalType,
@@ -57,7 +58,7 @@ export enum DecoratorKind {
   Modifier = "Modifier",
 
   SimpleAnnotation = "Annotation",
-  MacroCall = "MacroCall",
+  MacroInvocation = "MacroInvocation",
 }
 
 export interface Hint {
@@ -77,9 +78,9 @@ export interface SimpleAnnotation {
   value?: string
 }
 export interface MacroInvocation {
-  kind: DecoratorKind.MacroCall,
+  kind: DecoratorKind.MacroInvocation,
   name: string
-  args: (string | LWType)[]
+  args: (string | LWExpression | LWType)[]
 }
 export type Annotation =
     SimpleAnnotation
@@ -87,16 +88,6 @@ export type Annotation =
 
 ////////////////////////////////////////////////////////
 
-/**
- * Should be emulated as tagged union
- */
-export interface UnionDeclaration {
-  kind: LWKind.UnionDeclaration
-  generics: GenericDescriptor[]
-  modifiers: Modifier[]
-  name: string
-  variants: LWType[]
-}
 export interface EnumDeclaration {
   kind: LWKind.EnumDeclaration
   generics: GenericDescriptor[]
@@ -162,7 +153,6 @@ export interface FunctionDeclaration {
   body?: LWStatement
 }
 export type LWDeclaration =
-    UnionDeclaration
   | EnumDeclaration
   | StructureDeclaration
   | ClassDeclaration
@@ -203,6 +193,12 @@ export interface IfStatement {
   thenBody: LWStatement
   elseBody?: LWStatement
 }
+export interface SwitchStatement {
+  kind: LWKind.SwitchStatement
+  selector: LWExpression
+  cases: { value: ConstantExpression, body: LWStatement[] }[]
+  default: LWStatement[]
+}
 export interface NoneStatement {
   kind: LWKind.NoneStatement
 }
@@ -213,6 +209,7 @@ export type LWStatement =
   | ReturnStatement
   | LoopStatement
   | IfStatement
+  | SwitchStatement
   | NoneStatement
 
 export interface VariableExpression {
@@ -270,6 +267,16 @@ export interface CheckCastExpression {
   type: LWType
   hints: Hint[]
 }
+export interface LambdaExpression {
+  kind: LWKind.LambdaExpression
+  parameters: {
+    name: string
+    type: LWType
+  }[]
+  body: LWStatement
+  closure?: string[]
+  hints: Hint[]
+}
 export type LWExpression =
     VariableExpression
   | ConstantExpression
@@ -280,6 +287,7 @@ export type LWExpression =
   | AccessorExpression
   | ConstructorExpression
   | CheckCastExpression
+  | LambdaExpression
 
 export interface ValueType {
   kind: LWKind.ValueType

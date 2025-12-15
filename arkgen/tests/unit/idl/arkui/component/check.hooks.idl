@@ -1,0 +1,10 @@
+package arkui.component.check.hooks;
+
+
+[Component]
+interface CheckHooksAttribute: Root {
+    attribute (String or undefined) text;
+    attribute (String or undefined) checkHookResult;
+
+    this methodPrimitives(boolean flag, number count, String value);
+};

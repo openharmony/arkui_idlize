@@ -17,6 +17,7 @@ import { IgnoreOptions, IrHackOptions } from "../options/IgnoreOptions"
 import { NonNullableOptions } from "../options/NonNullableOptions"
 import { CodeFragmentOptions } from "../options/CodeFragmentOptions";
 import { ExtraParameters } from "../options/ExtraParameters";
+import { Aliases } from "../options/Aliases";
 
 export class Config {
     constructor(
@@ -25,6 +26,7 @@ export class Config {
         public irHack: IrHackOptions,
         public fragments: CodeFragmentOptions,
         public parameters: ExtraParameters,
+        public aliases: Aliases,
     ) {}
 
     static get createPrefix(): string {
@@ -37,6 +39,10 @@ export class Config {
 
     static get constPostfix(): string {
         return `Const`
+    }
+
+    static get ptrPostfix(): string {
+        return `Ptr`
     }
 
     static get nodeTypeAttribute(): string {

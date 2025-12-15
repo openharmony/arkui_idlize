@@ -1,0 +1,31 @@
+package arkui.component.check.transform;
+
+interface SampleI {
+    attribute boolean flag;
+};
+
+
+interface SampleTransformSrcI {
+    attribute String text;
+};
+
+interface SampleTransformDstI {
+    attribute number length;
+};
+
+interface TransformSrcCallbackI {
+    attribute boolean flag;
+};
+
+callback TransformDstCallbackI = boolean (boolean value);
+
+
+[Component]
+interface CheckTransformAttribute: Root {
+
+    attribute SampleI sample;
+    attribute SampleTransformSrcI sampleTransformI;
+    attribute TransformSrcCallbackI sampleTransformCallback;
+
+    attribute (SampleI or SampleTransformSrcI) sampleTransformUnion;
+};

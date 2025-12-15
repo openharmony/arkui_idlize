@@ -1,10 +1,8 @@
 package arkui.AttributeUpdater;
 import ohos.arkui.component.AttributeModifier as AttributeModifier;
+
+// TBD: used in conf/ets-sdk.refs.json
 [Entity=Class]
 interface <T> AttributeUpdater: AttributeModifier<T> {
     constructor();
-    [Accessor=Getter]
-    attribute (T or undefined) attribute_;
-    void initializeModifier(T instance);
-    void onComponentChanged(T component);
 };

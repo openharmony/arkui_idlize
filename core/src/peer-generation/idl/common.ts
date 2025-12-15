@@ -16,25 +16,6 @@
 import * as idl from "../../idl"
 import { Language } from "../../Language"
 import { IdlNameConvertor } from "../../LanguageWriters"
-import { capitalize } from "../../util"
-
-export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
-    if (idl.isPrimitiveType(type)) return capitalize(type.name)
-    if (idl.isContainerType(type)) {
-        const typeArgs = type.elementType.map(it => generateSyntheticIdlNodeName(it)).join("_").replaceAll(".", "_")
-        switch (type.containerKind) {
-            case "sequence": return "Array_" + typeArgs
-            case "record": return "Map_" + typeArgs
-            case "Promise": return "Promise_" + typeArgs
-            default: throw new Error(`Unknown container type ${idl.DebugUtils.debugPrintType(type)}`)
-        }
-    }
-    if (idl.isNamedNode(type))
-        return type.name.split('.').map(capitalize).join('_')
-    if (idl.isOptionalType(type))
-        return `Opt_${generateSyntheticIdlNodeName(type.type)}`
-    throw `Can not compute type name of ${idl.IDLKind[type.kind]}`
-}
 
 export function qualifiedName(decl: idl.IDLNode, languageOrDelimiter: Language|string, pattern: idl.QNPattern): string {
     if (!idl.isNamedNode(decl))
@@ -75,22 +56,18 @@ export function sanitizeGenerics(genericDeclarationString:string): string {
     return genericDeclarationString.trim()
 }
 
-export function generateSyntheticUnionName(types: idl.IDLType[]) {
-    return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_").replaceAll(".", "_")}`
-}
-
 export function generateSyntheticFunctionParameterName(parameter:idl.IDLParameter): string {
     if (parameter.isOptional) {
-        return generateSyntheticIdlNodeName(idl.createOptionalType(parameter.type))
+        return idl.generateSyntheticIdlNodeName(idl.createOptionalType(parameter.type))
     }
-    return generateSyntheticIdlNodeName(parameter.type)
+    return idl.generateSyntheticIdlNodeName(parameter.type)
 }
 
 export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, options?: { isAsync?: boolean, nameConvertor?: IdlNameConvertor }): string {
     let prefix = options?.isAsync ? "AsyncCallback" : "Callback"
     const names = options?.nameConvertor !== undefined
         ? parameters.map(it => options.nameConvertor!.convert(it.type)).concat(options.nameConvertor!.convert(returnType))
-        : parameters.map(generateSyntheticFunctionParameterName).concat(generateSyntheticIdlNodeName(returnType))
+        : parameters.map(generateSyntheticFunctionParameterName).concat(idl.generateSyntheticIdlNodeName(returnType))
     return `${prefix}_${names.join("_").replaceAll(".", "_")}`
 }
 

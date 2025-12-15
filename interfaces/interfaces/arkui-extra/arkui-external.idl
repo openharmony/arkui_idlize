@@ -66,6 +66,12 @@ interface CommonShape {
     CommonShape fill(ResourceColor color);
     CommonShape position(Position position);
 };
+[Entity=Class]
+interface BaseShape {
+    BaseShape width(Length width);
+    BaseShape height(Length height);
+    BaseShape size(SizeOptions size);
+};
 
 [Entity=Class]
 interface GlobalScope_ohos_font {
@@ -101,8 +107,7 @@ interface IndicatorStyle {
     [Optional, Deprecated] attribute boolean mask;
 };
 
-[TypeParameters="T"]
-interface BusinessErrorInterface {
+interface <T> BusinessErrorInterface {
     attribute String name;
     attribute String message;
     [Optional]

@@ -14,17 +14,17 @@
  */
 
 import * as idl from '../../idl'
-import { generatorConfiguration, generatorTypePrefix } from "../../config"
+import { generatorConfiguration } from "../../config"
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from "../nameConvertor"
 import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
 import { InteropArgConvertor } from './InteropConvertors'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { maybeTransformManagedCallback } from '../ArgConvertors'
 import { qualifiedName } from '../../peer-generation/idl/common'
 import { isInIdlizeInternal } from '../../idl'
 import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { Language } from '../../Language'
+import { maybeRestoreThrows, maybeTransformManagedCallback } from '../../transformers/transformUtils'
 
 function isSubtypeTopLevelConflicted(library: LibraryInterface, node: idl.IDLType) {
     let hasConflicts = false
@@ -64,6 +64,12 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     }
 
     convertInterface(node: idl.IDLInterface): ConvertResult {
+        let restoredThrow: idl.IDLType | undefined
+        if (restoredThrow = maybeRestoreThrows(node, this.library)) {
+            if (restoredThrow === idl.IDLThisType)
+                restoredThrow = idl.IDLVoidType
+            return this.make(`Throws_${this.convertNode(restoredThrow).text}`, idl.createReferenceType(node), true)
+        }
         switch (node.subkind) {
             case idl.IDLInterfaceSubkind.AnonymousInterface:
                 return node.name

@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl";
 import { createSpecialProducer, managedName, roles } from "../common";
 import { E, S, T } from "../../../ost/builder";
 import { Builders } from "../../../ost/builders";
-import { ArgConvertor } from "../components/argConvertor";
+import { argConvertor } from "../components/argConvertor";
 import { Md } from "../../../ost/stdlib";
 
 export const functionProducer = createSpecialProducer(
@@ -32,37 +32,34 @@ export const functionProducer = createSpecialProducer(
             : idl.getExtAttribute(method, idl.IDLExtendedAttributes.DtsName) ?? method.name
           const serializerName = 'serializer'
           const returnType = ctx.useManaged(method.returnType).reference()
-          const convertor = new ArgConvertor(ctx, E.v(serializerName), false)
-          const fieldWrites = method.parameters.map(param => convertor.write(E.v(param.name), param.type))
-          const releaseCall = Builders.stmt().call().receiverName(serializerName).functionName('release').$().$()
-          const nativeModuleCall = Builders.call()
-            .functionExpr(ctx.useManagedNativeModule(method).name())
-            .arg().call().receiverName(serializerName).functionName('asBuffer').$().$()
-            .arg().call().receiverName(serializerName).functionName('length').$().$().$()
+          const nativeModuleCall = Builders.call(ctx.useManagedNativeModule(method).name())
+            .arg().call('asBuffer').receiver(serializerName).$().$()
+            .arg().call('length').receiver(serializerName).$().$().$()
           if (!method.isFree && !method.isStatic) {
             nativeModuleCall.args.unshift(
-              Builders.access().object().access(E.v('this')).member('peer').excl().$().$().member('ptr').$())
+              Builders.access('ptr').receiver().access('peer').receiver('this').excl().$().$().$())
           }
-          const statements = [
+          const body = [
             Builders.decl(serializerName, T.c('SerializerBase'))
-              .value().call().receiverName('SerializerBase').functionName('hold').$().$().$(),
-            ...fieldWrites]
-          if (method.returnType !== idl.IDLVoidType) {
-            statements.push(
-              Builders.decl('result', returnType).valueExpr(nativeModuleCall).$(),
-              releaseCall,
-              Builders.return(returnType).valueStr('result').$())
-          } else {
-            statements.push(S.e(nativeModuleCall), releaseCall)
-          }
+              .value().call('hold').receiver('SerializerBase').$().$().$(),
+            ...method.parameters.flatMap(param =>
+              argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
+            method.returnType === idl.IDLVoidType
+              ? S.e(nativeModuleCall)
+              : Builders.decl('retval').value(nativeModuleCall).$(),
+            Builders.stmt().call('release').receiver(serializerName).$().$(),
+            ...argConvertor(ctx, method.returnType).returnFromInterop('retval', false)
+          ]
           const funcDecl = Builders.func(declName)
             .parameters(method.parameters.map(it => ({ name: it.name, type: ctx.useManaged(it.type).reference() })))
             .returns(returnType)
-            .block().statements(statements).$().$()
+            .block().statements(body).$().$()
           switch (idl.getExtAttribute(method, idl.IDLExtendedAttributes.Accessor)) {
             case idl.IDLAccessorAttribute.Getter: funcDecl.modifiers.push(Md.getter()); break
             case idl.IDLAccessorAttribute.Setter: funcDecl.modifiers.push(Md.setter()); break
           }
+          if (method.isStatic)
+            funcDecl.modifiers.push(Md.static())
           if (!method.isFree) {
             const clazz = Builders.class(managedName(idl.getFQName(method.parent!))).$()
             clazz.methods = [funcDecl]
@@ -88,8 +85,8 @@ export const constructorProducer = createSpecialProducer(
               .ctor()
                 .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.useManaged(it.type).reference() })))
                 .block()
-                  .call().receiverName('this').functionName('setPeer')
-                    .arg().call().functionExpr(ctx.useManagedNativeModule(ctor).name())
+                  .call('setPeer').receiver('this')
+                    .arg().call(ctx.useManagedNativeModule(ctor).name())
                       .args(ctor.parameters.map(it => E.v(it.name))).$().$().$().$().$().$()
           ]
         }

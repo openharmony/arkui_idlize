@@ -10,7 +10,7 @@
       "test:arkgen:run": "node scripts/install.mjs && npx --yes scripts/.packages/idlizer-arkgen-*.tgz -h",
       "test:ohosgen:run": "node scripts/install.mjs && npx --yes scripts/.packages/idlizer-ohosgen-*.tgz -h",
 
-      "test:arkgen:peer": "node scripts/install.mjs && npx --yes scripts/.packages/idlizer-arkgen-*.tgz --dts2peer --input-dir ./input/blank.d.ts --output-dir ./out/arkgen --verify-idl --common-to-attributes --docs=opt",
-      "test:ohosgen:peer": "node scripts/install.mjs && npx --yes scripts/.packages/idlizer-ohosgen-*.tgz --use-new-ohos --language=arkts --default-idl-package mediaquery --input-files ./input/@ohos.mediaquery.d.ts --output-dir ./out/ohosgen --dts2peer"
+      "test:arkgen:peer": "node scripts/install.mjs && npx --yes scripts/.packages/idlizer-arkgen-*.tgz --dts2peer --input-dir ./input/blank.d.ts --output-dir ./out/arkgen --verify-idl",
+      "test:ohosgen:peer": "node scripts/install.mjs && npx --yes scripts/.packages/idlizer-ohosgen-*.tgz --language=arkts --default-idl-package mediaquery --input-files ./input/@ohos.mediaquery.d.ts --output-dir ./out/ohosgen --dts2peer"
     }
   }

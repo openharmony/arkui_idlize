@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { KPointer } from "@koalaui/interop"
 import { AnimateParam } from '../framework'
-
-export function Routed(
-    /** @memo */
-    initial: () => void,
-    initialUrl?: string,
-): void {}
+import { ArkCheckHooksComponent, ArkCheckHooksPeer } from '../framework'
+import {
+    SampleTransformSrcI,
+    SampleTransformDstI,
+    TransformSrcCallbackI,
+    TransformDstCallbackI,
+} from '../framework'
 
 export interface AttributeModifier<T> {
     isUpdater: () => boolean
@@ -40,10 +40,43 @@ export class AttributeUpdater<T> implements AttributeModifier<T> {
     get attribute(): T | undefined { return undefined }
     onComponentChanged(component: T): void {}
 }
-
-export function enterForeignContext(context: KPointer) {}
-export function leaveForeignContext() {}
+export class ModifierState {
+    addRef(): void {
+    }
+    fireChange(): void {
+    }
+}
 
 export function _animateTo(param: AnimateParam, event: (() => void)): void {}
 export function _animationStart(param: AnimateParam, isFirstBuild: boolean) {}
 export function _animationEnd(isFirstBuild: boolean, update: (() => void)): void {}
+
+export function hookCheckHooksText(receiver: ArkCheckHooksComponent, text?: string){
+    receiver.checkHookResult(`Check hook text: ${text}`)
+}
+
+export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksComponent, flag: boolean, count: number, text: string){
+    receiver.checkHookResult(`Check hook method primitives: ${flag}, ${count}, ${text}`)
+}
+
+// Probably only one set of methods with Component or Peer are needed
+export function hookCheckHooksText(receiver: ArkCheckHooksPeer, text?: string){
+    receiver.setCheckHookResultAttribute(`Check hook text: ${text}`)
+}
+
+export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksPeer, flag: boolean, count: number, text: string){
+    receiver.setCheckHookResultAttribute(`Check hook method primitives: ${flag}, ${count}, ${text}`)
+}
+
+export namespace extractors {
+    export function transform_Ark_SampleTransformSrcI_to_Ark_SampleTransformDstI(src: SampleTransformSrcI): SampleTransformDstI {
+        const result: SampleTransformDstI = { length: src.text.length }
+        return result
+    }
+
+    export function transform_Ark_TransformSrcCallbackI_to_TransformDstCallbackI(src: TransformSrcCallbackI): TransformDstCallbackI {
+        return src.flag
+            ? (value: boolean) => { return !value }
+            : (value: boolean) => { return value }
+    }
+}

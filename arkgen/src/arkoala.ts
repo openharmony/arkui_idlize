@@ -30,7 +30,7 @@ import {
     NativeModule, printArkUILibrariesLoader,
     printCJPredefinedNativeFunctions,
     printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule,
-    printTSPredefinedEmptyNativeModule, printGlobal, writeFile, writeIntegratedFile, install,
+    printTSPredefinedEmptyNativeModule, printGlobal, writeFile, install,
     ModifierFileOptions,
     MultiFileModifiersVisitor,
     MultiFileModifiersVisitorState,
@@ -60,22 +60,9 @@ import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"
 import { createComponentsPrinter, printComponentsDeclarations } from "./printers/ComponentsPrinter"
 import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
-import { ARKGEN_ROOT } from "./config"
 import { printUnitTestsAsMultipleFiles } from "./ut/UnittestPrinter"
-
-const resolveExternal = () => {
-    let postfix = '../external'
-    while (!fs.existsSync(path.join(ARKGEN_ROOT, postfix))) {
-        let newPostfix = `../${postfix}`
-        if (path.join(ARKGEN_ROOT, postfix) === path.join(ARKGEN_ROOT, newPostfix)) {
-            break;
-        }
-        postfix = newPostfix
-    }
-    return path.join(ARKGEN_ROOT, postfix)
-}
-const resolveExternalStubs = () => path.join(resolveExternal(), "subset")
-const Subset = path.join(ARKGEN_ROOT, "external-subset")
+import { printEndToEndTests } from "./ut/E2EPrinter"
+import { Target } from "./ut/E2EFixturesPrinter"
 
 export function generateLibaceUnitTests(config: {
     libaceDestination: string | undefined,
@@ -89,11 +76,24 @@ export function generateLibaceUnitTests(config: {
     printUnitTestsAsMultipleFiles(peerLibrary, libace, config.aceTypes)
 }
 
+export function generateLibaceEndToEndTests(config: {
+    libaceDestination: string | undefined,
+    outDir: string,
+    aceTypes?: string,
+    static: boolean
+}, peerLibrary: PeerLibrary) {
+    const libace = config.libaceDestination ?
+        new LibaceInstall(config.libaceDestination, false) :
+        new LibaceInstall(config.outDir, true)
+
+    printEndToEndTests(peerLibrary, libace, config.static ? Target.ARK_TS_1_2 : Target.ETS, config.aceTypes)
+}
+
 export function generateLibaceFromIdl(config: {
     libaceDestination: string | undefined,
     apiVersion: number,
     commentedCode: boolean,
-    outDir: string
+    outDir: string,
 }, peerLibrary: PeerLibrary) {
     peerLibrary.name = 'libace'
     const libace = config.libaceDestination ?
@@ -124,48 +124,6 @@ export function generateLibaceFromIdl(config: {
         const mesonBuild = printMesonBuild(peerLibrary)
         fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
     }
-
-    copyToLibace(fs.existsSync(Subset) ? Subset : resolveExternal(), libace)
-}
-
-function copyArkoalaFiles(config: {
-    onlyIntegrated: boolean | undefined
-}, arkoala: ArkoalaInstall) {
-    const subsetJson = path.join(fs.existsSync(Subset) ? Subset : resolveExternalStubs(), 'subset.json')
-    const subsetData = JSON.parse(fs.readFileSync(subsetJson).toString())
-    if (!subsetData) throw new Error(`Cannot parse ${subsetJson}`)
-    const copyFiles = (files: string, ...fromFallbacks: string[]) => {
-        for (const file of files) {
-            let found = false
-            for (const from of fromFallbacks) {
-                const fromPath = path.join(from, file)
-                if (fs.existsSync(fromPath)) {
-                    found = true
-                    copyFile(fromPath, path.join(arkoala.root, file))
-                    break
-                }
-            }
-            if (!found) {
-                throw new Error(`Template for file ${file} was not found in paths ${fromFallbacks.join(':')}`)
-            }
-        }
-        return
-    }
-
-    if (config.onlyIntegrated) {
-        copyFiles(subsetData.generatedSubset, fs.existsSync(Subset) ? Subset : resolveExternalStubs())
-        return
-    }
-
-    if (fs.existsSync(Subset)) {
-        copyFiles(subsetData.subset, Subset)
-    } else {
-        copyFiles(subsetData.subset, resolveExternalStubs(), resolveExternal())
-    }
-}
-
-function removeSuffix(path: string, suffix: string): string {
-    return path.endsWith(suffix) ? path.slice(0, -suffix.length) : path;
 }
 
 export function generateArkoalaFromIdl(config: {
@@ -174,7 +132,6 @@ export function generateArkoalaFromIdl(config: {
     nativeBridgeFile: string | undefined,
     lang: Language,
     apiVersion: number,
-    onlyIntegrated: boolean,
     dumpSerialized: boolean,
     callLog: boolean,
     verbose: boolean,
@@ -254,11 +211,7 @@ export function generateArkoalaFromIdl(config: {
                 )
                 writeFile(
                     path.join(arkoala.managedSdkDir, 'framework', 'index' + peerLibrary.language.extension),
-                    makeArkuiModule(installed, path.join(arkoala.managedSdkDir, 'framework')),
-                    {
-                        onlyIntegrated: config.onlyIntegrated,
-                        integrated: true
-                    }
+                    makeArkuiModule(installed, path.join(arkoala.managedSdkDir, 'framework'))
                 )
             })
         }
@@ -286,23 +239,23 @@ export function generateArkoalaFromIdl(config: {
     if (peerLibrary.language == Language.TS) {
         const arkuiNativeModuleFile = printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI)
         printArkUILibrariesLoader(arkuiNativeModuleFile)
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.tsArkoalaDir, NativeModule.ArkUI.name + peerLibrary.language.extension),
             arkuiNativeModuleFile.printToString(),
         )
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.tsArkoalaDir, `${NativeModule.ArkUI.name}Empty${peerLibrary.language.extension}`),
             printTSPredefinedEmptyNativeModule(peerLibrary, NativeModule.ArkUI).printToString(),
         )
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.tsArkoalaDir, NativeModule.Test.name + peerLibrary.language.extension),
             printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString(),
         )
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.tsArkoalaDir, `${NativeModule.Test.name}Empty${peerLibrary.language.extension}`),
             printTSPredefinedEmptyNativeModule(peerLibrary, NativeModule.Test).printToString(),
         )
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.managedDir, 'framework', `${NativeModule.Generated.name}Empty${peerLibrary.language.extension}`),
             printTSArkUIGeneratedEmptyNativeModule(peerLibrary, NativeModule.Generated).printToString()
         )
@@ -320,64 +273,48 @@ export function generateArkoalaFromIdl(config: {
         writeFile(
             path.join(arkoala.managedDir, 'framework', 'index' + peerLibrary.language.extension),
             makeArkuiModule(arkuiComponentsFiles.concat(installedFiles), path.join(arkoala.managedDir, 'framework')),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true
-            }
         )
         writeFile(path.join(arkoala.managedDir, 'framework', "peers", 'CallbackKind' + peerLibrary.language.extension),
             makeCallbacksKinds(peerLibrary, peerLibrary.language),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true
-            }
         )
     } else if (peerLibrary.language === Language.ARKTS) {
         const arkuiNativeModuleFile = printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI)
         printArkUILibrariesLoader(arkuiNativeModuleFile)
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.managedDir, 'framework', 'arkts', NativeModule.ArkUI.name + peerLibrary.language.extension),
             arkuiNativeModuleFile.printToString(),
         )
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.managedDir, 'framework', 'arkts', NativeModule.Test.name + peerLibrary.language.extension),
             printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString(),
         )
-        // writeIntegratedFile(
+        // writeFile(
         //     arkoala.arktsLib(new TargetFile(NativeModuleType.Interop.name, 'arkts')),
         //     printPredefinedNativeModule(peerLibrary, NativeModuleType.Interop).printToString(),
         // )
         writeFile(
             path.join(arkoala.managedDir, 'framework', 'index' + peerLibrary.language.extension),
             makeArkuiModule(arkuiComponentsFiles.concat(installedFiles), path.join(arkoala.managedDir, 'framework')),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true
-            }
         )
         writeFile(path.join(arkoala.managedDir, 'framework', 'peers', 'CallbackKind' + peerLibrary.language.extension),
             makeCallbacksKinds(peerLibrary, peerLibrary.language),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true
-            }
         )
     }
 
     if (peerLibrary.language == Language.CJ) {
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.managedDir, NativeModule.ArkUI.name + peerLibrary.language.extension),
             printCJPredefinedNativeFunctions(peerLibrary, NativeModule.ArkUI).printToString().concat(
                 printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI).content.getOutput().join('\n')
             )
         )
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.managedDir, NativeModule.Test.name + peerLibrary.language.extension),
             printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Test).printToString().concat(
                 printPredefinedNativeModule(peerLibrary, NativeModule.Test).content.getOutput().join('\n')
             )
         )
-        // writeIntegratedFile(
+        // writeFile(
         //     arkoala.cjLib(new TargetFile(NativeModule.Interop.name)),
         //     printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Interop).printToString().concat(
         //         printPredefinedNativeModule(peerLibrary, NativeModule.Interop).content.getOutput().join('\n')
@@ -385,19 +322,15 @@ export function generateArkoalaFromIdl(config: {
         // )
         writeFile(path.join(arkoala.managedDir, 'CallbackKind' + peerLibrary.language.extension),
             makeCallbacksKinds(peerLibrary, peerLibrary.language),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true
-            }
         )
     }
 
     if (peerLibrary.language == Language.KOTLIN) {
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.managedDir, NativeModule.ArkUI.name + peerLibrary.language.extension),
             printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI).printToString()
         )
-        writeIntegratedFile(
+        writeFile(
             path.join(arkoala.managedDir, NativeModule.Test.name + peerLibrary.language.extension),
             printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString()
         )
@@ -406,53 +339,27 @@ export function generateArkoalaFromIdl(config: {
     // native code
     writeFile(
         path.join(arkoala.nativeDir, 'bridge_generated.cpp'),
-        printGeneratedBridge(peerLibrary, config.callLog ?? false),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-        })
+        printGeneratedBridge(peerLibrary, config.callLog ?? false))
     writeFile(
         path.join(arkoala.nativeDir, 'bridge_custom.cpp'),
-        printCustomBridge(peerLibrary, config.callLog ?? false),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-        })
+        printCustomBridge(peerLibrary, config.callLog ?? false))
     if (peerLibrary.language == Language.KOTLIN) {
         const bridgeHeaderGenerated = 'bridge_generated.h'
         const bridgeHeaderCustom = 'bridge_custom.h'
         writeFile(
             path.join(arkoala.nativeDir, bridgeHeaderGenerated),
-            printBridgeHeaderGenerated(peerLibrary),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true,
-            })
+            printBridgeHeaderGenerated(peerLibrary))
         writeFile(
             path.join(arkoala.nativeDir, bridgeHeaderCustom),
-            printBridgeHeaderCustom(peerLibrary),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true,
-            })
+            printBridgeHeaderCustom(peerLibrary))
         writeFile(
             path.join(arkoala.nativeDir, 'interop.def'),
-            printKotlinCInteropDefFile([bridgeHeaderGenerated, bridgeHeaderCustom]),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true,
-            })
+            printKotlinCInteropDefFile([bridgeHeaderGenerated, bridgeHeaderCustom]))
     }
 
     const { api, serializers } = printSerializers(config.apiVersion, peerLibrary)
-    writeFile(path.join(arkoala.nativeDir, 'Serializers.h'), serializers, {
-        onlyIntegrated: config.onlyIntegrated,
-        integrated: true,
-    })
-    writeFile(path.join(arkoala.nativeDir, 'arkoala_api_generated.h'), api, {
-        onlyIntegrated: config.onlyIntegrated,
-        integrated: true,
-    })
+    writeFile(path.join(arkoala.nativeDir, 'Serializers.h'), serializers)
+    writeFile(path.join(arkoala.nativeDir, 'arkoala_api_generated.h'), api)
 
     const modifiers = printRealAndDummyModifiers(peerLibrary, true)
     const accessors = printRealAndDummyAccessors(peerLibrary)
@@ -460,30 +367,14 @@ export function generateArkoalaFromIdl(config: {
     writeFile(
         path.join(arkoala.nativeDir, 'dummy_impl.cpp'),
         dummyImplementations(peerLibrary, modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        }
     )
     writeFile(
         path.join(arkoala.nativeDir, 'real_impl.cpp'),
         dummyImplementations(peerLibrary, modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-        }
     )
-    writeFile(path.join(arkoala.nativeDir, 'library.cpp'), libraryDeclaration(),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        })
+    writeFile(path.join(arkoala.nativeDir, 'library.cpp'), libraryDeclaration())
 
-    writeFile(path.join(arkoala.nativeDir, 'callback_kind.h'), makeCallbacksKinds(peerLibrary, Language.CPP),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        })
+    writeFile(path.join(arkoala.nativeDir, 'callback_kind.h'), makeCallbacksKinds(peerLibrary, Language.CPP))
     const deserializeAndCallCPPContent = peerLibrary.createLanguageWriter(Language.CPP)
     deserializeAndCallCPPContent.writeLines(cStyleCopyright)
     deserializeAndCallCPPContent.print('#define KOALA_INTEROP_MODULE NotSpecifiedInteropModule')
@@ -492,23 +383,8 @@ export function generateArkoalaFromIdl(config: {
         const content = generated instanceof LanguageWriter ? generated : generated.content
         deserializeAndCallCPPContent.concat(content)
     })
-    writeFile(path.join(arkoala.nativeDir, 'callback_deserialize_call.cpp'), deserializeAndCallCPPContent.printer.getOutput().join("\n"),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        })
-    writeFile(path.join(arkoala.nativeDir, 'callback_managed_caller.cpp'), printManagedCaller('arkoala', peerLibrary).printToString(),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        })
-
-    copyArkoalaFiles({ onlyIntegrated: config.onlyIntegrated }, arkoala)
-}
-
-function copyToLibace(from: string, libace: LibaceInstall) {
-    const macros = path.join(from, 'arkoala-arkts/framework/native/src/arkoala-macros.h')
-    fs.copyFileSync(macros, libace.arkoalaMacros)
+    writeFile(path.join(arkoala.nativeDir, 'callback_deserialize_call.cpp'), deserializeAndCallCPPContent.printer.getOutput().join("\n"))
+    writeFile(path.join(arkoala.nativeDir, 'callback_managed_caller.cpp'), printManagedCaller('arkoala', peerLibrary).printToString())
 }
 
 class ArkoalaMultiFileModifiersVisitor extends MultiFileModifiersVisitor {

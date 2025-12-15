@@ -11,13 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
+import("../gn/import/npm.gni")
 
 npm_cmd("compile") {
     deps = [
-        "${idlize.root_path}/core:compile",
-        "${idlize.root_path}/libohos:compile",
-        "${idlize.root_path}/interfaces:compile",
+        "../core:compile",
+        "../libohos:compile",
+        "../interfaces:compile",
     ]
     project_path = rebase_path(".")
     run_tasks = [ "compile:self" ]
@@ -25,7 +25,9 @@ npm_cmd("compile") {
 
 group("all") {
     deps = [
+        "tests/dummy:all",
         "tests/system:all",
+        "tests/unit:all",
         ":compile",
     ]
 }

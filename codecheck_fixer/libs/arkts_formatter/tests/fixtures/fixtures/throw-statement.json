@@ -1,0 +1,37 @@
+{
+  "equivalent": [
+    {
+      "description": "throw new Error wrapped (no break right after throw)",
+      "original": "throw new Error('Something went wrong: ' + error.message + ' at ' + error.location + ' in ' + error.context);",
+      "expected": "throw new Error(\n  'Something went wrong: ' +\n  error.message +\n  ' at ' +\n  error.location +\n  ' in ' +\n  error.context\n);"
+    },
+    {
+      "description": "throw custom error object",
+      "original": "throw new ValidationError({ field: 'email', message: 'Invalid email format', code: 'INVALID_EMAIL' });",
+      "expected": "throw new ValidationError({\n  field: 'email',\n  message: 'Invalid email format',\n  code: 'INVALID_EMAIL'\n});"
+    },
+    {
+      "description": "throw object literal",
+      "original": "throw { name: 'CustomError', message: error.message, code: error.code, timestamp: Date.now() };",
+      "expected": "throw {\n  name: 'CustomError',\n  message: error.message,\n  code: error.code,\n  timestamp: Date.now()\n};"
+    },
+    {
+      "description": "throw ternary",
+      "original": "throw isNetworkError ? new NetworkError(message) : isValidationError ? new ValidationError(message) : new Error(message);",
+      "expected": "throw isNetworkError\n  ? new NetworkError(message)\n  : isValidationError\n  ? new ValidationError(message)\n  : new Error(message);"
+    },
+    {
+      "description": "throw function call with many args",
+      "original": "throw createErrorFromResponse(response, context, additionalInfo, timestamp, requestId);",
+      "expected": "throw createErrorFromResponse(\n  response,\n  context,\n  additionalInfo,\n  timestamp,\n  requestId\n);"
+    },
+    {
+      "description": "if + throw one-liner wrapped",
+      "original": "if (error) throw new Error('Critical error: ' + error.type + ' - ' + error.message + ' at ' + error.stack);",
+      "expected": "if (error)\n  throw new Error(\n    'Critical error: ' +\n    error.type +\n    ' - ' +\n    error.message +\n    ' at ' +\n    error.stack\n  );"
+    }
+  ],
+  "notEquivalent": []
+}
+
+

@@ -14,6 +14,7 @@
  */
 
 import * as fs from 'fs'
+import * as path from 'path'
 
 const JSON5 = require('json5')
 
@@ -26,7 +27,7 @@ interface Type {
 
 type ValidValue = [string, string]
 
-interface Fixture {
+export interface Fixture {
     name: string
     type: string
     resType?: string
@@ -45,7 +46,7 @@ interface Attribute {
     arguments?: string[]
 }
 
-interface Component {
+export interface Component {
     name: string
     debug?: string[]
     includes?: string[]
@@ -56,6 +57,20 @@ interface Component {
     ignoreAttributes?: string[]
     nodeTypes?: string[]
     setup?: string[]
+    ts?: { // Only for TypeScript tests. Filled in only if there are differences.
+        off?: boolean
+        values?: string[]
+        defaultOptions?: string[]
+        parent?: string
+        defaultParentOptions?: string[]
+        // The same fields
+        includes?: string[]
+        disable?: string[]
+        remove?: string[]
+        attributes?: Attribute[]
+        ignoreAttributes?: string[]
+        nodeTypes?: string[]
+    }
 }
 
 interface JsonScheme {
@@ -69,7 +84,7 @@ interface JsonScheme {
 export class AceTypes {
     private static ALL_UPPER = new RegExp('^[A-Z0-9_]+$')
 
-    private data = {
+    protected readonly data = {
         enums: new Object() as Enums,
         simpleTypes: [],
         fixtures: [],
@@ -138,5 +153,37 @@ export class AceTypes {
             return attribute
         }
         return undefined
+    }
+}
+
+export interface Import {
+    name: string
+    from: string
+}
+
+export class AceTypesTs extends AceTypes {
+    readonly imports: Import[] = []
+    readonly fixtures: Fixture[] = []
+
+    constructor(filename?: string) {
+        if (!filename) return
+        super(filename)
+        this.data.components = this.data.components.filter(it => !(it.ts?.off ?? false)).map(it => ({
+            ...it, ...it.ts
+        } as Component))
+        // Load fixtures from own file.
+        const fixturesTs = path.join(path.dirname(filename), "fixtures_ts.json5")
+        const content = fs.readFileSync(fixturesTs)?.toString()
+        if (!content) throw new Error(`Cannot read TS fixtures ${fixturesTs}`)
+        let json: { imports?: Import[], fixtures?: Fixture[] } = JSON5.parse(content)
+        if (!json?.fixtures) throw new Error(`Cannot parse TS fixtures ${filename}`)
+        this.fixtures = json.fixtures
+        if (json.imports) {
+            this.imports = json.imports
+        }
+    }
+
+    getFixturesTs(): Fixture[] {
+        return this.fixtures
     }
 }

@@ -11,7 +11,7 @@ This folder contains collection of tools for analyzing and transformation of
 
 Using:
 ```
-npx @idlizer/arkgen@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala --only-integrated
+npx @idlizer/arkgen@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala
 ```
 
 Run:

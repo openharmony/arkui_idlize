@@ -33,6 +33,7 @@ import {
     nullsTransformer,
     transformOnSerializeTransformer,
     genericsTransformer,
+    throwsTransformer,
 } from "@idlizer/core"
 import {
     getFQName,
@@ -62,24 +63,15 @@ export function ohosgen(args: string[]) {
         .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
         .option('--output-dir <path>', 'Path to output dir')
         .option('--input-files <files...>', 'Comma-separated list of specific files to process')
-        .option('--library-packages <packages>', 'Comma separated list of packages included into library')
         .option('--idl2peer', 'Convert IDL to peer drafts')
-        .option('--verbose', 'Verbose processing')
         .option('--verify-idl', 'Verify produced IDL')
         .option('--api-version <version>', "API version for generated peers")
         .option('--dump-serialized', "Dump serialized data")
-        .option('--call-log', "Call log")
-        .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
         .option('--language [ts|arkts|cangjie|kotlin]', 'Output language')
-        .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
         .option('--version')
         .option('--plugin <file>', 'File with generator\'s plugin')
         .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
-        .option('--no-commented-code', 'Do not generate commented code in modifiers')
-        .option('--use-new-ohos', 'Use new ohos generator')
         .option('--use-ost', 'Generate output using syntax trees (EXPERIMENTAL)')
-        .option('--enable-log', 'Enable logging')
-        .option('--split-files', 'Experimental feature to store declarations in different files for ohos generator')
         .option('--options-file <path...>', 'Paths to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
@@ -143,6 +135,7 @@ export function ohosgen(args: string[]) {
             return transformation?.to
         })
         files = nullsTransformer(files)
+        files = throwsTransformer(files)
         files = genericsTransformer(files, {
             ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
             ignore: [],

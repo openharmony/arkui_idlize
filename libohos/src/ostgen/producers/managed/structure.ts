@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { Hs, D, E, Md, T, Ts } from "../../../ost";
+import { Hs, D, E, Md, T, Ts, S } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import { makePeerMethod } from "../components/peerMethod";
+import * as lw from "../../../ost/lws";
 import { AdvancedGeneratorContext, createSpecialProducer, managedName, roles } from "../common";
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core";
 import { fqName, ProducerDescription } from "../../engine";
-import { LWDeclaration } from "../../../ost/lws";
 import { Builders } from "../../../ost/builders";
+import { argConvertor } from "../components/argConvertor";
 
 export const structureProducer = createSpecialProducer(
   { is: idl.isInterface, role: roles.managed },
@@ -56,7 +56,8 @@ function makeTuple(node: idl.IDLInterface, ctx: AdvancedGeneratorContext): Produ
   }
 }
 
-function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): LWDeclaration[] {
+function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): lw.LWDeclaration[] {
+  node.methods.forEach(it => ctx.useManaged(it))
   const superType = getSuperType(node, ctx.base.library)
   return [D.class(name,
     node.properties.map(prop => {
@@ -71,13 +72,13 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGenera
         modifiers,
       }
     }),
-    node.methods.map(method => makePeerMethod(method, ctx)), {
+    [], {
     kind: idl.isClassSubkind(node) ? 'class' : 'interface',
     base: superType ? ctx.useManaged(superType).reference() : undefined
     })]
 }
 
-function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): LWDeclaration[] {
+function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): lw.LWDeclaration[] {
   const syntheticMethods = [
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
     ...node.properties.flatMap(prop => [
@@ -104,25 +105,24 @@ function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGen
     .method('fromPtr').static()
       .returns(thisType)
       .param('ptr').type(Ts.prim.pointer).$().block()
-        .return(thisType).ctor(name).args([E.v('ptr')]).$().$().$().$().$()
+        .return(thisType).ctor(name).arg('ptr').$().$().$().$().$()
   const matClass = Builders.class(name).implements(T.c('MaterializedBase'))
     // peer
     .field('peer').type(peerType).$()
     .method('getPeer').returns(peerType).block()
-      .return(peerType).access(E.v('this')).member('peer').$().$().$().$()
+      .return(peerType).access('peer').receiver('this').$().$().$().$()
     .method('setPeer').private().param('peerPtr').type(Ts.prim.pointer).$().block()
       .binary('=')
-        .left().access(E.v('this')).member('peer').$().$()
+        .left().access('peer').receiver('this').$().$()
         .right().ctor('Finalizable')
-          .arg('peerPtr').$()
-          .arg().call().receiverExpr(E.v(name, [Hs.isType()])).functionName('getFinalizer').$().$().$().$().$().$().$()
+          .arg('peerPtr')
+          .arg().call('getFinalizer').receiver(E.v(name, [Hs.isType()])).$().$().$().$().$().$().$()
     // getFinalizer
     .method('getFinalizer').static().returns(Ts.prim.pointer).block()
-      .return(Ts.prim.pointer).call().function()
-        .access(ctx.useManagedNativeModule(node).name())
-        .member(fqName(node, '_', '_getFinalizer')).$().$().$().$().$().$()
+      .return(Ts.prim.pointer).call(fqName(node, '_', '_getFinalizer'))
+        .receiver(ctx.useManagedNativeModule(node).name()).$().$().$().$()
     // default constructor
     .ctor().param('ptr').type(Ts.prim.pointer).$().block()
-      .call().receiverExpr(E.v('this')).functionName('setPeer').arg('ptr').$().$().$().$().$()
+      .call('setPeer').receiver('this').arg('ptr').$().$().$().$()
   return [intClass, matClass]
 }

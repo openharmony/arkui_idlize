@@ -19,15 +19,18 @@ import os from 'os';
 import replace from '@rollup/plugin-replace';
 import typescript from "@rollup/plugin-typescript";
 import * as path from "path";
+import * as url from "url"
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 const platform = os.platform()
 const isWindows = (platform === 'win32')
 
-function crossPathRelative(from, to) {
+function correctOsPath(p) {
     if (isWindows) {
-        return path.relative(from, to).replace(/\\/g, '\\\\')
+        return p.replace(/\\/g, '\\\\')
     } else {
-        return path.relative(from, to)
+        return p
     }
 }
 
@@ -38,7 +41,6 @@ const generatedDir = `generated`
 //const arkoalaArkuiSrcDir = `${generatedDir}/sig/arkoala/arkui/src`
 const arkoalaArkuiSrcDir = `${generatedDir}/ts`
 const tsconfigFile = path.resolve(`tsconfig.json`)
-const outDir = path.resolve('lib')
 
 const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 
@@ -80,7 +82,7 @@ export default {
         }),
         commonJs(),
         replace({
-            'NATIVE_LIBRARY_NAME': `"${crossPathRelative(outDir, '../../native/NativeBridgeNapi.node')}"`,
+            'NATIVE_LIBRARY_NAME': `"${correctOsPath(path.join(__dirname, '../../native/NativeBridgeNapi.node'))}"`,
             preventAssignment: true
         })
     ]

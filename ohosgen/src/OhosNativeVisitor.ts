@@ -212,6 +212,13 @@ class OHOSNativeVisitor {
                 _c.print(`&${destructName},`)
                 this.impls.push({ name: destructName, signature: { params, returnType: 'void' } })
             }
+            {
+                let implName = `${className}_callHolderImpl`
+                let params = [new NameType("thisPtr", PrimitiveTypesInstance.NativePointer.toString())]
+                _h.print(`void (*${PeerMethodSignature.CALL_HOLDER})(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
+                _c.print(`&${implName},`)
+                this.impls.push({ name: implName, signature: { params, returnType: 'void' } })
+            }
         }
         generatePostfixForOverloads(clazz.methods).forEach(({ method, overloadPostfix }) => {
             const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
@@ -295,7 +302,7 @@ class OHOSNativeVisitor {
             args.unshift(`${PrimitiveTypesInstance.NativePointer} thisPtr`)
         if (!!asPromise(method.returnType))
             args.unshift(`${generatorConfiguration().TypePrefix}${this.libraryName}_AsyncWorkerPtr asyncWorker`)
-        if (hasExtAttribute(method, IDLExtendedAttributes.Throws) || !!asPromise(method.returnType) || peerGeneratorConfiguration().forceContext.includes(idl.getFQNameSafe(method) ?? ""))
+        if (!!asPromise(method.returnType) || peerGeneratorConfiguration().forceContext.includes(idl.getFQNameSafe(method) ?? ""))
             args.unshift(`${generatorConfiguration().TypePrefix}${this.libraryName}_VMContext vmContext`)
         return args.join(", ")
     }

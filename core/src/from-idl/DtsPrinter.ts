@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { indentedBy, isInNamespace, stringOrNone, throwException } from "../util"
+import { indentedBy, stringOrNone } from "../util"
 import {
     IDLCallback,
     IDLConstructor,
@@ -94,19 +94,20 @@ import {
     IDLDate,
     IDLFunctionType,
     getQualifiedName,
-    isType,
     IDLObjectType,
     isConstant,
+    isInNamespace,
 } from "../idl"
-import { resolveSyntheticType, parseIDLFile } from "./deserialize"
+import { parseIDLFile } from "./deserialize"
 import { Language } from "../Language"
 import { warn } from "../util"
 import { isInIdlize } from "../idl"
-import { generatorConfiguration } from "../config"
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver"
+import { maybeRestoreThrows } from "../transformers/transformUtils"
 
 export class CustomPrintVisitor {
     output: string[] = []
-    constructor(private resolver: (type: IDLReferenceType) => IDLEntry | undefined, private language: Language) {}
+    constructor(private resolver: ReferenceResolver, private language: Language) {}
 
     currentInterface?: IDLInterface
 
@@ -282,7 +283,7 @@ export class CustomPrintVisitor {
         // Let's skip imported declarations
         if (isTypedef(node) &&
             hasExtAttribute(node, IDLExtendedAttributes.Import)) {
-            let definition = this.resolver(createReferenceType(node))
+            let definition = this.resolver.resolveTypeReference(createReferenceType(node))
             // TODO: handle namespace case better!
             // TODO: namespace-related-to-rework
             //throw new Error("not implemented yet")
@@ -351,6 +352,7 @@ export class CustomPrintVisitor {
 
     private printTypeForTS(type: IDLType | undefined, undefinedToVoid?: boolean, sequenceToArrayInterface: boolean = false, isCommonMethod = false): string {
         if (!type) throw new Error("Missing type")
+        type = maybeRestoreThrows(type, this.resolver) ?? type
         if (isOptionalType(type)) return `${this.printTypeForTS(type.type, undefinedToVoid, sequenceToArrayInterface)} | undefined`
         if (isPrimitiveType(type)) {
             switch (type) {
@@ -390,7 +392,7 @@ export class CustomPrintVisitor {
 
     private toTypeName(node: IDLNode): string {
         if (isReferenceType(node)) {
-            const decl = this.resolver(node)
+            const decl = this.resolver.resolveTypeReference(node)
             if (decl) {
                 if (isSyntheticEntry(decl)) {
                     if (isInterface(decl)) {
@@ -444,7 +446,7 @@ export class CustomPrintVisitor {
 }
 
 export function idlToDtsString(name: string, content: string): string {
-    let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
+    let printer = new CustomPrintVisitor({ resolveTypeReference: () => undefined, toDeclaration: () => IDLVoidType }, Language.TS)
     const idlFile = parseIDLFile(name, content)
     printer.printPackage(idlFile)
     linearizeNamespaceMembers(idlFile.entries).forEach(it => {

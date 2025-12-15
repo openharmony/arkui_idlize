@@ -93,7 +93,7 @@ interface Resource {
  * @atomicservice
  * @since 11
  */
-declare type Length = string | number | Resource;
+declare type Length = string | double | Resource;
 
 /**
  * Defines the length property with number in units of px.

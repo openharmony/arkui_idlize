@@ -1,0 +1,51 @@
+{
+    "compilerOptions": {
+        "package": "arkui",
+        "baseUrl": "generated/sig/arkoala-arkts/arkui/generated",
+        "outDir": "generated/abc",
+        "paths": {
+            "#components": [
+                "./framework/arkts"
+            ],
+            "#handwritten": [
+                "./handwritten"
+            ],
+            "#arktheme": [
+                "./ArkThemeScopeManager"
+            ],
+            "external": [
+                "../../../../../generated/modules/external/generated/arkts"
+            ],
+            "@koalaui/interop": [
+                "../../../../../../../../external/interop/src/arkts"
+            ],
+            "@koalaui/common": [
+                "../../../../../../../../external/common/src"
+            ],
+            "@koalaui/compat": [
+                "../../../../../../../../external/compat/src/arkts"
+            ],
+            "@koalaui/builderLambda": [
+                "./annotations"
+            ],
+            "arkui.incremental.annotation": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.annotation"
+            ],
+            "arkui.incremental.runtime.memo.node": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.memo.node"
+            ],
+            "arkui.incremental.runtime.memo.remember": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.memo.remember"
+            ],
+            "arkui.incremental.runtime.tree.IncrementalNode": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.tree.IncrementalNode"
+            ]
+        }
+    },
+    "include": [
+        "generated/sig/arkoala-arkts/arkui/generated/**/*.ets"
+    ],
+    "exclude": [
+        "generated/sig/arkoala-arkts/arkui/src/sdk/**/*"
+    ]
+}

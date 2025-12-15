@@ -14,23 +14,37 @@
  */
 
 import { createEmptyReferenceResolver, IndentedPrinter, isEnum, throwException, TSLanguageWriter } from "@idlizer/core"
-import { IDLEntry, IDLEnum, IDLInterface, IDLType } from "@idlizer/core/idl"
+import { createTypedef, IDLEntry, IDLEnum, IDLInterface, IDLType, IDLTypedef, isTypedef, isUnionType, printType } from "@idlizer/core/idl"
 import { SingleFilePrinter } from "../SingleFilePrinter"
 import { isNumber } from "../../utils/types"
 import { fixEnumPrefix } from "../../general/common"
+import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
 
 export class EnumsPrinter extends SingleFilePrinter {
+    protected converter = new LibraryTypeConvertor(this.typechecker)
     protected writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert : (node: IDLType) => { throwException(`Unexpected call to covert type`) } },
+        {
+            convert : (node: IDLType) => {
+                if (isUnionType(node)) {
+                    // TODO: core implementation, it is better tor use the
+                    // whole converters from core.
+                    return node.types.map(type =>
+                        this.converter.convertType(type)
+                    ).join(' | ')
+                }
+                return this.converter.convertType(node)
+            }
+        },
     )
 
     protected printInterface(node: IDLInterface): void {}
     protected filterInterface(node: IDLInterface): boolean {
         return true
     }
-    printEnum(node: IDLEnum): void {
+
+    override printEnum(node: IDLEnum): void {
         this.writer.writeEnum(
             fixEnumPrefix(node.name),
             node.elements.map(it => {
@@ -45,5 +59,11 @@ export class EnumsPrinter extends SingleFilePrinter {
             }),
             { isExport: true }
         )
+    }
+
+    override printTypedef(node: IDLTypedef): void {
+        this.writer.writeTypeDeclaration(
+            createTypedef(fixEnumPrefix(node.name), node.type, node.typeParameters)
+        );
     }
 }

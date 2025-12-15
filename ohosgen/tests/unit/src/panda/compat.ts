@@ -2,6 +2,8 @@ import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName, checkEvents, wrapSystemApiHandlerCallback } from "@koalaui/interop";
 import { registerUnitApiHandler, UNITNativeModule } from "../../generated/arkts"
 
+export { int32 } from "@koalaui/common"
+
 export {
     CONST_BOOLEAN_FALSE,
     CONST_BOOLEAN_TRUE,
@@ -40,14 +42,17 @@ export {
 } from '../../generated/arkts'
 
 export {
+    SingleGenericType,
+    DoubleGenericType,
     UnionSampleEnum,
     checkUnionEnumSample,
     checkUnionArraySample,
     checkUnionNumberArraySample,
     checkUnionTupleArraySample,
+    checkUnionGenericTypeSample,
 } from "../../generated/arkts"
 
-export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/arkts"
+export { CheckExceptionClass, CheckExceptionInterface, CheckCallbackExceptions } from "../../generated/arkts"
 
 export { testLength } from "../../generated/arkts"
 
@@ -57,13 +62,35 @@ export { InternalModuleDataInterface } from "./modules/internal_lib"
 export { RenamedModuleDataInterface } from "./modules/newname_lib"
 export { DTSCheckInternalLib } from "../../generated/arkts"
 
-export { DTSHookClass, DTSHookValue } from "../../generated/arkts"
+export {
+    HookClass,
+    HookValue,
+    HookInterface,
+    getHookInterface,
+} from "../../generated/arkts"
 export { ImportedHookValue } from "./handwritten/external_lib"
 export { ExternalType, hookns } from "./handwritten/external_lib"
 
 export { DTSCheckExternalLib, InternalType } from "../../generated/arkts"
 
 export { PromiseTester } from "../../generated/arkts"
+
+export { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "../../generated/arkts"
+export {
+    TransformSrcI,
+    TransformDstI,
+    TransformSrcC,
+    TransformDstC,
+    TransformSrcCallbackI,
+    TransformDstCallbackI,
+    TransformSrcCallbackC,
+    TransformDstCallbackC,
+    checkTransformDstI,
+    checkTransformDstC,
+    checkTransformSrcIToCallback,
+    checkTransformSrcCToCallback,
+} from "../../generated/arkts"
+export { getSomeClassInstance, SomeClass } from "../../generated/arkts"
 
 export type OHBuffer = NativeBuffer
 export type OHAny = object

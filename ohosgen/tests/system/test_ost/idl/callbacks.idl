@@ -1,0 +1,10 @@
+package callbacks;
+
+callback <T> Callback = void (T value);
+
+[Entity=Class]
+interface Callbacks {
+    number getX();
+    void callNumber(number y, Callback<number> cb);
+    void callVoid(Callback<void> cb);
+};

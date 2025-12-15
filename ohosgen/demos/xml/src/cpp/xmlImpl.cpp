@@ -25,53 +25,71 @@ OH_OHOS_XML_xml_XmlSerializerHandle xml_XmlSerializer_constructImpl(const OH_OHO
 }
 void xml_XmlSerializer_destructImpl(OH_OHOS_XML_xml_XmlSerializerHandle thiz) {
 }
-void xml_XmlSerializer_setAttributesImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name, const OH_String* value) {
+Throws_void xml_XmlSerializer_setAttributesImpl(OH_NativePointer thisPtr, const OH_String* name, const OH_String* value) {
+    return {};
 }
-void xml_XmlSerializer_addEmptyElementImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name) {
+Throws_void xml_XmlSerializer_addEmptyElementImpl(OH_NativePointer thisPtr, const OH_String* name) {
+    return {};
 }
 void xml_XmlSerializer_setDeclarationImpl(OH_NativePointer thisPtr) {
 }
-void xml_XmlSerializer_startElementImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name) {
+Throws_void xml_XmlSerializer_startElementImpl(OH_NativePointer thisPtr, const OH_String* name) {
+    return {};
 }
 void xml_XmlSerializer_endElementImpl(OH_NativePointer thisPtr) {
 }
-void xml_XmlSerializer_setNamespaceImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* prefix, const OH_String* namespace_) {
+Throws_void xml_XmlSerializer_setNamespaceImpl(OH_NativePointer thisPtr, const OH_String* prefix, const OH_String* namespace_) {
+    return {};
 }
-void xml_XmlSerializer_setCommentImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+Throws_void xml_XmlSerializer_setCommentImpl(OH_NativePointer thisPtr, const OH_String* text) {
+    return {};
 }
-void xml_XmlSerializer_setCDATAImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+Throws_void xml_XmlSerializer_setCDATAImpl(OH_NativePointer thisPtr, const OH_String* text) {
+    return {};
 }
-void xml_XmlSerializer_setTextImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+Throws_void xml_XmlSerializer_setTextImpl(OH_NativePointer thisPtr, const OH_String* text) {
+    return {};
 }
-void xml_XmlSerializer_setDocTypeImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+Throws_void xml_XmlSerializer_setDocTypeImpl(OH_NativePointer thisPtr, const OH_String* text) {
+    return {};
 }
-void xml_XmlDynamicSerializer_addEmptyElementImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name) {
+Throws_void xml_XmlDynamicSerializer_addEmptyElementImpl(OH_NativePointer thisPtr, const OH_String* name) {
+    return {};
 }
 OH_OHOS_XML_xml_XmlDynamicSerializerHandle xml_XmlDynamicSerializer_constructImpl(const Opt_String* encoding) {
     return {};
 }
 void xml_XmlDynamicSerializer_destructImpl(OH_OHOS_XML_xml_XmlDynamicSerializerHandle thisPtr) {
 }
-void xml_XmlDynamicSerializer_endElementImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr) {
+Throws_void xml_XmlDynamicSerializer_endElementImpl(OH_NativePointer thisPtr) {
+    return {};
 }
 OH_Buffer xml_XmlDynamicSerializer_getOutputImpl(OH_NativePointer thisPtr) {
     return {};
 }
-void xml_XmlDynamicSerializer_setAttributesImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name, const OH_String* value) {
+Throws_void xml_XmlDynamicSerializer_setAttributesImpl(OH_NativePointer thisPtr, const OH_String* name, const OH_String* value) {
+    return {};
 }
-void xml_XmlDynamicSerializer_setCdataImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+Throws_void xml_XmlDynamicSerializer_setCdataImpl(OH_NativePointer thisPtr, const OH_String* text) {
+    return {};
 }
-void xml_XmlDynamicSerializer_setCommentImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+Throws_void xml_XmlDynamicSerializer_setCommentImpl(OH_NativePointer thisPtr, const OH_String* text) {
+    return {};
 }
-void xml_XmlDynamicSerializer_setDeclarationImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr) {
+Throws_void xml_XmlDynamicSerializer_setDeclarationImpl(OH_NativePointer thisPtr) {
+    return {};
 }
-void xml_XmlDynamicSerializer_setDocTypeImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+Throws_void xml_XmlDynamicSerializer_setDocTypeImpl(OH_NativePointer thisPtr, const OH_String* text) {
+    return {};
 }
-void xml_XmlDynamicSerializer_setNamespaceImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* prefix, const OH_String* namespace_) {
+Throws_void xml_XmlDynamicSerializer_setNamespaceImpl(OH_NativePointer thisPtr, const OH_String* prefix, const OH_String* namespace_) {
+    return {};
 }
-void xml_XmlDynamicSerializer_setTextImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+Throws_void xml_XmlDynamicSerializer_setTextImpl(OH_NativePointer thisPtr, const OH_String* text) {
+    return {};
 }
-void xml_XmlDynamicSerializer_startElementImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name) {
+Throws_void xml_XmlDynamicSerializer_startElementImpl(OH_NativePointer thisPtr, const OH_String* name) {
+    return {};
 }
 OH_OHOS_XML_xml_ParseInfoHandle xml_ParseInfo_constructImpl() {
     return {};
@@ -125,7 +143,7 @@ void temp_release(int resId) {}
 void temp_call(const OH_Int32 resourceId, const OH_Boolean value) {}
 void temp_call_sync(const OH_OHOS_XML_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean value) {}
 
-void xml_XmlPullParser_parseXmlImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_OHOS_XML_xml_ParseOptions* option) {
+Throws_void xml_XmlPullParser_parseXmlImpl(OH_NativePointer thisPtr, const OH_OHOS_XML_xml_ParseOptions* option) {
     ExpatParser* parser = (ExpatParser*) thisPtr;
     if (option->tagValueCallbackFunction.tag != INTEROP_TAG_UNDEFINED) {
         parser->setTagValueCallback([&](const char* name, const char* value) {
@@ -162,6 +180,7 @@ void xml_XmlPullParser_parseXmlImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePo
     // TODO handle other properties from ParseOptions
     parser->parse();
     parser->reset();
+    return { .hasException=false };
 }
 class TestPromiseHandler {
 private:
@@ -201,6 +220,12 @@ OH_OHOS_XML_Point GlobalScope_xml_getPointImpl() {
         .y = { .tag = INTEROP_TAG_INT32, .i32 = 88 }
     };
 }
+
+void xml_MapTest_callHolderImpl(OH_NativePointer thisPtr) {}
+void xml_ParseInfo_callHolderImpl(OH_NativePointer thisPtr) {}
+void xml_XmlDynamicSerializer_callHolderImpl(OH_NativePointer thisPtr) {}
+void xml_XmlPullParser_callHolderImpl(OH_NativePointer thisPtr) {}
+void xml_XmlSerializer_callHolderImpl(OH_NativePointer thisPtr) {}
 
 
 class ClassStub {};

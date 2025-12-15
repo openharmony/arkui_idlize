@@ -22,15 +22,6 @@ function over<T, U>(x:T|undefined, f:(x:T) => U): U|undefined {
 }
 
 export class IdentityTransformer {
-  goUnionDeclaration(decl:lw.UnionDeclaration): lw.UnionDeclaration {
-    return {
-      kind: decl.kind,
-      generics: decl.generics,
-      modifiers: decl.modifiers,
-      name: decl.name,
-      variants: decl.variants.map(v => this.goType(v))
-    }
-  }
   goEnumDeclaration(decl: lw.EnumDeclaration): lw.EnumDeclaration {
     return {
       kind: decl.kind,
@@ -108,7 +99,6 @@ export class IdentityTransformer {
   }
   goDeclaration(decl:lw.LWDeclaration): lw.LWDeclaration {
     switch (decl.kind) {
-      case lw.LWKind.UnionDeclaration: return this.goUnionDeclaration(decl)
       case lw.LWKind.EnumDeclaration: return this.goEnumDeclaration(decl)
       case lw.LWKind.StructureDeclaration: return this.goStructureDeclaration(decl)
       case lw.LWKind.ClassDeclaration: return this.goClassDeclaration(decl)
@@ -163,6 +153,17 @@ export class IdentityTransformer {
       elseBody: over(stmt.elseBody, eb => this.goStatement(eb))
     }
   }
+  goSwitchStatement(stmt: lw.SwitchStatement): lw.SwitchStatement {
+    return {
+      kind: stmt.kind,
+      selector: this.goExpression(stmt.selector),
+      cases: stmt.cases.map(c => ({
+        value: this.goConstantExpression(c.value),
+        body: c.body.map(s => this.goStatement(s))
+      })),
+      default: stmt.default.map(s => this.goStatement(s))
+    }
+  }
   goNoneStatement(stmt:lw.NoneStatement): lw.NoneStatement {
     return {
       kind: stmt.kind,
@@ -176,6 +177,7 @@ export class IdentityTransformer {
       case lw.LWKind.ReturnStatement: return this.goReturnStatement(stmt)
       case lw.LWKind.LoopStatement: return this.goLoopStatement(stmt)
       case lw.LWKind.IfStatement: return this.goIfStatement(stmt)
+      case lw.LWKind.SwitchStatement: return this.goSwitchStatement(stmt)
       case lw.LWKind.NoneStatement: return this.goNoneStatement(stmt)
     }
   }
@@ -253,6 +255,18 @@ export class IdentityTransformer {
       hints: expr.hints,
     }
   }
+  goLambdaExpression(expr: lw.LambdaExpression): lw.LambdaExpression {
+    return {
+      kind: expr.kind,
+      parameters: expr.parameters.map(({name, type}) => ({
+        name,
+        type: this.goType(type)
+      })),
+      body: this.goStatement(expr.body),
+      closure: expr.closure,
+      hints: expr.hints
+    }
+  }
   goExpression(expr:lw.LWExpression): lw.LWExpression {
     switch (expr.kind) {
       case lw.LWKind.VariableExpression: return this.goVariableExpression(expr)
@@ -264,6 +278,7 @@ export class IdentityTransformer {
       case lw.LWKind.AccessorExpression: return this.goAccessorExpression(expr)
       case lw.LWKind.ConstructorExpression: return this.goConstructorExpression(expr)
       case lw.LWKind.CheckCastExpression: return this.goCastExpression(expr)
+      case lw.LWKind.LambdaExpression: return this.goLambdaExpression(expr)
     }
   }
 
@@ -292,12 +307,21 @@ export class IdentityTransformer {
   }
   goAnnotation(annotation:lw.Annotation): lw.Annotation {
     switch (annotation.kind) {
-      case lw.DecoratorKind.SimpleAnnotation: return annotation
-      case lw.DecoratorKind.MacroCall: return {
-        kind: annotation.kind,
-        name: annotation.name,
-        args: annotation.args.map(arg => typeof arg === 'string' ? arg : this.goType(arg))
-      }
+      case lw.DecoratorKind.SimpleAnnotation: return this.goSimpleAnnotation(annotation)
+      case lw.DecoratorKind.MacroInvocation: return this.goMacroInvocation(annotation)
+    }
+  }
+  goSimpleAnnotation(annotation: lw.SimpleAnnotation): lw.SimpleAnnotation {
+    return annotation
+  }
+  goMacroInvocation(annotation: lw.MacroInvocation): lw.MacroInvocation {
+    return {
+      kind: annotation.kind,
+      name: annotation.name,
+      args: annotation.args.map(arg =>
+        typeof arg === 'string' ? arg
+        : arg.kind === lw.LWKind.ValueType || arg.kind === lw.LWKind.FunctionalType ? this.goType(arg)
+        : this.goExpression(arg))
     }
   }
 }

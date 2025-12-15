@@ -37,7 +37,7 @@ import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfigur
 import { isDirectMethod, isVMContextMethod } from './MethodUtils'
 
 class NativeModulePrinterBase {
-    readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library, createInteropArgConvertor(this.language, this.library))
+    readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library, createInteropArgConvertor(this.language))
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -116,7 +116,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
 }
 
 class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
-    private readonly interopConvertor = createInteropArgConvertor(this.language, this.library)
+    private readonly interopConvertor = createInteropArgConvertor(this.language)
     private readonly interopRetConvertor = new InteropReturnTypeConvertor(this.library)
 
     constructor(
@@ -373,6 +373,8 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
             "KNativePointer",
             "pointer",
             "KUint8ArrayPtr",
+            "KInt32ArrayPtr",
+            "KFloat32ArrayPtr",
             "KInteropReturnBuffer",
             "KSerializerBuffer",
         ], "koalaui.interop")
@@ -415,7 +417,7 @@ function printNativeModuleRegistration(language: Language, module: NativeModuleT
             })
             break
         case Language.ARKTS:
-            content.writeStaticBlock(writer => {
+            content.writeStaticInitBlock(writer => {
                 writer.print(`loadNativeModuleLibrary("${module.name}")`)
             })
             break
@@ -449,7 +451,7 @@ export function printPredefinedNativeModule(library: PeerLibrary, module: Native
     if (file instanceof TsSourceFile || file instanceof ArkTSSourceFile || file instanceof KotlinSourceFile)
         collectNativeModuleImports(module, file.imports, library)
     file.content.writeClass(module.name, writer => {
-        writer.makeStaticBlock((writer) => {
+        writer.writeStaticEntitiesBlock((writer) => {
             printNativeModuleRegistration(language, module, file.content)
             writer.concat(visitor.nativeModule)
             const maybeTemplate = maybeReadLangTemplate(`${module.name}_functions`, language)
@@ -499,7 +501,7 @@ export function createGeneratedNativeModulePrinter(module: NativeModuleType, mor
                 })
             }
             content.writeClass(module.name, writer => {
-                content.makeStaticBlock(() => {
+                content.writeStaticEntitiesBlock(() => {
                     printNativeModuleRegistration(library.language, module, content)
                     more?.(writer)
                     writer.concat(visitor.nativeModule)
@@ -618,7 +620,7 @@ function makeInteropMethodInner(
         interopReturnConvertor?: InteropReturnTypeConvertor,
     },
 ): Method {
-    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language, library)
+    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language)
     const interopReturnConvertor = options.interopReturnConvertor ?? new InteropReturnTypeConvertor(library)
     const interopParameters: ({name: string, type: idl.IDLType})[] = options.hasReceiver
         ? [{ name: 'ptr', type: idl.IDLPointerType }] : []

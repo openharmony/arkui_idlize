@@ -24,6 +24,7 @@ import {
     isMaterialized,
 } from '@idlizer/core'
 import { AceTypes } from './AceTypes'
+import { E } from '@idlizer/libohos'
 
 const NON_JSON_TYPES = ['Ark_CustomObject', 'Ark_Object', 'Ark_ContentModifier']
 
@@ -65,8 +66,8 @@ export class TypeHelper {
 
     static fromMethodArg(library: PeerLibrary, aceTypes: AceTypes, method: PeerMethod, index: number): TypeHelper {
         let decl = method.sig.args[index].type
-        //let name = library.computeTargetName(decl, method.argConvertors[index] instanceof OptionConvertor)
-        //console.log(`// method: ${method.peerMethodName}, arg: ${index}, type: ${name}, kind: ${decl.kind}`)
+        //let name = library.computeTargetName(decl, method.argConvertors(library)[index] instanceof OptionConvertor)
+        //console.log(`// method: ${method.sig.name}, arg: ${index}, type: ${name}, kind: ${decl.kind}`)
         return new TypeHelper(library, aceTypes, decl, false)
     }
 
@@ -102,6 +103,17 @@ export class TypeHelper {
         if (!idl.isUnionType(this.decl)) throw `getUnionMembers() called on non-union type!`
         return this.decl.types.map(type => new TypeHelper(this.library, this.aceTypes, type, false))
     }
+    getEnumValues(): { names: string[], values: string[], isString?: boolean } {
+        const info: { names: string[], values: string[], isString?: boolean } = { names: [], values: [] }
+        if (idl.isEnum(this.decl)) {
+            for (const it of this.decl.elements) {
+                info.names.push(it.name)
+                info.values.push(idl.getExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName) ?? it.name)
+            }
+            info.isString = idl.isStringEnum(this.decl)
+        }
+        return info
+    }
     getAggregateMembers(): [string, TypeHelper][] {
         //console.log(`// getAggregateMembers(): ${this.typeName}`)
         if (idl.isInterface(this.decl)) {
@@ -122,8 +134,14 @@ export class TypeHelper {
         return false
     }
     tsName(): string {
-        // Remove Ark_ or Opt_ prefix
-        return this.typeName.substr(4)
+        const tsName = this.typeName.substring(4)
+        if (tsName.startsWith("arkui_component_enums_")) {
+            return tsName.substring(22)
+        } else if (tsName.startsWith("arkui_component_units_")) {
+            return tsName.substring(22)
+        } else {
+            return tsName
+        }
     }
     getNonOptType(library: PeerLibrary): TypeHelper {
         //console.log(`// getNonOptType()`)

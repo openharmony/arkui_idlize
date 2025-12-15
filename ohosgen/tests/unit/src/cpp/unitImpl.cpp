@@ -18,6 +18,8 @@
 #include "unit.h"
 
 #include <iostream>
+#include <sstream>
+#include <unordered_map>
 #include <string.h>
 
 #define CALLBACK_HOLD(instance, callback) instance.callback.resource.hold(instance.callback.resource.resourceId);
@@ -797,6 +799,9 @@ OH_Number GlobalScope_test_return_types_returnNumberImpl() {
 OH_Boolean GlobalScope_test_return_types_returnBooleanImpl() {
     return 1;
 }
+UNIT_test_ret_Callback GlobalScope_test_return_types_returnCallbackImpl() {
+    return {};
+}
 OH_UInt64 GlobalScope_test_return_types_returnBitIntImpl() {
     return 100;
 }
@@ -899,6 +904,250 @@ class OH_UNIT_CheckExceptionClassPeer
 {
 };
 
+class BaseGesture {
+public:
+    virtual OH_UNIT_GestureType getType() = 0;
+    virtual ~BaseGesture() = default;
+};
+
+class DerivedGesture1 : public BaseGesture {
+public:
+    OH_UNIT_GestureType getType() override {
+        return OH_UNIT_GestureType::OH_UNIT_GESTURE_TYPE_First;
+    }
+};
+
+class DerivedGesture2 : public BaseGesture {
+public:
+    OH_UNIT_GestureType getType() override {
+        return OH_UNIT_GestureType::OH_UNIT_GESTURE_TYPE_Second;
+    }
+};
+OH_UNIT_BaseGestureHandle BaseGesture_constructImpl() {
+    BaseGesture* ptr = new DerivedGesture2();
+    return reinterpret_cast<OH_UNIT_BaseGestureHandle>(ptr);
+}
+void BaseGesture_destructImpl(OH_UNIT_BaseGestureHandle thisPtr) {
+    BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(thisPtr);
+    delete gesturePtr;
+}
+OH_UNIT_GestureType BaseGesture_getTypeImpl(OH_NativePointer thisPtr) {
+    BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(thisPtr);
+    return gesturePtr->getType();
+}
+OH_UNIT_BaseGesture BaseGesture_createGesture2Impl() {
+    BaseGesture* ptr = new DerivedGesture2();
+    return reinterpret_cast<OH_UNIT_BaseGesture>(ptr);
+}
+
+class CheckCallbackExceptionsPeer {
+public:
+    static OH_UNIT_CallbackResource resource;
+};
+OH_UNIT_CallbackResource CheckCallbackExceptionsPeer::resource = {
+    .resourceId=0,
+    .hold=[](const OH_Int32 resourceId) -> void {},
+    .release=[](const OH_Int32 resourceId) -> void {}
+};
+void CheckCallbackExceptions_callHolderImpl(OH_NativePointer thisPtr) {
+}
+Throws_void CheckCallbackExceptions_checkRethrowImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackVoid* value) {
+    static Throws_void result;
+    result = {
+        .hasException = false
+    };
+    value->callSync(vmContext, value->resource.resourceId, {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const Throws_void value) -> void {},
+        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_void value) -> void {
+            result = value;
+        },
+    });
+    return result;
+}
+OH_Boolean CheckCallbackExceptions_checkThrowableCallbackI32_withParameterImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackI32_withParameter* value) {
+    static bool gotException;
+    gotException = false;
+    value->callSync(vmContext, value->resource.resourceId, 1, {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const Throws_Int32 value) -> void {},
+        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_Int32 value) -> void {
+            gotException = value.hasException;
+        },
+    });
+    return gotException;
+}
+OH_Boolean CheckCallbackExceptions_checkThrowableCallbackI32Impl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackI32* value) {
+    static bool gotException;
+    gotException = false;
+    value->callSync(vmContext, value->resource.resourceId, {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const Throws_Int32 value) -> void {},
+        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_Int32 value) -> void {
+            gotException = value.hasException;
+        },
+    });
+    return gotException;
+}
+OH_Boolean CheckCallbackExceptions_checkThrowableCallbackVoidImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackVoid* value) {
+    static bool gotException;
+    gotException = false;
+    value->callSync(vmContext, value->resource.resourceId, {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const Throws_void value) -> void {},
+        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_void value) -> void {
+            gotException = value.hasException;
+        },
+    });
+    return gotException;
+}
+UNIT_ThrowableCallbackVoid CheckCallbackExceptions_checkThrowFromNativeImpl(OH_NativePointer thisPtr) {
+    return {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const UNIT_Callback_Throws_Void_Void continuation) {},
+        .callSync=[](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const UNIT_Callback_Throws_Void_Void continuation) {
+            auto message = "Exception thrown from callback created in native CheckCallbackExceptions_checkThrowFromNative";
+            continuation.callSync(vmContext, continuation.resource.resourceId, {
+                .hasException=true,
+                .exception={
+                    .kind=EXCEPTION_INTERFACE,
+                    .interface={
+                        .code=1,
+                        .message={
+                            .chars=message,
+                            .length=static_cast<int>(strlen(message)),
+                        }
+                    }
+                }
+            });
+        }
+    };
+}
+OH_UNIT_CheckCallbackExceptionsHandle CheckCallbackExceptions_constructImpl() {
+    const CheckCallbackExceptionsPeer* peer = new CheckCallbackExceptionsPeer();
+    return (OH_UNIT_CheckCallbackExceptionsHandle) peer;
+}
+void CheckCallbackExceptions_destructImpl(OH_UNIT_CheckCallbackExceptionsHandle thisPtr) {
+}
+OH_Boolean CheckCallbackExceptions_ThrowableCallbackSequenceImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackSequence* value) {
+    return {};
+}
+
+OH_UNIT_DerivedGesture1Handle DerivedGesture1_constructImpl() {
+    return {};
+}
+void DerivedGesture1_destructImpl(OH_UNIT_DerivedGesture1Handle thisPtr) {
+}
+
+OH_UNIT_DerivedGesture2Handle DerivedGesture2_constructImpl() {
+    return {};
+}
+void DerivedGesture2_destructImpl(OH_UNIT_DerivedGesture2Handle thisPtr) {
+}
+
+void BaseGesture_callHolderImpl(OH_NativePointer thisPtr) {}
+void DerivedGesture1_callHolderImpl(OH_NativePointer thisPtr) {}
+void DerivedGesture2_callHolderImpl(OH_NativePointer thisPtr) {}
+void CheckExceptionClass_callHolderImpl(OH_NativePointer thisPtr) {}
+void CheckExceptionInterface_callHolderImpl(OH_NativePointer thisPtr) {}
+void DTSCheckExternalLib_callHolderImpl(OH_NativePointer thisPtr) {}
+void DTSCheckInternalLib_callHolderImpl(OH_NativePointer thisPtr) {}
+void Example_callHolderImpl(OH_NativePointer thisPtr) {}
+void ForceCallbackClass_callHolderImpl(OH_NativePointer thisPtr) {}
+void ForceContext_callHolderImpl(OH_NativePointer thisPtr) {}
+void GenericInterface_callHolderImpl(OH_NativePointer thisPtr) {}
+void generics_X_callHolderImpl(OH_NativePointer thisPtr) {}
+void generics_Y_callHolderImpl(OH_NativePointer thisPtr) {}
+void Hello_callHolderImpl(OH_NativePointer thisPtr) {}
+void HookClass_callHolderImpl(OH_NativePointer thisPtr) {}
+void HookInterface_callHolderImpl(OH_NativePointer thisPtr) {}
+void IDLCheckConstructor_callHolderImpl(OH_NativePointer thisPtr) {}
+void IDLCheckProps_callHolderImpl(OH_NativePointer thisPtr) {}
+void InterfaceWithMethods_callHolderImpl(OH_NativePointer thisPtr) {}
+void MaterializedDataClass_callHolderImpl(OH_NativePointer thisPtr) {}
+void MyPersonHandler_callHolderImpl(OH_NativePointer thisPtr) {}
+void NS_ForceContextNS_callHolderImpl(OH_NativePointer thisPtr) {}
+void PersonInfo_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_enums_Test_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedComplexArguments_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedMoreOverloadedMethods_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedOverloadedMethods_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedWithConstructorAndFields_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedWithCreateMethod_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_StaticMaterialized_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_ret_B_callHolderImpl(OH_NativePointer thisPtr) {}
+void TestBuffer_BufferGenerator_callHolderImpl(OH_NativePointer thisPtr) {}
+
+class RefCounter {
+public:
+    RefCounter() {}
+    void hold(const void* const ptr) {
+        ++counters_[ptr];
+    }
+    size_t release(const void* const ptr) {
+        auto it = counters_.find(ptr);
+        if (it == counters_.end()) {
+            std::stringstream msg;
+            msg << "Pointer " << ptr << " is not found in reference counter";
+            return 0;
+        }
+        std::size_t& cnt = it->second;
+        if (cnt < 2) {
+            counters_.erase(it);
+            return 0;
+        }
+        --cnt;
+        return cnt;
+    }
+private:
+    std::unordered_map<const void*, std::size_t> counters_;
+};
+
+RefCounter& GetRefCounter() {
+    static RefCounter counter;
+    return counter;
+}
+
+class SomeClass {
+public:
+    OH_Number getValue() {
+        OH_Number n;
+        n.i32 = 5;
+        n.tag = INTEROP_TAG_INT32;
+        return n;
+    }
+};
+
+OH_UNIT_SomeClass GlobalScope_getSomeClassInstanceImpl() {
+    static SomeClass* obj = new SomeClass();
+    return reinterpret_cast<OH_UNIT_SomeClass>(obj);
+}
+
+OH_UNIT_SomeClassHandle SomeClass_constructImpl() {
+    SomeClass* obj = new SomeClass();
+    return reinterpret_cast<OH_UNIT_SomeClassHandle>(obj);
+}
+OH_Number SomeClass_getValueImpl(OH_NativePointer thisPtr) {
+    SomeClass* someClassPtr = reinterpret_cast<SomeClass*>(thisPtr);
+    return someClassPtr->getValue();
+}
+
+void SomeClass_callHolderImpl(OH_NativePointer thisPtr) {
+    SomeClass* someClassPtr = reinterpret_cast<SomeClass*>(thisPtr);
+    if (someClassPtr) {
+        GetRefCounter().hold(someClassPtr);
+    }
+}
+
+void SomeClass_destructImpl(OH_UNIT_SomeClassHandle thisPtr) {
+    SomeClass* someClassPtr = reinterpret_cast<SomeClass*>(thisPtr);
+    if (someClassPtr) {
+        if (GetRefCounter().release(someClassPtr) == 0) {
+            delete someClassPtr;
+        }
+    }
+}
+
 OH_UNIT_CheckExceptionInterfaceHandle CheckExceptionInterface_constructImpl() {
     OH_UNIT_CheckExceptionInterfacePeer* peer = new OH_UNIT_CheckExceptionInterfacePeer();
     printf("CheckExceptionInterface construct peer: %p\n", peer);
@@ -906,9 +1155,24 @@ OH_UNIT_CheckExceptionInterfaceHandle CheckExceptionInterface_constructImpl() {
 }
 void CheckExceptionInterface_destructImpl(OH_UNIT_CheckExceptionInterfaceHandle thisPtr) {
 }
-void CheckExceptionInterface_checkExceptionImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
-    printf("CheckExceptionInterface checkException vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
-    KOALA_INTEROP_THROW_STRING(vmContext, "Exception from CheckExceptionInterface");
+Throws_Array_I32 CheckExceptionClass_getArrayImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+Throws_void CheckExceptionInterface_checkExceptionImpl(OH_NativePointer thisPtr) {
+    const char *message = "Exception from CheckExceptionInterface";
+    return {
+        .hasException=true,
+        .exception={
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message={
+                    .chars=message,
+                    .length=static_cast<InteropInt32>(strlen(message)),
+                }
+            }
+        }
+    };
 }
 
 OH_UNIT_CheckExceptionClassHandle CheckExceptionClass_constructImpl() {
@@ -918,14 +1182,62 @@ OH_UNIT_CheckExceptionClassHandle CheckExceptionClass_constructImpl() {
 }
 void CheckExceptionClass_destructImpl(OH_UNIT_CheckExceptionClassHandle thisPtr) {
 }
-void CheckExceptionClass_checkExceptionImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
-    printf("OH_UNIT_CheckExceptionClass checkException vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
-    KOALA_INTEROP_THROW_STRING(vmContext, "Exception from CheckExceptionClass");
+Throws_void CheckExceptionClass_checkExceptionImpl(OH_NativePointer thisPtr) {
+    const char *message = "Exception from CheckExceptionClass";
+    return {
+        .hasException=true,
+        .exception={
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message={
+                    .chars=message,
+                    .length=static_cast<InteropInt32>(strlen(message)),
+                }
+            }
+        }
+    };
 }
 
-OH_UNIT_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
-    printf("OH_UNIT_CheckExceptionClass getInterface vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
-    return (OH_UNIT_CheckExceptionInterface) new OH_UNIT_CheckExceptionInterfacePeer();
+Throws_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_NativePointer thisPtr) {
+    printf("OH_UNIT_CheckExceptionClass getInterface thisPtr: %p\n", thisPtr);
+    return {
+        .hasException=false,
+        .value=(OH_UNIT_CheckExceptionInterface)(new OH_UNIT_CheckExceptionInterfacePeer()),
+    };
+}
+
+void CheckExceptionClass_getPromiseInterfaceImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const UNIT_Callback_Opt_CheckExceptionInterface_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+    auto const resource = outputArgumentForReturningPromise->resource;
+    const char *message = "(Test passed) Promise for @throw annotated method was rejected";
+    OH_String* errors = new OH_String[2];
+    errors[0].length = strlen("1");
+    errors[0].chars = "1";
+    errors[1].length = strlen(message);
+    errors[1].chars = message;
+    outputArgumentForReturningPromise->callSync(vmContext, resource.resourceId, { .tag=INTEROP_TAG_UNDEFINED }, {
+        .tag=INTEROP_TAG_OBJECT,
+        .value={
+            .array=errors,
+            .length=2,
+        }
+    });
+}
+Throws_void CheckExceptionClass_getThisImpl(OH_NativePointer thisPtr) {
+    const char *message = "(Test passed) Promise for @throw annotated method with `this` return type was rejected";
+    return {
+        .hasException=true,
+        .exception={
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message={
+                    .chars=message,
+                    .length=static_cast<InteropInt32>(strlen(message)),
+                }
+            }
+        }
+    };
 }
 
 OH_UNIT_generics_XHandle generics_X_constructImpl() {
@@ -974,30 +1286,57 @@ OH_Boolean GlobalScope_testLengthImpl(const OH_Number* step, const OH_UNIT_Lengt
 }
 
 // Hooks
-class DTSHookClassPeer
+// TBD: Do not generate native methods for hooks with the replaceImplementation set to true
+class HookInterfacePeer
 {
 };
-OH_UNIT_DTSHookClassHandle DTSHookClass_constructImpl() {
-    return (OH_UNIT_DTSHookClassHandle) new DTSHookClassPeer();
+
+OH_UNIT_HookInterface GlobalScope_getHookInterfaceImpl() {
+    return (OH_UNIT_HookInterface) new HookInterfacePeer();
 }
-void DTSHookClass_destructImpl(OH_UNIT_DTSHookClassHandle thisPtr) {
-}
-void DTSHookClass_methodImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
-    printf("[native] [0] call DTSHookClass_methodImpl, count: %d\n", value->count.i32);
-}
-// TBD: remove implementation for the hooked method
-void DTSHookClass_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
-}
-OH_UNIT_DTSHookValue DTSHookClass_methodReturnImpl(OH_NativePointer thisPtr) {
+
+OH_UNIT_HookInterfaceHandle HookInterface_constructImpl() {
     return {};
 }
-void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
+void HookInterface_destructImpl(OH_UNIT_HookInterfaceHandle thisPtr) {
+}
+void HookInterface_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value) {
+}
+void HookInterface_methodImpl(OH_NativePointer thisPtr) {
+}
+void HookInterface_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
+}
+OH_UNIT_ImportedHookValue HookInterface_methodImportedReturnImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+OH_UNIT_HookValue HookInterface_methodReturnImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+
+class HookClassPeer
+{
+};
+OH_UNIT_HookClassHandle HookClass_constructImpl() {
+    return (OH_UNIT_HookClassHandle) new HookClassPeer();
+}
+void HookClass_destructImpl(OH_UNIT_HookClassHandle thisPtr) {
+}
+void HookClass_methodImpl(OH_NativePointer thisPtr) {
+    printf("[native] [0] call HookClass_methodImpl\n");
+}
+// TBD: remove implementation for the hooked method
+void HookClass_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value) {
+}
+OH_UNIT_HookValue HookClass_methodReturnImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
 }
 
 // TBD: update
-void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue) {
+void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue) {
 }
-OH_UNIT_ImportedHookValue DTSHookClass_methodImportedReturnImpl(OH_NativePointer thisPtr) {
+OH_UNIT_ImportedHookValue HookClass_methodImportedReturnImpl(OH_NativePointer thisPtr) {
     return {};
 }
 
@@ -1064,14 +1403,17 @@ void DTSCheckExternalLib_checkSubNSExternalTypeImpl(OH_NativePointer thisPtr, OH
 // }
 
 
-const char* ERROR_MSG = "(Test passed) Promise was rejected";
+static const char* ERROR_MSG = "(Test passed) Promise was rejected";
 void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, const OH_Number* ms, const UNIT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
-    OH_String* errors = new OH_String[1];
-    errors[0].length = strlen(ERROR_MSG);
-    errors[0].chars = ERROR_MSG;
-    outputArgumentForReturningPromise->call(
+    OH_String* errors = new OH_String[2];
+    errors[0].length = strlen("1");
+    errors[0].chars = "1";
+    errors[1].length = strlen(ERROR_MSG);
+    errors[1].chars = ERROR_MSG;
+    outputArgumentForReturningPromise->callSync(
+        vmContext,
         outputArgumentForReturningPromise->resource.resourceId,
-        (Opt_Array_String){ INTEROP_TAG_OBJECT, { errors, 1 } }
+        { INTEROP_TAG_OBJECT, { errors, 2 } }
     );
 }
 
@@ -1116,4 +1458,53 @@ OH_UNIT_UnionSampleNumberArrayInterface GlobalScope_checkUnionNumberArraySampleI
 }
 OH_UNIT_UnionSampleTupleArrayInterface GlobalScope_checkUnionTupleArraySampleImpl(const OH_UNIT_UnionSampleTupleArrayInterface* value) {
     return *value;
+}
+OH_UNIT_UnionSampleGenericTypeInterface GlobalScope_checkUnionGenericTypeSampleImpl(const OH_UNIT_UnionSampleGenericTypeInterface* value) {
+    return *value;
+
+}
+void GlobalScope_generics_callWithDefaultsBImpl(const OH_UNIT_generics_WithDefaultsB_generics_WithDefaultsA_Number* value) {
+}
+
+OH_UNIT_GestureType GlobalScope_getBaseGestureTypeImpl(OH_NativePointer ptr) {
+    BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(ptr);
+    return gesturePtr->getType();
+}
+
+void checkTransformFlagToState(OH_Boolean flag, InteropNumber state) {
+    if (state.tag != INTEROP_TAG_INT32) {
+        INTEROP_FATAL("Check transform value state %d does not equal to %d\n", state.tag, INTEROP_TAG_INT32)
+    }
+    if (!flag && state.i32 != 0) {
+        INTEROP_FATAL("Check transform value %d does not equal to %d\n", state.i32, 0)
+    }
+    if (flag && state.i32 != 1) {
+        INTEROP_FATAL("Check transform value %d does not equal to %d\n", state.i32, 1)
+    }
+}
+
+// Transform on serialize
+OH_UNIT_TransformDstC GlobalScope_checkTransformDstCImpl(const OH_UNIT_TransformDstC* value, OH_Boolean flag) {
+    checkTransformFlagToState(flag, value->state);
+    return *value;
+}
+
+OH_UNIT_TransformDstI GlobalScope_checkTransformDstIImpl(const OH_UNIT_TransformDstI* value, OH_Boolean flag) {
+    checkTransformFlagToState(flag, value->state);
+    return *value;
+}
+
+UNIT_TransformDstCallbackI GlobalScope_checkTransformSrcIToCallbackImpl(const UNIT_TransformDstCallbackI* value, OH_Boolean flag) {
+    value->resource.hold(value->resource.resourceId);
+    return *value;
+}
+
+UNIT_TransformDstCallbackC GlobalScope_checkTransformSrcCToCallbackImpl(const UNIT_TransformDstCallbackC* value, OH_Boolean flag) {
+    value->resource.hold(value->resource.resourceId);
+    return *value;
+}
+
+OH_UNIT_SomeClassHandle GlobalScope_getSomeClassInstance() {
+    static SomeClass obj;
+    return reinterpret_cast<OH_UNIT_SomeClassHandle>(&obj);
 }

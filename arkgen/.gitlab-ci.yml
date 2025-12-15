@@ -5,8 +5,6 @@ arkgen TS subset:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
-    # - npm i --prefix external/arkoala-arkts --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:subset:ts
     - npm run -C arkgen gen-idl:subset:ts
@@ -26,10 +24,12 @@ arkgen ArkTS subset:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
+    - npm run -C arkgen setup:subset:arkts
     - npm run -C arkgen gen-idl:subset:arkts
     - npm run -C arkgen gen:subset:arkts
     - npm run -C arkgen build:subset:arkts
     - npm run -C arkgen build-native:subset:arkts
+    - npm run -C arkgen/tests-template/arkts build
     - npm run -C arkgen exec:subset:arkts
   needs:
     - build idlize
@@ -44,11 +44,30 @@ arkgen ArkTS unit:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
-    - npm run -C arkgen init:unit:arkts
-    - npm run -C arkgen gen:unit:arkts
-    - npm run -C arkgen build:unit:arkts
-    - npm run -C arkgen build-native:unit:arkts
-    - npm run -C arkgen exec:unit:arkts
+    - npm run -C arkgen/tests/unit init:arkts
+    - npm run -C arkgen/tests/unit gen:arkts
+    - npm run -C arkgen/tests/unit build:arkts
+    - npm run -C arkgen/tests/unit build:arkts:native
+    - npm run -C arkgen/tests/unit exec:arkts
+  needs:
+    - build idlize
+    - build external
+
+arkgen Kotlin unit:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+  script:
+    - npm run -C arkgen/tests/unit init:kt
+    - npm run -C arkgen/tests/unit gen:kt
+    - npm run -C arkgen/tests/unit build:kt:interop
+    - npm run -C arkgen/tests/unit build:kt:native
+    - npm run -C arkgen/tests/unit build:kt
+    - npm run -C arkgen/tests/unit exec:kt
   needs:
     - build idlize
     - build external
@@ -75,6 +94,7 @@ arkgen Kotlin subset:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
+    - npm run -C arkgen setup:subset:kt
     - npm run -C arkgen gen:kt:subset
     - npm run -C arkgen compile:kt:interop
     - npm run -C arkgen compile:kt:native:subset
@@ -89,8 +109,6 @@ arkgen TS sdk:
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
-    # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
-    # - npm i --prefix external/arkoala-arkts --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:sdk:ts
     - npm run -C arkgen gen-idl:sdk:ts

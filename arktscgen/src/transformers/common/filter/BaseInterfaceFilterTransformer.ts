@@ -17,6 +17,7 @@ import { createUpdatedInterface, innerTypeIfContainer } from "../../../utils/idl
 import { createFile, createNamespace, IDLEntry, IDLFile, IDLInterface, IDLMethod, isInterface, isNamespace, isReferenceType } from "@idlizer/core"
 import { Transformer } from "../../Transformer"
 import { Typechecker } from "../../../general/Typechecker"
+import { gCoverage } from "../../../general/Coverage";
 
 export abstract class BaseInterfaceFilterTransformer extends Transformer {
     constructor(file: IDLFile, removeNamespaces: boolean = false) {
@@ -26,14 +27,19 @@ export abstract class BaseInterfaceFilterTransformer extends Transformer {
     protected typechecker = new Typechecker(this.file)
 
     transformInterface(entry: IDLInterface): IDLEntry|undefined {
+        gCoverage.total(entry)
         if (this.shouldFilterOutInterface(entry)) {
+            gCoverage.ignored(entry)
             return undefined
         }
+        const filtered = entry.methods
+            .filter(it => !this.shouldFilterOutMethod(entry.name, it.name))
+            .filter(it => !this.isReferringForbiddenOrMissing(it, (iface: IDLInterface) => this.shouldFilterOutInterface(iface)))
+        gCoverage.funcTotal(entry, entry.methods.length)
+        gCoverage.funcIgnored(entry, entry.methods.length - filtered.length)
         return createUpdatedInterface(
             entry,
-            entry.methods
-                .filter(it => !this.shouldFilterOutMethod(entry.name, it.name))
-                .filter(it => !this.isReferringForbiddenOrMissing(it, (iface: IDLInterface) => this.shouldFilterOutInterface(iface))),
+            filtered,
             entry.name,
             entry.inheritance,
             entry.extendedAttributes,

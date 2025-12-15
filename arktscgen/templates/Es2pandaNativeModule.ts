@@ -26,6 +26,7 @@ import {
     KBoolean,
     KDouble,
     KFloat,
+    KULong,
     KLong
 } from "@koalaui/interop"
 

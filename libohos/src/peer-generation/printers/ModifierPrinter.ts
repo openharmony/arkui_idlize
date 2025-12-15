@@ -31,6 +31,7 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
     capitalize,
     qualifiedName,
     LibraryInterface,
+    maybeRestoreThrows,
 } from '@idlizer/core'
 import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils,
@@ -44,7 +45,8 @@ import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
 import * as idl from "@idlizer/core/idl"
 import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
 import { generateCapiParameters } from "./HeaderPrinter";
-import { collectProperties } from "./StructPrinter";
+import { isVMContextMethod } from "./MethodUtils";
+import { collectProperties } from "../propertyCollectors";
 
 function peerToOutString(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string {
     if (isComponentDeclaration(library, context))
@@ -117,6 +119,12 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         if (idl.isType(decl)) {
             return convertType(this, decl)
         }
+        let restoredThrow: idl.IDLType | undefined
+        if (restoredThrow = maybeRestoreThrows(decl, this.resolver)) {
+            if (restoredThrow === idl.IDLVoidType || restoredThrow === idl.IDLThisType)
+                return `{.hasException=false}`
+            return `{.hasException=false, .value=${this.convert(restoredThrow)}}`
+        }
         if (decl && isInterface(decl)) {
             if (isMaterialized(decl, this.resolver)) {
                 return `reinterpret_cast<${this.retTypeConverter.convert(type)}>(300)`
@@ -188,8 +196,12 @@ export class ModifierVisitor {
             )
         )
         _.print(`string out("${peerToOutString(this.library, context, method)}(");`)
+        const withVMContext = isVMContextMethod(method.sig)
+        if (withVMContext) {
+            _.print(`out.append(vmContext == NULL ? "VMContext_NULL" : "VMContext_Not_NULL");`)
+        }
         method.argAndOutConvertors(this.library).forEach((argConvertor, index) => {
-            if (index > 0) this.dummy.print(`out.append(", ");`)
+            if (index > 0 || withVMContext) this.dummy.print(`out.append(", ");`)
             _.print(`WriteToString(&out, ${argConvertor.param});`)
         })
         _.print(`out.append(") \\n");`)
@@ -240,7 +252,15 @@ export class ModifierVisitor {
             const implClassName = `${method.originalParentName}PeerImpl`
             printer.print(`auto peerImpl = reinterpret_cast<${implClassName} *>(peer);`)
             printer.print(`if (peerImpl) {`)
-            printer.print(`    delete peerImpl;`)
+            printer.print(`    if (GetRefCounter().release(peerImpl) == 0) {`)
+            printer.print(`        delete peerImpl;`)
+            printer.print(`    }`)
+            printer.print(`}`)
+        } else if (method.method.name === PeerMethodSignature.CALL_HOLDER) {
+            const implClassName = `${method.originalParentName}PeerImpl`
+            printer.print(`auto peerImpl = reinterpret_cast<${implClassName} *>(peer);`)
+            printer.print(`if (peerImpl) {`)
+            printer.print(`    GetRefCounter().hold(peerImpl);`)
             printer.print(`}`)
         }
         else if (!isVoid) {
@@ -430,7 +450,8 @@ class AccessorVisitor extends ModifierVisitor {
         // so take the first one.
         const mDestroyPeer = createDestroyPeerMethod(clazz)
         const ctor = clazz.ctors.length > 0 ? clazz.ctors[0] : undefined
-        const randomMethod = (mDestroyPeer ?? ctor ?? clazz.finalizer ?? clazz.methods[0] ?? throwException("Class should not be printed!"))
+        const randomMethod = (mDestroyPeer ?? ctor ?? clazz.finalizer ?? 
+            clazz.methods[0] ?? throwException("Class should not be printed!"))
         const namespaceName = peerParentNamespaceName(this.library, clazz.decl, randomMethod)
         this.pushNamespace(namespaceName, false);
         [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {

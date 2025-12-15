@@ -15,9 +15,8 @@
 
 import { IndentPrinter } from "../indent";
 import * as lw from "../../lws"
-import { Op, std, Ts } from "../../stdlib";
-import { utils } from "../../builder";
-import { generatorConfiguration } from "@idlizer/core";
+import { Op, std } from "../../stdlib";
+import { S, T, utils } from "../../builder";
 
 const varMapping = new Map([
   [std.names.vars.base, 'base'],
@@ -244,6 +243,29 @@ export class CXXPrinter {
         this.p.put(')')
         break
       }
+      case lw.LWKind.LambdaExpression:
+        if (expression.closure) {
+          this.p.put('[')
+          expression.closure.forEach((name, i) => {
+            if (i > 0) {
+              this.p.put(',', ' ')
+            }
+            this.p.put(name)
+          })
+          this.p.put(']')
+        }
+        this.p.put('(')
+        expression.parameters.forEach((param, i) => {
+          if (i > 0) {
+            this.p.put(',', ' ')
+          }
+          this.printDirectType(param.type, param.name)
+        })
+        this.p.put(')', ' ')
+        const body = expression.body.kind === lw.LWKind.CompoundStatement
+          ? expression.body
+          : S.block([expression.body])
+        this.printStatement(body)
     }
   }
   printStatement(statement: lw.LWStatement) {
@@ -280,6 +302,8 @@ export class CXXPrinter {
       case lw.LWKind.DeclarationStatement: {
         if (statement.static)
           this.p.put('static', ' ')
+        if (!statement.mutable)
+          this.p.put('const', ' ')
         this.printDirectType(statement.varType, statement.varName)
         if (statement.expression) {
           if (statement.expression.kind === lw.LWKind.ConstructorExpression) {
@@ -288,6 +312,8 @@ export class CXXPrinter {
               this.p.put(' ', '=', ' ', '{')
               closer = '}'
             } else if (utils.hasHint(statement.expression, std.names.hints.stackInstance)) {
+              this.p.put(' ', '=', ' ')
+              this.printAbstractType(statement.varType)
               this.p.put('(')
               closer = ')'
             }
@@ -319,6 +345,24 @@ export class CXXPrinter {
         }
         break
       }
+      case lw.LWKind.SwitchStatement:
+        this.p.put('switch', ' ', '(')
+        this.printExpression(statement.selector)
+        this.p.put(')', ' ', '{').inc().newline()
+        statement.cases.forEach(({value, body}) => {
+          this.p.put('case', ' ')
+          this.printExpression(value)
+          this.p.put(':').inc().newline()
+          body.forEach(stmt => this.printStatement(stmt))
+          this.p.dec().newline()
+        })
+        if (statement.default.length) {
+          this.p.put('default:').inc().newline()
+          statement.default.forEach(stmt => this.printStatement(stmt))
+          this.p.dec().newline()
+        }
+        this.p.dec().put('}')
+        break;
       case lw.LWKind.LoopStatement: {
         this.p.put('for', ' ', '(')
         if (statement.init)
@@ -370,22 +414,6 @@ export class CXXPrinter {
             this.p.put(' ', '=', ' ', val)
           }
         })
-        this.p.dec().newline()
-        this.p.put('}', ' ', declaration.name, ';')
-        break
-      case lw.LWKind.UnionDeclaration:
-        const TypePrefix = generatorConfiguration().TypePrefix///mv
-        this.p.put('typedef', ' ', 'struct', ' ', declaration.name, ' ', '{')
-        this.p.inc().newline()
-        this.p.put(TypePrefix, 'Int32', ' ', 'selector', ';').newline()
-        this.p.put('union', ' ', '{')
-        this.p.inc().newline()
-        declaration.variants.forEach((variant, i) => {
-          if (i > 0) this.p.newline()
-          this.printField('value' + i, variant)
-        })
-        this.p.dec().newline()
-        this.p.put('}', ';')
         this.p.dec().newline()
         this.p.put('}', ' ', declaration.name, ';')
         break
@@ -487,15 +515,19 @@ export class CXXPrinter {
           this.p.put(';')
         }
         declaration.annotations.forEach(ann => {
-          if (ann.kind === lw.DecoratorKind.MacroCall) {
+          if (ann.kind === lw.DecoratorKind.MacroInvocation) {
             this.p.newline()
             this.p.put(ann.name, '(')
             ann.args.forEach((arg, i) => {
               if (i > 0) {
                 this.p.put(',', ' ')
               }
-              if (typeof arg === 'string') this.p.put(arg)
-              else this.printAbstractType(arg)
+              if (typeof arg === 'string')
+                this.p.put(arg)
+              else if (arg.kind === lw.LWKind.ValueType || arg.kind === lw.LWKind.FunctionalType)
+                this.printAbstractType(arg)
+              else
+                this.printExpression(arg)
             })
             this.p.put(')')
           }

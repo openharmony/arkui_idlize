@@ -1,7 +1,7 @@
 package arkui.component.datebook;
 import arkui.stateManagement.runtime.memo as memo;
 import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
-import arkui.component.common.CommonMethod as CommonMethod;
+
 dictionary DatebookType {
     number EGYPTIAN = 0;
     number ROMAN = 1;
@@ -13,13 +13,15 @@ interface DatebookOptions {
     attribute boolean effect;
 };
 [Component]
-interface DatebookAttribute: CommonMethod {
-    [CommonMethod]
+interface DatebookAttribute: Root {
     attribute (DatebookType or undefined) type;
-    [CommonMethod]
     attribute (String or undefined) text;
-    [CommonMethod]
+
+    // Fix Opt_CustomObject
     attribute (any or undefined) forceOptCustomObject;
+
+    // generator hanging
+    // attribute t: number
 };
 [Synthetic]
 callback Callback_Void = void ();

@@ -8,7 +8,7 @@ import { generateSyntheticFunctionName, getInternalClassName, isMaterialized,
     Language,
     LayoutManager,
     toDeclaration} from "@idlizer/core";
-import { componentToPeerClass, componentToStyleClass } from '../printers/PeersPrinter';
+import { componentToPeerClass } from '../printers/PeersPrinter';
 import { isComponentDeclaration } from '../ComponentsCollector';
 import { NativeModule } from '../NativeModule';
 import { compareNodes } from '@idlizer/core';
@@ -41,6 +41,9 @@ function groupSyntheticsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
                 if (sameNamed = syntheticDeclarations.find(it => it.name === node.name)) {
                     if (!compareNodes(node, sameNamed)) {
                         console.error(`Found two synthetics with same name ${node.name} and different content`)
+                        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Throws) !== idl.hasExtAttribute(sameNamed, idl.IDLExtendedAttributes.Throws)) {
+                            throw new Error("Two synthetic declarations with same name but different Throws annotation values found")
+                        }
                     }
                 } else {
                     syntheticDeclarations.push(idl.clone(node))
@@ -266,11 +269,6 @@ function componentsPeersTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
             if (isComponentDeclaration(library, it)) {
                 const peerName = componentToPeerClass(it.name.replace('Attribute', ''))
                 syntheticDeclarations.push(idl.createInterface(peerName, idl.IDLInterfaceSubkind.Interface,
-                    undefined, undefined, undefined, undefined, undefined, undefined, undefined,
-                    { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]}
-                ))
-                const styleComponentName = componentToStyleClass(it.name)
-                syntheticDeclarations.push(idl.createInterface(styleComponentName, idl.IDLInterfaceSubkind.Interface,
                     undefined, undefined, undefined, undefined, undefined, undefined, undefined,
                     { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]}
                 ))

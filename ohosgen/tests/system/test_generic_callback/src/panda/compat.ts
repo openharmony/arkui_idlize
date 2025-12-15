@@ -1,7 +1,7 @@
 import { checkEvents, registerNativeModuleLibraryName, wrapSystemApiHandlerCallback } from '@koalaui/interop';
 import { registerTestGenericCallbackApiHandler } from '../../generated/arkts';
 
-export { Foo, Callback } from '../../generated/arkts';
+export { Foo } from '../../generated/arkts';
 
 export function pullEvents() {
     checkEvents();

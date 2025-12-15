@@ -8,6 +8,7 @@
     "ApiVersion": 9999,
     "dumpSerialized": false,
     "ignoreMaterialized": [
+        "ExtendableComponent",
         "AnimatableArithmetic",
         "CustomLayoutRoot",
         "DynamicNode",
@@ -27,8 +28,7 @@
     "ignoreGenerics": [
         "arkui.component.common.AttributeModifier",
         "arkui.component.common.ContentModifier",
-        "arkui.component.ContentModifier",
-        "arkui.component.builder.CustomBuilderT"
+        "arkui.component.ContentModifier"
     ],
     "forceMaterialized": [
         "arkui.component.gesture.extra.TapGestureInterface",
@@ -436,6 +436,14 @@
         {
             "from": "arkui.component.builder.PageMapBuilder",
             "to": "arkui.component.idlize.PageMapNodeBuilder"
+        },
+        {
+            "from": "arkui.component.builder.CustomBuilderT",
+            "to": "arkui.component.idlize.CustomNodeBuilderT"
+        },
+        {
+            "from": "arkui.component.extendableComponent.ExtendableComponent",
+            "to": "arkui.component.idlize.CustomNodeBuilder"
         }
     ],
     "forceCallback": {
@@ -460,7 +468,6 @@
         "ComponentContent",
         "ComponentContentBase",
         "ImageModifier",
-        "ExtendableComponent",
         "UserDataSpan",
         "arkui.component.pluginComponent.RecordData",
         "arkui.component.uiExtensionComponent.RecordData",
@@ -492,7 +499,9 @@
         "CalendarAttribute",
         "ContainerSpanAttribute",
         "CustomLayoutRoot",
-        "ConditionScope"
+        "ConditionScope",
+        "SymbolSpanAttribute",
+        "SpanAttribute"
     ],
     "standaloneComponents": [
         "TextPickerDialog",
@@ -500,7 +509,9 @@
         "AlertDialog",
         "CanvasPattern",
         "WithThemeAttribute",
-        "ToolBarItemAttribute"
+        "ToolBarItemAttribute",
+        "SpanAttribute",
+        "SymbolSpanAttribute"
     ],
     "parameterized": [
         "Indicator",
@@ -515,6 +526,7 @@
             "CustomNode"
         ],
         "handWritten": [
+            "ExtendableComponent",
             "LocalStorage",
             "SyncedPropertyOneWay",
             "SubscribedAbstractProperty",
@@ -562,7 +574,8 @@
             "PinchGestureHandler",
             "TapGestureHandler",
             "RotationGestureHandler",
-            "SwipeGestureHandler"
+            "SwipeGestureHandler",
+            "ModifierState"
         ],
         "ignoreEntry": [
             "Optional",
@@ -582,29 +595,6 @@
             "SyncedPropertyTwoWay",
             "IMonitorValue"
         ],
-        "ignoreEntryJava": [
-            "AnimationRange",
-            "EventTargetInfo",
-            "GestureRecognizer",
-            "GestureRecognizerJudgeBeginCallback",
-            "Matrix2D",
-            "ScrollAnimationOptions",
-            "SheetDismiss",
-            "SubTabBarStyle",
-            "TextPickerDialog",
-            "Dimension",
-            "ScaleSymbolEffect",
-            "ReplaceSymbolEffect",
-            "BaseShape",
-            "RectShape",
-            "EllipseShape",
-            "CircleShape",
-            "Error",
-            "getRectangleById",
-            "edgeColors",
-            "edgeWidths",
-            "borderRadiuses"
-        ],
         "ignoreComponents": [
             "Particle",
             "ForEach",
@@ -614,11 +604,6 @@
         "ignorePeerMethod": [
             "attributeModifier"
         ],
-        "ignoreMethodArkts": [
-            "testTupleNumberStringEnum",
-            "testTupleOptional",
-            "testTupleUnion"
-        ],
         "invalidAttributes": [
             "ScrollableCommonMethod"
         ],
@@ -627,6 +612,16 @@
         ]
     },
     "hooks": {
+        "DragEvent":{
+            "startDataLoading": {
+                "hookName": "hookDragEventStartDataLoading",
+                "replaceImplementation": true
+            },
+            "getSummary": {
+                "hookName": "hookDragEventGetSummary",
+                "replaceImplementation": true
+            }
+        },
         "ButtonAttribute": {
             "contentModifier": {
                 "hookName": "hookButtonContentModifier",
@@ -665,6 +660,14 @@
             "drawModifier": {
                 "hookName": "hookDrawModifier",
                 "replaceImplementation": true
+            },
+            "allowDrop": {
+                "hookName": "hookAllowDrop",
+                "replaceImplementation": true
+            },
+            "dragPreviewOptions": {
+                "hookName": "hookDragPreviewOptions",
+                "replaceImplementation": true
             }
         },
         "CheckboxAttribute": {
@@ -694,6 +697,16 @@
         "LoadingProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookLoadingProgressContentModifier",
+                "replaceImplementation": true
+            }
+        },
+        "NavigationAttribute": {
+            "setNavigationOptions": {
+                "hookName": "hookSetNavigationOptions",
+                "replaceImplementation": true
+            },
+            "navDestination": {
+                "hookName": "hookSetNavDestination",
                 "replaceImplementation": true
             }
         },
@@ -757,6 +770,10 @@
             "menuItemContentModifier": {
                 "hookName": "hookSelectContentModifier",
                 "replaceImplementation": true
+            },
+            "divider": {
+                "hookName": "hookSelectSetDividerMethod",
+                "replaceImplementation": false
             }
         },
         "SliderAttribute": {
@@ -771,6 +788,12 @@
                 "replaceImplementation": true
             }
         },
+        "TextPickerAttribute": {
+            "divider": {
+                "hookName": "hookTextPickerDivider",
+                "replaceImplementation": false
+            }
+        },
         "TextTimerAttribute": {
             "contentModifier": {
                 "hookName": "hookTextTimerContentModifier",
@@ -780,6 +803,12 @@
         "ToggleAttribute": {
             "contentModifier": {
                 "hookName": "hookToggleContentModifier",
+                "replaceImplementation": true
+            }
+        },
+        "waterFlowAttribute": {
+            "setWaterFlowOptionsAttribute": {
+                "hookName": "hookWaterFlowOptionsImpl",
                 "replaceImplementation": true
             }
         },
@@ -813,6 +842,18 @@
             "setWithThemeOptions": {
                 "hookName": "hookWithThemeOptions",
                 "replaceImplementation": true
+            }
+        },
+        "CommonMethodModifier": {
+            "size": {
+                "hookName": "hookCommonMethodModifierSize",
+                "replaceImplementation": true
+            }
+        },
+        "TabsAttribute": {
+            "pageFlipMode": {
+                "hookName": "hookTabsApplyAttributesFinish",
+                "replaceImplementation": false
             }
         }
     },
@@ -889,7 +930,7 @@
         "idlize.internal.interop.Test.TestCallIntMemory"
     ],
     "constants": {
-    },
+            },
     "moduleName": "arkui",
     "modules": {
         "arkui": {

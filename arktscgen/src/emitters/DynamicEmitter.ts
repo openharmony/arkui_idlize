@@ -68,7 +68,7 @@ export class DynamicEmitter {
                 fs.readFileSync(pandaJson).toString())?.version ?? `Unknown`
         }
 
-        const host = 'linux'
+        const host = process.platform
         const pandaBinary = path.join(sdkDir, `${host}_host_tools/bin/es2panda`)
         if (fs.existsSync(pandaBinary)) {
             const result = ps.spawnSync(pandaBinary, ['--version'], { encoding: 'utf-8' })
@@ -89,8 +89,8 @@ export class DynamicEmitter {
 
     private bridgesPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new BridgesPrinter(this.config, idl).print(),
-        `libarkts/generated/native/bridges.cc`,
-        `bridges.cc`,
+        `libarkts/generated/native/bridges.cpp`,
+        `bridges.cpp`,
         true
     )
 
@@ -142,7 +142,7 @@ export class DynamicEmitter {
     private printPeers(idl: IDLFile): void {
         const out = this.printFiles(this.peersPrinter, idl)
         // override index printer
-        this.indexPrinter.print = AllPeersPrinter.printIndexFile.bind(undefined, out)
+        this.indexPrinter.print = AllPeersPrinter.printIndexFile.bind(undefined,  out, this.config)
         this.printFile(this.indexPrinter, idl)
         this.printFile(this.factoryPrinter, idl)
     }

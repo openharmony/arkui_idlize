@@ -1,4 +1,5 @@
 {
+    "$schema": "../../../generation-config/schema.json",
     "moduleName": "dummy",
     "modules": {
         "dummy": {
@@ -14,9 +15,8 @@
     "dumpSerialized": false,
     "ignoreMaterialized": [],
     "forceMaterialized": [],
-    "forceCallback": [],
+    "forceCallback": {},
     "forceResource": [],
-    "boundProperties": {},
     "rootComponents": [],
     "standaloneComponents": [],
     "parameterized": [],
@@ -26,10 +26,8 @@
         "customNodeTypes": [],
         "handWritten": [],
         "ignoreEntry": [],
-        "ignoreEntryJava": [],
         "ignoreComponents": [],
         "ignorePeerMethod": [],
-        "ignoreMethodArkts": [],
         "invalidAttributes": [],
         "replaceThrowErrorReturn": []
     },

@@ -25,6 +25,13 @@ export class Package {
         return this.read("version")
     }
 
+    snapshot() {
+        return fs.readFileSync(this.package())
+    }
+    restore(snapshot) {
+        fs.writeFileSync(this.package(), snapshot)
+    }
+
     write(key, value, updater) {
         const json = JSON.parse(fs.readFileSync(this.package(), "utf-8"))
         json[key] = value
@@ -43,9 +50,10 @@ export class Package {
             const script = "compile:release" in this.read("scripts")
                 ? "compile:release"
                 : "compile"
-            execSync(`npm run ${script}`)
+            execSync(`npm run ${script}`, { encoding: 'utf-8', stdio: 'inherit' })
         } catch(e) {
             console.log(`cannot compile package: ${this.name()}`, e)
+            throw e
         }
     }
 

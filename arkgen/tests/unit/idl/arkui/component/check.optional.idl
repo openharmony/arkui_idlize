@@ -1,0 +1,16 @@
+package arkui.component.check.optional;
+
+[Component]
+interface CheckOptionalAttribute: Root {
+
+    attribute boolean propBoolean;
+    attribute number propNumber;
+    attribute String propString;
+
+    optional attribute boolean propBooleanOptional;
+    optional attribute number propNumberOptional;
+    optional attribute String propStringOptional;
+
+    this method(boolean paramBoolean, number paramNumber, String paramString);
+    this methodOptional(optional boolean paramBoolean, optional number paramNumber, optional String paramString);
+};

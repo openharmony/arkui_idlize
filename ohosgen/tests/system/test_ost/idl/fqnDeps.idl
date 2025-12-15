@@ -1,0 +1,17 @@
+package fqnDeps;
+
+interface Size {
+    attribute i32 intHeight;
+    attribute i32 intWidth;
+};
+
+void resize(Size size);
+
+namespace fp {
+    interface Size {
+        attribute f64 floatHeight;
+        attribute f64 floatWidth;
+    };
+
+    void resize(Size size);
+};

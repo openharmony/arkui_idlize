@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { CustomPrintVisitor as DtsPrintVisitor, isInIdlize, Language, PeerLibrary, sorted } from '@idlizer/core'
+import { CustomPrintVisitor as DtsPrintVisitor, isInIdlize, Language, maybeRestoreThrows, PeerLibrary, sorted } from '@idlizer/core'
 import { LanguageWriter } from "@idlizer/core"
 import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
 import { ImportsCollector } from "../ImportsCollector"
@@ -41,7 +41,7 @@ function printDeclarationIfNeeded(library: PeerLibrary, entry: idl.IDLEntry, see
     const scopedName = qualifiedName(entry, ".", "namespace.name")
     if (seenNames.has(scopedName))
         return ""
-    const visitor = new DtsPrintVisitor(type => library.resolveTypeReference(type), library.language)
+    const visitor = new DtsPrintVisitor(library, library.language)
     visitor.visit(entry, true)
     const text = visitor.output.join("\n")
     if (text)
@@ -58,7 +58,7 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
             result.push(text)
     })
     for (const file of peerLibrary.files) {
-        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+        for (let entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isImport(entry) || isInIdlize(entry) || idl.isNamespace(entry))
                 continue
             syntheticsGenerator.convert(entry)

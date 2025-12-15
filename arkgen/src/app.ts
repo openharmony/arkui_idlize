@@ -29,6 +29,7 @@ import {
     nullsTransformer,
     transformOnSerializeTransformer,
     genericsTransformer,
+    throwsTransformer,
 } from "@idlizer/core"
 import {
     getFQName,
@@ -48,7 +49,12 @@ import { loadPeerConfiguration,
     NativeModule,
     syntheticTransformer,
 } from "@idlizer/libohos"
-import { generateArkoalaFromIdl, generateLibaceFromIdl, generateLibaceUnitTests } from "./arkoala"
+import {
+    generateArkoalaFromIdl,
+    generateLibaceFromIdl,
+    generateLibaceUnitTests,
+    generateLibaceEndToEndTests,
+} from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 import { makeInteropBridges } from "./InteropBridges"
 import { loadKnownReferences } from "./knownReferences"
@@ -61,47 +67,30 @@ export function arkgen(argv:string[]) {
         .option('--dts2peer', 'Convert .d.ts to peer drafts. Deprecated! Use dtsgen --dts2idl and --idl2peer instead')
         .option('--ets2ts', 'Convert .ets to .ts')
         .option('--input-dir <path>', 'Path to input dir(s), comma separated')
-        .option('--aux-input-dir <path>', 'Path to aux input dir(s), comma separated')
         .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
         .option('--output-dir <path>', 'Path to output dir')
         .option('--input-files <files...>', 'Comma-separated list of specific files to process')
-        .option('--aux-input-files <files...>', 'Comma-separated list of specific aux files to process')
-        .option('--library-packages <packages>', 'Comma separated list of packages included into library')
         .option('--idl2peer', 'Convert IDL to peer drafts')
         .option('--verbose', 'Verbose processing')
         .option('--verify-idl', 'Verify produced IDL')
-        .option('--common-to-attributes', 'Transform common attributes as IDL attributes')
-        .option('--test-interface <name>', 'Interfaces to test (comma separated)')
-        .option('--test-method <name>', 'Methods to test (comma separated)')
-        .option('--test-property <name>', 'Properties to test (comma separated)')
-        .option('--generate-interface <name>', 'Interfaces to generate (comma separated)')
-        .option('--disable-enum-initializers', "Don't include enum member initializers in the interface")
         .option('--native-bridge-path <name>', "Path to native bridge")
         .option('--api-version <version>', "API version for generated peers")
         .option('--dump-serialized', "Dump serialized data")
         .option('--call-log', "Call log")
-        .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
         .option('--language [ts|ts|cangjie|kotlin]', 'Output language')
-        .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
-        .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
         .option('--version')
-        .option('--generator-target <all|arkoala|libace|libaceut|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
+        .option('--generator-target <all|arkoala|libace|libaceut|e2e-test-static|e2e-test-dynamic|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
         .option('--arkoala-destination <path>', 'Location of arkoala repository')
         .option('--libace-destination <path>', 'Location of libace repository')
-        .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
         .option('--tracker-status <file>', 'Tracker status file)')
         .option('--plugin <file>', 'File with generator\'s plugin')
-        .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
-        .option('--no-commented-code', 'Do not generate commented code in modifiers')
-        .option('--enable-log', 'Enable logging')
         .option('--options-file <path...>', 'Paths to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .option('--options-file-unittest <file>', 'Path to file with Unit Test configuration')
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
         .option('--interop-bridges <string>', "Generate interop bridges macros")
         .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
-        .option('--use-component-optional', 'Make all component\'s properties nullable')
-        .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
+        .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
         .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
 
@@ -128,7 +117,7 @@ export function arkgen(argv:string[]) {
         ...(options.ignoreDefaultConfig ? [] : arkgenDefaultConfigurationPaths()),
         ...(options.optionsFile ?? [])
     ]))
-    loadKnownReferences(path.resolve(options.referenceNames))
+    loadKnownReferences(options.referenceNames)
 
     if (process.env.npm_package_version && !options.showConfigSchema) {
         console.log(`IDLize version ${findVersion()}`)
@@ -164,6 +153,7 @@ export function arkgen(argv:string[]) {
             return transformation?.to
         })
         files = nullsTransformer(files)
+        files = throwsTransformer(files)
         files = genericsTransformer(files, {
             ignore: [ignoreComponentRule],
             ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
@@ -195,11 +185,10 @@ export function arkgen(argv:string[]) {
                 nativeBridgeFile: options.nativeBridgePath,
                 apiVersion: apiVersion,
                 verbose: options.verbose ?? false,
-                onlyIntegrated: options.onlyIntegrated ?? false,
                 dumpSerialized: options.dumpSerialized ?? false,
                 callLog: options.callLog ?? false,
                 lang: lang,
-                attributeModifierHooks: options.attributeModifierHooks ?? false
+                attributeModifierHooks: options.attributeModifierHooks ?? false,
             }, idlLibrary)
         }
         if (options.generatorTarget == "libace" ||
@@ -217,6 +206,15 @@ export function arkgen(argv:string[]) {
                 libaceDestination: options.libaceDestination,
                 outDir: outDir,
                 aceTypes: options.optionsFileUnittest,
+            }, idlLibrary)
+        }
+        if (options.generatorTarget == "e2e-test-static" ||
+            options.generatorTarget == "e2e-test-dynamic") {
+            generateLibaceEndToEndTests({
+                libaceDestination: options.libaceDestination,
+                outDir: outDir,
+                aceTypes: options.optionsFileUnittest,
+                static: options.generatorTarget == "e2e-test-static"
             }, idlLibrary)
         }
         if (options.generatorTarget == "tracker") {

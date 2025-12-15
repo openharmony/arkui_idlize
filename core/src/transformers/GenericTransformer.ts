@@ -1,16 +1,29 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { generatorConfiguration } from "../config"
-import { toIdlType, toIdlTypeList } from "../from-idl/deserialize"
+import { toIdlType } from "../from-idl/deserialize"
 import * as idl from "../idl"
 import { Language } from "../Language"
 import { IdlNameConvertor } from "../LanguageWriters"
 import { ArgConvertor } from "../LanguageWriters/ArgConvertors"
 import { StructureNameConvertor } from "../LanguageWriters/convertors/CppConvertors"
 import { LibraryInterface } from "../LibraryInterface"
-import { generateSyntheticIdlNodeName } from "../peer-generation/idl/common"
 import { isMaterialized } from "../peer-generation/isMaterialized"
 import { LayoutManager } from "../peer-generation/LayoutManager"
+import { toDeclaration } from "../peer-generation/PeerLibrary"
 import { createCachedReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver"
-import { toDeclaration } from "../peer-generation/toDeclaration"
 import { IdlTransformer } from "./IdlTransformer"
 
 type ProduceResult = {
@@ -102,6 +115,7 @@ class DefaultGenericsTransformer extends IdlTransformer {
     }
 
     visit(node: idl.IDLFile): idl.IDLFile
+    visit(node: idl.IDLType): idl.IDLType
     visit(node: idl.IDLNode): idl.IDLNode {
         if (idl.isReferenceType(node)) {
             const decl = this.resolver.resolveTypeReference(node)
@@ -115,7 +129,8 @@ class DefaultGenericsTransformer extends IdlTransformer {
             if ((decl.typeParameters?.length ?? 0) > (node.typeArguments?.length ?? 0)) {
                 const defaults: (undefined | idl.IDLType)[] = decl.extendedAttributes
                     ?.find(it => it.name === idl.IDLExtendedAttributes.TypeParametersDefaults)
-                    ?.typesValue ?? []
+                    ?.typesValue?.slice()
+                    ?.map(it => this.visit(it)) ?? []
                 while (defaults.length < decl.typeParameters!.length) {
                     defaults.unshift(undefined)
                 }
@@ -182,7 +197,7 @@ class GenericsTransformer extends IdlTransformer {
                 undefined,
                 idl.cloneNodeInitializer(ref)
             )
-            if (!this.resolver.resolveTypeReference(inplacedRef)) {
+            if (!this.resolver.resolveTypeReference(inplacedRef, { unresolvedOk: true })) {
                 const monomorphizedEntry = this.visit(this.monomorphizeEntry(resolved, ref.typeArguments)) as idl.IDLEntry
                 this.producer({ anchor: idl.getFQName(resolved), produced: monomorphizedEntry })
             }
@@ -336,27 +351,6 @@ class RemoveMeaninglessFieldsTransformer extends IdlTransformer {
 
 export function isInplacedGeneric(entry: idl.IDLEntry) {
     return idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.OriginalGenericName)
-}
-
-export function maybeRestoreGenerics(
-    maybeTransformedGeneric: idl.IDLReferenceType | idl.IDLEntry,
-    resolver: ReferenceResolver,
-): idl.IDLReferenceType | undefined {
-    if (idl.isReferenceType(maybeTransformedGeneric)) {
-        const resolved = resolver.resolveTypeReference(maybeTransformedGeneric)
-        return resolved ? maybeRestoreGenerics(resolved, resolver) : undefined
-    }
-    if (maybeTransformedGeneric && idl.hasExtAttribute(maybeTransformedGeneric, idl.IDLExtendedAttributes.OriginalGenericName)) {
-        const originalName = idl.getExtAttribute(maybeTransformedGeneric, idl.IDLExtendedAttributes.OriginalGenericName)!
-        const typeArguments = idl.getExtAttributeTypesValue(maybeTransformedGeneric, idl.IDLExtendedAttributes.OriginalGenericName)
-        if (!typeArguments)
-            throw new Error(`Can not restore original generic type arguments for ${originalName}: no type arguments`)
-        return idl.createReferenceType(
-            originalName,
-            typeArguments,
-        )
-    }
-    return undefined
 }
 
 function ignoreConfigRule(ignoreGenerics: string[]) {

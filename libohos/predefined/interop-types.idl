@@ -4,6 +4,7 @@ interface Finalizable {};
 interface SerializerBase {};
 interface DeserializerBase {};
 interface deserializeAndCallCallback {};
+interface resourceFinalizerRegister {};
 interface CallbackTransformer {};
 interface CallbackBuffer {};
 interface CallbackResourceHolder {};

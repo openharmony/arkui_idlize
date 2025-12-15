@@ -20,6 +20,7 @@ import { Builders } from "../../../ost/builders";
 import { fqName, modifierClassName } from "../../engine";
 import { Ts } from "../../../ost/stdlib";
 import { LWType } from "../../../ost/lws";
+import { argConvertor } from "../components/argConvertor";
 
 export const functionProducer = createSpecialProducer(
   { is: idl.isMethod, role: roles.cApi },
@@ -31,7 +32,7 @@ export const functionProducer = createSpecialProducer(
         implementationGenerator: () => {
           const returnType = ctx.useCApi(method.returnType).reference()
           const params: [string, LWType][] = method.parameters.map(it =>
-            [it.name, Ts.ptr(ctx.useCApi(it.type).reference())])
+            [it.name, wrapPtr(it.type, ctx)])
           if (!method.isFree && !method.isStatic)
             params.unshift(['thisPtr', Ts.prim.pointer])
           return [
@@ -56,8 +57,7 @@ export const constructorProducer = createSpecialProducer(
       artifact: {
         reference: E.v(funcName),
         implementationGenerator: () => {
-          const params: [string, LWType][] = ctor.parameters.map(it =>
-            [it.name, Ts.ptr(ctx.useCApi(it.type).reference())])
+          const params: [string, LWType][] = ctor.parameters.map(it => [it.name, wrapPtr(it.type, ctx)])
           return [
             Builders.struct(cApiName(`modifier.${modifierClassName(ctor)}Modifier`))
               .field(funcName)
@@ -74,13 +74,15 @@ export const constructorProducer = createSpecialProducer(
 
 function generateImpl(method: idl.IDLMethod | idl.IDLConstructor, ctx: AdvancedGeneratorContext) {
   const returnType = idl.isMethod(method) ? ctx.useCApi(method.returnType).reference() : Ts.prim.pointer
-  const params = method.parameters.map(it => ({
-    name: it.name,
-    type: Ts.ptr(ctx.useCApi(it.type).reference())
-  }))
+  const params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
   if (!idl.isConstructor(method) && !method.isFree && !method.isStatic)
     params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
   return Builders.func(implName(fqName(method, 'modifier.', 'Impl')))
     .returns(returnType)
     .parameters(params).$()
+}
+
+function wrapPtr(type: idl.IDLType, ctx: AdvancedGeneratorContext): LWType {
+    const typeRef = ctx.useCApi(type).reference()
+    return argConvertor(ctx, type).isPointer() ? Ts.const(Ts.ptr(typeRef)) : typeRef
 }

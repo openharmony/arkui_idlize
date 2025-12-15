@@ -15,15 +15,28 @@
 
 import { ConfigTypeInfer, D } from "@idlizer/core"
 import { readFileSync } from "fs"
+import { ARKGEN_ROOT } from "./config"
+import { join } from "path"
 
 const KnownReferencesSchema = D.object({
     AttributeModifier: D.string(),
     AttributeUpdater: D.string(),
     AttributeUpdaterFlag: D.string(),
+    ModifierState: D.string(),
 })
 export type KnownReferencesType = ConfigTypeInfer<typeof KnownReferencesSchema>
 export let referenceNames: KnownReferencesType | undefined = undefined
 export function loadKnownReferences(path:string) {
+    switch (path) {
+        case 'ets': {
+            path = join(ARKGEN_ROOT, 'generation-config', 'references', 'ets-sdk.refs.json')
+            break
+        }
+        case 'dts': {
+            path = join(ARKGEN_ROOT, 'generation-config', 'references', 'dts-sdk.refs.json')
+            break
+        }
+    }
     const content = readFileSync(path, 'utf-8')
     const data = JSON.parse(content)
     referenceNames = KnownReferencesSchema.validate(data).unwrap()

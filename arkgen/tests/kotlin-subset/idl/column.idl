@@ -1,0 +1,6 @@
+package arkui.component;
+
+[Entity=Class, Component="Column"]
+interface ColumnAttribute: [Extends, TypeArguments="ColumnAttribute"] CommonMethod {
+    this reverse(optional boolean isReversed);
+};

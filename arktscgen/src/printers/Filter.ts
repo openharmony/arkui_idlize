@@ -1,4 +1,5 @@
 import * as core from "@idlizer/core";
+import { dropSuffix } from "@idlizer/core";
 import { isContext } from "../general/common";
 import { Config } from "../general/Config";
 import { Typechecker } from "../general/Typechecker";
@@ -65,10 +66,16 @@ export class Filter {
     public static filterMethods(methods: core.IDLMethod[]): core.IDLMethod[] {
         const names = new Set<string>(methods.map(m => m.name))
         const others = methods
-            .filter(method =>
-                !method.name.endsWith(Config.constPostfix) ||
-                !names.has(method.name.slice(0, -Config.constPostfix.length))
-            )
+            .filter(method => {
+                const bareName = dropSuffix(
+                    dropSuffix(method.name, Config.constPostfix), Config.ptrPostfix
+                )
+                // no suffix -> ptr -> const
+                return bareName === method.name ||
+                    (method.name.endsWith(Config.ptrPostfix) && !names.has(bareName)) ||
+                    (method.name.endsWith(Config.constPostfix) &&
+                        !names.has(bareName) && !names.has(`${bareName}${Config.ptrPostfix}`))
+            })
         return others
     }
 

@@ -11,7 +11,7 @@ build idlize:
     tags:
     - idlize-ci
     - koala-ci
-    before_script:
+    # before_script:
     # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
     script:
     - !reference [.npm, script]
@@ -71,7 +71,7 @@ build external:
         - external/ui2abc/fast-arktsc/lib
         - external/ui2abc/memo-plugin-ng/lib
         - external/ui2abc/ui-plugins-ng/lib
-        - external/common/build/lib
+        - external/common/build
         - external/compat/build
         - external/incremental/runtime/build/lib
         - external/incremental/runtime/build/incremental.abc
@@ -93,6 +93,7 @@ download sdk:
     - !reference [.npm, script]
     - !reference [.panda, script]
     - npm run download:sdk
+    - npm run absolute:sdk
     needs:
     - build idlize
     - build external
@@ -100,6 +101,7 @@ download sdk:
         paths:
         - sdk-patched
         - sdk-patched-arkts
+        - absolute-sdk-patched-arkts
         expire_in: 1 day
 
 download external sdk:

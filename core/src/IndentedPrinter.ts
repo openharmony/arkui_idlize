@@ -14,9 +14,9 @@
 * limitations under the License.
 */
 
-import * as fs from "fs"
+import * as fs from "node:fs"
 import { indentedBy, stringOrNone } from "./util"
-import path from "path"
+import path from "node:path"
 
 export class IndentedPrinter {
     constructor (private output: string[] = [], private indent: number = 0) {}

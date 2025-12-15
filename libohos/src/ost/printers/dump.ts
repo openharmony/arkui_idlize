@@ -221,6 +221,13 @@ export class DumpPrinter {
         }
         break
       }
+      case lw.LWKind.SwitchStatement: {
+        this.p.put('switch', '(')
+        this.printExpression(statement.selector)
+        this.p.put(')', ' ')
+        // TODO: cases+ default
+        break
+      }
       case lw.LWKind.LoopStatement: {
         this.p.put('while', '(')
         this.printExpression(statement.condition)
@@ -255,9 +262,6 @@ export class DumpPrinter {
   printDeclaration(declaration: lw.LWDeclaration) {
     this.maybePrintGenerics(declaration)
     switch (declaration.kind) {
-      case lw.LWKind.UnionDeclaration: {
-        break
-      }
       case lw.LWKind.StructureDeclaration: {
         this.p.put('struct', ' ', declaration.name, ' ', '{')
         this.p.inc().newline()

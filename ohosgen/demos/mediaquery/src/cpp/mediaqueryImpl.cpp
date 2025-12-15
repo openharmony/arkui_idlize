@@ -41,6 +41,7 @@ void GlobalScope_mediaquery_testPutStringImpl(
 OH_String GlobalScope_mediaquery_testGetStringImpl() {
   return OH_String{"x", 1};
 }
+void mediaquery_MediaQueryListener_callHolderImpl(OH_NativePointer thisPtr) {}
 
 static const char *STRING_128 =
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"

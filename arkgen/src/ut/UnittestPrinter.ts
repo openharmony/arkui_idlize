@@ -15,7 +15,6 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import * as idl from '@idlizer/core/idl'
 
 import {
     CppLanguageWriter,
@@ -25,38 +24,19 @@ import {
     PeerLibrary,
     PeerMethod,
     camelCaseToUpperSnakeCase,
-    capitalize,
-    createEmptyReferenceResolver,
     createLanguageWriter,
-    groupBy,
-    printMethodDeclaration,
 } from '@idlizer/core'
-import { collectPeersForFile, cStyleCopyright, gniFile, makeFileNameFromClassName } from '@idlizer/libohos'
+import { cStyleCopyright, gniFile, makeFileNameFromClassName } from '@idlizer/libohos'
 import { AceTypes } from './AceTypes'
+import {
+    Debug, MultiFileVisitor, TestData, OPTIONAL_FIXTURE, UNION_FIXTURE, UNION_UNDEF_FIXTURE
+} from './MultiFileVisitor'
 import { TestValue } from './TestValue'
 import { TypeHelper } from './TypeHelper'
 import { LibaceInstall } from '../ArkoalaInstall'
 
 const CPP_FILE_LENGTH_LIMIT = 2000
-const ALL_UPPER = new RegExp('^[A-Z0-9_]+$')
-const OPTIONS_REGEXP = new RegExp('^set[A-Za-z0-9_]+Options[0-9]*$')
-
-const GENERATE_ALL = false
-
-const OPTIONAL_FIXTURE = '_optional'
-const UNION_FIXTURE = '_union'
-const UNION_UNDEF_FIXTURE = '_union_undef'
-const OPTIONS_NAME = 'options'
 const TEST_PLACEHOLDER = 'Placeholder'
-
-type FixtureType = [string, boolean, boolean]
-
-const enum Debug {
-    None = 0,
-    DumpJson = 0x0001,
-}
-
-const DEBUG_MAP = new Map<string, Debug>([['dumpJson', Debug.DumpJson]])
 
 function escapeQuote(str: string) {
     return str.replaceAll('"', '\\"')
@@ -73,42 +53,36 @@ class FileState {
     includes: string[] = []
     attributes: TestValue[] = []
     parents: TestValue[] = []
-    parametrized = false
 }
 
-abstract class MultiFileVisitor {
-    constructor(protected library: PeerLibrary, protected aceTypes: AceTypes) {
-        this.state = new FileState(this.library)
-    }
-
-    protected state
-    protected gni = new IndentedPrinter()
+abstract class MultiFileUnittestVisitor extends MultiFileVisitor {
     private stateByFile = new Map<string, FileState>()
+    private fileState = new FileState(this.library)
+    private testName = ''
+    private gni = new IndentedPrinter()
 
-    printUnitTests() {
-        this.library.files.forEach(file => {
-            collectPeersForFile(this.library, file).forEach(clazz => this.printUnitTestFile(clazz))
-        })
+    protected abstract printClassProlog(clazz: PeerClass): void
+    protected abstract printClassEpilog(clazz: PeerClass): void
+
+    protected get testClassName() {
+        return this.testName
     }
 
-    printUnitTestFile(clazz: PeerClass) {
-        let compDesc = this.aceTypes.getComponents().find(it => it.name == clazz.componentName)
-        if (!compDesc && !GENERATE_ALL) return
-        this.onFileStart(clazz.componentName)
-        this.printUnitTest(clazz)
-        this.onFileEnd()
+    protected get state() {
+        return this.fileState
     }
 
-    onFileStart(className: string) {
-        let state = this.stateByFile.get(className)
-        if (!state) {
-            state = new FileState(this.library)
-            this.stateByFile.set(className, state)
-        }
-        this.state = state
-    }
+    override makeTest(clazz: PeerClass): void {
+        this.fileState = MultiFileVisitor.startComponent(
+            clazz.componentName, this.stateByFile, () => new FileState(this.library)
+        )
 
-    onFileEnd() {}
+        this.testName = `${clazz.componentName}ModifierTest`
+
+        this.printClassProlog(clazz)
+        this.makeTestByClass(clazz)
+        this.printClassEpilog(clazz)
+    }
 
     emitSync(libace: LibaceInstall): void {
         for (const [clazz, state] of this.stateByFile) {
@@ -146,43 +120,27 @@ abstract class MultiFileVisitor {
         let gniString = `generated_sources = [${this.gni.getOutput().join('\n')}]`
         fs.writeFileSync(libace.unitTestGni, gniFile(gniString))
     }
-
-    abstract printUnitTest(clazz: PeerClass): void
 }
 
-class MultiFileUnittestVisitor extends MultiFileVisitor {
-    private testClassName = ''
-    public enums = new Map<string, TypeHelper>()
-    public genFixtures = new Map<string, string>()
+class MultiFileUnittestVisitorImpl extends MultiFileUnittestVisitor {
+    enums = new Map<string, TypeHelper>()
 
-    override printUnitTest(clazz: PeerClass): void {
-        this.testClassName = `${clazz.componentName}ModifierTest`
-
-        this.printClassProlog(clazz)
-        clazz.methods.forEach(method => this.printMethodUnittests(clazz.componentName, method))
-        this.printClassEpilog(clazz)
-    }
-
-    printClassProlog(clazz: PeerClass): void {
+    protected override printClassProlog(clazz: PeerClass): void {
         let comp = clazz.componentName
-
-        console.log(`Generating UT for component ${comp}:`)
-        let compDesc = this.aceTypes.getComponents().find(it => it.name == comp)
-        if (compDesc?.includes) {
-            this.state.includes.push(...compDesc.includes)
+        if (this.compDesc?.includes) {
+            this.state.includes.push(...this.compDesc.includes)
         }
-        let parametrized = (compDesc?.nodeTypes?.length ?? 0) > 0
 
         this.state.prolog.writeClass(
             this.testClassName,
             body => {
                 body.print('public:')
-                if (parametrized) {
+                if (this.parametrized) {
                     body.print('void *CreateNodeImpl() override')
                     body.print('{')
                     body.print('typedef void *(*ConstructFunc)(Ark_Int32, Ark_Int32);')
                     body.print('const ConstructFunc constructors[] = {')
-                    for (let nodeType of compDesc!.nodeTypes!) {
+                    for (let nodeType of this.compDesc!.nodeTypes!) {
                         body.print(`nodeModifiers_->get${nodeType}Modifier()->construct,`)
                     }
                     body.print('};')
@@ -199,8 +157,8 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
                 body.pushIndent()
                 body.print('ModifierTestBase::SetUpTestCase();')
                 body.print('')
-                if (compDesc?.themes) {
-                    for (let theme of compDesc.themes) {
+                if (this.compDesc?.themes) {
+                    for (let theme of this.compDesc.themes) {
                         body.print(`SetupTheme<${theme}>();`)
                     }
                     body.print('')
@@ -214,12 +172,12 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
                 body.popIndent()
                 body.print('}')
                 body.popIndent()
-                if (compDesc?.setup) {
+                if (this.compDesc?.setup) {
                     body.print('void SetUp() override')
                     body.print('{')
                     body.pushIndent()
                     body.print('ModifierTestBase::SetUp();')
-                    compDesc?.setup.forEach(it => body.print(`${it};`))
+                    this.compDesc?.setup.forEach(it => body.print(`${it};`))
                     body.popIndent()
                     body.print('}')
                 }
@@ -227,20 +185,82 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
             `ModifierTestBase<GENERATED_ArkUI${comp}Modifier, ` +
                 `&GENERATED_ArkUINodeModifiers::get${comp}Modifier, ` +
                 `GENERATED_ARKUI_${camelCaseToUpperSnakeCase(comp)}>`,
-            parametrized ? ['testing::WithParamInterface<int>'] : []
+            this.parametrized ? ['testing::WithParamInterface<int>'] : []
         )
         this.state.prolog.print('')
-        if (parametrized) {
+        if (this.parametrized) {
             this.state.writer.print(
-                `INSTANTIATE_TEST_SUITE_P(Tests, ${this.testClassName}, testing::Range(0, ${compDesc?.nodeTypes?.length}));`
+                `INSTANTIATE_TEST_SUITE_P(Tests, ${this.testClassName}, testing::Range(0, ${this.compDesc?.nodeTypes?.length}));`
             )
             this.state.writer.print('')
         }
     }
 
-    printClassEpilog(clazz: PeerClass) {}
+    protected override printClassEpilog(clazz: PeerClass) {}
 
-    addAttributes(attrs: TestValue[]): void {
+    protected override makePlaceholderTest(testName: string, component: string): void {
+        this.printUnitTestHeader(`${testName}${TEST_PLACEHOLDER}`, component)
+        this.state.writer.print('// This is placeholder to have disabled test')
+        this.printUnitTestFooter()
+    }
+
+    protected override makeDefaultTest(testName: string, data: TestData): void {
+            this.printUnitTestHeader(testName, data.component)
+            this.state.writer.print('std::unique_ptr<JsonValue> jsonValue = GetJsonValue(node_);')
+            let doneSet = new Set<string>()
+            data.parents.forEach(attr => {
+                if (attr.getResultName() == '') return
+                if (doneSet.has(attr.nameConst)) return
+                let parent = attr.getParent()
+                let input = parent ? parent.getResultName() : 'jsonValue'
+                //this.state.writer.print(`// ${attr.getFullName()} / ${parent?.getFullName()}`)
+                this.state.writer.print(
+                    `std::unique_ptr<JsonValue> ${attr.getResultName()} = ` +
+                        `GetAttrValue<std::unique_ptr<JsonValue>>(${input}, ${attr.nameConst});`
+                )
+                doneSet.add(attr.nameConst)
+            })
+            this.state.writer.print('std::string resultStr;')
+            for (let attr of data.attributes) {
+                let parent = attr.getParent()
+                let input = parent ? parent.getResultName() : 'jsonValue'
+                if (input == '') input = 'jsonValue'
+                this.state.writer.print('')
+                this.state.writer.print(`resultStr = GetAttrValue<std::string>(${input}, ${attr.nameConst});`)
+                this.state.writer.print(
+                    `EXPECT_EQ(resultStr, ${attr.defaultConst}) << ` +
+                        `"Default value for attribute '${attr.getFullName()}'";`
+                )
+            }
+            this.printUnitTestFooter()
+    }
+
+    protected override makeValidTest(testName: string, attrIndex: number, data: TestData): void {
+        this.printUnitTestHeader(testName, data.component)
+        if (attrIndex >= 0) {
+            this.printTestBody(
+                data.debug, data.options, data.method, attrIndex, data.argNames, data.attributes, data.fixtures
+            )
+        } else {
+            this.state.writer.print(
+                'FAIL() << "Need to properly configure fixtures in configuration file for proper test generation!";'
+            )
+        }
+        this.printUnitTestFooter()
+    }
+
+    protected override makeInvalidTest(
+        testName: string, attrIndex: number, invalidValueFixtures: readonly string[], data: TestData
+    ): void {
+        this.printUnitTestHeader(testName, data.component)
+        this.printTestBody(
+            data.debug, data.options, data.method, attrIndex, data.argNames, data.attributes,
+            data.fixtures, invalidValueFixtures
+        )
+        this.printUnitTestFooter()
+    }
+
+    protected override addAttributes(attrs: TestValue[]): void {
         for (let attr of attrs) {
             let idx = this.state.attributes.findIndex(item => item.nameConst == attr.nameConst)
             if (idx == -1) {
@@ -252,7 +272,7 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
         }
     }
 
-    addParents(attrs: TestValue[]): void {
+    protected override addParents(attrs: TestValue[]): void {
         for (let attr of attrs) {
             let idx = this.state.parents.findIndex(item => item.nameConst == attr.nameConst)
             if (idx == -1) {
@@ -261,119 +281,11 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
         }
     }
 
-    getAttrFixtures(attr: TestValue): FixtureType[] {
-        let result: FixtureType[] = []
-        if (attr.fixtures) {
-            let fixtures = this.aceTypes.getFixtures()
-            for (let fixName of attr.fixtures) {
-                let fix = fixtures.find(it => it.name == fixName)
-                if (fix) {
-                    result.push([fixName, !!fix.validValues, !!fix.invalidValues])
-                }
-            }
-            this.appendCommonFixtures(attr.type, result)
-        } else {
-            result = this.getFixtures(attr.type)
-        }
-        result.filter(it => it[0].startsWith(':')).forEach(it => {
-            console.log(`WARNING! No valid fixtures for attribute '${attr.name}' type ${it[0].substr(1)}`)
-        })
-        return result
+    protected override addEnum(type: TypeHelper): void {
+        this.enums.set(type.getBaseTypeName(), type)
     }
 
-    getFixtures(type: TypeHelper): FixtureType[] {
-        if (type.isEnum()) {
-            this.enums.set(type.getBaseTypeName(), type)
-            let fixName = `Enum${type.tsName()}`
-            let typeName = type.getBaseTypeName()
-            this.genFixtures.set(fixName, typeName)
-            return [[fixName, true, true]]
-        }
-        let result: FixtureType[] = []
-        if (type.isNonJsonType()) return result
-
-        let typeName = type.getBaseTypeName()
-        let found = this.aceTypes.getTypes().find(it => it.name == typeName)
-        if (found) {
-            let fixtures = this.aceTypes.getFixtures()
-            let fixNames = found.fixtures
-            for (let fixName of fixNames) {
-                let fix = fixtures.find(it => it.name == fixName)
-                if (fix) {
-                    result.push([fixName, !!fix.validValues, !!fix.invalidValues])
-                }
-            }
-        }
-        this.appendCommonFixtures(type, result)
-        return result
-    }
-
-    appendCommonFixtures(type: TypeHelper, result: FixtureType[]): void {
-        let typeName = type.getBaseTypeName()
-        if (typeName == 'Ark_Undefined') {
-            result.push([UNION_UNDEF_FIXTURE, false, true])
-            return
-        }
-        if (type.isUnion()) {
-            /**/
-            let unionTypes = type.getUnionMembers()
-            let resultTypes = result.map(it => this.getFixtureType(it[0]))
-            let covered = (type: TypeHelper): boolean => {
-                if (resultTypes.includes(type.getTypeName())) return true
-                if (type.isUnion()) {
-                    for (let member of type.getUnionMembers()) {
-                        if (!covered(member)) return false
-                    }
-                    return true
-                }
-                return false
-            }
-            unionTypes.forEach(it => {
-                if (covered(it)) return
-                result.push(...this.getFixtures(it))
-            })
-            /**/
-            result.push([UNION_FIXTURE, false, true])
-        }
-        if (type.isOptional()) {
-            result.push([OPTIONAL_FIXTURE, false, true])
-        }
-        if (result.length == 0) {
-            result.push([`:${typeName}`, true, true])
-        }
-    }
-
-    fullFixtureName(name: string, valid: boolean): string {
-        if (name.startsWith(':')) throw `Not defined fixture ${name}!`
-        if (valid) {
-            return `Fixtures::testFixture${name}ValidValues`
-        }
-        return `Fixtures::testFixture${name}InvalidValues`
-    }
-
-    getFixtureType(name: string): string | undefined {
-        return this.genFixtures.get(name) ?? this.aceTypes.getFixtures().find(fix => fix.name == name)?.type
-    }
-
-    sortFixtureNames(fixtureNames: string[]): string[] {
-        return fixtureNames.sort((a, b) => {
-            if (a.startsWith(':')) {
-                if (b.startsWith(':')) {
-                    return a.localeCompare(b)
-                } else {
-                    return 1
-                }
-            } else {
-                if (b.startsWith(':')) {
-                    return -1
-                } else {
-                    return a.localeCompare(b)
-                }
-            }
-        })
-    }
-
-    convertType(dst: TypeHelper, src: string, value: string): string | undefined {
+    private convertType(dst: TypeHelper, src: string, value: string): string | undefined {
         //console.warn(`convertType: dst: ${dst.getTypeName()}, src: ${src}, opt: ${dst.isOptional()}, uni: ${dst.isUnion()}`)
         if (dst.getTypeName() == src) return value
         if (dst.isOptional() && dst.getBaseTypeName() == src) return `ArkValue<${dst.getTypeName()}>(${value})`
@@ -388,7 +300,7 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
         return undefined
     }
 
-    getAttrAccessor(attr: TestValue, inputValue: string, child?: TestValue): string {
+    private getAttrAccessor(attr: TestValue, inputValue: string, child?: TestValue): string {
         let input: string
         if (attr.parent) {
             input = this.getAttrAccessor(attr.parent, inputValue, attr)
@@ -418,19 +330,15 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
         return input
     }
 
-    isOptionsMethod(method: PeerMethod): boolean {
-        return method.isCallSignature
-    }
-
-    printTestBody(
+    private printTestBody(
         debug: Debug,
         options: boolean,
         method: PeerMethod,
         index: number,
-        argNames: string[],
-        attributes: TestValue[],
-        validValueFixtures: string[][],
-        invalidValueFixtures?: string[]
+        argNames: readonly string[],
+        attributes: readonly TestValue[],
+        validValueFixtures: readonly string[][],
+        invalidValueFixtures?: readonly string[]
     ): void {
         let baseMethodName = method.sig.name
 
@@ -455,7 +363,7 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
         attributes.forEach((attr, idx) => {
             if (!attributes[index].comparePaths(attr)) return
             let attrType = attr.type
-            let argName = `std::get<1>(${this.fullFixtureName(validValueFixtures[idx][0], true)}[0])`
+            let argName = `std::get<1>(${fullFixtureName(validValueFixtures[idx][0], true)}[0])`
             let inputType = this.getFixtureType(validValueFixtures[idx][0]) ?? ''
             let value = this.convertType(attr.type, inputType, argName)
             if (!value) {
@@ -557,7 +465,7 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
             }
             this.state.writer.print(
                 `for (auto& [input, value${invalidValueFixtures ? '' : ', expected'}]: ` +
-                    `${this.fullFixtureName(fixture, !invalidValueFixtures)}) {`
+                    `${fullFixtureName(fixture, !invalidValueFixtures)}) {`
             )
             this.state.writer.pushIndent()
             let fixType = this.getFixtureType(fixture) ?? ''
@@ -568,224 +476,11 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
         }
     }
 
-    printMethodUnittests(component: string, method: PeerMethod): void {
-        let baseTestName = `${method.sig.name}Test`
-        let compDesc = this.aceTypes.getComponents().find(it => it.name == component)
-        if (compDesc?.ignoreAttributes?.includes(method.method.name)) {
-            console.warn(`Attribute '${method.method.name}' is ignored due to ignoreAttributes!`)
-            this.printUnitTestHeader(`${baseTestName}${TEST_PLACEHOLDER}`, component)
-            this.state.writer.print('// This is placeholder to have disabled test')
-            this.printUnitTestFooter()
-            
-            return
-        }
-        let removed = compDesc?.remove
-        this.state.parametrized = (compDesc?.nodeTypes?.length ?? 0) > 0
-        /*/
-        this.state.writer.print(`// Method: ${method.method.name} arguments:`)
-        method.argConvertors.forEach((arg, index) => {
-            let type = TypeHelper.fromMethodArg(this.library, this.aceTypes, method, index)
-            this.state.writer.print(`//   ${arg.param} [${type.getTypeName()}]`)
-            for (let mem of arg.getMembers()) {
-                this.state.writer.print(`//     ${mem}`)
-            }
-        })
-        /**/
-
-        let attributes: TestValue[] = []
-        let parents: TestValue[] = []
-        let callback = false
-        let noImpl = false
-        let validValueVectors: string[] = []
-        let argNames: string[] = []
-
-        let processArgByType = (name: string, type: TypeHelper, parent?: TestValue, index?: number, ignore = false) => {
-            if (type.isNonJsonType()) return false
-            let attr = new TestValue(name, type, parent, ignore)
-            if (index !== undefined) attr.argIndex = index
-            attr.setDefault(this.aceTypes, component)
-            if (type.isAggregate()) {
-                if (!ignore) {
-                    if (name != '|') parents.push(attr)
-                    else if (attr.parent) parents.push(attr.parent)
-                }
-                type.getAggregateMembers().forEach((member, idx) => processArgByType(`${member[0]}`, member[1], attr))
-            } else if (type.isUnion() && type.isComplex()) {
-                type.getUnionMembers().forEach((member, index) => {
-                    if (member.isComplex()) {
-                        processArgByType('|', member, attr)
-                    }
-                })
-            } else {
-                attributes.push(attr)
-            }
-            return true
-        }
-
-        let processArg = (name: string, index: number, ignore = false, parent?: TestValue) => {
-            if (idl.isCallback(method.sig.args[index].type)) return false
-            let type = TypeHelper.fromMethodArg(this.library, this.aceTypes, method, index)
-            //this.state.writer.print(`// Arg: ${method.argConvertors[index].param}/${name}/${ignore}`)
-            argNames.push(capitalize(name))
-            return processArgByType(name, type, parent, index, ignore)
-        }
-
-        let skip = false
-        if (this.isOptionsMethod(method)) {
-            method.sig.args.forEach((arg, index) => {
-                // Parse options argument
-                let ignore = arg.name == 'options' || arg.name == 'option'
-                if (method.sig.args.length == 1) {
-                    let type = TypeHelper.fromMethodArg(this.library, this.aceTypes, method, index)
-                    if (type.getBaseTypeName().endsWith('Options')) ignore = true
-                }
-                let name = ignore ? OPTIONS_NAME : arg.name
-                if (!ignore) {
-                    const margs = compDesc?.attributes?.find(it => it.name == name)?.arguments
-                    if (margs && margs[0].startsWith('^') && margs[0].substr(1)) name = margs[0].substr(1)
-                }
-                skip ||= !processArg(name, index, ignore)
-            })
-        } else {
-            let name = method.method.name
-            if (method.sig.args.length == 1) {
-                skip ||= !processArg(name, 0)
-            } else {
-                const margs = compDesc?.attributes?.find(it => it.name == name)?.arguments
-                if (margs && margs[0].startsWith('^')) {
-                    method.sig.args.forEach((arg, index) => {
-                        let valName = arg.name
-                        if (valName == 'value') valName = name
-                        if (margs[index].substr(1)) valName = margs[index].substr(1)
-                        skip ||= !processArg(valName, index)
-                    })
-                } else {
-                    let attr = new TestValue(name, TypeHelper.dummyType(this.library, this.aceTypes))
-                    parents.push(attr)
-                    method.sig.args.forEach((arg, index) => {
-                        skip ||= !processArg(arg.name, index, false, attr)
-                    })
-                }
-            }
-        }
-
-        if (skip) return
-
-        //console.log(`Method: ${method.method.name}, Args: ${initNames.join(',')}, Attributes: ${attributes.map(it => it.name).join(',')}`)
-
-        let debug: Debug = Debug.None
-        DEBUG_MAP.forEach((val, key) => {
-            if (compDesc?.debug?.includes(key)) debug |= val
-        })
-        let testName = `${baseTestName}DefaultValues`
-        if (attributes.length > 0 && !removed?.includes(testName)) {
-            parents.forEach(it => {
-                if (it.name == '|') console.warn(`Wrong parent. Full name: ${it.getFullName()}`)
-            })
-            this.addAttributes(attributes)
-            this.addParents(parents)
-
-            this.printUnitTestHeader(testName, component)
-            this.state.writer.print('std::unique_ptr<JsonValue> jsonValue = GetJsonValue(node_);')
-            let doneSet = new Set<string>()
-            parents.forEach(attr => {
-                if (attr.getResultName() == '') return
-                if (doneSet.has(attr.nameConst)) return
-                let parent = attr.getParent()
-                let input = parent ? parent.getResultName() : 'jsonValue'
-                //this.state.writer.print(`// ${attr.getFullName()} / ${parent?.getFullName()}`)
-                this.state.writer.print(
-                    `std::unique_ptr<JsonValue> ${attr.getResultName()} = ` +
-                        `GetAttrValue<std::unique_ptr<JsonValue>>(${input}, ${attr.nameConst});`
-                )
-                doneSet.add(attr.nameConst)
-            })
-            this.state.writer.print('std::string resultStr;')
-            for (let attr of attributes) {
-                let parent = attr.getParent()
-                let input = parent ? parent.getResultName() : 'jsonValue'
-                if (input == '') input = 'jsonValue'
-                this.state.writer.print('')
-                this.state.writer.print(`resultStr = GetAttrValue<std::string>(${input}, ${attr.nameConst});`)
-                this.state.writer.print(
-                    `EXPECT_EQ(resultStr, ${attr.defaultConst}) << ` +
-                        `"Default value for attribute '${attr.getFullName()}'";`
-                )
-            }
-            this.printUnitTestFooter()
-        }
-
-        let optionsMethod = this.isOptionsMethod(method)
-        let validFixtures = attributes.map(attr =>
-            this.sortFixtureNames(
-                this.getAttrFixtures(attr)
-                    .filter(fix => fix[1])
-                    .map(fix => fix[0])
-            )
-        )
-        if (validFixtures.find(fix => !fix[0] || fix[0].startsWith(':'))) {
-            console.error(`ERROR! Incomplete fixtures for method ${method.method.name}. Skipping...`)
-            console.error(
-                `No fixtures for: ${attributes
-                    .filter(attr => this.getAttrFixtures(attr).filter(fix => fix[1] && fix[0]))
-                    .map(attr => `${attr.name}: ${attr.getTypeName()}`)}`
-            )
-            if (!removed?.includes(`${baseTestName}ValidValues`)) {
-                this.printUnitTestHeader(`${baseTestName}ValidValues`, component)
-                this.state.writer.print(
-                    'FAIL() << "Need to properly configure fixtures in configuration file for proper test generation!";'
-                )
-                this.printUnitTestFooter()
-            }
-            return
-        }
-        attributes.forEach((attribute, index) => {
-            let idAttrName = attribute
-                .getFullName()
-                .split('.')
-                .map(s => capitalize(s))
-                .join('')
-            let attrTestName = `${baseTestName}${idAttrName}`
-            let testName = `${attrTestName}ValidValues`
-            if (!removed?.includes(testName)) {
-                this.addAttributes(attributes)
-                this.addParents(parents)
-                this.printUnitTestHeader(testName, component)
-                this.printTestBody(debug, optionsMethod, method, index, argNames, attributes, validFixtures)
-                this.printUnitTestFooter()
-            }
-
-            let invalidFixtures = this.getAttrFixtures(attribute)
-                .filter(it => it[2])
-                .map(fix => fix[0])
-            if (invalidFixtures.find(fix => fix)) {
-                testName = `${attrTestName}InvalidValues`
-                if (!removed?.includes(testName)) {
-                    this.addAttributes(attributes)
-                    this.addParents(parents)
-                    this.printUnitTestHeader(testName, component)
-                    this.printTestBody(
-                        debug,
-                        optionsMethod,
-                        method,
-                        index,
-                        argNames,
-                        attributes,
-                        validFixtures,
-                        invalidFixtures
-                    )
-                    this.printUnitTestFooter()
-                }
-            }
-        })
-    }
-
-    printUnitTestHeader(name: string, component: string): void {
-        let compDesc = this.aceTypes.getComponents().find(it => it.name == component)
-        let disabled = compDesc?.disable?.includes(name) || name.endsWith(TEST_PLACEHOLDER)
+    private printUnitTestHeader(name: string, component: string): void {
+        let disabled = this.compDesc?.disable?.includes(name) || name.endsWith(TEST_PLACEHOLDER)
         this.state.writer.print('')
         this.state.writer.writeMultilineCommentBlock(`@tc.name: ${name}\n@tc.desc:\n@tc.type: FUNC`)
-        let type = this.state.parametrized ? 'HWTEST_P' : 'HWTEST_F'
+        let type = this.parametrized ? 'HWTEST_P' : 'HWTEST_F'
         this.state.writer.print(
             `${type}(${this.testClassName}, ${disabled ? 'DISABLED_' : ''}${name}, TestSize.Level1)`
         )
@@ -793,10 +488,18 @@ class MultiFileUnittestVisitor extends MultiFileVisitor {
         this.state.writer.pushIndent()
     }
 
-    printUnitTestFooter(): void {
+    private printUnitTestFooter(): void {
         this.state.writer.popIndent()
         this.state.writer.print('}')
     }
+}
+
+function fullFixtureName(name: string, valid: boolean): string {
+    if (name.startsWith(':')) throw `Not defined fixture ${name}!`
+    if (valid) {
+        return `Fixtures::testFixture${name}ValidValues`
+    }
+    return `Fixtures::testFixture${name}InvalidValues`
 }
 
 function printModifiersHeaderFile(
@@ -841,13 +544,7 @@ function printModifiersHeaderFile(
         if (!attr.nameConst) continue
         // Skip parents which coincide with attributes
         if (state.attributes.find(it => it.nameConst == attr.nameConst)) continue
-        let name = attr.name
-        let parent = attr.parent
-        while (name == '|' && parent) {
-            name = parent.name
-            parent = parent.parent
-        }
-        writer.print(`const auto ${attr.nameConst} = "${name}";`)
+        writer.print(`const auto ${attr.nameConst} = "${attr.getParentName()}";`)
     }
     for (let attr of state.attributes) {
         writer.print(`const auto ${attr.nameConst} = "${attr.name}";`)
@@ -1064,13 +761,13 @@ function printTestFixtures(
             `std::vector<std::tuple<std::string, ${name}, std::string>> testFixtureEnum${shortName}ValidValues = {`
         )
         moduleEnums.pushIndent()
-        let idlType = type.getIdlDecl()
-        if (!idl.isEnum(idlType)) throw `Enum expected! Got ${JSON.stringify(idlType)}`
-        idlType.elements.forEach(it => {
-            let inputVal = `${camelCaseToUpperSnakeCase(type.getBaseTypeName())}_${it.name}`
-            let expected = `${idl.getExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName) ?? it.name}`
+        const enumValues = type.getEnumValues()
+        if (enumValues.names.length === 0) throw `Enum expected! Got ${JSON.stringify(type.getIdlDecl())}`
+        for (const [index, it] of enumValues.names.entries()) {
+            let inputVal = `${camelCaseToUpperSnakeCase(type.getBaseTypeName())}_${it}`
+            let expected = `${enumValues.values[index]}`
             moduleEnums.print(`{"${inputVal}", ${inputVal}, "${type.tsName()}.${expected}"},`)
-        })
+        }
         moduleEnums.popIndent()
         moduleEnums.print('};')
         moduleEnums.print('')
@@ -1099,8 +796,8 @@ function printTestFixtures(
 
 export function printUnitTestsAsMultipleFiles(peerLibrary: PeerLibrary, libace: LibaceInstall, aceTypesJson?: string) {
     let aceTypes = new AceTypes(aceTypesJson)
-    const visitor = new MultiFileUnittestVisitor(peerLibrary, aceTypes)
-    visitor.printUnitTests()
+    const visitor = new MultiFileUnittestVisitorImpl(peerLibrary, aceTypes)
+    visitor.makeTests()
     visitor.emitSync(libace)
     printTestFixtures(peerLibrary, libace, aceTypes, visitor.enums)
 }

@@ -3,10 +3,11 @@
 Starting demo: test_generic_callback
 [loadLibraries] Loading TEST_GENERIC_CALLBACKNativeModule [TEST_GENERIC_CALLBACKNativeModule]
 Foo_constructImpl()
+Foo_callHolderImpl(thisPtr)
 Foo_getXImpl(thisPtr)
 foo.getX() = 1
 Foo_callCBImpl(thisPtr, y, cb)
   y = 42 (int32)
 Foo_callCBVoidImpl(thisPtr, cb)
 Callback invoked From TS: x = 43
-Void callback invoked From TS: x = undefined
+Void callback invoked From TS

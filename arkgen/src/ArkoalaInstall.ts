@@ -163,4 +163,13 @@ export class LibaceInstall extends Install {
     modifierUnittest(component: string, index?: number) {
         return this.unittest(`${component}_modifier_test${index ? `_${index}` : ''}.${index == 0 ? 'h' : 'cpp'}`)
     }
+    endToEndTest() {
+        const module = path.join(this.unittestDir, "e2e", "entry", "src", "main")
+        return {
+            tests: this.mkdir(path.join(module, "ets", "tests")),
+            fixtures: this.mkdir(path.join(module, "ets", "fixtures")),
+            element: this.mkdir(path.join(module, "resources", "base", "element")),
+            profile: this.mkdir(path.join(module, "resources", "base", "profile")),
+        }
+    }
 }

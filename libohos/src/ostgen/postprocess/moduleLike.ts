@@ -13,18 +13,49 @@
  * limitations under the License.
  */
 
+import { snakeCaseToCamelCase } from "@idlizer/core";
 import { Builders } from "../../ost/builders";
-import { D, IdentityTransformer, lw, std, T, utils } from "../../ost";
+import { D, E, Hs, IdentityTransformer, lw, std, T, utils } from "../../ost";
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
 import { mapFileName, moduleName, nativeModuleName } from "../engine/utils";
 import { managedName } from "../producers/common";
-import { mergeStructs } from "./postprocess";
+import { callbackKindDeclaration, mergeStructs } from "./postprocess";
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 
 export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     decls = mergeNamespaces(decls)
     decls = mergeStructs(decls)
+    decls = introduceCallbackCaller(decls)
     decls = introduceTypeChecker(decls)
     decls = loadNativeModule(decls)
+    return decls
+}
+
+function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
+    const callers = decls
+        .filter(it => it.name.startsWith(managedName('engine.deserializeAndCall')))
+        .map(it => it.name.replace(/^.*deserializeAndCall/, '')) ///where to take callback name from?
+    const callbackKindEnum = callbackKindDeclaration(callers, s => managedName('engine.' + s))
+    const caller = Builders.func(managedName('engine.deserializeAndCallCallback'))
+        .param('deserializer').typeStr('DeserializerBase').$()
+        .block()
+            .decl('kind').value().call('readInt32').receiver('deserializer').$().$().$()
+            .switch()
+                .selector().call('fromValue').receiver('CallbackKind').arg('kind').$().$()
+                .cases(callers.map(it => { return {
+                    value: E.c(`CallbackKind.KIND_${it.toUpperCase()}`),
+                    body: [
+                        Builders.return().call(E.v('deserializeAndCall' + it, [Hs.isType()])).arg('deserializer').$().$()
+                    ]
+                }})).$().$().$()
+            // TODO: throw new Error('Unknown callback kind')
+    const camelCaseModuleName = snakeCaseToCamelCase(peerGeneratorConfiguration().moduleName.split(".").join("_"))
+    const register = Builders.func(managedName(`engine.register${camelCaseModuleName}ApiHandler`))
+        .block()
+            .call('registerApiEventHandler')
+                .arg('0')
+                .arg('deserializeAndCallCallback').$().$().$()
+    decls.push(callbackKindEnum, caller, register)
     return decls
 }
 
@@ -38,7 +69,7 @@ function loadNativeModule(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     const nativeModule = decls.find(it => it.name == name) as lw.ClassDeclaration
     nativeModule.methods.unshift(
         Builders.func('').static().block()
-            .call().functionName('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$().$())
+            .call('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$())
     return decls
 }
 
@@ -110,7 +141,7 @@ class RefSearcher extends IdentityTransformer {
 
     private goTypeName(name: string): string {
         if (name.startsWith('@'))
-            throw new Error('Unhandled builtin type: ' + name)
+            return name
         const record = this.registry.get(name)
         if (record) {
             let val = name
@@ -231,9 +262,11 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
 function defaultImports(): ImportsCollector {
     const imports = new ImportsCollector()
     imports.addFeatures([
-        'SerializerBase', 'DeserializerBase',
-        'MaterializedBase', 'Finalizable', 'KPointer', 'toPeerPtr',
-        'loadNativeModuleLibrary',
+        'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
+        'SerializerBase', 'DeserializerBase', 'MaterializedBase',
+        'Finalizable', 'toPeerPtr',
+        'RuntimeType', 'ResourceHolder',
+        'loadNativeModuleLibrary', 'registerApiEventHandler',
     ], '@koalaui/interop')
     return imports
 }

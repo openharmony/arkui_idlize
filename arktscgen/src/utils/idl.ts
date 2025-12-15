@@ -140,6 +140,10 @@ export function nodeNamespace(node: IDLNode): string | undefined {
     return getNamespacesPathFor(node)[0]?.name
 }
 
+/**
+ * Returns a fully qualified name for a node with no exceptions.
+ * @note Primarily used to pass a name to Config' options.
+*/
 export function fqName(node: IDLNamedNode): string {
     return getQualifiedName(node, "namespace.name")
 }
@@ -287,6 +291,37 @@ export function makePrettyName(name: string): string {
     return dropPrefix(dropPrefix(name, Config.dataClassPrefix), `${Config.irNamespace}.`)
 }
 
+/**
+ * A fully qualified name of a type that reference points to.
+ * @note 'ir' namespace is ignored and treated as global namespace.
+ */
+export function makeFullyQualifiedName(ref: IDLNamedNode): string;
+export function makeFullyQualifiedName(
+    ref: IDLReferenceType,
+    resolveReference: ReferenceResolver
+): string;
+export function makeFullyQualifiedName(
+    node: IDLReferenceType | IDLNamedNode,
+    resolveReference?: ReferenceResolver,
+): string {
+    if (isReferenceType(node)) {
+        const decl = resolveReference!(node)
+        // No throw bc a lot of handwritten code may appear.
+        return  decl ? makeFullyQualifiedName(decl) : node.name
+    }
+
+    return getNamespacesPathFor(node)
+        .filter(n => n.name !== Config.irNamespace)
+        .map(n => n.name)
+        .concat(dropPrefix(node.name, Config.dataClassPrefix))
+        .join('.')
+}
+
+/**
+ * If namespaces of the reference and resolved declaration
+ * are the same, non-qualified name is returned. Otherwise, a fully qualified.
+ * @note 'ir' namespace is ignored and treated as global namespace.
+ */
 export function makeEnoughQualifiedName(
     ref: IDLReferenceType,
     resolveReference: ReferenceResolver,

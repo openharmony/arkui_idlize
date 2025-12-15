@@ -14,10 +14,12 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Hs, E, lw, Op, S, std, T, Ts } from "../../../ost";
-import { AdvancedGeneratorContext, bridgeName } from "../common";
+import { Hs, E, lw, Op, S, std, Ts, T, Vs } from "../../../ost";
+import { AdvancedGeneratorContext, cApiName, managedName, typeNameExpr } from "../common";
 import { Builders } from "../../../ost/builders";
-import { IfStatement, LWExpression, LWKind, LWType } from "../../../ost/lws";
+import { isMaterialized } from "@idlizer/core";
+import { LWExpression, LWStatement, LWType } from "../../../ost/lws";
+import { monoName } from "../../postprocess/postprocess";
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type) {
@@ -45,157 +47,378 @@ function selectReadName(type:idl.IDLPrimitiveType): string {
     return "read" + selectPrimitiveTypeName(type)
 }
 
-export class ArgConvertor {
+export abstract class ArgConvertor<T extends idl.IDLType> {
     constructor(
-        private ctx: AdvancedGeneratorContext,
-        private sName: lw.LWExpression,
-        private native: boolean
+        protected ctx: AdvancedGeneratorContext,
+        protected type: T
     ) {}
 
-    private getSerializer(node:idl.IDLNode) {
-        return this.native
+    abstract interopType(native: boolean): lw.LWType
+    abstract write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[]
+    abstract read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression]
+
+    isPointer(): boolean {
+        return false
+    }
+    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+        return [Builders.return().value(resultVarName).$()]
+    }
+    protected getSerializer(node: idl.IDLNode, native: boolean) {
+        return native
             ? this.ctx.useNativeSerializer(node)
             : this.ctx.useManagedSerializer(node)
     }
-
-    //////////////////////
-
-    write(accessor:lw.LWExpression, type:idl.IDLType): lw.LWStatement {
-        if (idl.isPrimitiveType(type)) {
-            return S.e(E.call(E.get(this.sName, selectWriteName(type)), [accessor]))
-        }
-        if (idl.isReferenceType(type)) {
-            const decl = this.ctx.base.resolver.toDeclaration(type)
-            return decl && idl.isEnum(decl)
-                ? Builders.expr().call()
-                    .receiverExpr(this.sName)
-                    .functionName('writeInt32')
-                    .args([accessor]).$().$stmt()
-                : Builders.expr().call().function()
-                    .access(this.getSerializer(type).name())
-                    .member('write')
-                    .static().$().$()
-                    .args([this.sName, accessor]).$().$stmt()
-        }
-        if (idl.isContainerType(type)) {
-            if (idl.IDLContainerUtils.isSequence(type)) {
-                return Builders.block()
-                    .call().receiverExpr(this.sName).functionName('writeInt32')
-                        .arg().access(accessor).member('length').$().$().$()
-                    .loop()
-                        .init().decl('i', Ts.prim.i32).mutable().valueStr('0').$().$()
-                        .cond().binary(Op.lt).leftStr('i').right().access(accessor).member('length').$().$().$().$()
-                        .step().binary('=').leftStr('i').right().binary(Op.add).leftStr('i').rightStr(1).$().$().$().$()
-                        .bodyStmt(
-                            this.write(
-                                Builders.access(accessor).indexStr('i').$(),
-                                type.elementType[0]))
-                        .$().$()
-            }
-        }
-        if (idl.isUnionType(type)) {
-            return type.types
-                .map((ty, i) => {
-                    const cond = this.native
-                        ? Builders.binary(Op.eq)
-                            .left().access(accessor).member('selector').$().$()
-                            .rightStr(i).$()
-                        : Builders.instanceof(this.ctx.useManagedSerializer(ty).reference()).valueExpr(accessor).$()
-                    const value = this.native
-                        ? Builders.access(accessor).member('value' + i).$()
-                        : accessor /// cast to `ty`
-                    return Builders.if()
-                        .condition(cond)
-                        .then().block()
-                            .call().receiverExpr(this.sName).functionName('writeInt8').args([E.c(i)]).$()
-                            .statements([this.write(value, ty)]).$().$().$()
-                })
-                .reduceRight((acc, cur) => {cur.elseBody = acc; return cur})
-        }
-        throw new Error(`Can not process "${idl.DebugUtils.debugPrintType(type)}"`)
-    }
-
-    //////////////////////
-
-    read(name: string, type: idl.IDLType): [lw.LWStatement[], lw.LWExpression] {
-        if (idl.isPrimitiveType(type)) {
-            let expr = Builders.expr().call()
-                .receiverExpr(this.sName)
-                .functionName(selectReadName(type)).$().$()
-            if (!this.native && type === idl.IDLNumberType) // ugh
-                expr = Builders.cast(Ts.prim.number).valueExpr(expr).$()
-            return [
-                [Builders.decl(name, this.convertType(type, this.native)).valueExpr(expr).$()],
-                E.v(name)
-            ]
-        }
-        if (idl.isReferenceType(type)) {
-            const refTarget = this.ctx.base.resolver.toDeclaration(type)
-            const call = refTarget && idl.isEnum(refTarget)
-                ? Builders.call().receiverExpr(this.sName).functionName('readInt32').$()///cast
-                : Builders.call()
-                    .function()
-                        .access(this.getSerializer(type).name())
-                        .member('read')
-                        .static().$().$()
-                    .args([this.sName]).$()
-            return [
-                [Builders.decl(name, this.convertType(type, this.native)).valueExpr(call).$()],
-                E.v(name)
-            ]
-        }
-        if (idl.isContainerType(type)) {
-            if (idl.IDLContainerUtils.isSequence(type)) {
-                const elemType = this.native
-                    ? this.ctx.useNativeSerializer(type.elementType[0])
-                    : this.ctx.useManagedSerializer(type.elementType[0])
-                const lengthDecl = Builders.decl('length', Ts.prim.i32).value()
-                    .call().receiverExpr(this.sName).functionName('readInt32').$().$().$()
-                const bufferDecl = Builders.decl('buffer', T.c('idlize.Array', elemType.reference())).value()///std name?
-                    .ctor().args([E.v('length')]).$().$().$()///pass type to ctor
-                const [reads, readValue] = this.read(name, type.elementType[0]);
-                const loop = Builders.loop()
-                    .init().decl('i', Ts.prim.i32).valueStr(0).$().$()
-                    .cond().binary(Op.lt).leftStr('i').rightStr('length').$().$()
-                    .step().binary(Op.postinc).leftStr('i').$().$()
-                    .body().block()
-                        .statements(reads)
-                        .binary('=')
-                            .left().access(E.v('buffer')).indexStr('i').$().$()
-                            .rightExpr(readValue).$().$().$().$()
-                return [[lengthDecl, bufferDecl, loop], E.v('buffer')]
-            }
-        }
-        if (idl.isUnionType(type)) {
-            const selectorDecl = Builders.decl('selector', Ts.prim.i8)
-                .value().call().receiverExpr(this.sName).functionName('readInt8').$().$().$()
-            const tmpDecl = Builders.decl('tmp', this.convertType(type, this.native)).$()
-            if (this.native)
-                tmpDecl.expression = E.c('{}')
-            const ifs = type.types.map((ty, i) => {
-                const [reads, readValue] = this.read(name, ty);
-                const assignments = this.native
-                    ? [ Builders.stmt().binary(Op.eq)
-                            .left().access(E.v('tmp')).member('selector').$().$()
-                            .rightStr(i).$().$(),
-                        Builders.stmt().binary(Op.eq)
-                            .left().access(E.v('tmp')).member('value' + i).$().$()
-                            .rightExpr(readValue).$().$()]
-                    : [ Builders.stmt().binary(Op.eq).leftStr('tmp').rightExpr(readValue).$().$()]
-                return Builders.if()
-                    .cond().binary(Op.eq).leftStr('selector').rightStr(i).$().$()
-                    .then().block()
-                        .statements(reads)
-                        .statements(assignments).$().$().$()
-            })
-            return [ [selectorDecl, tmpDecl, ...ifs], E.v('tmp', [Hs.excl()])]
-        }
-        throw new Error(`Can not process "${idl.DebugUtils.debugPrintType(type)}"`)
-    }
-
-    private convertType(type:idl.IDLType, native: boolean): LWType {
+    protected convertType(type: idl.IDLType, native: boolean): lw.LWType {
         return native
             ? this.ctx.useCApi(type).reference()
             : this.ctx.useManaged(type).reference()
+    }
+}
+
+export function argConvertor(ctx: AdvancedGeneratorContext, type: idl.IDLType, optional?: boolean): ArgConvertor<idl.IDLType> {
+    ///what can we cache here? Take optional props into account
+    if (optional)
+        return new OptionalConvertor(ctx, type)
+    if (idl.isPrimitiveType(type))
+        return new PrimitiveConvertor(ctx, type)
+    if (idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type))
+        return new ArrayConvertor(ctx, type)
+    if (idl.isUnionType(type))
+        return new UnionConvertor(ctx, type)
+    if (idl.isReferenceType(type)) {
+        const decl = ctx.base.resolver.toDeclaration(type)
+        if (decl) {
+            if (idl.isInterface(decl)) {
+                return isMaterialized(decl, ctx.base.library)
+                    ? new MaterializedConvertor(ctx, type)
+                    : new DataConvertor(ctx, type)
+            }
+            if (idl.isEnum(decl))
+                return new EnumConvertor(ctx, type)
+            if (idl.isCallback(decl))
+                return new CallbackConvertor(ctx, type, decl)
+        }
+    }
+    throw new Error(`No convertor exists for "${idl.DebugUtils.debugPrintType(type)}"`)
+}
+
+class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
+    interopType(native: boolean): lw.LWType {
+        switch (this.type) {
+            case idl.IDLBufferType:
+                return Ts.prim.interopReturnBuffer
+            case idl.IDLNumberType:
+                return Ts.prim.interopNumber
+            case idl.IDLStringType:
+                return native ? Ts.const(Ts.ref(Ts.prim.interopString)) : Ts.prim.interopString
+            default:
+                return this.convertType(this.type, native)
+        }
+    }
+    isPointer(): boolean {
+        return this.type === idl.IDLNumberType || this.type === idl.IDLStringType
+    }
+    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+        switch (this.type) {
+            case idl.IDLBufferType:
+                return [Builders.return().call('readBuffer')
+                    .receiver().ctor('DeserializerBase')
+                        .arg(resultVarName)
+                        .arg().access('length').receiver(resultVarName).$().$().$().$()
+                    .$().$()]
+            case idl.IDLVoidType: return []
+            default: return super.returnFromInterop(resultVarName, native)
+        }
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [Builders.stmt().call(selectWriteName(this.type))
+            .receiver(serializerName)
+            .arg(accessor).$().$()
+        ]
+    }
+
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        let expr = Builders.expr().call(selectReadName(this.type)).receiver(serializerName).$().$()
+        if (!native && this.type === idl.IDLNumberType) // ugh
+            expr = Builders.cast(Ts.prim.number).value(expr).$()
+        return [
+            [Builders.decl(name).value(expr).$()],
+            E.v(name)
+        ]
+    }
+}
+
+class EnumConvertor extends ArgConvertor<idl.IDLReferenceType> {
+    interopType(native: boolean): lw.LWType {
+        return Ts.prim.i32
+    }
+    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+        return super.returnFromInterop(resultVarName, native)///toEnum()?
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [Builders.expr().call('writeInt32')
+            .receiver(serializerName)
+            .arg().call('valueOf').receiver(accessor).$().$().$().$stmt()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        return [
+            [Builders.decl(name)
+                .value().call('fromValue').receiver(typeNameExpr(this.type.name))
+                .arg().call('readInt32').receiver(serializerName).$().$().$().$().$()],
+            E.v(name)
+        ]
+    }
+}
+
+class MaterializedConvertor extends ArgConvertor<idl.IDLReferenceType> {
+    interopType(native: boolean): lw.LWType {
+        return Ts.prim.pointer
+    }
+    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+        return [Builders.return().value(this.fromPtr(E.v(resultVarName), native)).$()]
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        const peerPtr = native
+            ? accessor
+            : Builders.call('toPeerPtr').arg(accessor).$()
+        return [Builders.stmt().call('writePointer')
+            .receiver(serializerName)
+            .arg(peerPtr).$().$()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const peerPtr = Builders.call('readPointer').receiver(serializerName).$()
+        return [
+            [Builders.decl(name).value(this.fromPtr(peerPtr, native)).$()],
+            E.v(name)
+        ]
+    }
+    private fromPtr(peerPtr: LWExpression, native: boolean): LWExpression {
+        return native
+            ? peerPtr
+            : Builders.call('fromPtr')
+                .receiver(typeNameExpr(this.type.name + 'Internal'))
+                .arg(peerPtr).$()
+
+    }
+}
+
+abstract class StructConvertor<T extends idl.IDLType> extends ArgConvertor<T> {
+    interopType(native: boolean): lw.LWType {
+        return Ts.prim.interopReturnBuffer
+    }
+    isPointer(): boolean {
+        return true
+    }
+    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+        const [reads, readValue] = this.read(`${resultVarName}Deserialized`, E.v('returnDeserializer'), false)
+        return [
+            Builders.decl('returnDeserializer', T.c('DeserializerBase')).value().ctor('DeserializerBase')
+                .arg(resultVarName)
+                .arg().access('length').receiver(resultVarName).$().$().$().$().$(),
+            ...reads,
+            Builders.return().value(readValue).$()
+        ]
+    }
+}
+
+class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [Builders.expr().call().function()
+            .access('write')
+                .receiver(this.getSerializer(this.type, native).name())
+                .static().$().$()
+            .arg(serializerName).arg(accessor).$().$stmt()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        return [
+            [Builders.decl(name).value().call()
+                .function()
+                    .access('read')
+                    .receiver(this.getSerializer(this.type, native).name())
+                    .static().$().$()
+                .arg(serializerName).$().$().$()],
+            E.v(name)
+        ]
+    }
+}
+
+class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            Builders.stmt().call('writeInt32').receiver(serializerName)
+                .arg().access('length').receiver(accessor).$().$().$().$(),
+            Builders.loop()
+                .init().decl('i').mutable().value('0').$().$()
+                .cond().binary(Op.lt).left('i').right().access('length').receiver(accessor).$().$().$().$()
+                .step().binary('=').left('i').right().binary(Op.add).left('i').right(1).$().$().$().$()
+                .body().block()
+                    .statements(argConvertor(this.ctx, this.type.elementType[0]).write(
+                        Builders.access().receiver(accessor).index('i').$(),
+                        serializerName,
+                        native)).$().$().$()
+        ]
+    }
+
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const lengthDecl = Builders.decl(`${name}Length`).value()
+            .call('readInt32').receiver(serializerName).$().$().$()
+        const elemType = this.convertType(this.type.elementType[0], native);
+        const bufferDecl = Builders.decl(name).value()
+            .ctor(std.names.types.array).typeArgs([elemType]).arg(name + 'Length').$().$().$()
+        const [reads, readValue] = argConvertor(this.ctx, this.type.elementType[0])
+            .read('tmp', serializerName, native);
+        const loop = Builders.loop()
+            .init().decl('i').mutable().value(0).$().$()
+            .cond().binary(Op.lt).left('i').right(name + 'Length').$().$()
+            .step().unary(Op.postinc).value('i').$().$()
+            .body().block()
+                .statements(reads)
+                .binary('=')
+                    .left().access().receiver(name).index('i').$().$()
+                    .right(readValue).$().$().$().$()
+        return [[lengthDecl, bufferDecl, loop], E.v(name)]
+    }
+}
+
+class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            this.type.types.map((ty, i) => {
+                const cond = native
+                    ? Builders.binary(Op.eq)
+                        .left().access('selector').receiver(accessor).$().$()
+                        .right(i).$()
+                    : Builders.instanceof(this.ctx.useManagedSerializer(ty).reference()).value(accessor).$()
+                const value = native
+                    ? Builders.access('value' + i).receiver(accessor).$()
+                    : accessor /// cast to `ty`
+                return Builders.if()
+                    .condition(cond)
+                    .then().block()
+                        .call('writeInt8').receiver(serializerName).arg(i).$()
+                        .statements(argConvertor(this.ctx, ty).write(value, serializerName, native)).$().$().$()
+            })
+            .reduceRight((acc, cur) => {cur.elseBody = acc; return cur})
+        ]
+    }
+
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const selectorDecl = Builders.decl(`${name}Selector`)
+            .value().call('readInt8').receiver(serializerName).$().$().$()
+        const tmpType = Ts.union([
+            ...(Ts.union(this.type.types.map(ty => this.convertType(ty, native)))).args,
+            Ts.prim.undefined])
+        const tmpDecl = Builders.decl(`${name}Value`, tmpType).mutable().$()
+        if (native)
+            tmpDecl.expression = E.c('{}')
+        const ifs = this.type.types.map((ty, i) => {
+            const [reads, readValue] = argConvertor(this.ctx, ty).read('tmp', serializerName, native);
+            const assignments = native
+                ? [ Builders.stmt().binary(Op.eq)
+                        .left().access('selector').receiver(name).$().$()
+                        .right(i).$().$(),
+                    Builders.stmt().binary(Op.eq)
+                        .left().access('value' + i).receiver(name).$().$()
+                        .right(readValue).$().$()]
+                : [ Builders.stmt().binary('=').left(`${name}Value`).right(readValue).$().$()]
+            return Builders.if()
+                .cond().binary(Op.eq).left(`${name}Selector`).right(i).$().$()
+                .then().block()
+                    .statements(reads)
+                    .statements(assignments).$().$().$()
+        })
+        const assignment = Builders.decl(name)
+            .value().unary(Op.assert).value(`${name}Value`).$().$().$()
+        return [ [selectorDecl, tmpDecl, ...ifs, assignment], E.v(name, [Hs.excl()])]
+    }
+}
+
+class OptionalConvertor extends StructConvertor<idl.IDLType> {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        if (native) {
+            // TODO: implement
+            return [Builders.stmt().call('writeInt8')
+                .receiver(serializerName)
+                .arg(this.runtimeType('UNDEFINED', native)).$().$()]
+        }
+        return [Builders.if()
+            .cond().unary(Op.not).value(accessor).$().$()
+            .then().block()
+                .call('writeInt8').receiver(serializerName).arg(this.runtimeType('UNDEFINED', native)).$().$().$()
+            .else().block()
+                .call('writeInt8').receiver(serializerName).arg(this.runtimeType('OBJECT', native)).$()
+                .statements(argConvertor(this.ctx, this.type).write(accessor, serializerName, native)).$().$().$()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const type = this.convertType(this.type, native);
+        if (native) {
+            // TODO: implement
+            return [[
+                Builders.decl(name, Ts.optional(type)).mutable().$(),
+                Builders.decl(`${name}RuntimeType`).value().call('readInt8').receiver(serializerName).$().$().$(),
+                Builders.stmt().binary('=')
+                    .left().access('tag').receiver(name).$().$()
+                    .right('INTEROP_TAG_UNDEFINED').$().$()
+            ], E.v(name)]
+        } else {
+            const [typeReads, typeValue] = argConvertor(this.ctx, this.type).read(`${name}Value`, serializerName, native)
+            return [[
+                Builders.decl(name, Ts.union([type, Ts.prim.undefined])).mutable().$(),
+                Builders.decl(`${name}RuntimeType`).value().call('readInt8').receiver(serializerName).$().$().$(),
+                Builders.if()
+                    .cond().binary(Op.ne).left(`${name}RuntimeType`).right(this.runtimeType('UNDEFINED', native)).$().$()
+                    .then().block()
+                        .statements(typeReads)
+                        .binary('=').left(name).right(typeValue).$().$().$().$()
+            ], E.v(name)]
+        }
+    }
+    private runtimeType(name: string, native: boolean): lw.LWExpression {
+        return native
+            ? E.v(`INTEROP_RUNTIME_${name}`)
+            : Builders.access(name).receiver('RuntimeType').$()
+    }
+}
+
+class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
+    constructor(ctx: AdvancedGeneratorContext, type: idl.IDLReferenceType, private decl: idl.IDLCallback) {
+        super(ctx, type);
+    }
+    interopType(native: boolean): lw.LWType {
+        return this.convertType(this.type, native)
+    }
+    isPointer(): boolean {
+        return true
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            Builders.stmt().call('holdAndWriteCallback')
+                .receiver(serializerName)
+                .arg(accessor).$().$()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const callbackName = monoName(this.convertType(this.type, native))
+        const kindName = E.v(`KIND_${callbackName.toUpperCase()}`)
+        const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
+        const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
+        const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
+        return [[
+            Builders.decl(name, this.ctx.useCApi(this.type).reference()).value()
+                .ctor().asStruct()
+                    .arg().call('readCallbackResource').receiver(serializerName).$().$()
+                    .arg().cast(T.fn(asyncParams, Ts.prim.void)).value()
+                        .call('readPointerOrDefault').receiver(serializerName)
+                            .arg().call('getManagedCallbackCaller')
+                                .arg(kindName).$().$().$().$().$().$()
+                    .arg().cast(T.fn(syncParams, Ts.prim.void)).value()
+                        .call('readPointerOrDefault').receiver(serializerName)
+                            .arg().call('getManagedCallbackCallerSync')
+                                .arg(kindName).$().$().$().$().$().$().$().$().$()
+        ], E.v(name)]
     }
 }

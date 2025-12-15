@@ -10,21 +10,28 @@
 
     "moduleName": "arkui",
     "modules": {
-        "global.resource": {
-            "name": "global.resource",
-            "packages": ["global.resource"]
+        "external": {
+            "name": "external",
+            "packages": ["external"]
         },
         "arkui": {
             "name": "arkui",
             "packages": [
-                "arkui"
+                "arkui",
+                "synthetic_types"
+            ]
+        },
+        "unit": {
+            "name": "unit",
+            "packages": [
+                "unit"
             ]
         }
     },
     "libraryNameMapping": {
-        "global.resource": {
-            "TS": "global.resource",
-            "ArkTS": "global.resource"
+        "external": {
+            "TS": "external",
+            "ArkTS": "external"
         }
     },
     "rootComponents": [
@@ -39,7 +46,8 @@
     "components": {
         "handWritten": [
             "AttributeModifier",
-            "AttributeUpdater"
+            "AttributeUpdater",
+            "ModifierState"
         ]
     },
     "forceMaterialized": [
@@ -53,7 +61,28 @@
             "drawFront"
         ]
     },
-    "hooks": {},
+    "hooks": {
+        "CheckHooksAttribute": {
+            "text": {
+                "hookName": "hookCheckHooksText",
+                "replaceImplementation": true
+            },
+            "methodPrimitives": {
+                "hookName": "hookCheckHooksMethodPrimitives",
+                "replaceImplementation": true
+            }
+        }
+    },
+    "transformOnSerialize": [
+        {
+            "from": "arkui.component.check.transform.SampleTransformSrcI",
+            "to": "arkui.component.check.transform.SampleTransformDstI"
+        },
+        {
+            "from": "arkui.component.check.transform.TransformSrcCallbackI",
+            "to": "arkui.component.check.transform.TransformDstCallbackI"
+        }
+    ],
     "dummy": {
         "ignoreMethods": {
             "RenderServiceNode": [
@@ -64,19 +93,6 @@
             ],
             "EventEmulator": [
                 "emitClickEvent"
-            ],
-            "DrawModifier": [
-                "invalidate",
-                "setDrawBehind_callback",
-                "setDrawContent_callback",
-                "setDrawFront_callback"
-            ],
-            "StageExtender" : [
-                "SetSrcPage",
-                "PushPage",
-                "PopPageAndSwitchTo",
-                "ResetTransitions",
-                "SetPageTransition"
             ]
         }
     }

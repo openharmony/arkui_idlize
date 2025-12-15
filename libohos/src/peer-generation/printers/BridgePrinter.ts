@@ -251,7 +251,7 @@ export class BridgeVisitor {
         method.argAndOutConvertors(this.library).forEach(it => {
             if (it.useArray) {
                 if (!ptrCreated) {
-                    maybeReceiver.push(["KSerializerBuffer", "thisArray"], ["int32_t", "thisLength"])
+                    maybeReceiver.push(["KSerializerBuffer", "thisArray"], ["KInt", "thisLength"])
                     ptrCreated = true
                 }
             } else {
@@ -283,9 +283,7 @@ export class BridgeVisitor {
             if (isVMContextMethod(makeInteropMethod(this.library, cName, method)))
                 argDecls.unshift("KVMContext vmContext")
             this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
-            this.generatedApi.pushIndent()
             this.printNativeBody(context, method)
-            this.generatedApi.popIndent()
             this.generatedApi.print(`}`)
         }
         const macroRetType = this.mapToKTypes(method.returnType) ?? retType

@@ -4,6 +4,7 @@ Starting demo: test_buffer
 [loadLibraries] Loading TEST_BUFFERNativeModule [TEST_BUFFERNativeModule]
 Foo_constructImpl()
 FooObject() with index = 1
+Foo_callHolderImpl(thisPtr)
 Foo_getResultImpl(thisPtr)
 AllocationManager::Allocate(sizeBytes=64)
 InteropCallbackResource.hold called with resourceId = 0

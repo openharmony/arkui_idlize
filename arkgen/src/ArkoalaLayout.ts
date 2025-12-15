@@ -14,20 +14,19 @@
  */
 
 import * as path from 'node:path'
-import { Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
+import { Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary, getSyntheticTypesFileName } from '@idlizer/core'
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration, NativeModule, peerGeneratorConfiguration } from '@idlizer/libohos'
 
 const BASE_PATH = 'framework'
 const getGeneratedFilePath = (p:string) => path.join(BASE_PATH, p)
 
-export const SyntheticModule = "./SyntheticDeclarations"
 export function HandwrittenModule(language: Language, isSdk = false) {
     // does this switch needed here?
     switch (language) {
         case Language.TS: return "./handwritten"
         case Language.ARKTS: return isSdk ? './index' : "#handwritten"
-        case Language.KOTLIN: return "./handwritten"
+        case Language.KOTLIN: return "handwritten"
         default: throw new Error("Not implemented")
     }
 }
@@ -92,6 +91,7 @@ export class TsLayout extends CommonLayoutBase {
     private tsInternalPaths = new Map<string, string>([
         ["SerializerBase", "@koalaui/interop"],
         ["DeserializerBase", "@koalaui/interop"],
+        ["resourceFinalizerRegister", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
         ["deserializeAndCallCallback", getGeneratedFilePath("peers/CallbackDeserializeCall")],
         ["CallbackTransformer", "./CallbackTransformer"],
@@ -105,9 +105,6 @@ export class TsLayout extends CommonLayoutBase {
         if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
             return HandwrittenModule(this.library.language)
         }
-        // if (idl.isSyntheticEntry(target.node)) {
-        //     return SyntheticModule
-        // }
 
         const moduleImport = getModuleImport(target.node, target.role, Language.TS)
         if (moduleImport) return moduleImport
@@ -128,6 +125,7 @@ export class ArkTsLayout extends CommonLayoutBase {
     protected arkTSInternalPaths = new Map<string, string>([
         ["SerializerBase", "@koalaui/interop"],
         ["DeserializerBase", "@koalaui/interop"],
+        ["resourceFinalizerRegister", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
         ["deserializeAndCallCallback", getGeneratedFilePath("peers/CallbackDeserializeCall")],
         ["checkArkoalaCallbacks", "./CallbacksChecker"],
@@ -208,10 +206,10 @@ export class CJLayout extends CommonLayoutBase {
             return HandwrittenModule(this.library.language)
         }
         if (idl.isSyntheticEntry(target.node)) {
-            return SyntheticModule
+            return getSyntheticTypesFileName()
         }
         if (idl.isTypedef(target.node)) {
-            return SyntheticModule
+            return getSyntheticTypesFileName()
         }
         let pureFileName = idl.getFileFor(target.node)?.fileName
             ?.replaceAll('.d.ts', '')
@@ -229,11 +227,22 @@ export class KotlinLayout extends CommonLayoutBase {
     protected KotlinInternalPaths = new Map<string, string>([
         ["SerializerBase", "koalaui.interop"],
         ["DeserializerBase", "koalaui.interop"],
+        ["resourceFinalizerRegister", "koalaui.interop"],
     ])
     resolve(target: idl.LayoutTargetDescription): string {
         if (this.KotlinInternalPaths.has(target.node.name))
             return this.KotlinInternalPaths.get(target.node.name)!
-        return "koalaui.arkoala"
+        if (idl.isSyntheticEntry(target.node)) {
+            return getSyntheticTypesFileName()
+        }
+        const packageName = idl.getPackageNameSafe(target.node) ?? "idlize"
+        const arkuiPackages = ["arkui.component", "idlize"]
+        for (const pkg of arkuiPackages) {
+            if (packageName === pkg || packageName.startsWith(`${pkg}.`)) {
+                return "koalaui.arkoala"
+            }
+        }
+        return packageName
     }
 }
 

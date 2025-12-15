@@ -18,6 +18,7 @@ import { Finalizable } from "./Finalizable"
 
 export declare class Canvas extends Finalizable {
     constructor(ptr: pointer, managed?: boolean/**, owner?: object */)
+    static callHolder(): KNativePointer 
     static getFinalizer(): KNativePointer 
     static makeFromBitmap(bitmap: Bitmap, surfaceProps: SurfaceProps): Canvas 
 

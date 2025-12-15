@@ -1,0 +1,11 @@
+package arkui.component;
+
+[Entity=Interface]
+interface BlankInterface {
+    [CallSignature]
+    BlankAttribute invoke(optional (number or String) min);
+};
+[Entity=Class, Component="Blank"]
+interface BlankAttribute: [Extends, TypeArguments="BlankAttribute"] CommonMethod {
+    this color(optional ResourceColor isReversed);
+};

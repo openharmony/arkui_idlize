@@ -1,6 +1,7 @@
 package arkui.stateManagement.internal;
 
-import arkui.Storage.LayoutDirection as LayoutDirection;
+import arkui.stateManagement.storage.storageProperty.LayoutDirection as LayoutDirection;
+import arkui.stateManagement.storage.storageProperty.ColorMode as ColorMode;
 
 [Entity=Class]
 interface PersistentStorageBackend {
@@ -9,11 +10,6 @@ interface PersistentStorageBackend {
     static void remove(String key);
     static void set(String key, String value);
     static void clear();
-};
-
-dictionary ColorMode {
-    number LIGHT = 0;
-    number DARK = 1;
 };
 
 [Entity=Class]

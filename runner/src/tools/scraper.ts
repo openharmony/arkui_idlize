@@ -48,7 +48,19 @@ export interface ScraperResult {
     arkuiConfig: string,
 }
 
-export function runScraper(root: string, configPath:string):ScraperResult {
+function parseIDLDirectory(path: string): IDLFile[] {
+    const input = scan(resolve(path))
+    return input.flatMap(source => {
+        try {
+            return [parseIDLFile(source)]
+        } catch (e) {
+            console.error('skipped', source)
+            return []
+        }
+    })
+}
+
+export function runScraper(root: string, extraPaths: string[], configPath:string):ScraperResult {
 
     /////////////////////////////////////////////////////////////
     // constants
@@ -80,24 +92,9 @@ export function runScraper(root: string, configPath:string):ScraperResult {
     /////////////////////////////////////////////////////////////
     // scan and startup
 
-    const interfacesLibrary = readLibrary("arkuiExtra").flatMap(source => {
-        try {
-            return [parseIDLFile(source)]
-        } catch (e) {
-            console.error('skipped', source)
-            return []
-        }
-    })
+    const interfacesLibrary = extraPaths.flatMap(parseIDLDirectory)
 
-    const input = scan(resolve(root))
-    const library = input.flatMap(source => {
-        try {
-            return [parseIDLFile(source)]
-        } catch (e) {
-            console.error('skipped', source)
-            return []
-        }
-    })
+    const library = parseIDLDirectory(root)
 
     /////////////////////////////////////////////////////////////
     // the algorithm
@@ -319,7 +316,6 @@ export function runScraper(root: string, configPath:string):ScraperResult {
     startScript += '  --language arkts \\\n'
     startScript += '  --reference-names ../../arkgen/generation-config/references/ets-sdk.refs.json \\\n'
     startScript += '  --options-file main-config.json \\\n'
-    startScript += '  --only-integrated \\\n'
     startScript += `  --output-dir ${join(OUT_DIR, 'generated')} \\\n`
     startScript += `  --input-files $(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ')\n`
 

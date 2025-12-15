@@ -18,7 +18,7 @@ declare class ColorFilter {
   constructor(value: number[]);
 }
 
-declare type Length = string | number | Resource;
+declare type Length = string | double | Resource;
 
 declare type ResourceColor = Color | number | string | Resource;
 

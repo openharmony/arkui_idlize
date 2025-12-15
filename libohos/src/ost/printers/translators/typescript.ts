@@ -19,6 +19,7 @@ import { std } from "../../stdlib";
 import { IdentityTransformer } from "../../visitors/identity";
 import { T, utils } from "../../builder";
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration";
+import { stat } from "fs";
 
 const varMapping = new Map([
   [std.names.vars.base, 'super'],
@@ -51,19 +52,24 @@ export class ConvertTSTypes extends IdentityTransformer {
       case std.names.types.i64: return T.c('long')
       case std.names.types.object: return T.c('object')
       case std.names.types.nativePointer: return T.c('KPointer')
-      case std.names.types.number: return T.c('number')
+      case std.names.types.number:
+      case std.names.types.interopNumber: return T.c('number')
+      case std.names.types.interopReturnBuffer: return T.c('KInteropReturnBuffer')
       case std.names.types.serializerBuffer: return T.c('KSerializerBuffer')
-      case std.names.types.string: return T.c('string')
+      case std.names.types.string:
+      case std.names.types.interopString: return T.c('string')
       case std.names.types.u8: return T.c('byte')
       case std.names.types.u32: return T.c('int')
       case std.names.types.u64: return T.c('long')
+      case std.names.types.undefined: return T.c('undefined')
       case std.names.types.void: return T.c('void')
     }
     if (type.args.length > 0) {
       type = super.goValueType(type) as lw.ValueType
       switch (type.name) {
-        case 'idlize.Array': return T.c('Array', ...type.args)
-        case 'idlize.Map': return T.c('Map', ...type.args)
+        case std.names.types.array:
+        case std.names.types.map:
+          return T.c(this.convertSpecialName(type.name), ...type.args)
       }
     }
     // strip local package from type name
@@ -72,11 +78,23 @@ export class ConvertTSTypes extends IdentityTransformer {
       return T.c(type.name.substring(localPrefix.length))
     return type
   }
+  override goConstructorExpression(expr: lw.ConstructorExpression): lw.ConstructorExpression {
+    const ret = super.goConstructorExpression(expr)
+    ret.name = this.convertSpecialName(ret.name)
+    return ret
+  }
   override goNamespaceDeclaration(decl: lw.NamespaceDeclaration): lw.NamespaceDeclaration {
     this.nameStack.push(decl.name)
     const ret = super.goNamespaceDeclaration(decl)
     this.nameStack.pop()
     return ret
+  }
+  private convertSpecialName(name: string): string {
+    switch (name) {
+      case std.names.types.array: return 'Array'
+      case std.names.types.map: return 'Map'
+    }
+    return name
   }
 }
 
@@ -254,6 +272,16 @@ export class TSPrinter {
         this.p.put(')')
         break
       }
+      case lw.LWKind.LambdaExpression:
+        this.p.put('(')
+        expression.parameters.forEach((param, i) => {
+          if (i > 0) {
+            this.p.put(',', ' ')
+          }
+          this.p.put(param.name)
+        })
+        this.p.put(')', ' ', '=>', ' ')
+        this.printStatement(expression.body)
     }
   }
   printStatement(statement: lw.LWStatement) {
@@ -287,8 +315,11 @@ export class TSPrinter {
       }
       case lw.LWKind.DeclarationStatement: {
         const specifier = statement.mutable ? 'let' : 'const'
-        this.p.put(specifier, ' ', statement.varName, ':', ' ')
-        this.printType(statement.varType)
+        this.p.put(specifier, ' ', statement.varName)
+        if (statement.varType.kind !== lw.LWKind.ValueType || statement.varType.name !== std.names.types.auto) {
+          this.p.put(':', ' ')
+          this.printType(statement.varType)
+        }
         if (statement.expression) {
           this.p.put(' ', '=', ' ')
           if (statement.expression.kind === lw.LWKind.ConstructorExpression &&
@@ -319,6 +350,24 @@ export class TSPrinter {
         }
         break
       }
+      case lw.LWKind.SwitchStatement:
+        this.p.put('switch', ' ', '(')
+        this.printExpression(statement.selector)
+        this.p.put(')', ' ', '{').inc().newline()
+        statement.cases.forEach(({value, body}) => {
+          this.p.put('case', ' ')
+          this.printExpression(value)
+          this.p.put(':').inc().newline()
+          body.forEach(stmt => this.printStatement(stmt))
+          this.p.dec().newline()
+        })
+        if (statement.default.length) {
+          this.p.put('default:').inc().newline()
+          statement.default.forEach(stmt => this.printStatement(stmt))
+          this.p.dec().newline()
+        }
+        this.p.dec().put('}')
+        break;
       case lw.LWKind.LoopStatement: {
         this.p.put('for', ' ', '(')
         if (statement.init)
@@ -364,15 +413,6 @@ export class TSPrinter {
   }
   printDeclaration(declaration: lw.LWDeclaration) {
     switch (declaration.kind) {
-      case lw.LWKind.UnionDeclaration: {
-        this.p.put('export', ' ', 'type', ' ', declaration.name, ' ', '=', ' ')
-        declaration.variants.forEach((variant, i) => {
-          if (i > 0)
-            this.p.put(' | ')
-          this.printType(variant)
-        })
-        break
-      }
       case lw.LWKind.EnumDeclaration: {
         this.p.put('export', ' ', 'enum', ' ', declaration.name, ' ', '{')
         this.p.inc().newline()

@@ -5,6 +5,7 @@
   "description": "idlize hash of head: acf352e",
   "workspaces": [
     "arkgen",
+    "arkgen/tests-template/arkts",
     "ohosgen/demos/*",
     "ohosgen/tests/*",
     "ohosgen",
@@ -22,6 +23,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "scripts": {
+    "postinstall": "node ./tools/postinstall.mjs",
     "clean": "npm run clean --ws --if-present -s",
     "prepare:sdk": "npm run prepare:sdk -C runner",
     "absolute:sdk": "npm run absolute:sdk -C runner",

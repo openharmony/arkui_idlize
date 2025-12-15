@@ -527,7 +527,7 @@ declare class CommonMethod<T> {
 
     restoreId(value: number): T;
 
-    padding(value: Padding | Dimension): T;
+    padding(value: Padding | Length): T;
 
     background(builder: CustomBuilder, options?: { align?: Alignment }): T;
 

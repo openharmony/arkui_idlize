@@ -33,7 +33,7 @@ export class MakeResult {
 
     private asTerminal(r: ProducerDescription): TerminalProducerDescription {
         if (!isTerminal(r)) {
-            throw new Error(`WOW it is "${getKind(this.result)}"`)
+            throw new Error(`Called asTerminal on a "${getKind(this.result)}"`)
         }
         return r
     }
@@ -41,20 +41,20 @@ export class MakeResult {
     reference() {
         const target = this.asTerminal(this.result).artifact.reference
         if (!target) {
-            throw new Error("ERROR 1")
+            throw new Error("Undefined reference target")
         }
         if (![
             lw.LWKind.ValueType,
             lw.LWKind.FunctionalType,
         ].includes(target.kind)) {
-            throw new Error("ERROR 2")
+            throw new Error("Reference target must be a type")
         }
         return target as lw.LWType
     }
     name() {
         const target = this.asTerminal(this.result).artifact.reference
         if (!target) {
-            throw new Error("ERROR")
+            throw new Error("Undefined name target")
         }
         if (![
             lw.LWKind.VariableExpression,
@@ -66,7 +66,7 @@ export class MakeResult {
             lw.LWKind.AccessorExpression,
             lw.LWKind.ConstructorExpression,
         ].includes(target.kind)) {
-            throw new Error("ERROR 2")
+            throw new Error("Name target must be an expression")
         }
         return target as lw.LWExpression
     }
@@ -258,7 +258,7 @@ export class GeneratorContext {
             if (desc.artifact.implementationGenerator) {
                 this.generatingQueue.push({
                     generator: desc.artifact.implementationGenerator,
-                    history: this.historyContext.push(idl.getFQName(referenceNode))
+                    history: this.historyContext.push(this.nodeName(referenceNode))
                 })
             }
             this.storage.set(key, desc)
@@ -279,6 +279,9 @@ export class GeneratorContext {
             return this.resolveDescription(key, desc.recursive(), referenceNode)
         }
         throw new Error("Unknown kind!")
+    }
+    private nodeName(node: idl.IDLNode): string {
+        return idl.isUnionType(node) ? "(union)" : idl.getFQName(node)
     }
 
     use(query: MakeSelectorQuery): MakeResult {

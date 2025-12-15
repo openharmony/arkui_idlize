@@ -10,6 +10,9 @@
             "#handwritten": [
                 "./handwritten"
             ],
+            "#arktheme": [
+                "./ArkThemeScopeManager"
+            ],
             "@arkoala/arkui": [
                 "./framework"
             ],
@@ -22,9 +25,6 @@
             "@koalaui/compat": [
                 "../../../../../../../../external/compat/src/arkts"
             ],
-            "@koalaui/runtime/annotations": [
-                "../../../../../../../../external/incremental/runtime/annotations"
-            ],
             "global.resource": [
                 "../../../../../generated/modules/global/generated/arkts"
             ],
@@ -34,19 +34,17 @@
             "@koalaui/builderLambda": [
                 "./annotations"
             ],
-
-
-            "arkui.stateManagement.memo.node": [
-                "../../../../../../../../external/incremental/runtime/src/memo/node"
+            "arkui.incremental.annotation": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.annotation"
             ],
-            "arkui.stateManagement.memo.remember": [
-                "../../../../../../../../external/incremental/runtime/src/memo/remember"
+            "arkui.incremental.runtime.memo.node": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.memo.node"
             ],
-            "arkui.stateManagement.runtime": [
-                "../../../../../../../../external/incremental/runtime/annotations"
+            "arkui.incremental.runtime.memo.remember": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.memo.remember"
             ],
-            "arkui.stateManagement": [
-                "../../../../../../../../external/incremental/runtime/src"
+            "arkui.incremental.runtime.tree.IncrementalNode": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.tree.IncrementalNode"
             ]
         }
     },

@@ -11,18 +11,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
-import("${idlize.imports_prefix}/node.gni")
+import("./gn/import/idlize_root.gni")
+import("./gn/import/npm.gni")
+import("./gn/import/node.gni")
 
 if (current_toolchain == host_toolchain) {
-    npm_install("npm_install_all") {
-        deps = [
-            "external:npm_install_all"
-        ]
-        outputs = [
-            "$target_out_dir/npm_install_all"
-        ]
-        project_path = rebase_path(idlize.root_path)
+    if (idlize_ws == "idlize") {
+        npm_install("npm_install_all") {
+            deps = [
+                "external:npm_install_all"
+            ]
+            outputs = [
+                "$target_out_dir/npm_install_all"
+            ]
+            project_path = rebase_path(".")
+        }
+    } else if (idlize_ws == "ohos") {
+        group("npm_install_all") {
+            # npm install is being executed during prebuilds phase
+        }
+    } else {
+        assert(false, "can not process idlize workspace ${idlize_ws}")
     }
 }
 
@@ -38,5 +47,12 @@ group("all") {
         "idlinter:all",
         "interfaces:all",
         "tools:all",
+    ]
+}
+
+# proxy dependency for external_deps in ohos buildsystem
+group("runner_compile") {
+    deps = [
+        "runner:compile"
     ]
 }

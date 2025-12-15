@@ -18,6 +18,7 @@
                 "arkui",
                 "arkui.component",
                 "arkui.stateManagement.decorators",
+                "arkui.ModifierState",
                 "ohos.app.ability",
                 "ohos.arkui",
                 "ohos.base",
@@ -36,7 +37,8 @@
                 "graphics3d.Scene",
 
                 "idlize.stdlib",
-                "idlize.internal"
+                "idlize.internal",
+                "synthetic_types"
             ]
         }
     },

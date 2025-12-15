@@ -32,6 +32,10 @@ struct FooObject {
     }
 };
 
+void Foo_callHolderImpl(OH_NativePointer thisPtr) {
+    std::cout << "Foo_callHolderImpl(thisPtr)" << std::endl;
+}
+
 OH_TEST_BUFFER_FooHandle Foo_constructImpl() {
     std::cout << "Foo_constructImpl()" << std::endl;
     return reinterpret_cast<OH_TEST_BUFFER_FooHandle>(new FooObject());

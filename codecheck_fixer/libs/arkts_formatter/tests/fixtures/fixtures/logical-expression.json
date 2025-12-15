@@ -1,0 +1,37 @@
+{
+  "equivalent": [
+    {
+      "description": "logical AND wrap",
+      "original": "if (user.isAuthenticated && user.hasPermission('write') && user.role === 'admin' && !user.isBanned && user.emailVerified) {",
+      "expected": "if (\n  user.isAuthenticated &&\n  user.hasPermission('write') &&\n  user.role === 'admin' &&\n  !user.isBanned &&\n  user.emailVerified\n) {"
+    },
+    {
+      "description": "logical OR wrap",
+      "original": "const result = fallbackValue1 || fallbackValue2 || fallbackValue3 || fallbackValue4 || defaultValue;",
+      "expected": "const result =\n  fallbackValue1 ||\n  fallbackValue2 ||\n  fallbackValue3 ||\n  fallbackValue4 ||\n  defaultValue;"
+    },
+    {
+      "description": "mixed AND/OR with precedence",
+      "original": "if ((condition1 && condition2) || (condition3 && condition4) || (condition5 && condition6 && condition7)) {",
+      "expected": "if (\n  (condition1 && condition2) ||\n  (condition3 && condition4) ||\n  (condition5 && condition6 && condition7)\n) {"
+    },
+    {
+      "description": "nullish coalescing",
+      "original": "const value = userInput ?? configuration.defaultValue ?? systemDefaults.globalValue ?? hardcodedFallback;",
+      "expected": "const value =\n  userInput ??\n  configuration.defaultValue ??\n  systemDefaults.globalValue ??\n  hardcodedFallback;"
+    },
+    {
+      "description": "ternary with logical parts",
+      "original": "const status = isLoading ? 'loading' : hasError ? 'error' : isSuccess && hasData ? 'success' : 'idle';",
+      "expected": "const status = isLoading\n  ? 'loading'\n  : hasError\n  ? 'error'\n  : isSuccess && hasData\n  ? 'success'\n  : 'idle';"
+    },
+    {
+      "description": "return with long logical",
+      "original": "return user.isActive && user.subscription.isPaid && !user.subscription.isCancelled && user.subscription.expiresAt > Date.now();",
+      "expected": "return (\n  user.isActive &&\n  user.subscription.isPaid &&\n  !user.subscription.isCancelled &&\n  user.subscription.expiresAt > Date.now()\n);"
+    }
+  ],
+  "notEquivalent": []
+}
+
+

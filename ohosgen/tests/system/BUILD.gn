@@ -11,13 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
-import("${idlize.imports_prefix}/node.gni")
-import("${idlize.imports_prefix}/bash.gni")
+import("../../../gn/import/idlize_root.gni")
+import("${idlize_root}/gn/import/npm.gni")
+import("${idlize_root}/gn/import/node.gni")
+import("${idlize_root}/gn/import/bash.gni")
 
 template("system_test") {
     test_case = target_name
-    test_case_uppercase = exec_script("${idlize.scripts_path}/to_upper.py", [ test_case ], "string")
+    test_case_uppercase = invoker.name_uppercase
 
     assert(defined(invoker.target), "`target` argument must be set. Example: `target = \"arkts\"`")
     target = invoker.target
@@ -40,7 +41,7 @@ template("system_test") {
                 rebase_path(idl_path)
             ]
             deps = [
-                "${idlize.root_path}/dtsgen:compile"
+                "${idlize_root}/dtsgen:compile"
             ]
         }
     } else {
@@ -87,7 +88,7 @@ template("system_test") {
             "$gen_path/generated/native/${test_case}ApiImpl_temp.cpp",
         ]
         deps = [
-            "${idlize.root_path}/ohosgen:compile",
+            "${idlize_root}/ohosgen:compile",
             ":$test_case:idl"
         ]
     }
@@ -105,7 +106,7 @@ template("system_test") {
         args = [ test_case ]
         deps = [
             ":$test_case:generate",
-            "${koala_mr.libarkts_path}:libarkts_copy",
+            "${koala_mr.root_path}/libarkts:libarkts",
         ]
     }
 
@@ -215,95 +216,58 @@ template("system_test") {
     }
 }
 
-test_cases = [
-    { name = "huks" },
-    { name = "huks_with_class" },
-    { name = "test_buffer" },
-    { name = "test_fqn"
-      use_ost = true },
-    { name = "test_generic_callback"
-      input_type = "dts" },
-    { name = "test_modules_multilevel"
-      input_type = "dts" },
-    { name = "test_modules_multilevel_property"
-      input_type = "dts" },
-    { name = "test_modules_simple"
-      input_type = "dts"
-      use_ost = true },
-    { name = "test_name_collision" },
-    { name = "test_package" },
-]
+if (idlize_ws == "idlize") {
+    test_cases = [
+        { name = "huks"
+          name_uppercase = "HUKS" },
+        { name = "huks_with_class"
+          name_uppercase = "HUKS_WITH_CLASS" },
+        { name = "test_buffer"
+          name_uppercase = "TEST_BUFFER" },
+        { name = "test_ost"
+          name_uppercase = "TEST_OST"
+          use_ost = true },
+        { name = "test_generic_callback"
+          name_uppercase = "TEST_GENERIC_CALLBACK"
+          input_type = "dts" },
+        { name = "test_modules_multilevel"
+          name_uppercase = "TEST_MODULES_MULTILEVEL"
+          input_type = "dts" },
+        { name = "test_modules_multilevel_property"
+          name_uppercase = "TEST_MODULES_MULTILEVEL_PROPERTY"
+          input_type = "dts" },
+        { name = "test_modules_simple"
+          name_uppercase = "TEST_MODULES_SIMPLE"
+          input_type = "dts" },
+        { name = "test_package"
+          name_uppercase = "TEST_PACKAGE" },
+    ]
 
-foreach(conf, test_cases) {
-    system_test(conf.name) {
-        target = "arkts"
-        input_type = "idl"
-        if (defined(conf.input_type)) {
-            input_type = conf.input_type
-        }
-        use_ost = false
-        if (defined(conf.use_ost)) {
-            use_ost = conf.use_ost
-        }
-    }
-}
-
-group("all") {
-    deps = []
     foreach(conf, test_cases) {
-        deps += [ ":${conf.name}" ]
+        system_test(conf.name) {
+            name_uppercase = conf.name_uppercase
+            target = "arkts"
+            input_type = "idl"
+            if (defined(conf.input_type)) {
+                input_type = conf.input_type
+            }
+            use_ost = false
+            if (defined(conf.use_ost)) {
+                use_ost = conf.use_ost
+            }
+        }
     }
+
+    group("all") {
+        deps = []
+        foreach(conf, test_cases) {
+            deps += [ ":${conf.name}" ]
+        }
+    }
+} else if (idlize_ws == "ohos") {
+    group("all") {
+        # no system tests for ohos: missed incremental and interop dependencies
+    }
+} else {
+    assert(false, "can not process idlize workspace ${idlize_ws}")
 }
-
-# system_test("huks") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# system_test("huks_with_class") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# system_test("test_buffer") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# system_test("test_generic_callback") {
-#     target = "arkts"
-#     input_type = "dts"
-# }
-
-# system_test("test_modules_multilevel") {
-#     target = "arkts"
-#     input_type = "dts"
-# }
-
-# system_test("test_modules_multilevel_property") {
-#     target = "arkts"
-#     input_type = "dts"
-# }
-
-# system_test("test_name_collision") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# system_test("test_package") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# group("all") {
-#     deps = [
-#         ":huks",
-#         ":huks_with_class",
-#         ":test_buffer",
-#         ":test_generic_callback",
-#         ":huks",
-#         ":huks",
-#         ":huks",
-#         ":huks",
-#     ]
-# }
