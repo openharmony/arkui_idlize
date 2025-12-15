@@ -33,6 +33,7 @@ export {
     checkIntEnums,
     checkDuplicateIntEnums,
     checkStringEnums,
+    checkStringEnumOrdinal,
     DataClass, DataInterface,
     testDataClass, testDataInterface,
 } from '../../generated/ts'

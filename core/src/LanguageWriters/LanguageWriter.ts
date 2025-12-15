@@ -22,7 +22,8 @@ import * as fs from "fs"
 import { NativeModuleType, RuntimeType } from "./common"
 import { ArgConvertor } from "./ArgConvertors";
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
-import { withInsideInstanceof } from "./nameConvertor";
+import { convertDeclaration, withInsideInstanceof } from "./nameConvertor";
+import { createDeclarationNameConvertor } from "../peer-generation/idl/IdlNameConvertor";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -254,33 +255,38 @@ export type EnumMember = { name: string, alias?: string, stringId: string | unde
 export class TsEnumEntityStatement implements LanguageStatement {
     constructor(
         private readonly enumEntity: idl.IDLEnum,
-        private readonly options: { isExport: boolean, isDeclare: boolean },
+        private readonly options: { isExport: boolean, isDeclare: boolean }
     ) {}
-    write(writer: LanguageWriter): void {
-        // writer.print(this.enumEntity.comment)
-        writer.print(`${this.options.isExport ? "export " : ""}${this.options.isDeclare ? "declare " : ""}enum ${this.enumEntity.name} {`)
-        writer.pushIndent()
+
+    write(writer: LanguageWriter) {
+        let enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
+        enumName = enumName.split('.').at(-1)!
+        const correctStyleNames: EnumMember[] = []
+        const originalStyleNames: EnumMember[] = []
         this.enumEntity.elements.forEach((member, index) => {
-            // writer.print(member.comment)
-            const initValue = member.initializer
-                ? ` = ${this.maybeQuoted(member.initializer)}` : ``
-            writer.print(`${member.name}${initValue},`)
-
-            let originalName = idl.getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
-            if (originalName) {
-                const initValue = ` = ${member.name}`
-                writer.print(`${originalName}${initValue},`)
-            }
+            const initText = member.initializer ?? index
+            const isTypeString = typeof initText !== "number"
+            const originalName = idl.getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
+            correctStyleNames.push({
+                name: originalName ? member.name : `${member.name}_DUMMY`,
+                alias: undefined,
+                stringId: isTypeString ? initText : undefined,
+                numberId: initText as number
+            })
+            originalStyleNames.push({
+                name: originalName ?? member.name,
+                alias: undefined,
+                stringId: isTypeString ? initText : undefined,
+                numberId: initText as number
+            })
         })
-        writer.popIndent()
-        writer.print(`}`)
-    }
 
-    private maybeQuoted(value: string|number): string {
-        if (typeof value == "string")
-            return `"${value}"`
-        else
-            return `${value}`
+        let members = originalStyleNames
+        if (this.enumEntity.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
+            members = members.concat(correctStyleNames)
+        }
+
+        writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
     }
 }
 

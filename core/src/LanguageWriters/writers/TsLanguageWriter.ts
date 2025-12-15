@@ -494,8 +494,15 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     override i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        if (idl.isEnum(enumEntry) && idl.isStringEnum(enumEntry)) {
-            return this.makeString(`Object.values(${enumName}).indexOf(${value.asString()})`)
+        if (idl.isStringEnum(enumEntry)) {
+            let extractorStatement = this.makeString(`Object.values(${enumName}).indexOf(${value.asString()})`)
+            if (enumEntry.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
+                extractorStatement = this.makeNaryOp('%', [
+                    extractorStatement,
+                    this.makeString(enumEntry.elements.length.toString())
+                ])
+            }
+            return extractorStatement
         }
         return this.makeString(`${value.asString()}.valueOf()`)
     }

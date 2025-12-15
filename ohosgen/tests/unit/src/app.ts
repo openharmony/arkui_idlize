@@ -38,6 +38,7 @@ import {
   checkIntEnums,
   checkDuplicateIntEnums,
   checkStringEnums,
+  checkStringEnumOrdinal,
   testDataClass, testDataInterface, DataClass, DataInterface,
 } from '#compat'
 import { test_ret_A } from '#compat'
@@ -169,6 +170,14 @@ function checkEnum() {
   assertEQ(DuplicateIntEnum.LEGACY_THIRD.valueOf(),
     checkDuplicateIntEnums(DuplicateIntEnum.LEGACY_FIRST, DuplicateIntEnum.LEGACY_SECOND).valueOf())
   assertEQ(StringEnum.E3, checkStringEnums(StringEnum.E1, StringEnum.E2))
+
+  assertEQ(StringEnum.E1, checkStringEnumOrdinal(StringEnum.E1, 0))
+  assertEQ(StringEnum.e1, checkStringEnumOrdinal(StringEnum.e1, 0))
+  assertEQ(StringEnum.E2, checkStringEnumOrdinal(StringEnum.E2, 1))
+  assertEQ(StringEnum.e2, checkStringEnumOrdinal(StringEnum.e2, 1))
+  assertEQ(StringEnum.E_MIDDLE, checkStringEnumOrdinal(StringEnum.E_MIDDLE, 2))
+  assertEQ(StringEnum.E3, checkStringEnumOrdinal(StringEnum.E3, 3))
+  assertEQ(StringEnum.e3, checkStringEnumOrdinal(StringEnum.e3, 3))
 }
 
 function checkClassWithComplexPropertyType() {

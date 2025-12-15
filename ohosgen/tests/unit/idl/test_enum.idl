@@ -21,11 +21,16 @@ dictionary DuplicateIntEnum {
     number LEGACY_THIRD = 2;
 };
 dictionary StringEnum {
+    [OriginalEnumMemberName=e1]
     String E1 = "e11";
+    [OriginalEnumMemberName=e2]
     String E2 = "e22";
+    String E_MIDDLE = "eMiddle";
+    [OriginalEnumMemberName=e3]
     String E3 = "e33";
 };
 OrdinaryEnum checkOrdinaryEnums(OrdinaryEnum value1, OrdinaryEnum value2);
 IntEnum checkIntEnums(IntEnum value1, IntEnum value2);
 DuplicateIntEnum checkDuplicateIntEnums(DuplicateIntEnum value1, DuplicateIntEnum value2);
 StringEnum checkStringEnums(StringEnum value1, StringEnum value2);
+StringEnum checkStringEnumOrdinal(StringEnum value, i32 expectedOrdinal);
