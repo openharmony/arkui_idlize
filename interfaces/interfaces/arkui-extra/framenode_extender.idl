@@ -89,7 +89,7 @@ interface FrameNodeExtender {
   static i32 removeAdoptedChild(FrameNode peer, FrameNode child);
   static boolean isOnRenderTree(FrameNode peer);
   static boolean isOnMainTree(FrameNode peer);
-  static NodePosition convertPosition(FrameNode peer, NodePosition position，FrameNode targetNode);
+  static NodePosition convertPosition(FrameNode peer, NodePosition position, FrameNode targetNode);
   static NodePosition convertPositionToWindow(FrameNode peer, NodePosition positionByLocal);
   static NodePosition convertPositionFromWindow(FrameNode peer, NodePosition positionByWindow);
 };
