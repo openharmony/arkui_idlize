@@ -445,7 +445,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
             printer.print(`inline void WriteToString(std::string* result, const ${name} value) {`)
             printer.pushIndent()
             printer.print(`result->append("${name}(");`)
-            printer.print(`WriteToString(result, (${PrimitiveTypesInstance.Int32.getText()}) value);`)
+            printer.print(`WriteToString(result, static_cast<${PrimitiveTypesInstance.Int32.getText()}>(value));`)
             printer.print(`result->append(")");`)
             printer.popIndent()
             printer.print(`}`)
