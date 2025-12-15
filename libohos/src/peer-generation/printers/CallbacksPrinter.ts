@@ -414,7 +414,7 @@ class DeserializeCallbacksVisitor {
             })
         }
         if (this.writer.language === Language.CPP) {
-            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(${peerGeneratorConfiguration().ApiKind}, static_cast<Callback_Caller_t>(deserializeAndCallCallback)))`)
+            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallback, SetCallbackCaller(${peerGeneratorConfiguration().ApiKind}, static_cast<Callback_Caller_t>(deserializeAndCallCallback)))`)
         }
         if (this.writer.language === Language.TS) {
             this.writer.writeExpressionStatement(this.writer.makeFunctionCall(`register${camelcaseModuleName}ApiHandler`, []))
@@ -446,7 +446,7 @@ class DeserializeCallbacksVisitor {
                 }
                 writer.writeStatement(writer.makeThrowError(`Unknown callback kind`))
             })
-            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallbackSync, setCallbackCallerSync(${peerGeneratorConfiguration().ApiKind}, static_cast<Callback_Caller_Sync_t>(deserializeAndCallCallbackSync)))`)
+            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallbackSync, SetCallbackCallerSync(${peerGeneratorConfiguration().ApiKind}, static_cast<Callback_Caller_Sync_t>(deserializeAndCallCallbackSync)))`)
         }
     }
 
