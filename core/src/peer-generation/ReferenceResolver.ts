@@ -15,6 +15,7 @@
 
 import * as idl from '../idl'
 import { getPov, resolveNamedNode } from '../resolveNamedNode'
+import { consoleWarn } from '../util'
 
 export interface ReferenceResolver {
     resolveTypeReference(type: idl.IDLReferenceType, options?: { terminalImports?: boolean, unresolvedOk?: boolean }): idl.IDLEntry | undefined
@@ -118,7 +119,7 @@ export function createCachedReferenceResolver(files: idl.IDLFile[]): ReferenceRe
             if (idl.isEnum(node) || idl.isCallback(node) || idl.isInterface(node) || idl.isTypedef(node)) {
                 const fqn = idl.getFQName(node)
                 if (cache.has(fqn))
-                    console.warn(`WARNING: multiple entries with FQN=${fqn} found`)
+                    consoleWarn(`WARNING: multiple entries with FQN=${fqn} found`)
                 else
                     cache.set(fqn, node)
             }
@@ -127,7 +128,7 @@ export function createCachedReferenceResolver(files: idl.IDLFile[]): ReferenceRe
     return {
         resolveTypeReference(type, options?: { terminalImports?: boolean, unresolvedOk?: boolean }) {
             if (!options?.unresolvedOk && !cache.has(type.name))
-                console.warn(`WARNING: reference ${idl.DebugUtils.debugPrintType(type)} was not found`)
+                consoleWarn(`WARNING: reference ${idl.DebugUtils.debugPrintType(type)} was not found`)
             return cache.get(type.name)
         },
         toDeclaration(type) {
