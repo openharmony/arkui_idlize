@@ -88,8 +88,8 @@ function m3(sdkPath: string, idlFiles: string[], options: ArkgenOptions) {
         arkgen: options.arkgen,
         target: options.target,
         language: options.language,
-        optionsFile: [options.arkgenOptionsFile, arkuiConfig],
-        idlPath: scrapedIDLs,
+        optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
+        idlPaths: [scrapedIDLs, ...idlFiles],
     })
 
     if (formatArkts({
@@ -124,7 +124,7 @@ function complete(sdkPath: string, options: OhosgenOptions) {
         ohosgen: options.ohosgen,
         target: options.target,
         language: options.language,
-        optionsFile: [resolve(options.ohosgenConfig)],
+        optionsFile: resolve(options.ohosgenConfig),
         idlPath: idlPaths
     })
 }
@@ -156,8 +156,8 @@ function tracker(sdkPathInput: string, idlFiles: string[], options: TrackerOptio
         arkgen: options.arkgen,
         target: 'tracker',
         language: 'arkts',
-        optionsFile: [options.arkgenOptionsFile, arkuiConfig],
-        idlPath: scrapedIDLs,
+        optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
+        idlPaths: [scrapedIDLs, ...idlFiles],
         trackerStatus: options.trackerStatus,
     })
     commands.install({sourceDir: peersPath, installPath: options.output})

@@ -22,8 +22,8 @@ import { writeFileSync } from "node:fs"
 export interface Idl2PeerConfig {
     target: string
     language: string
-    idlPath: string
-    optionsFile?: string[]
+    idlPaths: string[]
+    optionsFiles?: string[]
     trackerStatus?: string
 }
 
@@ -31,7 +31,12 @@ export interface Idl2PeerArkuiConfig extends Idl2PeerConfig {
     arkgen: string
 }
 
-export interface Idl2PeerOhosConfig extends Idl2PeerConfig {
+export interface Idl2PeerOhosConfig {
+    target: string
+    language: string
+    idlPath: string
+    optionsFile?: string
+    trackerStatus?: string
     ohosgen: string
 }
 
@@ -43,11 +48,11 @@ export function idl2peer({
     arkgen,
     target,
     language,
-    idlPath,
-    optionsFile,
+    idlPaths,
+    optionsFiles,
     trackerStatus,
 }: Idl2PeerArkuiConfig): Idl2PeerResult {
-    const idlFiles = scan(idlPath)
+    const idlFiles = idlPaths.flatMap(scan)
 
     let arkgenTarget = ''
     if (target === 'sig') {
@@ -69,9 +74,10 @@ export function idl2peer({
         ['--generator-target', arkgenTarget],
         ['--language', language],
         '--use-memo-m3',
+        '--no-implicit-predefined',
         ['--arkts-extension', '.ets'],
-        optionsFile ? [`--options-file`, optionsFile] : [],
-        optionsFile ? ['--ignore-default-config'] : [],
+        optionsFiles ? [`--options-file`, optionsFiles] : [],
+        optionsFiles ? ['--ignore-default-config'] : [],
         over(trackerStatus, st => ['--tracker-status', st]),
     ]))
     return {
