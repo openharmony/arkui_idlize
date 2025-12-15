@@ -51,7 +51,7 @@ import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
 import { HandwrittenModule } from '../ArkoalaLayout'
 
-export function shiftIfIsNotEmpty(line:string): string {
+export function shiftIfIsNotEmpty(line: string): string {
     if (line.length > 0) {
         return '    ' + line
     }
@@ -101,7 +101,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         }
     ) { }
 
-    private overloadsPrinter(printer:LanguageWriter) {
+    private overloadsPrinter(printer: LanguageWriter) {
         return new OverloadsPrinter(this.library, printer, this.library.language, true, this.library.useMemoM3)
     }
 
@@ -115,7 +115,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         return result
     }
 
-    private printImports(peer: PeerClass, component:IdlComponentDeclaration): ImportsCollector {
+    private printImports(peer: PeerClass, component: IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
@@ -138,7 +138,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
             if (this.library.language === Language.TS) {
                 imports.addFeature("isInstanceOf", "@koalaui/interop")
             }
-            imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
+            imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({ node: component.attributeDeclaration, role: LayoutNodeRole.PEER }))
         }
         if (peer.originalParentFilename) {
             let [parentRef] = component.attributeDeclaration.inheritance
@@ -202,7 +202,12 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                     this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
                 // todo stub until we can process AttributeModifier
                 writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
-                    writer.writeExpressionStatement(writer.makeFunctionCall(`hook${component.name}AttributeModifier`, [writer.makeThis(), writer.makeString(`value`)]))
+                    imports.addFeature(`ModifierStateManager`, `./CommonModifier`)
+                    writer.print('ModifierStateManager.INSTANCE.scope(() => {')
+                    writer.pushIndent()
+                    writer.print(`hook${component.name}AttributeModifier(this, value);`)
+                    writer.popIndent()
+                    writer.print('})')
                     writer.writeStatement(writer.makeReturn(writer.makeThis()))
                 })
 
@@ -333,7 +338,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
         }
     ) { }
 
-    private overloadsPrinter(printer:LanguageWriter) {
+    private overloadsPrinter(printer: LanguageWriter) {
         return new OverloadsPrinter(this.library, printer, this.library.language, true, this.library.useMemoM3)
     }
 
@@ -347,7 +352,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
         return result
     }
 
-    private printImports(peer: PeerClass, component:IdlComponentDeclaration): ImportsCollector {
+    private printImports(peer: PeerClass, component: IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
         return imports
     }
@@ -398,7 +403,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
                     writer.writeMethodCall('super', applyAttributesFinish, [])
                 })
             }, parentComponentClassName, [`${peer.originalClassName!}Interfaces`])
-            return { content: printer, imports}
+            return { content: printer, imports }
         }
         return [{
             generate,
@@ -430,11 +435,11 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
             printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
                 .replaceAll("%COMPONENT_NAME%", component.name)
                 .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
-                .replaceAll("%FUNCTION_PARAMETERS%", shiftIfIsNotEmpty(paramsList ? `,\n${paramsList}`: ""))
+                .replaceAll("%FUNCTION_PARAMETERS%", shiftIfIsNotEmpty(paramsList ? `,\n${paramsList}` : ""))
                 .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
                 .replaceAll("%PEER_CLASS_NAME%", peerClassName)
                 .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
-            return { content: printer, imports: this.printImports(peer, component)}
+            return { content: printer, imports: this.printImports(peer, component) }
         }
         return [{
             generate,
@@ -457,7 +462,7 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
         }
     ) { }
 
-    private overloadsPrinter(printer:LanguageWriter) {
+    private overloadsPrinter(printer: LanguageWriter) {
         return new OverloadsPrinter(this.library, printer, this.library.language, true, this.library.useMemoM3)
     }
 

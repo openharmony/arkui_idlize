@@ -74,9 +74,11 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
         if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has('attributeModifier')) {
-            printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
-                w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
-            })
+            if (idlInterface.name !== 'CommonMethod') {
+                printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
+                    w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
+                })
+            }
         } else {
             printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
         }
