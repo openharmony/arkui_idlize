@@ -1,0 +1,177 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+template("bash_cmd") {
+  assert(defined(invoker.script), "bash_cmd requires 'script' parameter")
+  
+  # Collect arguments for the bash script
+  script_args = []
+  if (defined(invoker.args)) {
+    script_args += invoker.args
+  }
+
+  # Collect environment variables
+  env_vars = []
+  if (defined(invoker.env)) {
+    env_vars += invoker.env
+  }
+  
+  wrapper_script = "${idlize.scripts_path}/bash.py"
+  
+  action(target_name) {
+    script = wrapper_script
+    
+    # Use target name for stamp file if not specified
+    stamp_file = "$target_out_dir/.${target_name}.stamp"
+    if (defined(invoker.stamp_file)) {
+      stamp_file = invoker.stamp_file
+    }
+
+    # Default outputs include stamp file unless overridden
+    if (!defined(invoker.outputs)) {
+      outputs = [ stamp_file ]
+    } else {
+      outputs = invoker.outputs
+    }
+
+    # Maybe must be removed, but actually installing packages often is required
+    deps = [ "${idlize.root_path}:npm_install_all" ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+    
+    # Collect all inputs
+    inputs = []
+    if (defined(invoker.inputs)) {
+      inputs += invoker.inputs
+    }
+    
+    # Always include the script itself as an input
+    inputs += [ invoker.script ]
+    
+    if (defined(invoker.depfile)) {
+      depfile = invoker.depfile
+    }
+    
+    args = [
+      "--bash-script",
+      rebase_path(invoker.script, root_build_dir),
+      "--stamp",
+      rebase_path(stamp_file, root_build_dir),
+    ]
+
+    if (env_vars != []) {
+      args += [ "--env" ]
+      args += env_vars
+    }
+    
+    # Add script-specific arguments
+    if (script_args != []) {
+      args += [ "--" ]
+      args += script_args
+    }
+  }
+}
+
+template("rm") {
+  recursive = false
+  if (defined(invoker.recursive)) {
+    recursive = invoker.recursive
+  }
+
+  force = false
+  if (defined(invoker.force)) {
+    force = invoker.force
+  }
+
+  file = invoker.file
+
+  bash_cmd(target_name) {
+    script = "${idlize.scripts_path}/rm.sh"
+    args = []
+    if (recursive) {
+      args += [ "-r" ]
+    }
+    if (force) {
+      args += [ "-f" ]
+    }
+    args += file
+  }
+}
+
+template("mkdir") {
+  directories = invoker.directories
+
+  parents = true
+  if (defined(invoker.parents)) {
+    parents = invoker.parents
+  }
+
+  bash_cmd(target_name) {
+    script = "${idlize.scripts_path}/mkdir.sh"
+    args = []
+    if (parents) {
+      args += [ "-p" ]
+    }
+    args += directories
+  }
+}
+
+template("cp") {
+  cp_target_name = target_name
+
+  src = invoker.src
+  dest = invoker.dest
+
+  recursive = true
+  if (defined(invoker.recursive)) {
+    recursive = invoker.recursive
+  }
+
+  force = true
+  if (defined(invoker.force)) {
+    force = invoker.force
+  }
+
+  mkdir("$cp_target_name:mkdir") {
+    directories = [ get_path_info(dest, "dir") ]
+  }
+
+  bash_cmd("$cp_target_name:cp") {
+    script = "${idlize.scripts_path}/cp.sh"
+
+    args = []
+    if (recursive) {
+      args += [ "-r" ]
+    }
+    if (force) {
+      args += [ "-f" ]
+    }
+    args += src
+    args += [ dest ]
+
+    deps = [
+      ":$cp_target_name:mkdir",
+    ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+  }
+
+  group(target_name) {
+    deps = [
+      ":$cp_target_name:mkdir",
+      ":$cp_target_name:cp",
+    ]
+  }
+}

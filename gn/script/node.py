@@ -36,15 +36,15 @@ def run_node_script(script_path, stamp_file, script_args=None):
         # Run Node.js script
         result = subprocess.run(cmd, capture_output=True, text=True)
         
+        # Print stdout if any
+        if result.stdout:
+            print(result.stdout)
+        
         if result.returncode != 0:
             print(f"Node script failed with exit code {result.returncode}")
             if result.stderr:
                 print(f"Error: {result.stderr}")
             return False
-        
-        # Print stdout if any
-        if result.stdout:
-            print(result.stdout)
         
         # Create stamp file
         os.makedirs(os.path.dirname(stamp_file), exist_ok=True)

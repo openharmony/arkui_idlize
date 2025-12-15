@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 # Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -11,21 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
+import sys
 
-npm_cmd("compile") {
-    deps = [
-        "${idlize.root_path}/core:compile",
-        "${idlize.root_path}/libohos:compile",
-        "${idlize.root_path}/interfaces:compile",
-    ]
-    project_path = rebase_path(".")
-    run_tasks = [ "compile:self" ]
-}
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: to_upper.py <input_string>")
+        sys.exit(1)
+    
+    input_string = sys.argv[1]
+    output_string = input_string.upper()
+    print(output_string, end="")
 
-group("all") {
-    deps = [
-        "tests/system:all",
-        ":compile",
-    ]
-}
+if __name__ == "__main__":
+    main()
