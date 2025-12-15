@@ -1,0 +1,100 @@
+package arkui.component.common;
+import arkui.component.units.Length as Length;
+import arkui.component.enums.InteractionHand as InteractionHand;
+import arkui.Graphics.DrawContext as _DrawContext;
+import arkui.Graphics.LengthMetrics as LengthMetrics;
+typedef DrawContext = _DrawContext;
+[Entity=Class]
+interface LayoutPolicy {
+    constructor();
+    static readonly attribute LayoutPolicy matchParent;
+};
+interface <T> AttributeModifier {
+    void applyNormalAttribute(T instance);
+    void applyPressedAttribute(T instance);
+    void applyFocusedAttribute(T instance);
+    void applyDisabledAttribute(T instance);
+    void applySelectedAttribute(T instance);
+};
+interface <T> CommonConfiguration {
+    attribute boolean enabled;
+};
+[TypeParametersDefaults="void"]
+callback <T, V> Callback = V (T data);
+[Synthetic]
+callback Callback_ClickEvent_Void = void (ClickEvent event);
+[Component]
+interface CommonMethod {
+    [CommonMethod]
+    attribute (Length or LayoutPolicy or undefined) width;
+    [CommonMethod]
+    attribute (Length or LayoutPolicy or undefined) height;
+    [CommonMethod]
+    attribute (Callback_ClickEvent_Void or undefined) onClick;
+};
+interface BaseEvent {
+    attribute number timestamp;
+    [Optional]
+    attribute number axisHorizontal;
+    [Optional]
+    attribute number axisVertical;
+    attribute number pressure;
+    attribute number tiltX;
+    attribute number tiltY;
+    [Optional]
+    attribute number rollAngle;
+    [Optional]
+    attribute number deviceId;
+    [Optional]
+    attribute number targetDisplayId;
+};
+[Synthetic]
+callback Callback_Void = void ();
+interface ClickEvent: BaseEvent {
+    attribute number displayX;
+    attribute number displayY;
+    attribute number windowX;
+    attribute number windowY;
+    attribute number x;
+    attribute number y;
+    [Optional]
+    attribute InteractionHand hand;
+    attribute Callback_Void preventDefault;
+};
+dictionary FinishCallbackType {
+    number REMOVED = 0;
+    number LOGICALLY = 1;
+};
+interface AnimateParam {
+    [Optional]
+    attribute number duration;
+    [Optional]
+    attribute number tempo;
+    [Optional]
+    attribute number delay;
+    [Optional]
+    attribute number iterations;
+    [Optional]
+    attribute Callback_Void onFinish;
+    [Optional]
+    attribute FinishCallbackType finishCallbackType;
+};
+[Synthetic]
+callback Callback_DrawContext_Void = void (DrawContext drawContext);
+[Entity=Class]
+interface DrawModifier {
+    constructor();
+    [ExtraMethod=drawBehind, Accessor=Getter]
+    attribute Callback_DrawContext_Void drawBehind_callback;
+    [ExtraMethod=drawBehind, Accessor=Setter]
+    attribute Callback_DrawContext_Void drawBehind_callback;
+    [ExtraMethod=drawContent, Accessor=Getter]
+    attribute Callback_DrawContext_Void drawContent_callback;
+    [ExtraMethod=drawContent, Accessor=Setter]
+    attribute Callback_DrawContext_Void drawContent_callback;
+    [ExtraMethod=drawFront, Accessor=Getter]
+    attribute Callback_DrawContext_Void drawFront_callback;
+    [ExtraMethod=drawFront, Accessor=Setter]
+    attribute Callback_DrawContext_Void drawFront_callback;
+    void invalidate();
+};

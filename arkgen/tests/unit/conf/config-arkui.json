@@ -1,0 +1,83 @@
+{
+    "TypePrefix": "Ark_",
+    "LibraryPrefix": "",
+    "OptionalPrefix": "Opt_",
+    "GenerateUnused": false,
+    "ApiKind": 10,
+    "ApiVersion": 9999,
+    "dumpSerialized": false,
+    "cppPrefix": "GENERATED_",
+
+    "moduleName": "arkui",
+    "modules": {
+        "global.resource": {
+            "name": "global.resource",
+            "packages": ["global.resource"]
+        },
+        "arkui": {
+            "name": "arkui",
+            "packages": [
+                "arkui"
+            ]
+        }
+    },
+    "libraryNameMapping": {
+        "global.resource": {
+            "TS": "global.resource",
+            "ArkTS": "global.resource"
+        }
+    },
+    "rootComponents": [
+        "Root",
+        "ComponentRoot",
+        "CommonMethod"
+    ],
+    "ignoreGenerics": [
+    ],
+    "parameterized": [
+    ],
+    "components": {
+        "handWritten": [
+            "AttributeModifier",
+            "AttributeUpdater"
+        ]
+    },
+    "forceMaterialized": [
+        "arkui.component.common.BaseEvent",
+        "arkui.component.common.ClickEvent"
+    ],
+    "forceCallback": {
+       "DrawModifier": [
+            "drawBehind",
+            "drawContent",
+            "drawFront"
+        ]
+    },
+    "hooks": {},
+    "dummy": {
+        "ignoreMethods": {
+            "RenderServiceNode": [
+                "getNodeId"
+            ],
+            "ScreenshotService": [
+                "requestScreenshot"
+            ],
+            "EventEmulator": [
+                "emitClickEvent"
+            ],
+            "DrawModifier": [
+                "invalidate",
+                "setDrawBehind_callback",
+                "setDrawContent_callback",
+                "setDrawFront_callback"
+            ],
+            "StageExtender" : [
+                "SetSrcPage",
+                "PushPage",
+                "PopPageAndSwitchTo",
+                "ResetTransitions",
+                "SetPageTransition"
+            ]
+        }
+    }
+}
