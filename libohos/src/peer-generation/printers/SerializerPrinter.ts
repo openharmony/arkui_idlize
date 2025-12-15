@@ -488,6 +488,10 @@ class ArkTSSerializerDependencyFilter extends DefaultSerializerDependencyFilter 
         }
         return super.shouldAdd(node)
     }
+
+    canHandleParametrized(node: idl.IDLEntry): boolean {
+        return node.name === 'ComponentContent' // make it more general!
+    }
 }
 
 class CppSerializerDependencyFilter extends DefaultSerializerDependencyFilter {
