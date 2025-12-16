@@ -18,7 +18,7 @@ import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
 import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, maybeRestoreGenerics, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { ImportsCollector } from "../ImportsCollector"
-import { Language, LibraryInterface, CallbackConvertor } from  '@idlizer/core'
+import { Language, LibraryInterface } from  '@idlizer/core'
 import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlizer/core";
 import { PrintHint } from "@idlizer/core";
 import { CppSourceFile, SourceFile } from "./SourceFile";
@@ -152,7 +152,6 @@ class DeserializeCallbacksVisitor {
             }
         }
 
-
         if (this.writer.language === Language.KOTLIN) {
             this.imports.addFeatures([
                 "ResourceHolder", "KInt", "KStringPtr",
@@ -212,6 +211,7 @@ class DeserializeCallbacksVisitor {
                 writer.writeStatement(writer.makeAssign(callName, undefined, callReadExpr, true))
                 writer.writeStatement(writer.makeStatement(writer.makeMethodCall(`thisDeserializer`, `readPointer`, [])))
             } else if (writer.language === Language.KOTLIN) {
+                writer.writeExpressionStatement(writer.makeString(`@Suppress("UNCHECKED_CAST")`))
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
                     writer.makeMethodCall(`ResourceHolder`, `get`, [writer.makeString(resourceIdName)]),
                     callback), true))
@@ -408,13 +408,13 @@ class DeserializeCallbacksVisitor {
                 const deserializeFunctionReference = this.writer.language === Language.KOTLIN
                     ? "::deserializeAndCallCallback" : "deserializeAndCallCallback"
                 writer.writeExpressionStatement(writer.makeFunctionCall(`registerApiEventHandler`, [
-                    writer.makeString(peerGeneratorConfiguration().ApiKind.toString()),
+                    writer.makeString('API_KIND'),
                     writer.makeString(deserializeFunctionReference),
                 ]))
             })
         }
         if (this.writer.language === Language.CPP) {
-            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(${peerGeneratorConfiguration().ApiKind}, static_cast<Callback_Caller_t>(deserializeAndCallCallback)))`)
+            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(API_KIND, static_cast<Callback_Caller_t>(deserializeAndCallCallback)))`)
         }
         if (this.writer.language === Language.TS) {
             this.writer.writeExpressionStatement(this.writer.makeFunctionCall(`register${camelcaseModuleName}ApiHandler`, []))
@@ -446,7 +446,7 @@ class DeserializeCallbacksVisitor {
                 }
                 writer.writeStatement(writer.makeThrowError(`Unknown callback kind`))
             })
-            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallbackSync, setCallbackCallerSync(${peerGeneratorConfiguration().ApiKind}, static_cast<Callback_Caller_Sync_t>(deserializeAndCallCallbackSync)))`)
+            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallbackSync, setCallbackCallerSync(API_KIND, static_cast<Callback_Caller_Sync_t>(deserializeAndCallCallbackSync)))`)
         }
     }
 
@@ -518,7 +518,7 @@ class ManagedCallCallbackVisitor {
                 convertor.holdResource(`arg${i}Resource`, 'callbackBuffer.resourceHolder', writer)
                 writer.writeStatement(convertor.convertorSerialize(`args`, argsNames[i], writer))
             }
-            writer.print(`enqueueCallback(${peerGeneratorConfiguration().ApiKind}, &callbackBuffer);`)
+            writer.print(`enqueueCallback(API_KIND, &callbackBuffer);`)
         })
     }
 
@@ -536,7 +536,7 @@ class ManagedCallCallbackVisitor {
         this.writer.writeFunctionImplementation(`CallManaged${callback.name}Sync`, signature, writer => {
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`idlize.internal.SerializerBase`),
                 writer.makeString(`SerializerBase(nullptr)`), true, false))
-            writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(peerGeneratorConfiguration().ApiKind.toString())]))
+            writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString('API_KIND')]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
@@ -603,6 +603,7 @@ export function createDeserializeAndCallPrinter(libraryName: string, language: L
             },
             generate: () => {
                 const content = library.createLanguageWriter(language)
+                content.print(`#define API_KIND ${peerGeneratorConfiguration().ApiKind.toString()}`)
                 const imports = new ImportsCollector()
                 new DeserializeCallbacksVisitor(libraryName, library, content, imports).visit()
                 return { content, imports}
@@ -612,7 +613,8 @@ export function createDeserializeAndCallPrinter(libraryName: string, language: L
 }
 
 export function printManagedCaller(libraryName:string, library: PeerLibrary): SourceFile {
-    const destFile = new CppSourceFile('callback_managed_caller.cc', library) // TODO combine with TargetFile
+    const destFile = new CppSourceFile('callback_managed_caller.cpp', library) // TODO combine with TargetFile
+    destFile.content.print(`#define API_KIND ${peerGeneratorConfiguration().ApiKind.toString()}`)
     const visitor = new ManagedCallCallbackVisitor(libraryName, library, destFile)
     visitor.visit()
     return destFile
