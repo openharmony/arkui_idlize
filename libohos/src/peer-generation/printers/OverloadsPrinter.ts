@@ -21,7 +21,10 @@ import {
     NamedMethodSignature
 } from "../LanguageWriters";
 import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, copyMethod, hasAccessModifier,
-    PeerMethodSignature, maybeRestoreThrows } from "@idlizer/core"
+    PeerMethodSignature, maybeRestoreThrows, 
+    getSuper,
+    isMaterialized,
+    isStaticMaterialized} from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { UndefinedConvertor } from "@idlizer/core"
 import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -307,10 +310,6 @@ export class OverloadsPrinter {
             collapsedMethod.signature.returnType = idl.IDLVoidType
         }
         if (this.printer.language == Language.KOTLIN) {
-            if (this.isComponent) {
-                // component methods must be marked with override
-                collapsedMethod.modifiers = [...collapsedMethod.modifiers ?? [], MethodModifier.OVERRIDE]
-            }
             if (methodReturnsThis) {
                 // this keyword cannot be used as type, so replace it with an actual interface
                 if (!interfaceDeclaration) {
@@ -326,6 +325,31 @@ export class OverloadsPrinter {
                         collapsedMethodToPrint.signature.printHints,
                     )
                 })
+            }
+            else {
+                collapsedMethodToPrint = copyMethod(collapsedMethod, {})
+            }
+            if (this.isComponent) {
+                // component methods must be marked with override
+                collapsedMethodToPrint.modifiers = [...collapsedMethodToPrint.modifiers ?? [], MethodModifier.OVERRIDE]
+            }
+            if (!collapsedMethodToPrint.modifiers?.includes(MethodModifier.PRIVATE)) {
+                if (!collapsedMethodToPrint.modifiers?.includes(MethodModifier.PUBLIC) &&
+                    !collapsedMethodToPrint.modifiers?.includes(MethodModifier.PROTECTED)) {
+                    collapsedMethodToPrint.modifiers!.push(MethodModifier.PUBLIC)
+                }
+                if (interfaceDeclaration) {
+                    if (collapsedMethodToPrint.name === PeerMethodSignature.CALL_HOLDER) {
+                        let ancestor = getSuper(interfaceDeclaration, this.library)
+                        if (ancestor && isMaterialized(ancestor, this.library)) {
+                            collapsedMethodToPrint.modifiers!.push(MethodModifier.OVERRIDE)
+                        } else {
+                            collapsedMethodToPrint.modifiers!.push(MethodModifier.OPEN)
+                        }
+                    } else if (idl.isInterfaceSubkind(interfaceDeclaration) && !isStaticMaterialized(interfaceDeclaration, this.library)) {
+                        collapsedMethodToPrint.modifiers!.push(MethodModifier.OVERRIDE)
+                    }
+                }
             }
         }
         if (allowNamedOverloads(this.language)) {

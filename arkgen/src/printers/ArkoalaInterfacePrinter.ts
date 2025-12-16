@@ -151,7 +151,7 @@ class ArkoalaKotlinDeclarationConvertor extends KotlinDeclarationConvertor {
         const printer = this.peerLibrary.createLanguageWriter()
         const componentInterface = peer.originalClassName!
         const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
-        const superNames = idlInterface.inheritance
+        const superType = getSuper(idlInterface, this.peerLibrary)
         printer.writeInterface(componentInterface, writer => {
             for (const peerMethod of peer.methods) {
                 const peerSig = peerMethod.method.signature as NamedMethodSignature
@@ -162,7 +162,7 @@ class ArkoalaKotlinDeclarationConvertor extends KotlinDeclarationConvertor {
                     peerSig.defaults, peerSig.argsModifiers, peerSig.printHints)
                 writer.writeMethodDeclaration(peerMethod.method.name, componentMethodSignature)
             }
-        }, superNames ? superNames.map(it => nameConvertor.convert(it)) : undefined)
+        }, superType ? [nameConvertor.convert(superType)] : undefined)
         return printer.getOutput()
     }
     convertInterface(node: idl.IDLInterface) {
@@ -191,7 +191,7 @@ function getVisitor(peerLibrary: PeerLibrary, isDeclarations: boolean): Interfac
         return new CJInterfacesVisitor(peerLibrary)
     }
     if (peerLibrary.language == Language.KOTLIN) {
-        return new ArkoalaKotlinInterfacesVisitor(peerLibrary)
+        return new ArkoalaKotlinInterfacesVisitor(peerLibrary, true)
     }
     throw new Error(`Need to implement InterfacesVisitor for ${peerLibrary.language} language`)
 }

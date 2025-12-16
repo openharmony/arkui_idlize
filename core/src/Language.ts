@@ -45,6 +45,7 @@ export class Language {
         switch (lang.name) {
             case "ArkTS": return true
             case "TS": return true
+            case "Kotlin": return true
             case "C++": return true
             default: return false
         }

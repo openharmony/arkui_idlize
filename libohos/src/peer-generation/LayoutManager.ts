@@ -161,32 +161,79 @@ export function installFiles(outDir: string, library: PeerLibrary, files: Map<st
 
 function printWithNamespaces(library: PeerLibrary, results: ExecutedPrinterResult[], options: { isDeclared: boolean }): string[] {
     const resultsContent = library.createLanguageWriter()
-    const resultsContentCache: string[] = []
-    for (const record of results) {
-        wrapNamespaces(record, resultsContentCache, resultsContent, options)
-        resultsContent.concat(record.content)
-    }
-    wrapNamespaces(undefined, resultsContentCache, resultsContent, options)
+    const printer = createNamespacePrinter(resultsContent)
+    printer.print(results, options)
     return resultsContent.getOutput()
 }
 
-function wrapNamespaces(item: ExecutedPrinterResult | undefined, alreadyWrapped: string[], writer: LanguageWriter, options: { isDeclared: boolean }): void {
-    const node = item?.over.node
-    const ns = node ? getNamespacePathFromResult(item) : []
-    let bestMatch = 0
-    while (bestMatch < ns.length && bestMatch < alreadyWrapped.length) {
-        if (ns[bestMatch].name != alreadyWrapped[bestMatch])
-            break
-        bestMatch++
+interface NamespacePrinter {
+    print(results: ExecutedPrinterResult[], options: { isDeclared: boolean }): void
+}
+
+function createNamespacePrinter(writer: LanguageWriter): NamespacePrinter {
+    if (writer.language === Language.KOTLIN) {
+        return new KotlinNamespacePrinter(writer)
     }
-    for (let i = bestMatch, end = alreadyWrapped.length; i < end; i++) {
-        writer.popNamespace({ ident: true })
-        alreadyWrapped.pop()
+    return new DefaultNamespacePrinter(writer)
+}
+
+class DefaultNamespacePrinter implements NamespacePrinter {
+    constructor(protected writer: LanguageWriter) {}
+    protected alreadyWrapped: string[] = []
+    print(results: ExecutedPrinterResult[], options: { isDeclared: boolean }): void {
+        for (const record of results) {
+            this.wrapNamespaces(record, options)
+            this.writer.concat(record.content)
+        }
+        this.wrapNamespaces(undefined, options)
     }
-    for (let i = bestMatch; i < ns.length; i++) {
-        const defaultNamespace = idl.hasExtAttribute(ns[i], idl.IDLExtendedAttributes.DefaultExport)
-        writer.pushNamespace(ns[i].name, { ident: true, isDefault: defaultNamespace, isDeclared: options.isDeclared })
-        alreadyWrapped.push(ns[i].name)
+    protected wrapNamespaces(item: ExecutedPrinterResult | undefined, options: { isDeclared: boolean }): void {
+        const node = item?.over.node
+        const ns = node ? getNamespacePathFromResult(item) : []
+        let bestMatch = 0
+        while (bestMatch < ns.length && bestMatch < this.alreadyWrapped.length) {
+            if (ns[bestMatch].name != this.alreadyWrapped[bestMatch])
+                break
+            bestMatch++
+        }
+        this.onBeforePop(node)
+        for (let i = bestMatch, end = this.alreadyWrapped.length; i < end; i++) {
+            this.writer.popNamespace({ indent: true })
+            this.alreadyWrapped.pop()
+        }
+        for (let i = bestMatch; i < ns.length; i++) {
+            const defaultNamespace = idl.hasExtAttribute(ns[i], idl.IDLExtendedAttributes.DefaultExport)
+            this.writer.pushNamespace(ns[i].name, { indent: true, isDefault: defaultNamespace, isDeclared: options.isDeclared })
+            this.alreadyWrapped.push(ns[i].name)
+        }
+        this.onAfterPush(node, ns)
+    }
+    protected onBeforePop(entry: idl.IDLEntry | undefined): void {}
+    protected onAfterPush(entry: idl.IDLEntry | undefined, ns: idl.IDLNamespace[]): void {}
+}
+
+class KotlinNamespacePrinter extends DefaultNamespacePrinter {
+    private inCompanion = false
+    private readonly companionEntryKinds = [idl.IDLKind.Const, idl.IDLKind.Method]
+    protected onBeforePop(item: idl.IDLEntry | undefined): void {
+        if (!this.inCompanion) {
+            return
+        }
+        if (!item || !this.companionEntryKinds.includes(item.kind)) {
+            this.writer.popIndent()
+            this.writer.print(`}`)
+            this.inCompanion = false
+        }
+    }
+    protected onAfterPush(item: idl.IDLEntry | undefined, ns: idl.IDLNamespace[]): void {
+        if (this.inCompanion) {
+            return
+        }
+        if (item && this.companionEntryKinds.includes(item.kind) && ns.length > 0) {
+            this.writer.print(`companion object {`)
+            this.writer.pushIndent()
+            this.inCompanion = true
+        }
     }
 }
 
@@ -194,10 +241,10 @@ function sortByNamespaces(a: ExecutedPrinterResult, b: ExecutedPrinterResult): n
     return getNamespaceNameFromResult(a).localeCompare(getNamespaceNameFromResult(b))
 }
 
-function getNamespaceNameFromResult(a:ExecutedPrinterResult): string {
+function getNamespaceNameFromResult(a: ExecutedPrinterResult): string {
     return a.ignoreNamespace ? '' : getNamespaceName(a.over.node)
 }
 
-function getNamespacePathFromResult(a:ExecutedPrinterResult): idl.IDLNamespace[] {
+function getNamespacePathFromResult(a: ExecutedPrinterResult): idl.IDLNamespace[] {
     return a.ignoreNamespace ? [] : getNamespacesPathFor(a.over.node)
 }

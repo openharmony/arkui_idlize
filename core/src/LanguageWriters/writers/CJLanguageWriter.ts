@@ -603,7 +603,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return CJKeywords.has(word) ? word.concat("_") : word
     }
     pushNamespace(namespace: string, options: NamespaceOptions) {}
-    popNamespace(options: { ident: boolean }) {}
+    popNamespace(options: { indent: boolean }) {}
     instanceOf(value: string, type: idl.IDLType): LanguageExpression {
         return this.makeString(`${value} is ${this.getNodeName(type)}`)
     }

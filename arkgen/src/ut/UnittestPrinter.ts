@@ -533,13 +533,13 @@ function printModifiersHeaderFile(
     }
     writer.print('')
 
-    writer.pushNamespace('OHOS::Ace::NG', { ident: false })
+    writer.pushNamespace('OHOS::Ace::NG', { indent: false })
     writer.print('using namespace testing;')
     writer.print('using namespace testing::ext;')
     writer.print('using namespace Converter;')
     writer.print('using namespace TypeHelper;')
 
-    writer.pushNamespace(standalone ? `TestConst::${clazz}` : '', { ident: true })
+    writer.pushNamespace(standalone ? `TestConst::${clazz}` : '', { indent: true })
     for (let attr of state.parents) {
         if (!attr.nameConst) continue
         // Skip parents which coincide with attributes
@@ -550,12 +550,12 @@ function printModifiersHeaderFile(
         writer.print(`const auto ${attr.nameConst} = "${attr.name}";`)
         writer.print(`const auto ${attr.defaultConst} = "${attr.defaultValue ?? '!NOT-DEFINED!'}";`)
     }
-    writer.popNamespace({ ident: true })
+    writer.popNamespace({ indent: true })
     writer.print('')
     writer.concat(state.prolog)
 
     if (standalone) {
-        writer.popNamespace({ ident: false })
+        writer.popNamespace({ indent: false })
         writer.print('')
         writer.print(`#endif // ${headerGuard}`)
         writer.print('')
@@ -568,11 +568,11 @@ function printModifiersImplFile(writer: CppLanguageWriter, clazz: string, string
         writer.print('')
         writer.writeInclude(header)
         writer.print('')
-        writer.pushNamespace('OHOS::Ace::NG', { ident: false })
+        writer.pushNamespace('OHOS::Ace::NG', { indent: false })
         writer.print(`using namespace TestConst::${clazz};`)
     }
     strings.forEach(s => writer.print(s))
-    writer.popNamespace({ ident: false })
+    writer.popNamespace({ indent: false })
     writer.print('')
 }
 
@@ -683,8 +683,8 @@ function printTestFixtures(
     moduleFile.writeInclude(`modifiers_test_utils.h`)
     moduleFile.print('')
 
-    moduleFile.pushNamespace('OHOS::Ace::NG::Fixtures', { ident: false })
-    headerFile.pushNamespace('OHOS::Ace::NG::Fixtures', { ident: false })
+    moduleFile.pushNamespace('OHOS::Ace::NG::Fixtures', { indent: false })
+    headerFile.pushNamespace('OHOS::Ace::NG::Fixtures', { indent: false })
     moduleFile.print('Converter::ConvContext fixCtx;')
 
     headerFile.print(`enum ResID {`)
@@ -710,8 +710,8 @@ function printTestFixtures(
     headerFile.concat(header)
     moduleFile.concat(module)
 
-    moduleFile.popNamespace({ ident: false })
-    headerFile.popNamespace({ ident: false })
+    moduleFile.popNamespace({ indent: false })
+    headerFile.popNamespace({ indent: false })
 
     headerFile.print(`#endif // ${headerGuard}`)
     headerFile.print('')
@@ -743,8 +743,8 @@ function printTestFixtures(
     moduleEnums.writeInclude(`test_fixtures_enums.h`)
     moduleEnums.print('')
 
-    moduleEnums.pushNamespace('OHOS::Ace::NG::Fixtures', { ident: false })
-    headerEnums.pushNamespace('OHOS::Ace::NG::Fixtures', { ident: false })
+    moduleEnums.pushNamespace('OHOS::Ace::NG::Fixtures', { indent: false })
+    headerEnums.pushNamespace('OHOS::Ace::NG::Fixtures', { indent: false })
 
     let keys = Array.from(enums.keys()).sort()
     for (let key of keys) {
@@ -784,8 +784,8 @@ function printTestFixtures(
         moduleEnums.print('')
     }
 
-    moduleEnums.popNamespace({ ident: false })
-    headerEnums.popNamespace({ ident: false })
+    moduleEnums.popNamespace({ indent: false })
+    headerEnums.popNamespace({ indent: false })
 
     headerEnums.print(`#endif // ${headerGuard}`)
     headerEnums.print('')

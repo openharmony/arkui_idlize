@@ -16,13 +16,12 @@
 import * as idl from '../../idl'
 import { isMaterialized } from '../../peer-generation/isMaterialized'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
-import { removePoints } from '../../util'
 import { InteropArgConvertor, InteropReturnTypeConvertor } from './InteropConvertors'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
 import { Language } from '../../Language'
 import { LibraryInterface } from '../../LibraryInterface'
-import { maybeRestoreThrows } from '../../transformers/transformUtils'
+import { maybeRestoreGenerics, maybeRestoreThrows } from '../../transformers/transformUtils'
 import { LanguageWriter } from '../LanguageWriter'
 
 const KBoolean = "KBoolean"
@@ -58,22 +57,22 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
         return node.name
     }
     convertInterface(node: idl.IDLInterface): string {
-        return this.mangleTopLevel(node) ?? removePoints(idl.getQualifiedName(node, 'namespace.name'))
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, 'namespace.name')
     }
     convertEnum(node: idl.IDLEnum): string {
-        return this.mangleTopLevel(node) ?? removePoints(idl.getQualifiedName(node, 'namespace.name'))
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, 'namespace.name')
     }
     convertTypedef(node: idl.IDLTypedef): string {
         if (idl.isSyntheticEntry(node)) {
             return this.convert(node.type)
         }
-        return this.mangleTopLevel(node) ?? removePoints(idl.getQualifiedName(node, 'namespace.name'))
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, 'namespace.name')
     }
     convertCallback(node: idl.IDLCallback): string {
         if (idl.isSyntheticEntry(node)) {
             return this.mapCallback(node)
         }
-        return this.mangleTopLevel(node) ?? removePoints(idl.getQualifiedName(node, 'namespace.name'))
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, 'namespace.name')
     }
     convertMethod(node: idl.IDLMethod): string {
         return node.name
@@ -89,12 +88,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
     }
     convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
-            switch (type.elementType[0]) {
-                case idl.IDLU8Type: return "UByteArray"
-                case idl.IDLI32Type: return "IntArray"
-                case idl.IDLF32Type: return "FloatArray"
-            }
-            return `ArrayList<${convertType(this, type.elementType[0])}>`
+            return `Array<${convertType(this, type.elementType[0])}>`
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
             const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it))
@@ -112,7 +106,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
         throw new Error("Not implemented")
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        const decl = this.library.resolveTypeReference(type)
+        let decl = this.library.resolveTypeReference(type)
         if (decl) {
             if (idl.isSyntheticEntry(decl)) {
                 if (idl.isCallback(decl)) {
@@ -122,6 +116,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
                     return this.convert(decl.type)
                 }
             }
+
             let restoredThrow: idl.IDLType | undefined
             if (restoredThrow = maybeRestoreThrows(decl, this.library)) {
                 if (LanguageWriter.isManagedThrowsTypeUnwrapped)
@@ -129,7 +124,28 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
                 if (restoredThrow === idl.IDLThisType)
                     return this.convert(idl.createReferenceType(idl.IDLThrowsTypeName, [idl.IDLVoidType]))
             }
-            return this.mangleTopLevel(decl) ?? removePoints(idl.getQualifiedName(decl, 'namespace.name'))
+
+            let maybeRestoredGeneric = maybeRestoreGenerics(type, this.library)
+            if (maybeRestoredGeneric) {
+                type = maybeRestoredGeneric
+                decl = this.library.resolveTypeReference(maybeRestoredGeneric)
+            }
+            let typeSpec = type.name
+            let typeArgs = type.typeArguments?.map(it => this.convert(it))
+            if (typeSpec === `Optional`) {
+                return `${typeArgs}?`
+            }
+            // if (typeSpec === `Function`) {
+            //     return this.mapFunctionType(typeArgs)
+            // }
+
+            const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(", ")}>`
+            if (decl) {
+                const path = idl.getNamespacesPathFor(decl).map(it => it.name)
+                path.push(decl.name)
+                return `${this.mangleTopLevel(decl) ?? path.join(".")}${maybeTypeArguments}`
+            }
+            return `${type.name}${maybeTypeArguments}`
         }
         return this.convert(idl.IDLCustomObjectType)
     }
@@ -164,7 +180,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
             case idl.IDLNumberType: return 'Double'
 
             case idl.IDLBigintType:
-                return 'BigInteger' // relies on import java.math.BigInteger
+                return 'Long'
 
             case idl.IDLStringType:
                 return 'String'
@@ -195,8 +211,11 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
     }
 
     private mapCallback(decl: idl.IDLCallback): string {
-        const params = decl.parameters.map(it =>
-            `${it.name}: ${this.convert(it.type!)}${it.isOptional ? "?" : ""}`)
+        const params = decl.parameters.map(it => {
+            // HACK: callbacks can have ThrowsWrapper<T> in argument but not in return type. Maybe there is more beautiful solution?
+            const paramType = LanguageWriter.managedThrowsTypeUnwrapped(false, () => this.convert(it.type!))
+            return `${it.name}: ${paramType}${it.isOptional ? "?" : ""}`
+        })
         return `((${params.join(", ")}) -> ${this.convert(decl.returnType)})`
     }
 }

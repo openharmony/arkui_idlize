@@ -161,7 +161,7 @@ export class TSLanguageWriter extends LanguageWriter {
             this.print(`export default ${namespace}`)
         }
         this.print(`export ${declaredPrefix}namespace ${namespace} {`)
-        if (options.ident) this.pushIndent()
+        if (options.indent) this.pushIndent()
     }
 
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {

@@ -47,6 +47,7 @@ check ohos unit tests:
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
     - npm run check:ts
     - npm run check:arkts
+    - npm run check:kt
     - cd $CI_PROJECT_DIR/ohosgen/tests/dummy
     - npm run check:ts
     - npm run check:arkts

@@ -280,13 +280,13 @@ void impl_ApplyModifierFinish(Ark_NativePointer nodePtr)
 }
 KOALA_INTEROP_DIRECT_V1(ApplyModifierFinish, Ark_NativePointer)
 
-void impl_MarkDirty(Ark_NativePointer nodePtr, KUInt dirtyFlag)
+void impl_MarkDirty(Ark_NativePointer nodePtr, KInt dirtyFlag)
 {
     Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
     Ark_UInt32 dirtyFlagCast = (Ark_UInt32) dirtyFlag;
     GetArkUIBasicNodeAPI()->markDirty(nodePtrCast, dirtyFlagCast);
 }
-KOALA_INTEROP_V2(MarkDirty, Ark_NativePointer, KUInt)
+KOALA_INTEROP_V2(MarkDirty, Ark_NativePointer, KInt)
 
 KBoolean impl_IsBuilderNode(Ark_NativePointer nodePtr)
 {

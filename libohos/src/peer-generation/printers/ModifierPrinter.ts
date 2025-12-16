@@ -382,17 +382,17 @@ export class ModifierVisitor {
         this.getterDeclarations.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUI${name}Modifier* Get${name}Modifier();`)
     }
 
-    pushNamespace(namespaceName: string, ident: boolean = true) {
+    pushNamespace(namespaceName: string, indent: boolean = true) {
         this.real.print(`namespace ${namespaceName} {`)
         this.dummy.print(`namespace ${namespaceName} {`)
-        if (ident) {
+        if (indent) {
             this.real.pushIndent()
             this.dummy.pushIndent()
         }
     }
 
-    popNamespace(namespaceName: string, ident: boolean = true) {
-        if (ident) {
+    popNamespace(namespaceName: string, indent: boolean = true) {
+        if (indent) {
             this.real.popIndent()
             this.dummy.popIndent()
         }

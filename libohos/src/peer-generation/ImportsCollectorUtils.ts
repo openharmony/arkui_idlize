@@ -90,6 +90,9 @@ export function collectDeclItself(
             }
         }
     }
+    else if (library.language === Language.KOTLIN) {
+        node = maybeRestoreGenerics(node, library) ?? node
+    }
     if (emitter instanceof ImportsCollector) {
         if (idl.isSyntheticEntry(node) && library.language === Language.ARKTS && library.name !== 'arkoala' // or if target is not arkoala
             ) {

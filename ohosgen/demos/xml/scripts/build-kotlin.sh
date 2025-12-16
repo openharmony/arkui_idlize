@@ -12,8 +12,7 @@ cinterop -def ./generated/native/cinterop.def \
     -o $out_dir/idlize_cinterop
 
 konanc ./generated/kotlin/*.kt \
-    ./src/kotlin/*.kt \
-    ./src/kotlin/handwritten/*.kt \
+    ./src/kotlin/**/*.kt \
     -l $out_dir/idlize_cinterop.klib \
     -l $external_dir/interop/build/kotlin-interop/interop.klib \
     -l $external_dir/interop/build/kotlin-interop/cinterop.interop_native_module.klib \

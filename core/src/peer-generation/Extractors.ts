@@ -34,7 +34,7 @@ export function getExtractor(target: IDLInterface, lang: Language, toPtr: boolea
         ? `extractors`
         : toPtr
             ? undefined // TBD: update to MaterializedBase when import is updated
-            : (lang == Language.CJ || lang == Language.KOTLIN)
+            : (lang == Language.CJ)
                 ? getInternalClassName(target.name)
                 : getInternalClassQualifiedName(target, "namespace.name", lang)
 

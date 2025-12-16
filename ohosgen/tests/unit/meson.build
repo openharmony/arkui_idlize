@@ -6,6 +6,7 @@ project('NativeBridge', 'c', 'cpp',
 is_node = get_option('target_vm') == 'node'
 is_panda = get_option('target_vm') == 'panda'
 is_cj = get_option('target_vm') == 'cangjie'
+is_kt = get_option('target_vm') == 'kotlin'
 
 external_interop_build_dir = meson.current_source_dir() / '../../../external/interop/build'
 external_interop_dir = '../../../external/interop/src/cpp'
@@ -107,6 +108,17 @@ elif is_cj
     sources += [
         external_interop_dir / 'cangjie/convertors-cj.cpp',
         external_interop_dir / 'types/signatures.cpp',
+    ]
+elif is_kt
+    library_name = 'UNITNativeModule'
+    platform_build_dir = 'build/kotlin'
+
+    cflags += ['-DKOALA_LANG_KT', '-DINTEROP_LIBRARY_NAME=' + library_name]
+    include_dirs += [
+        external_interop_dir / 'kotlin',
+    ]
+    sources += [
+        external_interop_dir / 'kotlin/convertors-kotlin.cpp',
     ]
 endif
 

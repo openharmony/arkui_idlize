@@ -419,7 +419,7 @@ function printModifiersImplFile(library: PeerLibrary, filePath: string, state: M
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.generated, { ident: false })
+        writer.pushNamespace(options.namespaces.generated, { indent: false })
     }
 
     writer.concat(state.real)
@@ -427,7 +427,7 @@ function printModifiersImplFile(library: PeerLibrary, filePath: string, state: M
     writer.concat(state.accessors)
 
     if (options.namespaces) {
-        writer.popNamespace({ ident: false })
+        writer.popNamespace({ indent: false })
     }
 
     writer.print("")
@@ -446,24 +446,24 @@ function printModifiersCommonImplFile(library: PeerLibrary, filePath: string, co
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.base, { ident: false })
+        writer.pushNamespace(options.namespaces.base, { indent: false })
     }
     writer.concat(appendModifiersCommonPrologue(library))
 
     if (options.namespaces) {
-        writer.popNamespace({ ident: false })
+        writer.popNamespace({ indent: false })
     }
 
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.generated, { ident: false })
+        writer.pushNamespace(options.namespaces.generated, { indent: false })
     }
 
     writer.concat(completeModifiersContent(library, content, options.basicVersion, options.fullVersion, options.extendedVersion))
 
     if (options.namespaces) {
-        writer.popNamespace({ ident: false })
+        writer.popNamespace({ indent: false })
     }
 
     writer.print("")
@@ -539,10 +539,10 @@ function makeConverterHeader(path: string, namespace: string, library: PeerLibra
     }
     converter.print("")
 
-    converter.pushNamespace(namespace, { ident: false })
+    converter.pushNamespace(namespace, { indent: false })
     converter.print("")
     writeConvertors(library, converter)
-    converter.popNamespace({ ident: false })
+    converter.popNamespace({ indent: false })
     converter.print(`\n#endif // ${includeGuardDefine}`)
     converter.print("")
     return converter
