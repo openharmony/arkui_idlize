@@ -17,7 +17,8 @@ export function init() {
 }
 
 export function encodeText(text:string): ArrayBuffer {
-    return Buffer.from(text).buffer;
+    const buffer = Buffer.from(text, 'ascii')
+    return buffer.buffer.slice(buffer.byteOffset)
 }
 
 export function runEventLoop() {
