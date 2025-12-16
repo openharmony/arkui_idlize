@@ -1176,7 +1176,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
                     callback.resource.hold(callback.resource.resourceId);
                     auto onProgress = [callback, routeType](double progress) {
                         if (callback.call) {
-                            Ark_Number ark_progress = { .tag = INTEROP_TAG_FLOAT32, .f32 = (InteropFloat32)progress };
+                            Ark_Number ark_progress = { .tag = INTEROP_TAG_FLOAT32, .f32 = static_cast<InteropFloat32>(progress) };
                             callback.call(callback.resource.resourceId, routeType, ark_progress);
                         }
                     };
