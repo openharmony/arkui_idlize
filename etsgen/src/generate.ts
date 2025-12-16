@@ -1431,13 +1431,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Object': return idl.createPrimitiveType('Object')
                 case 'object': return idl.createPrimitiveType('Object')
                 case 'ArrayBuffer': return idl.createPrimitiveType('buffer')
-                case 'Uint8Array': return idl.createPrimitiveType('buffer')
-                case 'Uint8ClampedArray': return idl.createPrimitiveType('buffer')
                 case 'Boolean': return idl.createPrimitiveType('boolean')
-                case 'Int32Array': return idl.createContainerType('sequence', [idl.createPrimitiveType('i32')])
                 case 'IterableIterator': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
-                case 'ReadonlyArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
-                case 'FixedArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'number': return idl.createPrimitiveType('number')
                 case 'Required':
                 case 'Readonly': return typeArgs![0]
