@@ -141,5 +141,9 @@
                 "replaceImplementation": true
             }
         }
-    }
+    },
+    "forceMaterialized": [
+        "arkui.component.tabContent.TabBarSymbol",
+        "arkui.component.common.ScrollResult"
+    ]
 }

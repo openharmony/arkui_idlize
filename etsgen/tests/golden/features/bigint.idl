@@ -4,7 +4,6 @@ interface InterfaceWithBigInt {
 };
 [Entity=Class]
 interface ClassWithBigInt {
-    constructor();
     attribute BigInt prop;
     BigInt method(BigInt value);
 };

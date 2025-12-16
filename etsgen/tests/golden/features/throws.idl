@@ -7,7 +7,6 @@ interface ThrowableInterface {
 };
 [Entity=Class]
 interface ThrowableClass {
-    constructor();
     [Throws]
     void boo();
     [Throws]

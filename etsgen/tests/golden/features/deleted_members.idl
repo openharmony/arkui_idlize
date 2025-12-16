@@ -3,5 +3,4 @@ interface InterfaceWithExtraMethod {
 };
 [Entity=Class]
 interface ClassWithExtraMethod {
-    constructor();
 };
