@@ -201,6 +201,17 @@ export class KotlinDependenciesCollector extends DependenciesCollector {
         super(library)
         this.typeNameConvertor = library.createTypeNameConvertor(Language.KOTLIN)
     }
+    convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
+        type = maybeRestoreGenerics(type, this.library) ?? type
+        const resolved = this.library.resolveTypeReference(type)
+        if (resolved && (idl.isInterface(resolved) || idl.isCallback(resolved)) && idl.isSyntheticEntry(resolved)) {
+            // type literal
+            const result = this.convert(resolved)
+            result.push(resolved)
+            return result
+        }
+        return super.convertTypeReference(type)
+    }
     convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
         const result = super.convertUnion(type)
         const unionEntry = this.synthesizeUnionEntry(type)

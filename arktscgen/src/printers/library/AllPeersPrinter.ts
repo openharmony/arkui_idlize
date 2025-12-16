@@ -68,10 +68,10 @@ export class AllPeersPrinter extends MultiFilePrinter {
                 .filter(isInterface)
                 .forEach(iface => importer.addSeen(iface.name)) // Do not import classes from this namespace
 
-            writer.pushNamespace(ns.name, { ident: false })
+            writer.pushNamespace(ns.name, { indent: false })
             this.sortInterfaces(members)
                 .forEach(m => printer.printInterface(m, writer))
-            writer.popNamespace({ ident: false })
+            writer.popNamespace({ indent: false })
         })]
     }
 
@@ -79,11 +79,11 @@ export class AllPeersPrinter extends MultiFilePrinter {
         if (isImplInterface(iface.name)) {
             const ns = 'compiler'
             return this.printFile('public', [ns], (printer: PeerPrinter, writer: TSLanguageWriter) => {
-                writer.pushNamespace(ns, { ident: false })
+                writer.pushNamespace(ns, { indent: false })
                 iface.methods
                     .filter(this.isAllowedMethod.bind(this, iface))
                     .forEach(m => printer.printFunction(iface, m, writer))
-                writer.popNamespace({ ident: false })
+                writer.popNamespace({ indent: false })
             })
         }
 

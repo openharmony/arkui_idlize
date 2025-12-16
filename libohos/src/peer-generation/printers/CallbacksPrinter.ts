@@ -157,7 +157,7 @@ class DeserializeCallbacksVisitor {
                 "ResourceHolder", "KInt", "KStringPtr",
                 "DeserializerBase", "SerializerBase", "CallbackResource",
                 "InteropNativeModule", "KPointer", "KNativePointer", "RuntimeType",
-                "KSerializerBuffer", "NativeBuffer",
+                "KSerializerBuffer", "NativeBuffer", "ThrowsWrapper",
             ], "koalaui.interop")
             for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
                 collectDeclItself(this.library, callback, this.imports)
@@ -167,11 +167,13 @@ class DeserializeCallbacksVisitor {
     }
 
     private generateMeaninglessCallArguments(callback: idl.IDLCallback): string[] {
-        if (this.library.language === Language.ARKTS) {
+        const language = this.library.language
+        if ([Language.ARKTS, Language.KOTLIN].includes(language)) {
             const originalReference = maybeRestoreGenerics(callback, this.library)
             if (originalReference) {
                 const original = this.library.resolveTypeReference(originalReference) as idl.IDLCallback
-                return original.parameters.slice(callback.parameters.length).map(it => 'undefined')
+                const emptyParameter = language === Language.KOTLIN ? "Unit" : "undefined"
+                return original.parameters.slice(callback.parameters.length).map(it => emptyParameter)
             }
         }
         return []
@@ -211,10 +213,11 @@ class DeserializeCallbacksVisitor {
                 writer.writeStatement(writer.makeAssign(callName, undefined, callReadExpr, true))
                 writer.writeStatement(writer.makeStatement(writer.makeMethodCall(`thisDeserializer`, `readPointer`, [])))
             } else if (writer.language === Language.KOTLIN) {
+                writer.addFeature(callback)
                 writer.writeExpressionStatement(writer.makeString(`@Suppress("UNCHECKED_CAST")`))
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
                     writer.makeMethodCall(`ResourceHolder`, `get`, [writer.makeString(resourceIdName)]),
-                    callback), true))
+                    idl.createReferenceType(callback)), true))
             } else {
                 writer.addFeature(callback)
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
@@ -264,12 +267,22 @@ class DeserializeCallbacksVisitor {
                         LanguageWriter.managedThrowsTypeUnwrapped(false, () => {
                             let noExceptionExpression: LanguageExpression | undefined
                             let exceptionExpression: LanguageExpression | undefined
+                            let errorType: string
                             if (writer.language === Language.TS || writer.language === Language.ARKTS) {
                                 if (idl.isVoidType(restoredThrow))
                                     noExceptionExpression = writer.makeString(`{ hasException: false }`)
                                 else
                                     noExceptionExpression = writer.makeString(`{ hasException: false, value: ${callResultRef} }`)
                                 exceptionExpression = writer.makeString(`{ hasException: true, exception: error }`)
+                                errorType = "Error"
+                            } else if (writer.language === Language.KOTLIN) {
+                                if (idl.isVoidType(restoredThrow))
+                                    noExceptionExpression = writer.makeString(`ThrowsWrapper(false)`)
+                                else
+                                    noExceptionExpression = writer.makeString(`ThrowsWrapper(false, ${callResultRef})`)
+                                exceptionExpression = writer.makeString(`ThrowsWrapper(true, null, error)`)
+                                errorType = "Exception"
+
                             } else {
                                 throw new Error("Not supported language")
                             }
@@ -281,6 +294,8 @@ class DeserializeCallbacksVisitor {
                                     writer.makeStatement(writer.makeFunctionCall(`continuationResult`, [noExceptionExpression]))
                                 ], true, false),
                                 writer.makeStatement(writer.makeFunctionCall(`continuationResult`, [exceptionExpression])),
+                                undefined,
+                                { catchName: `error: ${errorType}` },
                             ))
                         })
                     } else {

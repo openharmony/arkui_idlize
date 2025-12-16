@@ -561,7 +561,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             statements.push(assigneer(resultExpression))
         } else if (writer.language == Language.KOTLIN) {
             const resultExpression = this.decl.subkind === idl.IDLInterfaceSubkind.Tuple ?
-                writer.makeString(`${writer.getNodeName(this.idlType)}(${this.decl.properties.map(prop => `${bufferName}_${prop.name}`).join(', ')})`) :
+                writer.makeString(`${writer.getNodeName(this.idlType)}(${this.decl.properties.map(prop => `${bufferName}${capitalize(prop.name)}`).join(', ')})`) :
                 writer.makeString(`object: ${writer.getNodeName(this.idlType)} { ${this.decl.properties.map(prop => `override var ${prop.name} = ${bufferName}_${prop.name}`).join("; ")} }`)
             statements.push(assigneer(resultExpression))
         } else {
@@ -1051,7 +1051,7 @@ export class UnionConvertor extends BaseArgConvertor {
     isIndexedDiscriminator(writer: LanguageWriter) {
         // Indexed discriminator is only used in CPP
         // All other languages check the first array element type for arrays discrimination
-        if (writer.language == Language.CPP) return true
+        if ([Language.CPP, Language.KOTLIN].includes(writer.language)) return true
         return false
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
@@ -1733,7 +1733,7 @@ function withGenericDiscriminator(
     writer: LanguageWriter,
 ): LanguageExpression {
 
-    if (writer.language == Language.CPP) return discriminator
+    if ([Language.CPP, Language.KOTLIN].includes(writer.language)) return discriminator
     if (!idl.isReferenceType(type)) return discriminator
 
     const mayBeGeneric = maybeRestoreGenerics(type, writer.resolver)

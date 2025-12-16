@@ -36,7 +36,7 @@ export function printDataClasses(library: PeerLibrary): PrinterResult[] {
                 const collector = new ImportsCollector()
 
                 collectDeclDependencies(library, entry, collector)
-                collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
+                addCommonImports(collector, library.language)
 
                 let superType: IDLReferenceType | undefined
                 let interfaces: IDLReferenceType[] | undefined
@@ -62,6 +62,15 @@ export function printDataClasses(library: PeerLibrary): PrinterResult[] {
             }]
         })
     })
+}
+
+function addCommonImports(collector: ImportsCollector, language: Language): void {
+    if (language === Language.KOTLIN) {
+        collector.addFeatures(['NativeBuffer'], 'koalaui.interop')
+    }
+    else {
+        collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
+    }
 }
 
 function printInterfaceBody(library: PeerLibrary, entry: IDLInterface, printer: LanguageWriter): void {

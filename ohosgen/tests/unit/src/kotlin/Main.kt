@@ -1,6 +1,6 @@
-import xmldemo.init
-import xmldemo.pullEvents
-import xmldemo.run
+import ohosgen_unit.init
+import ohosgen_unit.pullEvents
+import ohosgen_unit.run
 
 fun main() {
     init()

@@ -293,13 +293,16 @@ export type EnumMember = { name: string, alias?: string, stringId: string | unde
 // maybe rename or move of fix
 export class TsEnumEntityStatement implements LanguageStatement {
     constructor(
-        private readonly enumEntity: idl.IDLEnum,
-        private readonly options: { isExport: boolean, isDeclare: boolean }
+        protected readonly enumEntity: idl.IDLEnum,
+        protected readonly options: { isExport: boolean, isDeclare: boolean }
     ) {}
-
     write(writer: LanguageWriter) {
         let enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
         enumName = enumName.split('.').at(-1)!
+        const members = this.getMembers()
+        writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
+    }
+    protected getMembers(): EnumMember[] {
         const correctStyleNames: EnumMember[] = []
         const originalStyleNames: EnumMember[] = []
         this.enumEntity.elements.forEach((member, index) => {
@@ -310,13 +313,13 @@ export class TsEnumEntityStatement implements LanguageStatement {
                 name: originalName ? member.name : `${member.name}_DUMMY`,
                 alias: undefined,
                 stringId: isTypeString ? initText : undefined,
-                numberId: initText as number
+                numberId: isTypeString ? index : (initText as number)
             })
             originalStyleNames.push({
                 name: originalName ?? member.name,
                 alias: undefined,
                 stringId: isTypeString ? initText : undefined,
-                numberId: initText as number
+                numberId: isTypeString ? index : (initText as number)
             })
         })
 
@@ -324,8 +327,7 @@ export class TsEnumEntityStatement implements LanguageStatement {
         if (this.enumEntity.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
             members = members.concat(correctStyleNames)
         }
-
-        writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
+        return members
     }
 }
 
@@ -530,7 +532,7 @@ export interface PrinterLike {
 }
 
 export interface NamespaceOptions {
-    ident: boolean,
+    indent: boolean,
     isDeclared?: boolean,
     isDefault?: boolean
 }
@@ -902,15 +904,15 @@ export abstract class LanguageWriter {
      */
     pushNamespace(namespace: string, options: NamespaceOptions) { // TODO: namespace-related-to-rework
         this.print(`namespace ${namespace} {`)
-        if (options.ident) this.pushIndent()
+        if (options.indent) this.pushIndent()
     }
 
     /**
      * Writes closing brace of namespace block and removes one level of indent
      */
-    popNamespace(options: { ident: boolean }) { // TODO: namespace-related-to-rework
+    popNamespace(options: { indent: boolean }) { // TODO: namespace-related-to-rework
         this.namespaceStack.pop()
-        if (options.ident) this.popIndent()
+        if (options.indent) this.popIndent()
         this.print(`}`)
     }
 

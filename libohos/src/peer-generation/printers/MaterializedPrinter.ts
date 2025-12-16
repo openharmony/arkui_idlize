@@ -17,7 +17,7 @@ import * as idl from '@idlizer/core/idl'
 import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier,
     getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression,
     DelegationCall, getInternalClassName, LanguageWriter, LayoutNodeRole, MaterializedClass, MaterializedField,
-    qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics,
+    qualifiedName, PeerMethodSignature, maybeRestoreGenerics,
     PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary, 
     copyMethod} from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
@@ -758,6 +758,10 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 })
             }
         })
+        if (peerGeneratorConfiguration().handwrittenDeserializers.find(
+            name => name == idl.getFQName(decl))) {
+            this.collector.addFeature("extractors", this.library.layout.handwrittenPackage())
+        }
         // specific runtime dependencies
         collectDeclItself(this.library, idl.createReferenceType(`${PACKAGE_IDLIZE_INTERNAL}.${NativeModule.Generated.name}`), this.collector)
     }
@@ -779,6 +783,15 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
             "MaterializedBaseTag",
             "NativeBuffer",
         ], "koalaui.interop")
+
+        const hookMethods = peerGeneratorConfiguration().hooks.get(this.clazz.className)
+        const handwrittenPackage = this.library.layout.handwrittenPackage()
+        if (hookMethods) {
+            for (const [methodName, hook] of hookMethods.entries()) {
+                const hookName = hook ? hook.hookName : `hook${this.clazz.className}${capitalize(methodName)}`
+                this.collector.addFeature(hookName, handwrittenPackage)
+            }
+        }
     }
 
     convertToPropertyType(field: MaterializedField): IDLType {
@@ -786,41 +799,16 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override mangle(className: string): string {
-        if (this.namespacePrefix.length === 0) {
-            return className
-        }
-        return removePoints(this.namespacePrefix.concat('_').concat(className))
+        return className
     }
 
     override get namespacePrefix(): string {
         return idl.getNamespaceName(this.clazz.decl)
     }
 
-    override printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
-        for (const method of clazz.methods.filter(filter)) {
-            let methodCopy = copyMethod(method.method, {})
-            if (!methodCopy.modifiers?.includes(MethodModifier.PRIVATE)) {
-                if (!methodCopy.modifiers?.includes(MethodModifier.PUBLIC) &&
-                    !methodCopy.modifiers?.includes(MethodModifier.PROTECTED)) {
-                    methodCopy.modifiers!.push(MethodModifier.PUBLIC)
-                }
-                if (method.sig.name === PeerMethodSignature.CALL_HOLDER) {
-                    let ancestor = getSuper(clazz.decl, this.library)
-                    if (ancestor && isMaterialized(ancestor, this.library)) {
-                        methodCopy.modifiers!.push(MethodModifier.OVERRIDE)
-                    } else {
-                        methodCopy.modifiers!.push(MethodModifier.OPEN)
-                    }
-                } else if (clazz.isInterface) {
-                    methodCopy.modifiers!.push(MethodModifier.OVERRIDE)
-                }
-            }
-            if (methodCopy.signature.returnType === idl.IDLThisType) {
-                methodCopy.signature.returnType = idl.createReferenceType(clazz.decl)
-            }
-            this.printer.writeMethodImplementation(methodCopy, (writer) => {
-                this.overloadsPrinter.printPeerCallAndReturn(this.getImplementationName(clazz), methodCopy, method)
-            })
+    printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
+        for (const grouped of groupOverloads(clazz.methods.filter(filter), this.library.language)) {
+            this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), grouped, clazz.decl)
         }
     }
 

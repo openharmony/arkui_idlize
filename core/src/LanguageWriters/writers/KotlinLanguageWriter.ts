@@ -21,6 +21,7 @@ import {
     BlockStatement,
     DelegationCall,
     DelegationType,
+    EnumMember,
     ExpressionStatement,
     FieldModifier,
     LambdaExpression,
@@ -36,13 +37,13 @@ import {
     NamespaceOptions,
     ObjectArgs,
     ReturnStatement,
+    TsEnumEntityStatement,
 } from "../LanguageWriter"
 import { ArgConvertor } from "../ArgConvertors"
 import { IdlNameConvertor } from "../nameConvertor"
 import { RuntimeType } from "../common";
 import { isDefined } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
-import { removePoints } from '../../util';
 
 export class KotlinLambdaReturnStatement implements LanguageStatement {
     constructor(public expression?: LanguageExpression) { }
@@ -50,100 +51,96 @@ export class KotlinLambdaReturnStatement implements LanguageStatement {
         if (this.expression) writer.print(`${this.expression.asString()}`)
     }
 }
-export class KotlinEnumEntityStatement implements LanguageStatement {
-    constructor(
-        private readonly enumEntity: idl.IDLEnum,
-        private readonly options: { isExport: boolean, isDeclare: boolean },
-    ) {}
-    write(writer: LanguageWriter): void {
-        let mangledName = removePoints(idl.getQualifiedName(this.enumEntity, 'namespace.name'))
-        writer.print(`${this.options.isExport ? "public " : ""}enum class ${mangledName}(val value: Int) {`)
-        writer.pushIndent()
-        this.enumEntity.elements.forEach((member, index) => {
-            const initValue = member.initializer != undefined
-                ? `(${this.maybeQuoted(member.initializer)})` : ``
-            writer.print(`${member.name}${initValue},`)
 
-            let originalName = idl.getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
-            if (originalName) {
-                const initValue = `(${member.name}.value)`
-                writer.print(`${originalName}${initValue},`)
-            }
-        })
-        writer.popIndent()
-        writer.print(`}`)
+export class KotlinEnumWithGetter extends TsEnumEntityStatement implements LanguageStatement {
+    constructor(enumEntity: idl.IDLEnum) {
+        super(enumEntity, { isExport: false, isDeclare: false })
     }
 
-    private maybeQuoted(value: string|number): string {
-        if (typeof value == "string")
-            return `"${value}"`
-        else
-            return `${value}`
-    }
-}
-export class KotlinEnumWithGetter implements LanguageStatement {
-    constructor(private readonly enumEntity: idl.IDLEnum, private readonly isExport: boolean) {}
+    static readonly value = "value"
+    static readonly values = "values"
+    static readonly ordinal = "ordinal"
 
-    write(writer: LanguageWriter) {
-        const initializers = this.enumEntity.elements.map(it => {
-            return {name: it.name, id: it.initializer}
-        })
-
-        const isStringEnum = initializers.every(it => typeof it.id == 'string')
-
-        let memberValue = 0
-        const members: {
-            name: string,
-            stringId: string | undefined,
-            numberId: number,
-        }[] = []
-        for (const initializer of initializers) {
-            if (typeof initializer.id == 'string') {
-                members.push({name: initializer.name, stringId: initializer.id, numberId: memberValue})
-            }
-            else if (typeof initializer.id == 'number') {
-                memberValue = initializer.id
-                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
-            }
-            else {
-                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
-            }
-            memberValue += 1
+    override write(writer: LanguageWriter) {
+        const members = this.getMembers()
+        const realCount = this.enumEntity.elements.length
+        if (members.length !== realCount && members.length !== realCount * 2) {
+            throw new Error(`Unexpected member count for enum ${this.enumEntity.name}`)
         }
 
-        let mangledName = removePoints(idl.getQualifiedName(this.enumEntity, 'namespace.name'))
-        writer.writeClass(mangledName, () => {
-            const enumType = idl.createReferenceType(this.enumEntity)
+        const isStringEnum = this.enumEntity.elements.some(it => typeof it.initializer == "string")
+
+        writer.writeClass(this.enumEntity.name, () => {
             writer.writeStaticEntitiesBlock(() => {
-                members.forEach(it => {
-                    writer.writeFieldDeclaration(it.name, enumType,
-                        [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.READONLY], false,
-                        writer.makeString(`${mangledName}(${it.stringId ? `\"${it.stringId}\"` : it.numberId})`)
-                    )
-                })
+                const mapping = new Map<number, string>()
+                this.writeEnumMembers(writer, members, isStringEnum, mapping)
+                this.writeValuesMap(writer, mapping)
             })
-
-            const value = 'value'
-            writer.writeFieldDeclaration(value, idl.IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.READONLY], true)
-
-            const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type])
-            writer.writeConstructorImplementation('constructor', signature, () => {
-                writer.writeStatement(
-                    writer.makeAssign(`this.${value}`, undefined, writer.makeString(signature.argName(0)), false)
-                )
-            })
-            if (isStringEnum) {
-                const stringValue = 'stringValue'
-                writer.writeFieldDeclaration(stringValue, idl.IDLStringType, [FieldModifier.PUBLIC, FieldModifier.READONLY], true)
-    
-                const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLStringType])
-                writer.writeConstructorImplementation('constructor', signature, () => {
-                    writer.writeStatement(
-                        writer.makeAssign(`this.${stringValue}`, undefined, writer.makeString(signature.argName(0)), false)
-                    )
-                })
-            }
+            this.writeFields(writer, isStringEnum)
+            this.writeConstructor(writer, isStringEnum)
         })
+    }
+    protected writeEnumMembers(writer: LanguageWriter, members: EnumMember[],
+        isStringEnum: boolean, mapping: Map<number, string>
+    ): void {
+        const enumType = idl.createReferenceType(this.enumEntity)
+        const modifiers = [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.READONLY, FieldModifier.FINAL]
+        for (let i = 0; i < members.length; i++) {
+            const it = members[i]
+            let initializer: string
+            if (mapping.has(it.numberId)) {
+                initializer = mapping.get(it.numberId)!
+            }
+            else {
+                initializer = isStringEnum ?
+                    `${this.enumEntity.name}(${it.numberId}, "${it.stringId}")` :
+                    `${this.enumEntity.name}(${it.numberId})`
+                mapping.set(it.numberId, it.name)
+            }
+            writer.writeFieldDeclaration(it.name, enumType, modifiers, false, writer.makeString(initializer))
+        }
+    }
+    protected writeValuesMap(writer: LanguageWriter, mapping: Map<number, string>): void {
+        const enumType = idl.createReferenceType(this.enumEntity)
+        const mappingStr: string[] = Array.from(mapping).map(it => `${it[0]} to ${it[1]}`)
+        const mapType = idl.createContainerType("record", [idl.IDLI32Type, enumType])
+        const modifiers = [FieldModifier.PUBLIC, FieldModifier.READONLY, FieldModifier.FINAL]
+        const initExpr = writer.makeString(`mutableMapOf(${mappingStr.join(", ")})`)
+        writer.writeFieldDeclaration(KotlinEnumWithGetter.values, mapType, modifiers, false, initExpr)
+    }
+    protected writeConstructor(writer: LanguageWriter, isStringEnum: boolean): void {
+        const modifiers = [MethodModifier.PRIVATE]
+        if (isStringEnum) {
+            const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type, idl.IDLStringType])
+            writer.writeConstructorImplementation("constructor", signature, () => {
+                const initExpr = [0, 1].map(i => writer.makeString(signature.argName(i)))
+                writer.writeStatement(
+                    writer.makeAssign(KotlinEnumWithGetter.ordinal, undefined, initExpr[0], false)
+                )
+                writer.writeStatement(
+                    writer.makeAssign(KotlinEnumWithGetter.value, undefined, initExpr[1], false)
+                )
+            }, undefined, modifiers)
+        }
+        else {
+            const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type])
+            writer.writeConstructorImplementation("constructor", signature, () => {
+                const initExpr = writer.makeString(signature.argName(0))
+                writer.writeStatement(
+                    writer.makeAssign(`this.${KotlinEnumWithGetter.value}`, undefined, initExpr, false)
+                )
+            }, undefined, modifiers)
+        }
+    }
+    protected writeFields(writer: LanguageWriter, isStringEnum: boolean): void {
+        const modifiers = [FieldModifier.PUBLIC, FieldModifier.READONLY, FieldModifier.FINAL]
+        if (isStringEnum) {
+            writer.writeFieldDeclaration(KotlinEnumWithGetter.ordinal, idl.IDLI32Type, modifiers, true)
+            writer.writeFieldDeclaration(KotlinEnumWithGetter.value, idl.IDLStringType, modifiers, true)
+        }
+        else {
+            writer.writeFieldDeclaration(KotlinEnumWithGetter.value, idl.IDLI32Type, modifiers, true)
+        }
     }
 }
 
@@ -165,17 +162,10 @@ export class KotlinThrowErrorStatement implements LanguageStatement {
     }
 }
 
-class KotlinArrayResizeStatement implements LanguageStatement {
-    constructor(private array: string, private arrayType: string, private length: string, private deserializer: string) {}
-    write(writer: LanguageWriter) {
-        writer.print(`${this.array} = ${this.arrayType}(${this.length})`)
-    }
-}
-
 export class KotlinLoopStatement implements LanguageStatement {
     constructor(private counter: string, private limit: string, private statement: LanguageStatement | undefined) {}
     write(writer: LanguageWriter): void {
-        writer.print(`for (${this.counter} in 0..${this.limit}) {`)
+        writer.print(`for (${this.counter} in 0..<${this.limit}) {`)
         if (this.statement) {
             writer.pushIndent()
             this.statement.write(writer)
@@ -287,16 +277,18 @@ export class KotlinLanguageWriter extends LanguageWriter {
         let inheritancePart = [extendsClause, implementsClause]
             .filter(isDefined)
             .join(', ')
+        let genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
         inheritancePart = inheritancePart.length != 0 ? ': '.concat(inheritancePart) : ''
-        this.printer.print(`public open class ${name}${inheritancePart} {`)
+        this.printer.print(`public open class ${name}${genericsClause}${inheritancePart} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
     }
     writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void {
+        const genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
         const inheritance = superInterfaces ? (superInterfaces.length > 0 ? `: ${superInterfaces.join(', ')}` : '') : ''
-        this.printer.print(`public interface ${name}${inheritance} {`)
+        this.printer.print(`public interface ${name}${genericsClause}${inheritance} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -334,16 +326,38 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const normalizedArgs = signature.args.map((it, i) =>
             idl.isOptionalType(it) && signature.isArgOptional(i) ? idl.maybeUnwrapOptionalType(it) : it
         )
+        const parametersPart = normalizedArgs.map((it, index) => {
+            const isOptional = signature.isArgOptional(index)
+            let defaultValue: string
+            if (modifiers && modifiers?.includes(MethodModifier.OVERRIDE)) {
+                defaultValue = ""
+            }
+            else {
+                if (signature.argDefault(index)) {
+                    defaultValue = signature.argDefault(index)!
+                }
+                else {
+                    defaultValue = isOptional ? "null" : ""
+                }
+            }
+            return `${signature.argName(index)}: ${this.getNodeName(it)}${isOptional ? "?" : ""}${defaultValue ? " = " + defaultValue : ""}`
+        }).join(", ")
         if (signature.returnType === idl.IDLThisType) {
             throw new Error(`Return type 'this' must be substituted when generating for Kotlin`)
         }
         const returnTypePart = needReturn ? ": " + this.getNodeName(signature.returnType) : ""
-        this.printer.print(`${prefix}fun ${name}${typeParams}(${normalizedArgs.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}${signature.isArgOptional(index) ? "?" : ``}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${returnTypePart}${needBracket ? " {" : ""}`)
+        this.printer.print(`${prefix}fun ${typeParams}${name}(${parametersPart})${returnTypePart}${needBracket ? " {" : ""}`)
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         let prefix = this.makeFieldModifiersList(modifiers?.filter(m => m != FieldModifier.READONLY && m != FieldModifier.STATIC))
-        this.printer.print(`${prefix ? prefix.concat(" ") : ""}${modifiers?.includes(FieldModifier.READONLY) ? 'val' : 'var'} ${name}: ${this.getNodeName(idl.maybeOptional(type, optional))}${init}`)
+        prefix = prefix ? prefix.concat(" ") : ""
+        let open = ""
+        if (!modifiers?.includes(FieldModifier.PRIVATE) && !modifiers?.includes(FieldModifier.FINAL)) {
+            open = "open "
+        }
+        const valOrVar = modifiers?.includes(FieldModifier.READONLY) ? "val" : "var"
+        this.printer.print(`${prefix}${open}${valOrVar} ${name}: ${this.getNodeName(idl.maybeOptional(type, optional))}${init}`)
     }
     writeNativeMethodDeclaration(method: Method): void {
         let name = method.name
@@ -407,14 +421,16 @@ export class KotlinLanguageWriter extends LanguageWriter {
             case "KSerializerBuffer": expr = `${varName}.toCPointer<CPointed>()!!`; break
             case "KByte":
             case "KShort":
-            case "KUShort":
             case "KInt":
-            case "KUInt":
             case "KLong":
-            case "KULong":
             case "KFloat":
             case "KDouble":
             case "KStringPtr": expr = varName; break
+            case "KUShort":
+            case "KUInt":
+            case "KULong": {
+                expr = `${varName}.to${realInteropType.substring(2)}()`; break
+            }
             case "Boolean": {
                 // small trick to hide all casts Boolean <=> KBoolean in a NativeModule
                 expr = `${varName}.toByte()`; break
@@ -430,14 +446,16 @@ export class KotlinLanguageWriter extends LanguageWriter {
             case "KNativePointer": expr = `${varName}.toLong()`; break
             case "KByte":
             case "KShort":
-            case "KUShort":
             case "KInt":
-            case "KUInt":
             case "KLong":
-            case "KULong":
             case "KFloat":
             case "KDouble": expr = varName; break
             case "KStringPtr": expr = `${varName}?.toKString() ?: ""`; break
+            case "KUShort":
+            case "KUInt":
+            case "KULong": {
+                expr = `${varName}.toU${realInteropType.substring(2)}()`; break
+            }
             case "Boolean": {
                 // small trick to hide all casts Boolean <=> KBoolean in a NativeModule
                 expr = `${varName} != 0.toByte()`; break
@@ -580,20 +598,22 @@ export class KotlinLanguageWriter extends LanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.component${index + 1}()`)
     }
-    makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression {
-        return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>(${size ?? ''})`)
+    makeArrayInit(type: idl.IDLContainerType, size?: number): LanguageExpression {
+        const elementType = this.getNodeName(type.elementType[0])
+        return this.makeString(`@Suppress("UNCHECKED_CAST") run { arrayOfNulls<${elementType}>(${size ?? '0'}) as Array<${elementType}> }`)
     }
     makeArrayLength(array: string, length?: string): LanguageExpression {
         return this.makeString(`${array}.size`)
-    }
-    makeArrayResize(array: string, arrayType: string, length: string, deserializer: string): LanguageStatement {
-        return new KotlinArrayResizeStatement(array, arrayType, length, deserializer)
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
         throw new Error("Not implemented")
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
-        return this.makeString(`${this.getNodeName(type)}()`)
+        if (!idl.isContainerType(type)) {
+            throw new Error(`Map initialization cannot be done with a type that is not container: ${this.getNodeName(type)}`)
+        }
+        const types = type.elementType.map(it => this.getNodeName(it))
+        return this.makeString(`mutableMapOf<${types[0]}, ${types[1]}>()`)
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         return this.makeStatement(this.makeMethodCall(keyAccessor, "put", [this.makeString(key), this.makeString(value)]))
@@ -642,13 +662,14 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.OVERRIDE]
     }
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        return this.makeString(`${this.getNodeName(enumEntry)}(${value.asString()})`)
+        return this.makeString(`${this.getNodeName(enumEntry)}.${KotlinEnumWithGetter.values}[${value.asString()}]!!`)
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        return this.makeString(`${value.asString()}.value!!`)
+        const fieldName = idl.isStringEnum(enumEntry) ? KotlinEnumWithGetter.ordinal : KotlinEnumWithGetter.value
+        return this.makeString(`${value.asString()}.${fieldName}!!`)
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
-        return new KotlinEnumWithGetter(enumEntity, options.isExport)
+        return new KotlinEnumWithGetter(enumEntity)
     }
     castToBoolean(value: string): string {
         return value
@@ -671,9 +692,20 @@ export class KotlinLanguageWriter extends LanguageWriter {
     escapeKeyword(keyword: string): string {
         return keyword
     }
+    makeCastCustomObject(customName: string, isGenericType: boolean): LanguageExpression {
+        return this.makeCast(this.makeString(customName), idl.IDLAnyType)
+    }
     writeStaticEntitiesBlock(op: (writer: LanguageWriter) => void) {
         this.writePrefixedBlock("companion object", op)
     }
-    pushNamespace(namespace: string, options: NamespaceOptions) {}
-    popNamespace(options: { ident: boolean }) {}
+    pushNamespace(namespace: string, options: NamespaceOptions) {
+        this.print(`class ${namespace} {`)
+        if (options.indent) this.pushIndent()
+        this.namespaceStack.push(namespace)
+    }
+    popNamespace(options: { indent: boolean }) {
+        this.namespaceStack.pop()
+        if (options.indent) this.popIndent()
+        this.print(`}`)
+    }
 }

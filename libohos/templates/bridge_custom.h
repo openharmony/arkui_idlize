@@ -30,7 +30,7 @@ KOALA_INTEROP_DIRECT_3(InsertChildAfter, KInt, KNativePointer, KNativePointer, K
 KOALA_INTEROP_DIRECT_3(InsertChildBefore, KInt, KNativePointer, KNativePointer, KNativePointer)
 KOALA_INTEROP_DIRECT_3(InsertChildAt, KInt, KNativePointer, KNativePointer, KInt)
 KOALA_INTEROP_DIRECT_V1(ApplyModifierFinish, KNativePointer)
-KOALA_INTEROP_V2(MarkDirty, KNativePointer, KUInt)
+KOALA_INTEROP_V2(MarkDirty, KNativePointer, KInt)
 KOALA_INTEROP_DIRECT_1(IsBuilderNode, KBoolean, KNativePointer)
 KOALA_INTEROP_DIRECT_3(ConvertLengthMetricsUnit, KFloat, KFloat, KInt, KInt)
 KOALA_INTEROP_CTX_V2(SetCustomCallback, KNativePointer, KInt)

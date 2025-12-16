@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package handwritten.extractors
+package handwritten
 
 import koalaui.arkoala.SampleTransformSrcI
 import koalaui.arkoala.SampleTransformDstI
@@ -21,13 +21,18 @@ import koalaui.arkoala.SampleTransformDstI
 import koalaui.arkoala.TransformSrcCallbackI
 import koalaui.arkoala.TransformDstCallbackI
 
-class SampleTransformDstIImpl(public override var length: Double) : SampleTransformDstI {
-}
+class extractors { companion object {
+    fun transform_Ark_SampleTransformSrcI_to_Ark_SampleTransformDstI(src: SampleTransformSrcI): SampleTransformDstI {
+        val result: SampleTransformDstI = object: SampleTransformDstI { override var length = src.text.length.toDouble() }
+        return result
+    }
 
-fun transform_Ark_SampleTransformSrcI_to_Ark_SampleTransformDstI(value: SampleTransformSrcI): SampleTransformDstI {
-    return SampleTransformDstIImpl(value.text.length.toDouble())
-}
-
-fun transform_Ark_TransformSrcCallbackI_to_TransformDstCallbackI(src: TransformSrcCallbackI): TransformDstCallbackI {
-    return { value: Boolean ->  !value }
-}
+    fun transform_Ark_TransformSrcCallbackI_to_TransformDstCallbackI(src: TransformSrcCallbackI): TransformDstCallbackI {
+        if (src.flag) {
+            return { value: Boolean -> !value }
+        }
+        else {
+            return { value: Boolean -> value }
+        }
+    }
+} }

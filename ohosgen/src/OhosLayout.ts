@@ -26,6 +26,7 @@ export function HandwrittenModule(language: Language): string {
     switch (language) {
         case Language.TS: return "./handwritten"
         case Language.ARKTS: return "./handwritten"
+        case Language.KOTLIN: return "handwritten"
         default: throw new Error("Not implemented")
     }
 }
@@ -151,7 +152,7 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
         }
         if (isInCurrentModule(node)) {
             return currentModule().useFoldersLayout
-                ? idl.getPackageClause(node).join("/") || 'synthetic'
+                ? idl.getPackageClause(node).join(".") || getSyntheticTypesFileName()
                 : idl.getPackageName(node)
         }
 
@@ -190,8 +191,13 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
     }
 
     private isSyntheticType(node: idl.IDLEntry): boolean {
-        // Unions are synthesized typed in Kotlin
-        if (idl.isTypedef(node) && idl.isUnionType(node.type)) return true
+        if (idl.isTypedef(node) && idl.isUnionType(node.type)) {
+            return true
+        }
+        if (idl.isSyntheticEntry(node) && idl.isInterface(node) && node.subkind === idl.IDLInterfaceSubkind.Tuple) {
+            return true
+        }
+
         return false
     }
 }

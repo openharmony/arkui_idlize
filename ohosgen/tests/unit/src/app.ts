@@ -114,7 +114,7 @@ function checkConstant() {
   if (CONST_BOOLEAN_FALSE != false)
     throw new Error(`CONST_BOOLEAN_FALSE is not false!`)
   if (CONST_BOOLEAN_TRUE != true)
-    throw new Error(`CONST_BOOLEAN_FALSE is not true!`)
+    throw new Error(`CONST_BOOLEAN_TRUE is not true!`)
 
   // 2. Check idl const values
   assertEQ(312, CONST_NUMBER_INT)

@@ -66,6 +66,7 @@
                 "test_multiple_instances",
                 "test_transform",
                 "test_union",
+                "synthetic_types",
 
                 "idlize.stdlib",
                 "idlize.internal"

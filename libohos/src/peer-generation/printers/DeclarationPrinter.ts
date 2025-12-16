@@ -106,9 +106,9 @@ export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter)
                 seenNames.add(decl.name)
                 enums.push(decl)
                 const ns = idl.getNamespacesPathFor(decl)
-                ns.forEach(n => writer.pushNamespace(n.name, { ident: true }))
+                ns.forEach(n => writer.pushNamespace(n.name, { indent: true }))
                 writer.writeStatement(writer.makeEnumEntity(decl, { isExport: true }))
-                ns.forEach(() => writer.popNamespace({ ident: true }))
+                ns.forEach(() => writer.popNamespace({ indent: true }))
             }
         }
     printEnumsGlobalAssign(sorted(enums, "name"), writer)

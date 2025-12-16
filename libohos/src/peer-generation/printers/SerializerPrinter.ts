@@ -226,7 +226,8 @@ class SerializerPrinter {
 
                     writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`${writer.getNodeName(valueType)}(${ownProperties.concat(parentProperties).map(it => it.name.concat('TmpResult')).join(', ')})`), true, false))
                 } else if (writer.language == Language.KOTLIN) {
-                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`object: ${writer.getNodeName(valueType)} { ${properties.map(it => `override var ${it.name} = ${it.name}TmpResult`).join('; ') }}`), true, false))
+                    const type = `${writer.getNodeName(valueType)}${idl.isClassSubkind(target) ? "()" : ""}`
+                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`object: ${type} { ${properties.map(it => `override var ${it.name} = ${it.name}TmpResult`).join('; ') }}`), true, false))
                 }
                 else {
                     writer.writeStatement(writer.makeAssign("value", valueType, writer.makeCast(writer.makeString(`{${propsAssignees.join(', ')}}`), type), true, false))
