@@ -603,7 +603,9 @@ export function createDeserializeAndCallPrinter(libraryName: string, language: L
             },
             generate: () => {
                 const content = library.createLanguageWriter(language)
-                content.print(`#define API_KIND ${peerGeneratorConfiguration().ApiKind.toString()}`)
+                if (language === Language.CPP) {
+                    content.print(`#define API_KIND ${peerGeneratorConfiguration().ApiKind.toString()}`)
+                }
                 const imports = new ImportsCollector()
                 new DeserializeCallbacksVisitor(libraryName, library, content, imports).visit()
                 return { content, imports}
@@ -614,7 +616,9 @@ export function createDeserializeAndCallPrinter(libraryName: string, language: L
 
 export function printManagedCaller(libraryName:string, library: PeerLibrary): SourceFile {
     const destFile = new CppSourceFile('callback_managed_caller.cpp', library) // TODO combine with TargetFile
-    destFile.content.print(`#define API_KIND ${peerGeneratorConfiguration().ApiKind.toString()}`)
+    if (destFile.language === Language.CPP) {
+        destFile.content.print(`#define API_KIND ${peerGeneratorConfiguration().ApiKind.toString()}`)
+    }
     const visitor = new ManagedCallCallbackVisitor(libraryName, library, destFile)
     visitor.visit()
     return destFile
