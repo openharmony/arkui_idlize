@@ -66,3 +66,16 @@ export function getSuper(declaration:idl.IDLInterface, resolver: ReferenceResolv
 export function getSuperType(declaration:idl.IDLInterface, resolver: ReferenceResolver): idl.IDLReferenceType | undefined {
     return getSuperTuple(declaration, resolver)?.[1]
 }
+
+export function isMethodOverridden(decl: idl.IDLInterface, methodName: string, resolver: ReferenceResolver): boolean {
+    let ancestor = getSuper(decl, resolver)
+    if (ancestor) {
+        for (const ancestorMethod of ancestor.methods) {
+            if (methodName == ancestorMethod.name) {
+                return true
+            }
+        }
+        return isMethodOverridden(ancestor, methodName, resolver)
+    }
+    return false
+}

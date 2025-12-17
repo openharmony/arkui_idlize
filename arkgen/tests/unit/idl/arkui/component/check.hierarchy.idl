@@ -1,0 +1,11 @@
+package arkui.component.check.hierarchy;
+
+[Component]
+interface CheckParentAttribute: Root {
+    this commonMethodBoolean(boolean flag);
+};
+
+[Component]
+interface CheckChildAttribute: CheckParentAttribute {
+    this commonMethodBoolean(boolean flag);
+};

@@ -19,7 +19,9 @@ import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGeneric
     DelegationCall, getInternalClassName, LanguageWriter, LayoutNodeRole, MaterializedClass, MaterializedField,
     qualifiedName, PeerMethodSignature, maybeRestoreGenerics,
     PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary, 
-    copyMethod} from '@idlizer/core'
+    copyMethod,
+    isMaterializedMethodOverridden,
+} from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -323,6 +325,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
         const useProtected = this.printer.supportedModifiers.includes(MethodModifier.PROTECTED)
         const privateMethod = method.getPrivateMethod(useProtected)
+        const isOverridden = isMaterializedMethodOverridden(this.clazz.decl, method.method.name, this.library, true)
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         returnType = returnType ?? method.sig.returnType
         returnType = idl.isTypeParameterType(method.sig.returnType) ? idl.IDLVoidType : returnType
@@ -331,7 +334,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
                 this.printer.language == Language.KOTLIN ?
                     "this.peer!!.ptr" :
-                    "this.peer!.ptr", returnType)
+                    "this.peer!.ptr", returnType, isOverridden)
         this.library.setCurrentContext(undefined)
     }
 

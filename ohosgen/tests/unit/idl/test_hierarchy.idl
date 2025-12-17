@@ -1,0 +1,43 @@
+package test_hierarchy;
+
+interface ParentI {
+    attribute boolean parentFlag;
+    attribute number parentCount;
+    attribute String parentText;
+};
+
+interface ChildI: ParentI {
+    attribute boolean childFlag;
+    attribute number childCount;
+    attribute String childText;
+};
+
+[Entity=Class]
+interface ParentC {
+    attribute boolean parentFlag;
+    attribute number parentCount;
+    attribute String parentText;
+
+    constructor(boolean parentFlag, number parentCount, String parentText);
+
+    String parentMethod(boolean parentFlag, number parentCount, String parentText);
+    String commonMethod(boolean commonFlag, number commonCount, String commonText);
+};
+
+[Entity=Class]
+interface ChildC: ParentC {
+    attribute boolean childFlag;
+    attribute number childCount;
+    attribute String childText;
+
+    constructor(number childCount, String childText, boolean childFlag);
+
+    String childMethod(String childText, boolean childFlag, number childCount);
+    String commonMethod(boolean commonFlag, number commonCount, String commonText);
+};
+
+ParentI testParentInterfaceHierarchy(ParentI arg);
+ChildI testChildInterfaceHierarchy(ChildI arg);
+
+ParentC testParentClassHierarchy(ParentC arg);
+ChildC testChildClassHierarchy(ChildC arg);
