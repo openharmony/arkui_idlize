@@ -79,6 +79,9 @@ export namespace initializers {
         }
         // sdk
         export namespace common {
+            export namespace ScrollResultNS {
+                export const offsetRemain = 0
+            }
             export namespace TouchTestInfoNS {
                 export const windowX = 0
                 export const windowY = 0

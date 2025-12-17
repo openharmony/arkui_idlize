@@ -143,7 +143,6 @@
         }
     },
     "forceMaterialized": [
-        "arkui.component.tabContent.TabBarSymbol",
-        "arkui.component.common.ScrollResult"
+        "arkui.component.tabContent.TabBarSymbol"
     ]
 }
