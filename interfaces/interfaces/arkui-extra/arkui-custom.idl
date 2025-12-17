@@ -242,3 +242,12 @@ interface NodeContainerOps {
 };
 callback Callback_Size_Void = void (Size size);
 callback Callback_OnDestory_Void = void (i64 nodeId);
+
+[Entity=Class]
+interface ThemeOps {
+    static void sendThemeToNative(sequence<ResourceColor> colorArray, sequence<ResourceColor> darkColorArray, i32 elmtId, boolean darkSetStatus);
+    static void setDefaultTheme(sequence<ResourceColor> colorArray, boolean isDark);
+    static void createAndBindTheme(i32 themeScopeId, i32 themeId, sequence<ResourceColor> colorArray, sequence<ResourceColor> darkColorArray, ThemeColorMode colorMode, Callback_Void onThemeScopeDestroy, boolean darkSetStatus);
+    static void applyThemeScopeIdToNode(pointer ptr, i32 themeScopeId);
+};
+
