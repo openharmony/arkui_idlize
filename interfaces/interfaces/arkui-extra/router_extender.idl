@@ -19,8 +19,16 @@ import ohos.router.default as router;
 
 callback RouterFinishCallback = void (pointer value);
 
+interface RouterOptionsInner {
+  attribute String url;
+  [Optional]
+  attribute String params;
+  [Optional]
+  attribute boolean recoverable;
+};
+
 interface PageRouterOptions {
-  attribute router.RouterOptions options;
+  attribute RouterOptionsInner options;
   [Optional]
   attribute router.RouterMode mode;
 };
