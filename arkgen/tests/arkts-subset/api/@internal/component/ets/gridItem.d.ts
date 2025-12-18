@@ -13,5 +13,5 @@ declare class GridItemAttribute extends CommonMethod<GridItemAttribute> {
     onSelect(event: (isSelected: boolean) => void): GridItemAttribute;
 }
 
-declare const GridItem: GridItemInterface
-declare const GridItemInstance: GridItemAttribute;
+//declare constGridItem: GridItemInterface
+//declare constGridItemInstance: GridItemAttribute;

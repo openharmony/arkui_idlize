@@ -35,7 +35,7 @@ interface BorderImageOption {
     attribute (String or Resource or LinearGradient_common) source;
 };
 
-[Synthetic, Entity=Tuple, Synthetic]
+[Synthetic, Entity=Tuple]
 interface AnimationRange_Number {
     attribute number value0;
     attribute number value1;
@@ -217,7 +217,7 @@ interface WrappedBuilder {
 
 /////////
 
-typedef (TextStyle_styled_string or DecorationStyle or BaselineOffsetStyle or LetterSpacingStyle or TextShadowStyle or GestureStyle or ImageAttachment or ParagraphStyle or LineHeightStyle or UrlStyle or CustomSpan or UserDataSpan or BackgroundColorStyle) StyledStringValue;
+typedef StyledStringValue = (TextStyle_styled_string or DecorationStyle or BaselineOffsetStyle or LetterSpacingStyle or TextShadowStyle or GestureStyle or ImageAttachment or ParagraphStyle or LineHeightStyle or UrlStyle or CustomSpan or UserDataSpan or BackgroundColorStyle);
 
 [Entity=Class]
 interface CanvasRenderer: CanvasPath {

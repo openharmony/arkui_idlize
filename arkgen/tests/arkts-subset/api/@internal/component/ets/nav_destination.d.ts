@@ -576,7 +576,7 @@ declare class NavDestinationAttribute extends CommonMethod<NavDestinationAttribu
    * @atomicservice
    * @since 12
    */
-  backButtonIcon(value: ResourceStr | PixelMap | SymbolGlyphModifier): NavDestinationAttribute;
+  backButtonIcon(value: ResourceStr | PixelMap): NavDestinationAttribute;
 
   /**
    * NavDestination title bar's menus
@@ -697,7 +697,7 @@ declare class NavDestinationAttribute extends CommonMethod<NavDestinationAttribu
  * @atomicservice
  * @since 11
  */
-declare const NavDestination: NavDestinationInterface;
+//declare constNavDestination: NavDestinationInterface;
 
 /**
  * Defines NavDestination Component instance.
@@ -720,4 +720,4 @@ declare const NavDestination: NavDestinationInterface;
  * @atomicservice
  * @since 11
  */
-declare const NavDestinationInstance: NavDestinationAttribute;
+//declare constNavDestinationInstance: NavDestinationAttribute;

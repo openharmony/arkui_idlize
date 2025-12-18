@@ -1,4 +1,4 @@
-package arkui.component.idlize;
+package arkui.component;
 
 import arkui.component.common;
 
@@ -17,3 +17,26 @@ interface RenderServiceNode {
 interface ScreenshotService {
   static boolean requestScreenshot(String target, String name);
 };
+
+[TypeParameters="T"]
+interface BusinessErrorInterface {
+    attribute String name;
+    attribute String message;
+    [Optional]
+    attribute String stack;
+    attribute i32 code;
+    attribute T data;
+};
+
+dictionary ColorMode {
+    number LIGHT = 0;
+    number DARK = 1;
+};
+
+dictionary LayoutDirection {
+    number LTR = 0;
+    number RTL = 1;
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 2;
+};
+callback PageMapNodeBuilder = pointer (pointer parentNode, String name, (Object or idlize.stdlib.Null or undefined) param);

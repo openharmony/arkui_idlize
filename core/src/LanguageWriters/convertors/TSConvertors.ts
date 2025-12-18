@@ -14,15 +14,29 @@
  */
 
 import * as idl from '../../idl'
-import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
+import { Language } from '../../Language'
+import { LibraryInterface } from '../../LibraryInterface'
+import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
+import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
 import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
-import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
-import { isInsideInstanceof } from "../nameConvertor"
+import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
-    constructor(protected resolver: ReferenceResolver) { }
+    constructor(protected library: LibraryInterface) { }
 
+    protected mangleTopLevel(decl: idl.IDLEntry): string | undefined {
+        if (!isDeclaredInCurrentFile(this.library.layout, { node: decl, role: LayoutNodeRole.INTERFACE }) && isTopLevelConflicted(this.library, Language.TS, decl)) {
+            const namespaces = idl.getNamespacesPathFor(decl)
+            if (namespaces.length === 0) {
+                return idl.getQualifiedName(decl, "package.namespace.name").replaceAll('.', '_')
+            }
+            const [rootNamespace, ...otherNamespaces] = idl.getNamespacesPathFor(decl)
+            const mangledRoot = idl.getQualifiedName(rootNamespace, "package.namespace.name").replaceAll('.', '_')
+            return [mangledRoot, ...otherNamespaces, decl.name].join(".")
+        }
+        return undefined
+    }
     convert(node: idl.IDLNode): string {
         return convertNode(this, node)
     }
@@ -31,18 +45,20 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return node.name
     }
     convertInterface(node: idl.IDLInterface): string {
-        return idl.getQualifiedName(node, "namespace.name")
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertEnum(node: idl.IDLEnum): string {
-        return idl.getQualifiedName(node, "namespace.name")
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertTypedef(node: idl.IDLTypedef): string {
-        return node.name
+        if (idl.isSyntheticEntry(node))
+            return this.convert(node.type)
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertCallback(node: idl.IDLCallback): string {
         return idl.isSyntheticEntry(node)
             ? this.mapCallback(node)
-            : node.name
+            : this.mangleTopLevel(node) ?? node.name
     }
     convertMethod(node: idl.IDLMethod): string {
         return node.name
@@ -74,10 +90,10 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
-            return `Map<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
+            return isInsideInstanceof() ? `Map` : `Map<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
         }
         if (idl.IDLContainerUtils.isPromise(type)) {
-            return `Promise<${this.convert(type.elementType[0])}>`
+            return isInsideInstanceof() ? `Promise` : `Promise<${this.convert(type.elementType[0])}>`
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -86,18 +102,21 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return type.name
     }
     convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
-        const maybeTypeArguments = type.typeArguments?.length ? `<${type.typeArguments.join(', ')}>` : ""
-        let decl = this.resolver.resolveTypeReference(type)
+        const maybeTypeArguments = type.typeArguments?.length && !isInsideInstanceof() ? `<${type.typeArguments.join(', ')}>` : ""
+        let decl = this.library.resolveTypeReference(type)
         if (decl)
             return `${decl.name}${maybeTypeArguments}`
         return `${type.name}${maybeTypeArguments}`
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        let decl = this.resolver.resolveTypeReference(type)
+        let decl = this.library.resolveTypeReference(type)
         if (decl) {
             if (idl.isSyntheticEntry(decl)) {
                 if (idl.isCallback(decl)) {
                     return this.mapCallback(decl, type.typeArguments)
+                }
+                if (idl.isTypedef(decl)) {
+                    return this.convert(decl.type)
                 }
                 const entity = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity)
                 if (entity) {
@@ -114,13 +133,15 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 decl = decl.parent
             }
 
-            let maybeRestoredGeneric = maybeRestoreGenerics(type, this.resolver)
+            let maybeRestoredGeneric = maybeRestoreGenerics(type, this.library)
             if (maybeRestoredGeneric) {
                 type = maybeRestoredGeneric
-                decl = this.resolver.resolveTypeReference(maybeRestoredGeneric)
+                decl = this.library.resolveTypeReference(maybeRestoredGeneric)
             }
             let typeSpec = type.name
-            let typeArgs = type.typeArguments?.map(it => this.convert(it)) ?? []
+            let typeArgs = !isInsideInstanceof() || decl && idl.isCallback(decl)
+                ? type.typeArguments?.map(it => this.convert(it)) ?? []
+                : []
             if (typeSpec === `Optional`)
                 return `${typeArgs} | undefined`
             if (typeSpec === `Function`)
@@ -129,7 +150,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             if (decl) {
                 const path = idl.getNamespacesPathFor(decl).map(it => it.name)
                 path.push(decl.name)
-                return `${path.join(".")}${maybeTypeArguments}`
+                return `${this.mangleTopLevel(decl) ?? path.join(".")}${maybeTypeArguments}`
             }
             return `${type.name}${maybeTypeArguments}`
         }
@@ -198,26 +219,15 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         }
         return subst
     }
-    protected applySubstitution(subst:Map<string, idl.IDLType>, type:idl.IDLType): idl.IDLType {
-        if (idl.isContainerType(type)) {
-            return idl.createContainerType(type.containerKind, type.elementType.map(it => this.applySubstitution(subst, it)))
-        }
-        if (idl.isReferenceType(type)) {
-            return idl.createReferenceType(type.name, type.typeArguments?.map(it => this.applySubstitution(subst, it)))
-        }
-        if (idl.isTypeParameterType(type)) {
-            const record = subst.get(type.name)
-            if (record) {
-                return record
-            }
-        }
-        return type
-    }
     protected mapCallback(decl: idl.IDLCallback, args?:idl.IDLType[]): string {
         const subst = this.createTypeSubstitution(decl.typeParameters, args)
         const parameters = decl.parameters.map(it => {
+            if (subst.size == 0) return it
             const param = idl.clone(it)
-            param.type = this.applySubstitution(subst, param.type)
+            param.parent = it.parent
+            const type = applySubstitution(subst, param.type)
+            updateParent(param, type)
+            param.type = type
             return param
         })
         const params = parameters.map(it =>
@@ -230,8 +240,12 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             } ${decl.properties
                 .map(it => isTuple ? this.processTupleType(it) : it)
                 .map(it => {
+                    if (subst.size == 0) return it
                     const prop = idl.clone(it)
-                    prop.type = this.applySubstitution(subst, prop.type)
+                    prop.parent = it.parent
+                    const type = applySubstitution(subst, prop.type)
+                    updateParent(prop, type)
+                    prop.type = type
                     return prop
                 })
                 .map(it => {
@@ -246,7 +260,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return name
     }
     protected mapFunctionType(typeArgs: string[]): string {
-        return `Function${typeArgs.length ? `<${typeArgs.join(",")}>` : ''}`
+        return isInsideInstanceof() ? `Function` : `Function${typeArgs.length ? `<${typeArgs.join(",")}>` : ''}`
     }
 }
 
@@ -279,13 +293,17 @@ export class TSInteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLF64Type: return "KDouble"
             case idl.IDLNumberType: return 'number'
             case idl.IDLBigintType: return 'bigint'
-            case idl.IDLBooleanType:
+            case idl.IDLBooleanType: return 'boolean'
             case idl.IDLFunctionType: return 'KInt'
             case idl.IDLStringType: return 'KStringPtr'
             case idl.IDLBufferType: return 'ArrayBuffer'
+            case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
+            case idl.IDLInteropReturnBufferType: return `KInteropReturnBuffer`
+            case idl.IDLObjectType: return 'Object'
+            case idl.IDLAnyType: return "Object"
             case idl.IDLDate: return 'number'
+            case idl.IDLVoidType: return 'void'
             case idl.IDLUndefinedType:
-            case idl.IDLVoidType:
             case idl.IDLPointerType: return 'KPointer'
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
@@ -302,4 +320,32 @@ export class TSInteropArgConvertor implements TypeConvertor<string> {
     convertUnion(type: idl.IDLUnionType): string {
         throw new Error("Cannot pass union types through interop")
     }
+}
+
+function applySubstitution(subst: Map<string, idl.IDLType>, type: idl.IDLType): idl.IDLType {
+    if (idl.isContainerType(type)) {
+        return idl.createContainerType(type.containerKind, type.elementType.map(it => applySubstitution(subst, it)))
+    }
+    if (idl.isReferenceType(type)) {
+        return idl.createReferenceType(type.name, type.typeArguments?.map(it => applySubstitution(subst, it)))
+    }
+    if (idl.isTypeParameterType(type)) {
+        const record = subst.get(type.name)
+        if (record) {
+            return record
+        }
+    }
+    return type
+}
+
+// Update parents to properly find a file for conflicted types
+function updateParent(parent: idl.IDLNode | undefined, type: idl.IDLType) {
+    type.parent = parent
+    if (idl.isOptionalType(type)) updateParent(type, type.type)
+    if (idl.isUnionType(type)) updateParents(type, type.types)
+    if (idl.isContainerType(type)) updateParents(type, type.elementType)
+}
+
+function updateParents(parent: idl.IDLType, types: idl.IDLType[]) {
+    for (const type of types) updateParent(parent, type)
 }

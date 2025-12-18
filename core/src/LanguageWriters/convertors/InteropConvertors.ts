@@ -75,7 +75,7 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             case idl.IDLObjectType:
             case idl.IDLVoidType: return idl.IDLVoidType.name
             case idl.IDLBufferType: return KInteropReturnBuffer /* ArkTS can not return buffer as language object yet */
-            case idl.IDLStringType: return PrimitiveTypesInstance.String.getText()
+            case idl.IDLStringType: return KInteropReturnBuffer
             case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
@@ -90,7 +90,7 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
         if (decl) {
             // Callbacks and array types return by value
             if (idl.isCallback(this.resolver.toDeclaration(type))) {
-                return type.name
+                return KInteropReturnBuffer
             }
             if (idl.isInterface(decl)) {
                 if (isMaterialized(decl, this.resolver)) {
@@ -100,6 +100,9 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             }
             if (idl.isEnum(decl)) {
                 return PrimitiveTypesInstance.Int32.getText()
+            }
+            if (idl.isTypedef(decl)) {
+                return this.convert(decl.type)
             }
         }
         return "void"

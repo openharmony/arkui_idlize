@@ -66,3 +66,11 @@ export function installTemplate(name:string, installPath:string, replacements:Ma
     })
     writeFileSync(installPath, content, 'utf-8')
 }
+
+export function withCWD<T>(cwd:string, op:() => T): T {
+    const current = process.cwd()
+    process.chdir(cwd)
+    const r = op()
+    process.chdir(current)
+    return r
+}

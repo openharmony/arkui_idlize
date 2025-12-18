@@ -16,22 +16,21 @@ import * as idl from '@idlizer/core/idl'
 import { IndentedPrinter, camelCaseToUpperSnakeCase, Language,
     createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, CppReturnTypeConvertor,
     MaterializedClass,
-    getHookMethod,
     IdlNameConvertor,
     isMaterialized,
     PrimitiveTypesInstance,
     isInterface,
     asPromise,
     generatorTypePrefix,
-    isVMContextMethod,
 } from '@idlizer/core'
 import { getNodeTypes } from "../FileGenerators";
-import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
+import { getHookMethod, peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { printMethodDeclaration } from "../LanguageWriters";
 import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
 import { collectOrderedPeers } from '../PeersCollector';
 import { getAccessorName, getDeclarationUniqueName } from './NativeUtils';
 import { isComponentDeclaration } from '../ComponentsCollector';
+import { isVMContextMethod } from './MethodUtils'
 
 export function generateEventReceiverName(componentName: string) {
     return `${peerGeneratorConfiguration().cppPrefix}ArkUI${componentName}EventsReceiver`

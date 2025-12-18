@@ -329,7 +329,7 @@ declare class ColumnAttribute extends CommonMethod<ColumnAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Column: ColumnInterface;
+//declare constColumn: ColumnInterface;
 
 /**
  * Defines Column Component instance.
@@ -361,4 +361,4 @@ declare const Column: ColumnInterface;
  * @atomicservice
  * @since 11
  */
-declare const ColumnInstance: ColumnAttribute;
+//declare constColumnInstance: ColumnAttribute;

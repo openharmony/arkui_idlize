@@ -30,10 +30,6 @@ interface IndicatorStyle {
 }
 
 declare class TabBarSymbol {
-
-    normal: SymbolGlyphModifier;
-
-    selected?: SymbolGlyphModifier;
 }
 
 declare enum LayoutMode {
@@ -52,11 +48,7 @@ declare class SubTabBarStyle {
 
     constructor(content: ResourceStr);
 
-    constructor(content: ResourceStr | ComponentContent);
-
     static of(content: ResourceStr): SubTabBarStyle;
-
-    static of(content: ResourceStr | ComponentContent): SubTabBarStyle;
 
     indicator(value: IndicatorStyle): SubTabBarStyle;
 
@@ -102,4 +94,4 @@ declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
     tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
 }
 
-declare const TabContent: TabContentInterface
+//declare constTabContent: TabContentInterface

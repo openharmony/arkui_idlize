@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, generatorConfiguration } from '@idlizer/core'
+import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription } from '@idlizer/core'
 import { Method, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -23,17 +23,13 @@ import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
 } from '../idl/IdlPeerGeneratorVisitor'
-import { collectAllProperties, collectProperties } from '../printers/StructPrinter'
-import { FieldModifier, MethodModifier, ProxyStatement } from '@idlizer/core'
-import { createDeclarationNameConvertor } from '@idlizer/core'
+import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../printers/StructPrinter'
+import { MethodModifier } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
-import { convertDeclaration, generateCallbackKindValue } from '@idlizer/core'
-import { getInternalClassName, getInternalClassQualifiedName, LayoutNodeRole } from '@idlizer/core'
-import { collectUniqueCallbacks } from './CallbacksPrinter'
-import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
+import { LayoutNodeRole } from '@idlizer/core'
+import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
-import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlizer/core'
-import { NativeModule } from '../NativeModule'
+import { flattenUnionType } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { isComponentDeclaration } from '../ComponentsCollector'
 
@@ -44,25 +40,37 @@ class SerializerPrinter {
     private readonly serializerArgName = 'buffer'
     private readonly deserializerArgName = 'buffer'
 
-    public forwardDeclarations: CppLanguageWriter
-
     constructor(
         private readonly library: PeerLibrary,
         readonly language: Language,
-    ) {
-        this.forwardDeclarations = library.createLanguageWriter(Language.CPP) as CppLanguageWriter
-    }
+    ) { }
 
-    private generateInterfaceSerializer(writer: LanguageWriter, fdWriter:LanguageWriter, imports:ImportsCollector, target: idl.IDLInterface) {
-        const signature = new Method(`write`,
+
+    private generateInterfaceSerializeSignature(target: idl.IDLInterface): Method {
+        return new Method(`write`,
             new NamedMethodSignature(idl.IDLVoidType,
-                [idl.createReferenceType('SerializerBase'), idl.createReferenceType(target)],
+                [idl.createReferenceType('idlize.internal.SerializerBase'), idl.createReferenceType(target)],
                 [this.serializerArgName, "value"],
                 undefined,
                 undefined,
                 [undefined /*return hint*/, PrintHint.AsReference]
             ), [MethodModifier.PUBLIC, MethodModifier.STATIC])
-        fdWriter.writeMethodDeclaration(signature.name, signature.signature, signature.modifiers)
+    }
+
+    private generateInterfaceSerializerDeclaration(writer: LanguageWriter, target: idl.IDLInterface): void {
+        const signature = this.generateInterfaceSerializeSignature(target)
+        writer.writeMethodDeclaration(signature.name, signature.signature, signature.modifiers)
+    }
+
+    private generateInterfaceSerializer(writer: LanguageWriter, imports:ImportsCollector, target: idl.IDLInterface) {
+        const signature = new Method(`write`,
+            new NamedMethodSignature(idl.IDLVoidType,
+                [idl.createReferenceType('idlize.internal.SerializerBase'), idl.createReferenceType(target)],
+                [this.serializerArgName, "value"],
+                undefined,
+                undefined,
+                [undefined /*return hint*/, PrintHint.AsReference]
+            ), [MethodModifier.PUBLIC, MethodModifier.STATIC])
         writer.writeMethodImplementation(signature, writer => {
             if (isMaterialized(target, this.library)) {
                 this.generateMaterializedBodySerializer(target, writer)
@@ -75,7 +83,7 @@ class SerializerPrinter {
         writer.writeStatement(
             writer.makeAssign(
                 "valueSerializer",
-                idl.createReferenceType("SerializerBase"),
+                idl.createReferenceType("idlize.internal.SerializerBase"),
                 writer.makeString(this.serializerArgName),
                 true,
                 false,
@@ -114,8 +122,6 @@ class SerializerPrinter {
             case Language.CPP:
                 peerExpr = valueExpr
                 break
-            case Language.JAVA:
-            case Language.KOTLIN:
             case Language.CJ:
                 peerExpr = writer.makeMethodCall("MaterializedBase", "toPeerPtr", [valueExpr])
                 break
@@ -132,17 +138,26 @@ class SerializerPrinter {
 
     //////////////////////////////////////////////////////////////////
 
-    private generateInterfaceDeserializer(writer:LanguageWriter, fdWriter:LanguageWriter, imports:ImportsCollector, target: idl.IDLInterface) {
+    private generateInterfaceDeserializerSignature(target: idl.IDLInterface): Method {
         const type = idl.createReferenceType(target)
-        const signature = new Method('read',
+        return new Method('read',
             new NamedMethodSignature(type,
-                [idl.createReferenceType('DeserializerBase')],
+                [idl.createReferenceType('idlize.internal.DeserializerBase')],
                 [this.deserializerArgName],
                 undefined,
                 undefined,
                 [undefined /*return hint*/, PrintHint.AsReference]
             ), [MethodModifier.PUBLIC, MethodModifier.STATIC])
-        fdWriter.writeMethodDeclaration(signature.name, signature.signature, signature.modifiers)
+    }
+
+    private generateInterfaceDeserializerDeclaration(writer: LanguageWriter, target: idl.IDLInterface): void {
+        const signature = this.generateInterfaceDeserializerSignature(target)
+        writer.writeMethodDeclaration(signature.name, signature.signature, signature.modifiers)
+    }
+
+    private generateInterfaceDeserializer(writer:LanguageWriter, imports:ImportsCollector, target: idl.IDLInterface) {
+        const type = idl.createReferenceType(target)
+        const signature = this.generateInterfaceDeserializerSignature(target)
         writer.writeMethodImplementation(signature, writer => {
             if (isMaterialized(target, this.library)) {
                 this.generateMaterializedBodyDeserializer(writer, target)
@@ -155,7 +170,7 @@ class SerializerPrinter {
         writer.writeStatement(
             writer.makeAssign(
                 "valueDeserializer",
-                idl.createReferenceType("DeserializerBase"),
+                idl.createReferenceType("idlize.internal.DeserializerBase"),
                 writer.makeString(this.deserializerArgName),
                 true,
                 false,
@@ -191,9 +206,15 @@ class SerializerPrinter {
                 }, writer))
             })
             if (writer.language !== Language.CPP) {
+                let meaninglessProperties: idl.IDLProperty[] = []
+                if (writer.language === Language.ARKTS) {
+                    meaninglessProperties = collectMeaninglessProperties(target, this.library)
+                }
                 const propsAssignees = properties.map(it => {
                     return `${it.name}: ${it.name}TmpResult`
-                })
+                }).concat(meaninglessProperties.map(it => {
+                    return `${it.name}: undefined`
+                }))
                 if (writer.language == Language.CJ) {
                     let parentProperties: idl.IDLProperty[] = []
                     const superNames = target.inheritance
@@ -242,34 +263,60 @@ class SerializerPrinter {
 
     //////////////////////////////////////////////////////////////////
 
-    private generateSerializerClass(target: idl.IDLEntry): PrinterResult[] {
+    printCppForwardDeclarations(): LanguageWriter {
+        const printer = this.library.createLanguageWriter(Language.CPP) as CppLanguageWriter
+        const serializerDeclarations = getSerializerDeclarations(this.library,
+            createSerializerDependencyFilter(this.library, this.language), this.language)
 
-        const writer = this.library.createLanguageWriter(this.language)
-        const imports = new ImportsCollector()
-
-        collectDeclItself(this.library, target, imports)
-
-        printSerializerImports(this.library, this.language, imports)
-
-        const className = getSerializerName(target)
-        if (writer instanceof CppLanguageWriter) {
-            writer.changeModeTo('detached')
-        }
-        writer.writeClass(className, writer => {
-            writer.makeStaticBlock(() => {
-                this.forwardDeclarations.writeClass(className, fdWriter => {
+        serializerDeclarations.forEach(decl => {
+            // internal modules provide serializers
+            // serializers needs to be generated for the current and external modules
+            if (this.language !== Language.CPP && !isInCurrentModule(decl) && !isInExternalModule(decl)) {
+                return
+            }
+            if (isComponentDeclaration(this.library, decl)) {
+                return
+            }
+            if (idl.isInterface(decl)) {
+                const className = getSerializerName(this.library, printer.language, decl)
+                printer.writeClass(className, fdWriter => {
                     fdWriter.print('public:')
+                    if (idl.isInterface(decl)) {
+                        this.generateInterfaceSerializerDeclaration(fdWriter, decl)
+                        this.generateInterfaceDeserializerDeclaration(fdWriter, decl)
+                    }
+                })
+            }
+        })
+        return printer
+    }
+
+    private generateSerializerClass(target: idl.IDLEntry): PrinterResult[] {
+        const generate = () => {
+            const writer = this.library.createLanguageWriter(this.language)
+            const imports = new ImportsCollector()
+
+            collectDeclItself(this.library, target, imports)
+
+            printSerializerImports(this.library, this.language, imports)
+
+            const className = getSerializerName(this.library, writer.language, target)
+            if (writer instanceof CppLanguageWriter) {
+                writer.changeModeTo('detached')
+            }
+            writer.writeClass(className, writer => {
+                writer.makeStaticBlock(() => {
                     if (idl.isInterface(target)) {
-                        this.generateInterfaceSerializer(writer, fdWriter, imports, target)
-                        this.generateInterfaceDeserializer(writer, fdWriter, imports, target)
+                        this.generateInterfaceSerializer(writer, imports, target)
+                        this.generateInterfaceDeserializer(writer, imports, target)
                     }
                 })
             })
-        })
+            return { content: writer, imports}
+        }
 
         return [{
-            collector: imports,
-            content: writer,
+            generate,
             over: {
                 node: target,
                 role: LayoutNodeRole.SERIALIZER
@@ -278,11 +325,9 @@ class SerializerPrinter {
         }]
     }
 
-    print(prefix: string): PrinterResult[] {
-        if (prefix == "" && this.language === Language.CPP)
-            prefix = generatorConfiguration().TypePrefix + this.library.libraryPrefix
+    print(): PrinterResult[] {
         const serializerDeclarations = getSerializerDeclarations(this.library,
-            createSerializerDependencyFilter(this.library, this.language))
+            createSerializerDependencyFilter(this.library, this.language), this.language)
 
         return serializerDeclarations.flatMap(decl => {
             // internal modules provide serializers
@@ -317,30 +362,35 @@ if (this.writer.language == Language.CJ) {
 
 export function createSerializerPrinter(language: Language, prefix: string): PrinterFunction {
     return (library: PeerLibrary) => {
-        return new SerializerPrinter(library, language).print(prefix)
+        return new SerializerPrinter(library, language).print()
     }
 }
 export function createCSerializerPrinter(library: PeerLibrary, language: Language, prefix: string): LanguageWriter {
     const serializers = library.createLanguageWriter(Language.CPP)
     const generator = new SerializerPrinter(library, language)
-    const result = generator.print(prefix)
-    serializers.concat(generator.forwardDeclarations)
-    result.forEach(it => serializers.concat(it.content))
+    const result = generator.print()
+    serializers.concat(generator.printCppForwardDeclarations())
+    result.forEach(it => {
+        const printerResult = wrapCurrentFileDescription(it.over, it.generate)
+        serializers.concat(printerResult instanceof LanguageWriter ? printerResult : printerResult.content)
+    })
     return serializers
 }
 
-export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {
+export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter: DependencyFilter, language: Language): SerializableTarget[] {
+    const nameConvertor = library.createTypeNameConvertor(Language.CPP)
     const seenNames = new Set<string>()
     return collectDeclarationTargets(library)
         .map(it => it)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => !idl.isHandwritten(it) && !isInIdlizeInternal(it) && !peerGeneratorConfiguration().components.custom.includes(it.name) && !peerGeneratorConfiguration().isHandWritten(it.name))
+        .filter(it => !peerGeneratorConfiguration().ignoreEntry(it.name, language))
         .filter(it => !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)))
         .filter(it => !it.typeParameters?.length
             || it.typeParameters.every(it => it.includes('='))
             || idl.isInterface(it) && isMaterialized(it, library))
         .filter(it => {
-            const fullName = qualifiedName(it, "_", "namespace.name")
+            const fullName = nameConvertor.convert(it)
             const seen = seenNames.has(fullName)
             seenNames.add(fullName)
             return !seen
@@ -350,7 +400,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
 export function printSerializerImports(library: PeerLibrary, language: Language, collector: ImportsCollector) {
     if (language === Language.TS || language === Language.ARKTS) {
         collector.addFeatures([
-            "SerializerBase", "DeserializerBase", "CallbackResource", "InteropNativeModule", "MaterializedBase", "Tags", "RuntimeType", "runtimeType", "toPeerPtr", 'nullptr', 'KPointer'
+            "SerializerBase", "DeserializerBase", "CallbackResource", "InteropNativeModule", "MaterializedBase", "Tags", "RuntimeType", "toPeerPtr", 'nullptr', 'KPointer'
         ], "@koalaui/interop")
         collector.addFeatures(["int32", "int64", "float32", "unsafeCast"], "@koalaui/common")
         if (language == Language.TS && library.name === "arkoala") {
@@ -362,28 +412,37 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
         collector.addFeatures(["NativeBuffer", "KSerializerBuffer"], "@koalaui/interop")
         if (language === Language.TS) {
             collector.addFeature('Finalizable', '@koalaui/interop')
-            collector.addFeatures(["NativeBuffer"], "@koalaui/interop")
+            collector.addFeatures(["NativeBuffer", "runtimeType"], "@koalaui/interop")
         } else {
-            collectDeclItself(library, idl.createReferenceType("TypeChecker"), collector)
             collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
         }
         if (library.name === 'arkoala') {
             collector.addFeature("CallbackTransformer", "./CallbackTransformer")
         }
     }
+    else if (library.language === Language.KOTLIN) {
+        collector.addFeatures([
+            "SerializerBase",
+            "DeserializerBase",
+            "CallbackResource",
+            "InteropNativeModule",
+            "MaterializedBase",
+            "Tag",
+            "RuntimeType",
+            "toPeerPtr",
+            "nullptr",
+            "KPointer",
+            "KNativePointer",
+            "NativeBuffer",
+            "KUint8ArrayPtr",
+        ], "koalaui.interop")
+    }
 }
-
-const MATERIALIZED_BASE = idl.createInterface(
-    "MaterializedBase",
-    idl.IDLInterfaceSubkind.Interface, [], [], [],
-    [idl.createProperty("peer", idl.IDLBooleanType)],
-)
 
 export function createSerializerDependencyFilter(library: PeerLibrary, language: Language): DependencyFilter {
     switch (language) {
         case Language.TS: return new DefaultSerializerDependencyFilter()
         case Language.ARKTS: return new ArkTSSerializerDependencyFilter()
-        case Language.JAVA: return new DefaultSerializerDependencyFilter()
         case Language.CJ: return new DefaultSerializerDependencyFilter()
         case Language.CPP: return new CppSerializerDependencyFilter(library)
         case Language.KOTLIN: return new DefaultSerializerDependencyFilter()
@@ -398,11 +457,11 @@ class DefaultSerializerDependencyFilter implements DependencyFilter {
             && this.canSerializeDependency(node)
     }
     isParameterized(node: idl.IDLEntry) {
-        return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)
-            || ["Record", "Required"].includes(node.name!)
+        return idl.isGeneric(node) && node.typeParameters && node.typeParameters.length
+            || ["Record", "Required"].includes(node.name)
     }
     isParametrizedWithAllDefaults(node: idl.IDLEntry): boolean {
-        return !!idl.getExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)?.split(',').every(it => it.includes("="))
+        return false
     }
 
     canHandleParametrized(node: idl.IDLEntry): boolean {
@@ -428,6 +487,10 @@ class ArkTSSerializerDependencyFilter extends DefaultSerializerDependencyFilter 
             return false
         }
         return super.shouldAdd(node)
+    }
+
+    canHandleParametrized(node: idl.IDLEntry): boolean {
+        return node.name === 'ComponentContent' // make it more general!
     }
 }
 

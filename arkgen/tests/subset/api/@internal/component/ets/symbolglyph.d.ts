@@ -9,8 +9,8 @@ declare class SymbolGlyphAttribute extends CommonMethod<SymbolGlyphAttribute> {
   fontSize(value: number | string | Resource): SymbolGlyphAttribute;
 }
 
-declare const SymbolGlyph: SymbolGlyphInterface;
+//declare constSymbolGlyph: SymbolGlyphInterface;
 
-declare class SymbolGlyphModifier {
-    constructor(src?: Resource);
-}
+// declare class SymbolGlyphModifier {
+//     constructor(src?: Resource);
+// }

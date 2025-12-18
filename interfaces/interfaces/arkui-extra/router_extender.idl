@@ -15,9 +15,9 @@ callback Callback_BusinessError_Void = void (i32 code, String message);
 [Entity=Class]
 interface RouterExtender {
   static Promise<void> push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
-  static void push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] Callback_BusinessError_Void callback_);
+  static void push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Callback_BusinessError_Void callback_);
   static Promise<void> replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
-  static void replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] Callback_BusinessError_Void callback_);
+  static void replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Callback_BusinessError_Void callback_);
   static void back(optional router.RouterOptions options);
   static void back(i32 index, optional Object params);
   static void runPage(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
@@ -30,7 +30,7 @@ interface RouterExtender {
   static sequence<router.RouterState> getStateByUrl(String url);
   static Object getParams();
   static Promise<void> pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
-  static void pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] Callback_BusinessError_Void callback_);
+  static void pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Callback_BusinessError_Void callback_);
   static Promise<void> replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
-  static void replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] Callback_BusinessError_Void callback_);
+  static void replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Callback_BusinessError_Void callback_);
 };

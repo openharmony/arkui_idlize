@@ -96,7 +96,7 @@ declare class ListItemAttribute extends CommonMethod<ListItemAttribute> {
     onSelect(event: (isSelected: boolean) => void): ListItemAttribute;
 }
 
-declare const ListItemInstance: ListItemAttribute;
+//declare constListItemInstance: ListItemAttribute;
 
-declare const ListItem: ListItemInterface;
+//declare constListItem: ListItemInterface;
 

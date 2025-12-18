@@ -4,5 +4,5 @@ export declare function Ark%COMPONENT_NAME%(
     style: ((attributes: %COMPONENT_ATTRIBUTE_NAME%) => void) | undefined,
     /** @memo */
     content_: (() => void) | undefined,
-    %FUNCTION_PARAMETERS%
+%FUNCTION_PARAMETERS%
 ): void

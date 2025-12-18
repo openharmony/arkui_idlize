@@ -15,8 +15,8 @@
 
 import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
-import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { capitalize, DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
+import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface } from "./PeersPrinter"
 
@@ -46,15 +46,13 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const peer = collectPeers(this.peerLibrary).find(it => it.componentName === component.name)
         if (!peer) throw new Error(`Peer for component ${component.name} was not found`)
         const printer = this.peerLibrary.createLanguageWriter()
+        const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
         const declaredPrefix = this.isDeclared && this.peerLibrary.language !== Language.ARKTS ? "declare " : ""
         const superType = getSuper(idlInterface, this.peerLibrary)
-        const extendsClause = superType ? `extends ${componentToAttributesInterface(superType.name)} ` : ""
+        const extendsClause = superType ? `extends ${nameConvertor.convert(superType)} ` : ""
         printer.print(`export ${declaredPrefix}interface ${componentToAttributesInterface(idlInterface.name)} ${extendsClause}{`)
         printer.pushIndent()
-        // const filteredMethods = peer!.methods
-        //     .filter(it => !it.isCallSignature)
-        const filteredMethods = peer!.methods
-        const collapsedMethods = groupOverloads(filteredMethods, this.peerLibrary.language)
+        const collapsedMethods = groupOverloads(peer!.methods, this.peerLibrary.language)
             .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
         const parentMethods = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
         collapsedMethods.forEach(method => {
@@ -76,13 +74,23 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
         if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has('attributeModifier')) {
-            printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
-                w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
-            })
+            if (idlInterface.name !== 'CommonMethod') {
+                printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
+                    w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
+                })
+            }
         } else {
             printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
         }
-        
+        const applyAttributesFinishSignature = new MethodSignature(idl.IDLVoidType, [])
+        if (this.peerLibrary.language === Language.ARKTS) {
+            if (idlInterface.name === 'CommonMethod') {
+                printer.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature), () => {})
+            }
+        }
+        else {
+            printer.writeMethodDeclaration('applyAttributesFinish', applyAttributesFinishSignature)
+        }
         printer.popIndent()
         printer.print('}')
         return printer.getOutput()
@@ -90,7 +98,6 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
     private printNamedOverloadGroup(peer: PeerClass, printer: LanguageWriter): void {
         const overloads = new Map<string, string[]>()
         for (const method of peer.methods) {
-            // if (method.isCallSignature) continue
             if (method.uniqueOverloadName != method.method.name) {
                 if (!overloads.has(method.method.name))
                     overloads.set(method.method.name, [])
@@ -120,10 +127,11 @@ class ArkoalaArkTSDeclConvertor extends ArkoalaTSDeclConvertor {
     protected printMethod(method: idl.IDLMethod): stringOrNone[] {
         const staticPrefix = method.isStatic ? "static " : ""
         const annotations = this.printAnnotations(method)
+        const typeParametersDefaults = idl.getExtAttributeTypesValue(method, idl.IDLExtendedAttributes.TypeParametersDefaults)
         return [
             ...this.printExtendedAttributes(method),
             annotations ? indentedBy(annotations, 1) : undefined,
-            indentedBy(`${staticPrefix}${method.name}${this.printTypeParameters(method.typeParameters)}(${this.printParameters(method.parameters)}): ${this.convertType(method.returnType)}`, 1)
+            indentedBy(`${staticPrefix}${method.name}${this.printTypeParameters(method.typeParameters, typeParametersDefaults)}(${this.printParameters(method.parameters)}): ${this.convertType(method.returnType)}`, 1)
         ]
     }
 }
@@ -137,9 +145,6 @@ class ArkoalaArkTSInterfacesVisitor extends ArkTSInterfacesVisitor {
 function getVisitor(peerLibrary: PeerLibrary, isDeclarations: boolean): InterfacesVisitor {
     if (peerLibrary.language == Language.TS) {
         return new ArkoalaTSInterfacesVisitor(peerLibrary, true)
-    }
-    if (peerLibrary.language == Language.JAVA) {
-        return new JavaInterfacesVisitor(peerLibrary)
     }
     if (peerLibrary.language == Language.ARKTS) {
         return new ArkoalaArkTSInterfacesVisitor(peerLibrary, isDeclarations, true)

@@ -57,8 +57,8 @@ export default {
     external: [
         "commander",
         "typescript",
-        "@idlizer/arkgen/app",
-        "@idlizer/etsgen/app"
+        "@idlizer/interfaces",
+        "@koalaui/libarkts"
     ],
     plugins: [
         typescript({

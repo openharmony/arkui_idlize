@@ -27,7 +27,8 @@ import {
     PeerLibrary,
     PrimitiveTypesInstance,
     PrimitiveTypeList,
-    getSuper
+    getSuper,
+    maybeRestoreGenerics
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
@@ -266,7 +267,7 @@ export class StructPrinter {
     private writeRuntimeType(target: idl.IDLNode, targetType: idl.IDLType, isOptional: boolean, writer: LanguageWriter) {
         if (idl.isNamedNode(target) && this.prologueDefinedRuntimeTypes.includes(target.name) && !isOptional)
             return
-        const resultType = idl.createReferenceType("RuntimeType")
+        const resultType = idl.createReferenceType("idlize.stdlib.RuntimeType")
         const op = this.writeRuntimeTypeOp(target, targetType, resultType, isOptional, writer)
         if (op) {
             writer.print("template <>")
@@ -557,13 +558,34 @@ function superPropsWithTypeArgs(decl: idl.IDLInterface, superDecl: idl.IDLInterf
 }
 
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    const superDecl = getSuper(decl, library)
-    const superProps = (superDecl && idl.isInterface(superDecl))
-        ? superPropsWithTypeArgs(decl, superDecl, collectProperties(superDecl, library)) : []
+    const parents = decl.inheritance.flatMap(ref => library.resolveTypeReference(ref) ?? [])
+    const superProps: idl.IDLProperty[] = []
+    parents.forEach(superDecl => {
+        if (idl.isInterface(superDecl)) {
+            superProps.push(
+                ...superPropsWithTypeArgs(decl, superDecl, collectProperties(superDecl, library))
+            )
+        }
+    })
     return [
         ...superProps,
         ...decl.properties,
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
+}
+
+export function collectMeaninglessProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
+    const superDecl = getSuper(decl, library)
+    const superMeaninglessProps = (superDecl && idl.isInterface(superDecl))
+        ? collectMeaninglessProperties(superDecl, library) : []
+    const meaningfulProperties = collectProperties(decl, library)
+    const originalReference = maybeRestoreGenerics(decl, library)
+    let original: idl.IDLInterface | undefined
+    if (!originalReference || !(original = library.resolveTypeReference(originalReference) as (idl.IDLInterface | undefined)))
+        return superMeaninglessProps
+    return [
+        ...superMeaninglessProps,
+        ...original.properties.filter(originalProperty => !meaningfulProperties.some(it => it.name === originalProperty.name))
+    ]
 }
 
 export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {

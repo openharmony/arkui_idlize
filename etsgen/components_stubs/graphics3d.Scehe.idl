@@ -1,0 +1,6 @@
+package graphics3d.Scene;
+
+[Entity=Class]
+interface Scene {
+    void destroy();
+};

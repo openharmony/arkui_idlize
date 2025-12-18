@@ -21,19 +21,19 @@ dictionary NumberEnum {
 };
 dictionary StringEnum {
     [OriginalEnumMemberName=Value1]
-    String VALUE_1 = "'one'";
+    String VALUE_1 = "one";
     [OriginalEnumMemberName=Value2]
-    String VALUE_2 = "'two'";
+    String VALUE_2 = "two";
     [OriginalEnumMemberName=Value2]
-    String LEGACY_VALUE_2 = "'three'";
+    String LEGACY_VALUE_2 = "three";
 };
 namespace ns {
     dictionary EnumInNamespace {
         [OriginalEnumMemberName=Value1]
-        String VALUE_1 = "'one'";
+        String VALUE_1 = "one";
         [OriginalEnumMemberName=Value2]
-        String VALUE_2 = "'two'";
+        String VALUE_2 = "two";
         [OriginalEnumMemberName=Value2]
-        String LEGACY_VALUE_2 = "'three'";
+        String LEGACY_VALUE_2 = "three";
     };
 };

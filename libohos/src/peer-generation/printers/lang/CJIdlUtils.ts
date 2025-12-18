@@ -59,13 +59,6 @@ function uniqueImports(imports: ImportFeature[]): ImportFeature[] {
     });
 }
 
-export function collectJavaImports(nodes: idl.IDLType[]): ImportFeature[] {
-    const collector = new CJImportsCollector()
-    const allImports = nodes.flatMap(node => collector.convert(node))
-    return uniqueImports(allImports)
-}
-
-
 class CJDeclarationImportsCollector implements DeclarationConvertor<ImportFeature[]> {
     private readonly typeDepsCollector = new CJImportsCollector()
 

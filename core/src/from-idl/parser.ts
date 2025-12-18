@@ -15,9 +15,12 @@
 
 import * as fs from "fs"
 import * as idl from "../idl"
-import { DiagnosticException, DiagnosticMessage, Location, Position } from "../diagnostictypes"
-import { DiagnosticMessageGroup, LoadingFatal, ParsingFatal, InternalFatal } from "../diagnosticmessages"
+import { DiagnosticException, DiagnosticMessage, Location, MessageSeverityList, Position } from "../diagnostictypes"
+import { DiagnosticMessageGroup, LoadingFatal, InternalFatal } from "../diagnosticmessages"
 
+const DeprecatedTypeArguments = new DiagnosticMessageGroup("warning", "DeprecatedTypeArguments", "TypeArguments is deprecated", "TypeArguments extended attribute is deprecated")
+const DeprecatedTypeParameters = new DiagnosticMessageGroup("warning", "DeprecatedTypeParameters", "TypeParameters is deprecated", "TypeParameters extended attribute is deprecated")
+const DeprecatedTypedefSyntax = new DiagnosticMessageGroup("warning", "DeprecatedTypedefSyntax", "C-Style typedef syntax is deprecated", "C-Style typedef syntax is deprecated")
 const DuplicateModifier = new DiagnosticMessageGroup("error", "DuplicateModifier", "Duplicate modifier", "Duplicate of")
 const NotApplicableModifier = new DiagnosticMessageGroup("error", "NotApplicableModifier", "Not applicable modifier")
 const DuplicatePackageDeclaration = new DiagnosticMessageGroup("error", "DuplicatePackageDeclaration", "Duplicate package declaration", "Duplicate of")
@@ -27,12 +30,36 @@ const IncorrectLiteral = new DiagnosticMessageGroup("error", "IncorrectLiteral",
 const IncorrectIdentifier = new DiagnosticMessageGroup("error", "IncorrectIdentifier", "Incorrect identifier")
 const UnexpectedToken = new DiagnosticMessageGroup("error", "UnexpectedToken", "Unexpected token")
 const UnexpectedEndOfFile = new DiagnosticMessageGroup("fatal", "UnexpectedEndOfFile", "Unexpected end of file")
+const UnrecognizedSymbols = new DiagnosticMessageGroup("fatal", "UnrecognizedSymbols", "Unrecognized symbols")
 const UnsupportedSyntax = new DiagnosticMessageGroup("error", "UnsupportedSyntax", "Unsupported syntax")
 const WrongDeclarationPlacement = new DiagnosticMessageGroup("error", "WrongDeclarationPlacement", "Wrong declaration placement")
 const ExpectedPrimitiveType = new DiagnosticMessageGroup("error", "ExpectedPrimitiveType", "Expected primitive type")
 const ExpectedReferenceType = new DiagnosticMessageGroup("error", "ExpectedReferenceType", "Expected reference type")
 const ExpectedGenericArguments = new DiagnosticMessageGroup("error", "ExpectedGenericArguments", "Expected generic arguments")
 const UnexpectedGenericArguments = new DiagnosticMessageGroup("error", "UnexpectedGenericArguments", "Unexpected generic arguments")
+const InlineParsingDepthExceeded = new DiagnosticMessageGroup("fatal", "InlineParsingDepthExceeded", "Inline parsing depth exceeded")
+
+interface ParseResultOk<T> {
+    ok: true
+    result: T
+}
+interface ParseResultFail {
+    ok: false
+    message: DiagnosticMessage
+}
+
+type ParseResult<T> = ParseResultOk<T> | ParseResultFail
+const ParseResult = {
+    ok: <T>(result:T): ParseResult<T> => ({ ok: true, result }),
+    fail: <T>(message:DiagnosticMessage): ParseResult<T> => ({ ok: false, message }),
+    unwrap: <T>(result:ParseResult<T>): T => {
+        if (result.ok) {
+            return result.result
+        }
+        DiagnosticMessageGroup.collectedResults.push(result.message)
+        throw new DiagnosticException(result.message)
+    }
+}
 
 export class FatalParserException extends Error {
     diagnosticMessages?: DiagnosticMessage[]
@@ -100,25 +127,44 @@ export class Parser {
         this.lines = lines.map((s) => s.replace(/(\n|\r\n)$/, ""))
     }
 
-    parseIDL(): idl.IDLFile {
-        trac("parseIDL")
+    parseIDL<T>(parser: () => T): T {
         const previousDiagnosticsCount = DiagnosticMessageGroup.allGroupsEntries.length
         try {
             this._lexerNext()
             this._prevToken = this._curToken
-            let file = this.parseFile()
-            file.text = this.content
+            let result = parser()
             if (DiagnosticMessageGroup.allGroupsEntries.length != previousDiagnosticsCount) {
-                // Empty for now, messages will be added in following `catch`.
-                throw new FatalParserException()
+                if (DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount).some(msg => MessageSeverityList.indexOf(msg.severity) <= MessageSeverityList.indexOf('error'))) {
+                    // Empty for now, messages will be added in following `catch`.
+                    throw new FatalParserException()
+                }
             }
-            return file
+            return result
         } catch (e) {
             if (!(e instanceof DiagnosticException) && !(e instanceof FatalParserException)) {
                 InternalFatal.reportDiagnosticMessage([{documentPath: this.fileName}], (e as any).message ?? "")
             }
             throw new FatalParserException(DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount))
         }
+    }
+
+    parseIDLFile(): idl.IDLFile {
+        trac("parseIDLFile")
+        return this.parseIDL(() => {
+            const file = this.parseFile()
+            file.text = this.content
+            return file
+        })
+    }
+
+    parseIDLType(): idl.IDLType {
+        trac("parseIDLType")
+        return this.parseIDL(() => this.parseType())
+    }
+
+    parseIDLTypeList(): idl.IDLType[] {
+        trac("parseIDLTypeList")
+        return this.parseIDL(() => this.parseTypeList())
     }
 
     _curOffset: number = 0
@@ -130,7 +176,7 @@ export class Parser {
     _generics: string[][] = []
 
     // TypeArguments parsing support
-    _enableInLiteralParsing: boolean = false
+    _inLiteralParsingLevel: number = 0
 
     _match(re: RegExp, kind: TokenKind): Token | undefined {
         re.lastIndex = this._curOffset
@@ -187,10 +233,10 @@ export class Parser {
             this._curToken = {kind: TokenKind.End, value: "", location: {documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}}
             return
         }
-        if (this._enableInLiteralParsing && this.content[this._curOffset] == "\"") {
+        if (this._inLiteralParsingLevel && (this.content[this._curOffset] == "\"" || this.content[this._curOffset] == "'")) {
             // TypeArguments parsing support
             const pos: Position = {line: this._curLine + 1, character: this._curOffset - this.offsets[this._curLine] + 1}
-            this._curToken = {kind: TokenKind.Symbol, value: "\"", location: {documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}}
+            this._curToken = {kind: TokenKind.Symbol, value: this.content[this._curOffset], location: {documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}}
             this._curOffset += 1
             return
         }
@@ -203,7 +249,7 @@ export class Parser {
         )
         if (!token) {
             const pos: Position = {line: this._curLine + 1, character: this._curOffset - this.offsets[this._curLine] + 1}
-            ParsingFatal.throwDiagnosticMessage([{documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}], "Unrecognized symbols")
+            UnrecognizedSymbols.throwDiagnosticMessage([{documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}])
         }
         // Uncomment in case of parser debugging
         // if (token) {
@@ -300,25 +346,29 @@ export class Parser {
 
     parseSingleIdentifier(): Token {
         trac("parseSingleIdentifier")
-        const token = this.parseFullIdentifier()
-        if (token.value.includes(".")) {
-            IncorrectIdentifier.throwDiagnosticMessage([this.curLocation])
-        }
-        return token
+        return ParseResult.unwrap(this.parseIdentifierSafe(true));
     }
 
     parseFullIdentifier(): Token {
         trac("parseFullIdentifier")
+        return ParseResult.unwrap(this.parseIdentifierSafe(false))
+    }
+
+    parseIdentifierSafe(single = false): ParseResult<Token> {
+        trac("parseIdentifierSafe")
         if (this.curKind != TokenKind.Words || literalTypes.has(this.curValue) && this.curValue != "undefined") {
-            UnexpectedToken.throwDiagnosticMessage([this.curLocation], "Unexpected token, expected identifier")
+            return ParseResult.fail(UnexpectedToken.generateDiagnosticMessage([this.curLocation], "Unexpected token, expected identifier"))
+        }
+        if (single && this.curValue.includes(".")) {
+            return ParseResult.fail(IncorrectIdentifier.generateDiagnosticMessage([this.curLocation]))
         }
         if (this.curValue.startsWith("-")) {
             // Valid for identifiers in WebIDL, but not in Idlize
-            IncorrectIdentifier.throwDiagnosticMessage([this.curLocation])
+            return ParseResult.fail(IncorrectIdentifier.generateDiagnosticMessage([this.curLocation]))
         }
         const token = this.curToken
         this._lexerNext()
-        return token
+        return ParseResult.ok(token)
     }
 
     parseFullIdentifierOrLiteral(): Token {
@@ -341,8 +391,13 @@ export class Parser {
         return token
     }
 
-    parseAndPushGenerics(ext?: idl.IDLExtendedAttribute[]): string[] | undefined {
+    parseAndPushGenerics(ext: idl.IDLExtendedAttribute[] | undefined): string[] | undefined {
         const gen = extractTypeParameters(ext) ?? []
+        const found = ext?.find(e => e.name === LEGACY_TYPE_PARAMETERS_ATTRIBUTE)
+        if (found && found.nameLocation) {
+            DeprecatedTypeParameters.reportDiagnosticMessage([found.nameLocation], 'TypeParameters attribute is deprecated, use "<..>" syntax');
+            ext?.splice(ext.indexOf(found), 1)
+        }
         if (this.seeAndSkip("<")) {
             let next = false
             while (!this.seeAndSkip(">")) {
@@ -355,7 +410,7 @@ export class Parser {
         }
         // To be restored in parseDeclaration
         this._generics.push(gen)
-        return gen
+        return gen.length === 0 ? undefined : gen
     }
 
     hasGeneric(name: string): boolean {
@@ -543,25 +598,30 @@ export class Parser {
                 duplicates.add(name.value)
             }
             names.add(name.value)
-            if (name.value == idl.IDLExtendedAttributes.TypeArguments) {
+            if (name.value === LEGACY_TYPE_ARGUMENTS_ATTRIBUTE || name.value === idl.IDLExtendedAttributes.TypeParametersDefaults) {
                 // TypeArguments parsing support
                 try {
-                    this._enableInLiteralParsing = true
+                    this._inLiteralParsingLevel += 1
+                    if (this._inLiteralParsingLevel > 2) {
+                        InlineParsingDepthExceeded.throwDiagnosticMessage([this.curLocation])
+                    }
                     this.skip("=")
                     const vloc = this.trackLocation()
                     const start = this._curOffset // Already after first quote
-                    this.skip("\"")
+                    this.skip(this._inLiteralParsingLevel == 2 ? "'" : "\"")
                     const types = this.parseTypeList()
                     const end = this._curOffset - 1 // Already after second quote
-                    this._enableInLiteralParsing = false
-                    this.skip("\"")
+                    this._inLiteralParsingLevel -= 1
+                    // Note that second this._inLiteralParsingLevel comparison happens after decrement
+                    this.skip(this._inLiteralParsingLevel == 1 ? "'" : "\"")
                     const stringValue = this.content.slice(start, end)
                     ext.push({name: name.value, value: stringValue, typesValue: types, nameLocation: name.location, valueLocation: vloc()})
                 } catch (e) {
-                    this.skipToAfter("\"")
+                    if (e instanceof DiagnosticException && e.diagnosticMessage.severity != "fatal") {
+                        this.skipToAfter("\"")
+                    }
+                    this._inLiteralParsingLevel = 0
                     throw e
-                } finally {
-                    this._enableInLiteralParsing = false
                 }
             } else {
                 let value: Token | undefined
@@ -591,7 +651,7 @@ export class Parser {
         // Tuned for IDLize types, no support for legacy combinations like "unsigned short"
         trac("parseType")
         const parsedExt = this.parseExtendedAttributes()
-        const ext = parsedExt ? (outerExt ? parsedExt.concat(outerExt) : parsedExt) : (outerExt ? [...outerExt] : undefined) 
+        const ext = parsedExt ? (outerExt ? parsedExt.concat(outerExt) : parsedExt) : (outerExt ? [...outerExt] : undefined)
         const sloc = this.trackLocation()
         if (this.seeAndSkip("(")) {
             let combinedTypes: idl.IDLType[] = []
@@ -615,6 +675,11 @@ export class Parser {
         }
         const name = this.parseFullIdentifier()
         const genArgs = extractTypeArguments(ext) ?? []
+        const foundArgAttr = ext?.find(it => it.name === LEGACY_TYPE_ARGUMENTS_ATTRIBUTE)
+        if (foundArgAttr && foundArgAttr.nameLocation) {
+            DeprecatedTypeArguments.reportDiagnosticMessage([foundArgAttr.nameLocation], 'TypeArgument is deprecated extended attribute, use "<..>" syntax')
+            ext?.splice(ext.indexOf(foundArgAttr), 1)
+        }
         if (this.seeAndSkip("<")) {
             let next = false
             while (!this.seeAndSkip(">")) {
@@ -745,11 +810,13 @@ export class Parser {
         this.skip("const")
         const type = this.parseType()
         const name = this.parseSingleIdentifier()
-        this.skip("=")
-        const value = this.parseLiteral()
-        const extracted = extractLiteral(value)
+        let value: Token | undefined;
+        if (this.seeAndSkip("=")) {
+            value = this.parseLiteral()
+        }
         this.skip(";")
-        return idl.createConstant(name.value, type, extracted.extractedString, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value.location})
+        // Note that raw value (with quoted strings) is used here, that provides compatibility with older code (while being different from `dictionary` processing)
+        return idl.createConstant(name.value, type, value?.value, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
     }
 
     parseAttribute(): idl.IDLProperty {
@@ -772,12 +839,31 @@ export class Parser {
         const ext = this.consumeCurrentExtended()
         this.skip("typedef")
         const typeParameters = this.parseAndPushGenerics(ext)
-        const type = this.parseType()
-        const name = this.parseSingleIdentifier()
-        if (idl.isUnionType(type)) {
-            type.name = name.value
+        const maybeName = this.parseIdentifierSafe(true)
+        let name: Token
+        let type: idl.IDLType
+        let deprecatedSyntax = false
+        if (!maybeName.ok) {
+            type = this.parseType()
+            name = this.parseSingleIdentifier()
+            deprecatedSyntax = true
+        } else if (this.seeAndSkip("=")) {
+            type = this.parseType()
+            name = maybeName.result
+        } else {
+            type = builtinTypes.get(maybeName.result.value)
+                ?? idl.createReferenceType(maybeName.result.value, undefined, { extendedAttributes: [], nodeLocation: maybeName.result.location })
+            name = this.parseSingleIdentifier()
+            deprecatedSyntax = true
         }
         this.skip(";")
+        if (idl.isUnionType(type)) {
+            type.name = name.value
+            type.extendedAttributes = ext
+        }
+        if (deprecatedSyntax) {
+            DeprecatedTypedefSyntax.reportDiagnosticMessage([sloc()], "C-Style typedef syntax is deprecated");
+        }
         return idl.createTypedef(name.value, type, typeParameters, {extendedAttributes: ext, documentation: extractDocumentation(ext), nodeLocation: sloc(), nameLocation: name.location})
     }
 
@@ -845,11 +931,14 @@ export class Parser {
         const sloc = this.trackLocation()
         const type = this.parsePrimitiveType()
         const name = this.parseSingleIdentifier()
-        this.skip("=")
-        const value = this.parseLiteral()
-        const extracted = extractLiteral(value)
+        let value: Token | undefined
+        let extracted: ExtractedLiteral | undefined
+        if (this.seeAndSkip("=")) {
+            value = this.parseLiteral()
+            extracted = extractLiteral(value)
+        }
         this.skip(";")
-        return idl.createEnumMember(name.value, undefined as any as idl.IDLEnum, type, extracted.extractedValue, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value.location})
+        return idl.createEnumMember(name.value, undefined as any as idl.IDLEnum, type, extracted?.extractedValue, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
     }
 
     parsePackage(): {location: Location, name: string} {
@@ -1013,12 +1102,15 @@ function sanitizeTypeParameter(param: string): string {
     return param
 }
 
-function extractTypeParameters(ext?: idl.IDLExtendedAttribute[]): string[] | undefined {
-    return ext?.find(x => x.name == idl.IDLExtendedAttributes.TypeParameters)?.value?.split(",")?.map(sanitizeTypeParameter)
-}
+const LEGACY_TYPE_PARAMETERS_ATTRIBUTE = "TypeParameters"
+const LEGACY_TYPE_ARGUMENTS_ATTRIBUTE = "TypeArguments"
 
 function extractTypeArguments(ext?: idl.IDLExtendedAttribute[]): idl.IDLType[] | undefined {
-    return ext?.find(x => x.name == idl.IDLExtendedAttributes.TypeArguments)?.typesValue
+    return ext?.find(x => x.name === LEGACY_TYPE_ARGUMENTS_ATTRIBUTE)?.typesValue
+}
+
+function extractTypeParameters(ext?: idl.IDLExtendedAttribute[]): string[] | undefined {
+    return ext?.find(x => x.name === LEGACY_TYPE_PARAMETERS_ATTRIBUTE)?.value?.split(",")?.map(sanitizeTypeParameter)
 }
 
 const builtinTypesList = [idl.IDLPointerType, idl.IDLVoidType, idl.IDLBooleanType, 

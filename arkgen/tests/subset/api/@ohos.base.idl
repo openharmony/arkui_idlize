@@ -1,0 +1,17 @@
+package ohos.base;
+
+[TypeParameters="T,R", TypeParametersDefaults="void"]
+callback Callback = R (T data);
+callback ErrorCallback = void ();
+[TypeParameters="T", TypeParametersDefaults="void"]
+interface BusinessError {
+    attribute String name;
+    attribute String message;
+    [Optional]
+    attribute String stack;
+    attribute i32 code;
+    attribute T data;
+};
+interface Want {
+    void stub();
+};

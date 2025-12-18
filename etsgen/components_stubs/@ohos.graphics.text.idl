@@ -332,7 +332,7 @@ namespace text {
     };
     [Synthetic]
     callback Callback_Number_Number_Boolean_Boolean = boolean (number offset, number index, boolean leadingEdge);
-    typedef Callback_Number_Number_Boolean_Boolean CaretOffsetsCallback;
+    typedef CaretOffsetsCallback = Callback_Number_Number_Boolean_Boolean;
     [Entity=Class]
     interface TextLine {
         constructor();

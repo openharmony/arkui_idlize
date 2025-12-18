@@ -370,7 +370,7 @@ declare class PathAttribute extends CommonShapeMethod<PathAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Path: PathInterface;
+//declare constPath: PathInterface;
 
 /**
  * Defines Path Component instance.
@@ -402,4 +402,4 @@ declare const Path: PathInterface;
  * @atomicservice
  * @since 11
  */
-declare const PathInstance: PathAttribute;
+//declare constPathInstance: PathAttribute;

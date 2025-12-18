@@ -17,13 +17,12 @@ import { Language } from "../Language"
 import { IndentedPrinter } from "../IndentedPrinter"
 
 import * as idl from "../idl"
-import { indentedBy, stringOrNone } from "../util";
+import { stringOrNone } from "../util";
 import * as fs from "fs"
 import { NativeModuleType, RuntimeType } from "./common"
 import { ArgConvertor } from "./ArgConvertors";
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
-import { IdlNameConvertor } from "./nameConvertor";
-import { CppInteropArgConvertor } from "./convertors/CppConvertors";
+import { withInsideInstanceof } from "./nameConvertor";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -249,6 +248,8 @@ export class MultiBranchIfStatement implements LanguageStatement {
     }
 }
 
+export type EnumMember = { name: string, alias?: string, stringId: string | undefined, numberId: number }
+
 // maybe rename or move of fix
 export class TsEnumEntityStatement implements LanguageStatement {
     constructor(
@@ -305,8 +306,11 @@ export abstract class LambdaExpression implements LanguageExpression {
         if (this.body) {
             writer.writeStatement(new BlockStatement(this.body, isScoped, false))
         }
-        writer.features.forEach(([feature, module]) => {
-            this.originalWriter.addFeature(feature, module)
+        writer.features.forEach((feature) => {
+            if (feature.type === "raw")
+                this.originalWriter.addFeature(feature.feature, feature.module)
+            else
+                this.originalWriter.addFeature(feature.node)
         })
 
         return writer.getOutput()
@@ -333,8 +337,16 @@ export enum FieldModifier {
     FINAL,
     VOLATILE,
     INTERNAL,
-    OVERRIDE
+    OVERRIDE,
+    GET,
+    SET,
 }
+
+export const ACCESS_MODIFIERS_SET = new Set([
+    FieldModifier.PRIVATE,
+    FieldModifier.PROTECTED,
+    FieldModifier.PUBLIC
+])
 
 export enum MethodModifier {
     PUBLIC,
@@ -489,13 +501,19 @@ export abstract class LanguageWriter {
 
     maybeSemicolon() { return ";" }
 
-    features: [string, string][] = []
-    addFeature(feature: string, module:string) {
-        this.features.push([feature, module])
+    features: ({ type: "raw", feature: string, module: string} | { type: "idl", node: idl.IDLEntry | idl.IDLReferenceType })[] = []
+    addFeature(node: idl.IDLEntry | idl.IDLReferenceType): void
+    addFeature(feature: string, module:string): void
+    addFeature(featureOrNode: string | idl.IDLEntry | idl.IDLReferenceType, module?: string): void {
+        if (typeof featureOrNode === "string")
+            this.features.push({type: "raw", feature: featureOrNode, module: module! })
+        else
+            this.features.push({ type: "idl", node: featureOrNode })
     }
+    abstract get interopModule(): string
 
     abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport?: boolean): void
-    abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], options: { isExport: boolean, isDeclare?: boolean }, op?: (writer: this) => void): void
+    abstract writeEnum(name: string, members: EnumMember[], options: { isExport: boolean, isDeclare?: boolean }, op?: (writer: this) => void): void
     abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature, generics?:string[]): void
@@ -505,7 +523,8 @@ export abstract class LanguageWriter {
     abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
     abstract writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void
     abstract writeTypeDeclaration(decl: idl.IDLTypedef): void
-    abstract writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void;
+    abstract writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void
+    abstract writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void
     abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression
     abstract makeThrowError(message: string): LanguageStatement
@@ -797,11 +816,11 @@ export abstract class LanguageWriter {
         op(this)
     }
     instanceOf(value: string, type: idl.IDLType): LanguageExpression {
-        return this.makeString(`${value} instanceof ${this.getNodeName(type)}`)
+        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`)
     }
     // The version of instanceOf() which does not use ArgConvertors
     typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
-        return this.makeString(`${value} instanceof ${this.getNodeName(type)}`)
+        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`)
     }
 
 

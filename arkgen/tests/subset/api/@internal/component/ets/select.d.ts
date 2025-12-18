@@ -16,7 +16,7 @@
 declare interface SelectOption {
   value: ResourceStr;
   icon?: ResourceStr;
-  symbolIcon?: SymbolGlyphModifier;
+  // symbolIcon?: SymbolGlyphModifier;
 }
 
 declare interface MenuItemConfiguration extends CommonConfiguration<MenuItemConfiguration> {
@@ -37,6 +37,6 @@ declare class SelectAttribute extends CommonMethod<SelectAttribute> {
     menuItemContentModifier(modifier: ContentModifier<MenuItemConfiguration>): SelectAttribute;
 }
 
-declare const Select: SelectInterface;
+//declare constSelect: SelectInterface;
 
-declare const SelectInstance: SelectAttribute;
+//declare constSelectInstance: SelectAttribute;

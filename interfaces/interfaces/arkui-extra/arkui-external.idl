@@ -74,9 +74,9 @@ interface BaseShape {
 
 [Entity=Class]
 interface GlobalScope_ohos_font {
-    static void registerFont(FontOptions options);
+    static void registerFont(font.FontOptions options);
     static sequence<String> getSystemFontList();
-    static FontInfo getFontByName(String fontName);
+    static font.FontInfo getFontByName(String fontName);
     static font.UIFontConfig getUIFontConfig();
 };
 
@@ -105,3 +105,15 @@ interface IndicatorStyle {
     [Optional, Deprecated] attribute Length size;
     [Optional, Deprecated] attribute boolean mask;
 };
+
+[TypeParameters="T"]
+interface BusinessErrorInterface {
+    attribute String name;
+    attribute String message;
+    [Optional]
+    attribute String stack;
+    attribute i32 code;
+    attribute T data;
+};
+
+callback PageMapNodeBuilder = pointer (pointer parentNode, String name, (Object or idlize.stdlib.Null or undefined) param);

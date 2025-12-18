@@ -21,9 +21,6 @@ import {
     IDLNode,
     IDLType,
     IDLTypedef,
-    IDLU32Type,
-    IDLUint8ArrayType,
-    IDLVoidType
 } from '../../idl'
 import { Language } from '../../Language'
 import { ArgConvertor, BaseArgConvertor } from "../ArgConvertors"
@@ -42,7 +39,6 @@ import {
     PrintHint,
     MethodModifier,
     MethodSignature,
-    NamedMethodSignature,
     ObjectArgs,
     StringExpression,
     DelegationCall,
@@ -208,6 +204,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
         return new CppLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor, this.primitivesTypes)
     }
+    override get interopModule(): string {
+        throw new Error(`Modules are not supported in C++`)
+    }
     protected writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string): void {
         const realName = this.classMode === 'normal' ? name : `${this.currentClass.at(0)!}::${name}`
         const newModifiers = this.classMode === 'normal'
@@ -278,6 +277,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     writeConstant(constName: string, constType: IDLType, constVal?: string): void {
         this.print(`${this.getNodeName(constType)} ${constName}${constVal ? ' = ' + constVal : ''};`)
+    }
+    override writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void {
+        throw new Error(`Imports are not supported in C++`)
     }
 
     /**
@@ -412,7 +414,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return createReferenceType('Tag')
     }
     getRuntimeType(): IDLType {
-        return createReferenceType(`RuntimeType`)
+        return createReferenceType(`idlize.stdlib.RuntimeType`)
     }
     makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement {
         const statements =

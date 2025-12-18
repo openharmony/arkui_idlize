@@ -6,5 +6,6 @@ import resource.Resource as _Resource;
 import resource.Resource as Resource;
 import default_export_namespace.Namespace as Namespace;
 import default_export_namespace.default as DefaultNamespace;
+void foo(DefalutExportInterface value);
 void boo(Namespace.InterfaceInsideNamespace value);
 void goo(DefaultNamespace.InterfaceInsideNamespace value);

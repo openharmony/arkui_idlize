@@ -11,7 +11,6 @@ export interface LibraryInterface extends ReferenceResolver {
     get files(): idl.IDLFile[]
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam?: boolean): ArgConvertor
     declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor
-    getInteropName(node: idl.IDLNode): string
     createTypeNameConvertor(language: Language): IdlNameConvertor
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType
     getCurrentContext(): string | undefined
@@ -20,4 +19,15 @@ export interface LibraryInterface extends ReferenceResolver {
      * todo: is it really needed?
      */
     libraryPrefix: string
+}
+
+export function getTransformer(library: LibraryInterface, from: idl.IDLNode, to: idl.IDLNode): { module: string, ns?: string, method: string } {
+    const convertor = library.createTypeNameConvertor(Language.CPP)
+    const withNS = Language.supportNS(library.language)
+    const handwritten = library.layout.handwrittenPackage()
+    return {
+        module: withNS ? handwritten : `${handwritten}.extractors`,
+        ns: withNS ? "extractors" : undefined,
+        method: `transform_${convertor.convert(from)}_to_${convertor.convert(to)}`
+    }
 }

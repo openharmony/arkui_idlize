@@ -653,7 +653,7 @@ declare class SpanAttribute extends BaseSpan<SpanAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Span: SpanInterface;
+//declare constSpan: SpanInterface;
 
 /**
  * Defines Span Component instance.
@@ -685,4 +685,4 @@ declare const Span: SpanInterface;
  * @atomicservice
  * @since 11
  */
-declare const SpanInstance: SpanAttribute;
+//declare constSpanInstance: SpanAttribute;

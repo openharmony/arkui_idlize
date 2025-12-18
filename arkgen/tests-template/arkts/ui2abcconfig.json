@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "baseUrl": "src",
+        "outDir": "out"
+    },
+    "include": [
+        "src/**/*.ets"
+    ]
+}

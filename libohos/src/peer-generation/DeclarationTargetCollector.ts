@@ -26,7 +26,8 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (peerGeneratorConfiguration().ignoreEntry(entry.name, library.language) ||
                 isInIdlize(entry) ||
-                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation)
+                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation) ||
+                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TransformOnSerialize)
                 )
                 continue
             if (idl.isInterface(entry)) {
@@ -65,16 +66,12 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
             }
             else if (idl.isEnum(entry)) {
                 orderer.addDep(library.toDeclaration(entry))
-            } else if (idl.isMethod(entry)) {
+            } else if (idl.isMethod(entry) && !idl.hasTypeParameters(entry)) {
                 for (const parameter of entry.parameters)
                     orderer.addDep(library.toDeclaration(idl.maybeOptional(parameter.type!, parameter.isOptional)))
                 orderer.addDep(library.toDeclaration(entry.returnType))
             } else if (idl.isConstant(entry)) {
                 orderer.addDep(library.toDeclaration(entry.type))
-            } else if (idl.isCallback(entry)) {
-                if (!idl.hasTypeParameters(entry)) {
-                    orderer.addDep(entry)
-                }
             }
         }
     }
@@ -87,13 +84,15 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
 }
 
 function synthesizeCallbacks(library: LibraryInterface, orderer: DependencySorter): void {
+    const nameConvertor = library.createTypeNameConvertor(Language.CPP)
     const foundCallbacksNames = new Set<string>()
     const foundCallbacks: idl.IDLCallback[] = []
     const addCallback = (callback: idl.IDLCallback) => {
         callback = maybeTransformManagedCallback(callback, library) ?? callback
-        if (foundCallbacksNames.has(callback.name))
+        const name = nameConvertor.convert(callback)
+        if (foundCallbacksNames.has(name))
             return
-        foundCallbacksNames.add(callback.name)
+        foundCallbacksNames.add(name)
         foundCallbacks.push(callback)
     }
     for (const decl of orderer.getToposorted()) {
@@ -122,7 +121,7 @@ function synthesizeCallbacks(library: LibraryInterface, orderer: DependencySorte
             addCallback(continuation)
     }
     foundCallbacks
-        .sort((a, b) => a.name.localeCompare(b.name))
+        .sort((a, b) => nameConvertor.convert(a).localeCompare(nameConvertor.convert(b)))
         .filter(callback => {
             const subtypes = callback.parameters.map(it => it.type!).concat(callback.returnType)
                 .flatMap(it => {
@@ -186,8 +185,14 @@ export namespace DeclarationTargets {
             .filter(it => it !== idl.IDLVoidType)
             .filter(it => {
                 if (idl.isOptionalType(it)) it = it.type
+                if (idl.isReferenceType(it)) {
+                    it = library.resolveTypeReference(it)!
+                }
+                if (!it) {
+                    return false
+                }
                 if (idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)) return false
-                if ((idl.isInterface(it) || idl.isReferenceType(it)) && peerGeneratorConfiguration().serializer.ignore.includes(it.name)) return false
+                if (idl.isInterface(it) && peerGeneratorConfiguration().serializer.ignore.includes(it.name)) return false
                 return true
             })
             .map(it => idl.isType(it)

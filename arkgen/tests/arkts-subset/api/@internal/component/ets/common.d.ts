@@ -196,7 +196,7 @@ declare interface TextDecorationOptions {
  * @atomicservice
  * @since 11
  */
-declare const Component: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
+//declare constComponent: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
 
 /**
  * Defining ComponentV2 ClassDecorator
@@ -207,7 +207,7 @@ declare const Component: ClassDecorator & ((options: ComponentOptions) => ClassD
  * @atomicservice
  * @since 12
  */
-declare const ComponentV2: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
+//declare constComponentV2: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
 
 /**
  * Defines the options of Entry ClassDecorator.
@@ -311,7 +311,7 @@ declare interface EntryOptions {
  * @atomicservice
  * @since 11
  */
-declare const Entry: ClassDecorator & ((options?: LocalStorage | EntryOptions) => ClassDecorator);
+//declare constEntry: ClassDecorator & ((options?: LocalStorage | EntryOptions) => ClassDecorator);
 
 /**
  * Defining Observed ClassDecorator.
@@ -343,7 +343,7 @@ declare const Entry: ClassDecorator & ((options?: LocalStorage | EntryOptions) =
  * @atomicservice
  * @since 11
  */
-declare const Observed: ClassDecorator;
+//declare constObserved: ClassDecorator;
 
 /**
  * Defining ObservedV2 ClassDecorator.
@@ -354,7 +354,7 @@ declare const Observed: ClassDecorator;
  * @atomicservice
  * @since 12
  */
-declare const ObservedV2: ClassDecorator;
+//declare constObservedV2: ClassDecorator;
 
 /**
  * Defining Preview ClassDecorator.
@@ -386,7 +386,7 @@ declare const ObservedV2: ClassDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Preview: ClassDecorator & ((value: PreviewParams) => ClassDecorator);
+//declare constPreview: ClassDecorator & ((value: PreviewParams) => ClassDecorator);
 
 /**
  * Defining Require PropertyDecorator.
@@ -397,7 +397,7 @@ declare const Preview: ClassDecorator & ((value: PreviewParams) => ClassDecorato
  * @atomicservice
  * @since 11
  */
-declare const Require: PropertyDecorator;
+//declare constRequire: PropertyDecorator;
 
 /**
  * Defining BuilderParam PropertyDecorator
@@ -429,7 +429,7 @@ declare const Require: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const BuilderParam: PropertyDecorator;
+//declare constBuilderParam: PropertyDecorator;
 
 /**
  * Defining Local PropertyDecorator.
@@ -439,7 +439,7 @@ declare const BuilderParam: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Local: PropertyDecorator;
+//declare constLocal: PropertyDecorator;
 
 /**
  * Defining Param PropertyDecorator.
@@ -449,7 +449,7 @@ declare const Local: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Param: PropertyDecorator;
+//declare constParam: PropertyDecorator;
 
 /**
  * Defining Once PropertyDecorator.
@@ -459,7 +459,7 @@ declare const Param: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Once: PropertyDecorator;
+//declare constOnce: PropertyDecorator;
 
 /**
  * Defining Event PropertyDecorator.
@@ -469,7 +469,7 @@ declare const Once: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Event: PropertyDecorator;
+//declare constEvent: PropertyDecorator;
 
 /**
  * Defining State PropertyDecorator.
@@ -501,7 +501,7 @@ declare const Event: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const State: PropertyDecorator;
+//declare constState: PropertyDecorator;
 
 /**
  * Defining Track PropertyDecorator.
@@ -520,7 +520,7 @@ declare const State: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Track: PropertyDecorator;
+//declare constTrack: PropertyDecorator;
 
 /**
  * Defining Trace PropertyDecorator.
@@ -531,7 +531,7 @@ declare const Track: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Trace: PropertyDecorator;
+//declare constTrace: PropertyDecorator;
 
 /**
  * Defining Prop PropertyDecorator.
@@ -563,7 +563,7 @@ declare const Trace: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Prop: PropertyDecorator;
+//declare constProp: PropertyDecorator;
 
 /**
  * Defining Link PropertyDecorator.
@@ -595,7 +595,7 @@ declare const Prop: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Link: PropertyDecorator;
+//declare constLink: PropertyDecorator;
 
 /**
  * Defining ObjectLink PropertyDecorator.
@@ -627,7 +627,7 @@ declare const Link: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const ObjectLink: PropertyDecorator;
+//declare constObjectLink: PropertyDecorator;
 
 /**
  * Defines the options of Provide PropertyDecorator.
@@ -684,7 +684,7 @@ declare interface ProvideOptions {
  * @atomicservice
  * @since 11
  */
-declare const Provide: PropertyDecorator & ((value: string | ProvideOptions) => PropertyDecorator);
+//declare constProvide: PropertyDecorator & ((value: string | ProvideOptions) => PropertyDecorator);
 
 /**
  * Defining Provider PropertyDecorator, aliasName is the only matching key and if aliasName is the default, the default attribute name is regarded as aliasName.
@@ -693,7 +693,7 @@ declare const Provide: PropertyDecorator & ((value: string | ProvideOptions) => 
  * @atomicservice
  * @since 12
  */
-declare const Provider: (aliasName?: string) => PropertyDecorator;
+//declare constProvider: (aliasName?: string) => PropertyDecorator;
 
 /**
  * Defining Consume PropertyDecorator.
@@ -725,7 +725,7 @@ declare const Provider: (aliasName?: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Consume: PropertyDecorator & ((value: string) => PropertyDecorator);
+//declare constConsume: PropertyDecorator & ((value: string) => PropertyDecorator);
 
 /**
 * Defining Consumer PropertyDecorator, aliasName is the only matching key and if aliasName is the default, the default attribute name is regarded as aliasName.
@@ -735,7 +735,7 @@ declare const Consume: PropertyDecorator & ((value: string) => PropertyDecorator
 * @atomicservice
 * @since 12
 */
-declare const Consumer: (aliasName?: string) => PropertyDecorator;
+//declare constConsumer: (aliasName?: string) => PropertyDecorator;
 
 /**
 * Defining Computed MethodDecorator.
@@ -745,7 +745,7 @@ declare const Consumer: (aliasName?: string) => PropertyDecorator;
 * @atomicservice
 * @since 12
 */
-declare const Computed: MethodDecorator;
+//declare constComputed: MethodDecorator;
 
 /**
  * Defining StorageProp PropertyDecorator.
@@ -768,7 +768,7 @@ declare const Computed: MethodDecorator;
  * @atomicservice
  * @since 11
  */
-declare const StorageProp: (value: string) => PropertyDecorator;
+//declare constStorageProp: (value: string) => PropertyDecorator;
 
 /**
  * Defining StorageLink PropertyDecorator.
@@ -791,7 +791,7 @@ declare const StorageProp: (value: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const StorageLink: (value: string) => PropertyDecorator;
+//declare constStorageLink: (value: string) => PropertyDecorator;
 
 /**
  * Defining Watch PropertyDecorator.
@@ -823,7 +823,7 @@ declare const StorageLink: (value: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Watch: (value: string) => PropertyDecorator;
+//declare constWatch: (value: string) => PropertyDecorator;
 
 /**
  * Defining Builder MethodDecorator
@@ -855,7 +855,7 @@ declare const Watch: (value: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Builder: MethodDecorator;
+//declare constBuilder: MethodDecorator;
 
 /**
  * Defining LocalBuilder MethodDecorator
@@ -866,7 +866,7 @@ declare const Builder: MethodDecorator;
  * @atomicservice
  * @since 12
  */
-declare const LocalBuilder: MethodDecorator;
+//declare constLocalBuilder: MethodDecorator;
 
 /**
  * Defining Styles MethodDecorator
@@ -898,7 +898,7 @@ declare const LocalBuilder: MethodDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Styles: MethodDecorator;
+//declare constStyles: MethodDecorator;
 
 /**
  * Defining Extend MethodDecorator
@@ -930,7 +930,7 @@ declare const Styles: MethodDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Extend: MethodDecorator & ((value: any) => MethodDecorator);
+//declare constExtend: MethodDecorator & ((value: any) => MethodDecorator);
 
 /**
  * Define AnimatableExtend MethodDecorator
@@ -947,7 +947,7 @@ declare const Extend: MethodDecorator & ((value: any) => MethodDecorator);
  * @atomicservice
  * @since 11
  */
- declare const AnimatableExtend: MethodDecorator & ((value: Object) => MethodDecorator);
+ //declare constAnimatableExtend: MethodDecorator & ((value: Object) => MethodDecorator);
 
 /**
  * Define Monitor MethodDecorator
@@ -957,7 +957,7 @@ declare const Extend: MethodDecorator & ((value: any) => MethodDecorator);
  * @atomicservice
  * @since 12
  */
-declare const Monitor: MonitorDecorator;
+//declare constMonitor: MonitorDecorator;
 
 /**
  * Define Monitor Decorator type
@@ -1176,7 +1176,7 @@ declare interface IMonitorValue<T> {
  * @atomicservice
  * @since 11
  */
-declare const Concurrent: MethodDecorator;
+//declare constConcurrent: MethodDecorator;
 
 /**
  * Defining Sendable ClassDecorator
@@ -1191,7 +1191,7 @@ declare const Concurrent: MethodDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Sendable: ClassDecorator;
+//declare constSendable: ClassDecorator;
 
 /**
  * Defining  CustomDialog ClassDecorator
@@ -1214,7 +1214,7 @@ declare const Sendable: ClassDecorator;
  * @atomicservice
  * @since 11
  */
-declare const CustomDialog: ClassDecorator;
+//declare constCustomDialog: ClassDecorator;
 
 /**
  * Defining LocalStorageLink PropertyDecorator.
@@ -1237,7 +1237,7 @@ declare const CustomDialog: ClassDecorator;
  * @atomicservice
  * @since 11
  */
-declare const LocalStorageLink: (value: string) => PropertyDecorator;
+//declare constLocalStorageLink: (value: string) => PropertyDecorator;
 
 /**
  * Defining LocalStorageProp PropertyDecorator
@@ -1263,7 +1263,7 @@ declare const LocalStorageLink: (value: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const LocalStorageProp: (value: string) => PropertyDecorator;
+//declare constLocalStorageProp: (value: string) => PropertyDecorator;
 
 /**
  * Obtains the Context object associated with a component on the page.
@@ -1312,7 +1312,7 @@ declare function getContext(component?: Object): Context;
  * @atomicservice
  * @since 11
  */
-declare const Reusable: ClassDecorator;
+//declare constReusable: ClassDecorator;
 
 /**
  * Get context.
@@ -1341,7 +1341,8 @@ declare const Reusable: ClassDecorator;
  * @atomicservice
  * @since 11
  */
-declare type Context = import('../api/application/Context').default;
+// declare type Context = import('../api/application/Context').default;
+// declare interface Context {}
 
 /**
  * Post Card Action.
@@ -5332,7 +5333,7 @@ declare namespace focusControl {
  * @atomicservice
  * @since 12
  */
-declare type PointerStyle = import('../api/@ohos.multimodalInput.pointer').default.PointerStyle;
+declare interface PointerStyle {}
 
 /**
  * CursorControl
@@ -9348,7 +9349,8 @@ declare enum DragBehavior {
  * @atomicservice
  * @since 11
  */
-declare type UnifiedData = import('../api/@ohos.data.unifiedDataChannel').default.UnifiedData;
+// declare type UnifiedData = import('../api/@ohos.data.unifiedDataChannel').default.UnifiedData;
+declare interface UnifiedData {}
 
 /**
  * Import the Summary type object for ui component.
@@ -9365,7 +9367,8 @@ declare type UnifiedData = import('../api/@ohos.data.unifiedDataChannel').defaul
  * @atomicservice
  * @since 11
  */
-declare type Summary = import('../api/@ohos.data.unifiedDataChannel').default.Summary;
+// declare type Summary = import('../api/@ohos.data.unifiedDataChannel').default.Summary;
+declare interface Summary {}
 
 /**
  * Enum for Drag Result.
@@ -10533,7 +10536,8 @@ declare interface DragEvent {
  * @atomicservice
  * @since 11
  */
-declare type IntentionCode = import('../api/@ohos.multimodalInput.intentionCode').IntentionCode;
+// declare type IntentionCode = import('../api/@ohos.multimodalInput.intentionCode').IntentionCode;
+declare interface IntentionCode {}
 
 /**
  * KeyEvent object description:
@@ -14486,7 +14490,7 @@ declare interface MenuElement {
    * @atomicservice
    * @since 12
    */
-  symbolIcon?: SymbolGlyphModifier;
+  // symbolIcon?: SymbolGlyphModifier;
 
   /**
    * If the value is true, the menu element is available and can respond to operations such as clicking.
@@ -14676,7 +14680,7 @@ declare interface ContentModifier<T> {
    * @atomicservice
    * @since 12
    */
-  applyContent(): WrappedBuilder<[T]>
+  applyContent(): WrappedBuilder<Object[]>
 }
 
 /**
@@ -14904,7 +14908,8 @@ declare enum MenuPolicy {
  * @atomicservice
  * @since 12
  */
-declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier;
+// declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier;
+declare interface ImageModifier {}
 
 /**
  * SymbolGlyphModifier
@@ -14915,7 +14920,10 @@ declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier;
  * @atomicservice
  * @since 12
  */
-declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').SymbolGlyphModifier;
+// declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').SymbolGlyphModifier;
+// class SymbolGlyphModifier {
+//   constructor(src?: Resource);
+// }
 
 /**
  * Defines the preview options.
@@ -14932,43 +14940,11 @@ declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').Sy
  * @atomicservice
  * @since 12
  */
+declare interface DraggingSizeChangeEffect {}
 declare interface DragPreviewOptions {
-  /**
-  * Drag preview mode.
-  *
-  * @type { ?DragPreviewMode }
-  * @syscap SystemCapability.ArkUI.ArkUI.Full
-  * @since 11
-  */
- /**
-  * Drag preview mode.
-  *
-  * @type { ?(DragPreviewMode | Array<DragPreviewMode>) }
-  * @syscap SystemCapability.ArkUI.ArkUI.Full
-  * @atomicservice
-  * @since 12
-  */
-  mode?: DragPreviewMode | Array<DragPreviewMode>;
-
-  /**
-  * Drag preview modifier.
-  *
-  * @type { ?ImageModifier }
-  * @syscap SystemCapability.ArkUI.ArkUI.Full
-  * @atomicservice
-  * @since 12
-  */
-  modifier?: ImageModifier;
-
-  /**
-  * The flag for number showing.
-  *
-  * @type { ?(boolean | number) }
-  * @syscap SystemCapability.ArkUI.ArkUI.Full
-  * @atomicservice
-  * @since 12
-  */
-  numberBadge?: boolean | number;
+    mode?: DragPreviewMode | Array<DragPreviewMode>;
+    numberBadge?: boolean | number;
+    sizeChangeEffect?: DraggingSizeChangeEffect;
 }
 
 /**
@@ -15105,7 +15081,8 @@ declare interface InvertOptions {
  * @atomicservice
  * @since 12
  */
-declare type CircleShape = import('../api/@ohos.arkui.shape').CircleShape;
+// declare type CircleShape = import('../api/@ohos.arkui.shape').CircleShape;
+declare interface CircleShape {}
 
 /**
  * Import the EllipseShape type object for common method.
@@ -15117,7 +15094,10 @@ declare type CircleShape = import('../api/@ohos.arkui.shape').CircleShape;
  * @atomicservice
  * @since 12
  */
-declare type EllipseShape = import('../api/@ohos.arkui.shape').EllipseShape;
+// declare type EllipseShape = import('../api/@ohos.arkui.shape').EllipseShape;
+interface EllipseShape {
+  value: string
+}
 
 /**
  * Import the PathShape type object for common method.
@@ -15129,7 +15109,10 @@ declare type EllipseShape = import('../api/@ohos.arkui.shape').EllipseShape;
  * @atomicservice
  * @since 12
  */
-declare type PathShape = import('../api/@ohos.arkui.shape').PathShape;
+// declare type PathShape = import('../api/@ohos.arkui.shape').PathShape;
+interface PathShape {
+  value: string
+}
 
 /**
  * Import the RectShape type object for common method.
@@ -15141,7 +15124,10 @@ declare type PathShape = import('../api/@ohos.arkui.shape').PathShape;
  * @atomicservice
  * @since 12
  */
-declare type RectShape = import('../api/@ohos.arkui.shape').RectShape;
+// declare type RectShape = import('../api/@ohos.arkui.shape').RectShape;
+interface RectShape {
+  value: string
+}
 
 /**
  * Defines the type that can be undefined.
@@ -15187,6 +15173,7 @@ interface LayoutPolicy {}
  * @atomicservice
  * @since 11
  */
+declare interface UniformDataType {}
 declare class CommonMethod<T> {
   /**
    * constructor.
@@ -16542,61 +16529,6 @@ declare class CommonMethod<T> {
   foregroundColor(value: ResourceColor | ColoringStrategy): T;
 
   /**
-   * Trigger a click event when a click is clicked.
-   *
-   * @param { function } event
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Trigger a click event when a click is clicked.
-   *
-   * @param { function } event
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @form
-   * @since 9
-   */
-  /**
-   * Trigger a click event when a click is clicked.
-   *
-   * @param { function } event
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @since 10
-   */
-  /**
-   * Trigger a click event when a click is clicked.
-   *
-   * @param { function } event
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 11
-   */
-  // TODO: temporary!
-  onClick(event: (event: ClickEvent) => void): T;
-
-  /**
-   * Trigger a click event when a click is clicked, move distance should smaller than distanceThreshold.
-   *
-   * @param { function } event - this function callback executed when the click action is recognized
-   * @param { number } distanceThreshold - the distance threshold of finger's movement when detecting a click action
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 12
-   */
-  onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
-
-  /**
    * Trigger a hover event.
    *
    * @param { function } event
@@ -17106,111 +17038,6 @@ declare class CommonMethod<T> {
    * @since 12
    */
   transition(effect: TransitionEffect, onFinish: Optional<TransitionFinishCallback>): T;
-
-  /**
-   * Bind gesture recognition.
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Bind gesture recognition.
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @since 10
-   */
-  /**
-   * Bind gesture recognition.
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 11
-   */
-  gesture(gesture: GestureType, mask?: GestureMask): T;
-
-  /**
-   * Binding Preferential Recognition Gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Binding Preferential Recognition Gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @since 10
-   */
-  /**
-   * Binding Preferential Recognition Gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 11
-   */
-  priorityGesture(gesture: GestureType, mask?: GestureMask): T;
-
-  /**
-   * Binding gestures that can be triggered simultaneously with internal component gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Binding gestures that can be triggered simultaneously with internal component gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @since 10
-   */
-  /**
-   * Binding gestures that can be triggered simultaneously with internal component gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 11
-   */
-  parallelGesture(gesture: GestureType, mask?: GestureMask): T;
 
   /**
    * Adds the content blurring effect for the current component. The input parameter is the blurring radius.
@@ -19220,7 +19047,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 12
    */
-  overlay(value: string | CustomBuilder | ComponentContent, options?: OverlayOptions): T;
+  overlay(value: string | CustomBuilder | ComponentContent<undefined>, options?: OverlayOptions): T;
 
   /**
    * Linear Gradient
@@ -19588,65 +19415,6 @@ declare class CommonMethod<T> {
   advancedBlendMode(effect: BlendMode | Blender, type?: BlendApplyType): T;
 
   /**
-   * Whether to crop the sub components beyond the current component range.
-   *
-   * @param { boolean } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 12
-   */
-  clip(value: boolean): T;
-
-  /**
-   * When the parameter is of the Shape type, the current component is cropped according to the specified shape.
-   * When the parameter is of the boolean type, this parameter specifies whether to crop based on the edge contour.
-   *
-   * @param { boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * When the parameter is of the Shape type, the current component is cropped according to the specified shape.
-   * When the parameter is of the boolean type, this parameter specifies whether to crop based on the edge contour.
-   *
-   * @param { boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @form
-   * @since 9
-   */
-  /**
-   * When the parameter is of the Shape type, the current component is cropped according to the specified shape.
-   * When the parameter is of the boolean type, this parameter specifies whether to crop based on the edge contour.
-   *
-   * @param { boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @since 10
-   */
-  /**
-   * When the parameter is of the Shape type, the current component is cropped according to the specified shape.
-   * When the parameter is of the boolean type, this parameter specifies whether to crop based on the edge contour.
-   *
-   * @param { boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 11
-   * @deprecated since 12
-   * @useinstead CommonMethod#clipShape
-   */
-  clip(value: boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute): T;
-
-  /**
   * The current component is cropped according to the specified shape.
   *
   * @param { CircleShape | EllipseShape | PathShape | RectShape } value - indicates the shape of the clip.
@@ -19658,60 +19426,6 @@ declare class CommonMethod<T> {
   * @since 12
   */
   clipShape(value: CircleShape | EllipseShape | PathShape | RectShape): T;
-
-  /**
-   * Sets the mask of the current component.
-   *
-   * @param { ProgressMask } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  mask(value: ProgressMask): T;
-
-  /**
-   * Applies a mask of the specified shape to the current assembly.
-   *
-   * @param { CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Applies a mask of the specified shape to the current assembly.
-   *
-   * @param { CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask } value - indicates the shape of the mask.
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @form
-   * @since 9
-   */
-  /**
-   * Applies a mask of the specified shape to the current assembly.
-   *
-   * @param { CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask } value - indicates the shape of the mask.
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @since 10
-   */
-  /**
-   * Applies a mask of the specified shape to the current assembly.
-   *
-   * @param { CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask } value - indicates the shape of the mask.
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 11
-   * @deprecated since 12
-   * @useinstead CommonMethod#maskShape
-   */
-  mask(value: CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask): T;
 
   /**
    * Applies a mask of the specified shape to the current assembly.
@@ -20557,7 +20271,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 12
    */
-  attributeModifier(modifier: AttributeModifier<T>): T;
+  // attributeModifier(modifier: AttributeModifier<T>): T;
 
   /**
    * Sets the gesture modifier.
@@ -20826,7 +20540,7 @@ interface CommonInterface {
  * @atomicservice
  * @since 11
  */
-declare const CommonInstance: CommonAttribute;
+//declare constCommonInstance: CommonAttribute;
 
 /**
  * Common for ide.
@@ -20858,7 +20572,7 @@ declare const CommonInstance: CommonAttribute;
  * @atomicservice
  * @since 11
  */
-declare const Common: CommonInterface;
+//declare constCommon: CommonInterface;
 
 /**
  * Defines the CustomBuilder Type.
@@ -22357,7 +22071,8 @@ declare interface MeasureResult extends SizeResult {
  * @atomicservice
  * @since 12
  */
-declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
+// declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
+declare interface NavDestinationInfo {}
 
 /**
  * The navigation information.
@@ -22368,7 +22083,8 @@ declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDesti
  * @atomicservice
  * @since 12
  */
-declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.NavigationInfo;
+// declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.NavigationInfo;
+declare interface NavigationInfo {}
 
 /**
  * The router page information.
@@ -22379,7 +22095,8 @@ declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.Navi
  * @atomicservice
  * @since 12
  */
-declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.RouterPageInfo;
+// declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.RouterPageInfo;
+declare interface RouterPageInfo {}
 
 /**
  * UIContext
@@ -22397,7 +22114,8 @@ declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.Rout
  * @atomicservice
  * @since 12
  */
-declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext;
+// declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext;
+declare interface UIContext {}
 
 /**
  * DrawContext
@@ -22408,7 +22126,7 @@ declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext;
  * @atomicservice
  * @since 12
  */
-declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
+// declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
 
 /**
  * VisualEffect
@@ -22419,7 +22137,8 @@ declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
  * @atomicservice
  * @since 12
  */
-declare type VisualEffect = import('../api/@ohos.graphics.uiEffect').default.VisualEffect;
+// declare type VisualEffect = import('../api/@ohos.graphics.uiEffect').default.VisualEffect;
+declare interface VisualEffect {}
 
 
 /**
@@ -22431,7 +22150,8 @@ declare type VisualEffect = import('../api/@ohos.graphics.uiEffect').default.Vis
  * @atomicservice
  * @since 12
  */
-declare type Filter = import('../api/@ohos.graphics.uiEffect').default.Filter;
+// declare type Filter = import('../api/@ohos.graphics.uiEffect').default.Filter;
+declare interface Filter {}
 
 /**
  * Blender
@@ -22442,18 +22162,10 @@ declare type Filter = import('../api/@ohos.graphics.uiEffect').default.Filter;
  * @form
  * @since 13
  */
-declare type Blender = import('../api/@ohos.graphics.uiEffect').default.Blender;
-
-/**
- * ComponentContent.
- *
- * @typedef {import('../api/arkui/ComponentContent').ComponentContent<T>} ComponentContent<T = Object>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare type ComponentContent<T = Object> = import('../api/arkui/ComponentContent').ComponentContent<T>;
+// declare type Blender = import('../api/@ohos.graphics.uiEffect').default.Blender;
+interface Blender {
+  value: string
+}
 
 /**
  * Theme.
@@ -22464,9 +22176,11 @@ declare type ComponentContent<T = Object> = import('../api/arkui/ComponentConten
  * @atomicservice
  * @since 12
  */
-declare type Theme = import('../api/@ohos.arkui.theme').Theme;
+// declare type Theme = import('../api/@ohos.arkui.theme').Theme;
+declare interface Theme {}
 
-declare type PromptActionDialogController = import('../api/@ohos.promptActionDialogController').PromptActionDialogController;
+// declare type PromptActionDialogController = import('../api/@ohos.promptActionDialogController').PromptActionDialogController;
+declare interface PromptActionDialogController {}
 
 /**
  * View
@@ -22596,6 +22310,8 @@ declare interface RectResult {
    */
   height: number;
 }
+
+function toIncludeDouble(value?: double)
 
 /**
  * CaretOffset info.
@@ -23580,30 +23296,6 @@ declare interface KeyframeState {
   event: () => void;
 }
 
-
-/**
- * Defines the basic callback.
- *
- * @typedef Callback
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare interface Callback<T, V = void> {
-  /**
-   * Defines the callback info.
-   *
-   * @param { T } data - the data will be used in the callback.
-   * @returns { V } - Returns result of the callback.
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  (data: T): V;
-}
-
 /**
  * Defines the callback type used in hover events.
  * The value of isHover indicates whether the mouse is hovering over the component.
@@ -23839,30 +23531,6 @@ declare interface UICommonEvent {
  * @since 12
  */
 declare interface UIGestureEvent {
-  /**
-   * Add a gesture bound to the component.
-   *
-   * @param { GestureHandler<T> } gesture - gesture indicates the gesture bound to a component.
-   * @param { GesturePriority } priority - priority indicates the gesture's priority.
-   * @param { GestureMask } mask - mask indicates the gesture's GestureMask value.
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  addGesture<T>(gesture: GestureHandler<T>, priority?: GesturePriority, mask?: GestureMask): void;
-
-  /**
-   * Add a parallel gesture bound to the component.
-   *
-   * @param { GestureHandler<T> } gesture - gesture indicates the gesture bound to a component.
-   * @param { GestureMask } mask - mask indicates the gesture's GestureMask value.
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  addParallelGesture<T>(gesture: GestureHandler<T>, mask?: GestureMask): void;
 
   /**
    * Remove the gesture that is bound to the component and marked as tag.

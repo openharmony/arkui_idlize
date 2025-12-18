@@ -1,0 +1,44 @@
+package test_transform;
+
+
+interface TransformSrcI {
+    attribute boolean flag;
+};
+
+interface TransformDstI {
+    attribute number state;
+};
+
+[Entity=Class]
+interface TransformSrcC {
+    constructor();
+    attribute boolean flag;
+    void methodFrom();
+};
+
+[Entity=Class]
+interface TransformDstC {
+    constructor();
+    attribute number state;
+    void methodTo();
+};
+
+interface TransformSrcCallbackI {
+    attribute boolean flag;
+};
+
+[Entity=Class, HandWrittenImplementation]
+interface TransformSrcCallbackC {
+    constructor();
+    attribute boolean flag;
+    void methodFrom();
+};
+
+callback TransformDstCallbackI = boolean (boolean value);
+callback TransformDstCallbackC = boolean (boolean value);
+
+TransformSrcI checkTransformDstI(TransformSrcI value, boolean flag);
+TransformSrcC checkTransformDstC(TransformSrcC value, boolean flag);
+
+TransformSrcCallbackI checkTransformSrcIToCallback(TransformSrcCallbackI value, boolean flag);
+TransformSrcCallbackC checkTransformSrcCToCallback(TransformSrcCallbackC value, boolean flag);

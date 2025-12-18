@@ -1,0 +1,22 @@
+{
+    "target": [
+        "arkui.component",
+        "arkui.AttributeUpdater"
+    ],
+    "main": {
+        "additionalPackages": [
+            "arkui.component.idlize",
+            "arkui.component.navigator",
+            "api.internal.component.ets",
+            "arkui.stateManagement.internal",
+            "arkui.AttributeUpdaterFlag",
+            "arkui.PeerNode"
+        ]
+    },
+    "tsLikePackages": {
+        "arkui.ComponentContent": "@arkui.ComponentContent",
+        "arkui.Graphics": "@arkui.Graphics",
+        "arkui.SymbolGlyphModifier": "@arkui.SymbolGlyphModifier",
+        "arkui": "@ohos.arkui.component"
+    }
+}

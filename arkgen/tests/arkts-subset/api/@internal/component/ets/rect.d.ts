@@ -620,7 +620,7 @@ declare class RectAttribute extends CommonShapeMethod<RectAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Rect: RectInterface;
+//declare constRect: RectInterface;
 
 /**
  * Rect attribute.
@@ -629,7 +629,7 @@ declare const Rect: RectInterface;
  * @since 7
  * @deprecated since 9
  */
-declare const RectInStance: RectAttribute;
+//declare constRectInStance: RectAttribute;
 
 /**
  * Rect attribute.
@@ -651,4 +651,4 @@ declare const RectInStance: RectAttribute;
  * @atomicservice
  * @since 11
  */
-declare const RectInstance: RectAttribute;
+//declare constRectInstance: RectAttribute;

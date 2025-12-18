@@ -25,8 +25,8 @@ function cropCurrentModulePrefix(fqname: string): string {
 // TBD: code duplication with the ArkoalaLayout
 export function HandwrittenModule(language: Language): string {
     switch (language) {
-        case Language.TS: return "../handwritten"
-        case Language.ARKTS: return "../handwritten"
+        case Language.TS: return "./handwritten"
+        case Language.ARKTS: return "./handwritten"
         default: throw new Error("Not implemented")
     }
 }
@@ -43,7 +43,8 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     protected readonly interopObjects = [
         'SerializerBase', 
         'DeserializerBase',
-        'Finalizable'
+        'Finalizable',
+        'resourceFinalizerRegister'
     ]
 
     protected selectInterface(node: idl.IDLEntry): string {

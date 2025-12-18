@@ -1,0 +1,12 @@
+[Entity=Class]
+interface WithMethods {
+    void Method1(number arg);
+    number Method2();
+
+    [Optional]
+    attribute number returnValue;
+};
+
+interface DataClass: [Extends] WithMethods {
+    void Method3(String s);
+};

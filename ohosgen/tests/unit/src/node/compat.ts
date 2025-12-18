@@ -80,6 +80,21 @@ export { ExternalType, hookns } from "./handwritten/external_lib"
 export { DTSCheckExternalLib, InternalType } from "../../generated/ts"
 export { PromiseTester } from "../../generated/ts"
 
+export {
+    TransformSrcI,
+    TransformDstI,
+    TransformSrcC,
+    TransformDstC,
+    TransformSrcCallbackI,
+    TransformDstCallbackI,
+    TransformSrcCallbackC,
+    TransformDstCallbackC,
+    checkTransformDstI,
+    checkTransformDstC,
+    checkTransformSrcIToCallback,
+    checkTransformSrcCToCallback,
+} from "../../generated/ts"
+
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
 

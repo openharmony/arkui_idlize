@@ -1,0 +1,3 @@
+interface StaticMaterialized {
+    static void method(number valNumber, boolean valNumber);
+};

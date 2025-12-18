@@ -14,7 +14,6 @@
  */
 
 import * as idl from '../../idl'
-import { isOptionalType } from '../../idl'
 import { Language } from '../../Language'
 import { IndentedPrinter } from "../../IndentedPrinter";
 import {
@@ -24,7 +23,6 @@ import {
     DelegationType,
     ExpressionStatement,
     FieldModifier,
-    IfStatement,
     LambdaExpression,
     LanguageExpression,
     LanguageStatement,
@@ -36,17 +34,15 @@ import {
     MethodSignature,
     NamedMethodSignature,
     NamespaceOptions,
-    NaryOpExpression,
     ObjectArgs,
     ReturnStatement,
-    StringExpression
 } from "../LanguageWriter"
 import { ArgConvertor } from "../ArgConvertors"
 import { IdlNameConvertor } from "../nameConvertor"
 import { RuntimeType } from "../common";
-import { isDefined, rightmostIndexOf, throwException } from "../../util"
+import { isDefined } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
-import { removePoints } from '../convertors/CJConvertors';
+import { removePoints } from '../../util';
 
 export class KotlinLambdaReturnStatement implements LanguageStatement {
     constructor(public expression?: LanguageExpression) { }
@@ -120,7 +116,7 @@ export class KotlinEnumWithGetter implements LanguageStatement {
             const enumType = idl.createReferenceType(this.enumEntity)
             writer.makeStaticBlock(() => {
                 members.forEach(it => {
-                    writer.writeFieldDeclaration(it.name, idl.IDLAnyType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
+                    writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                         writer.makeString(`${mangledName}(${it.stringId ? `\"${it.stringId}\"` : it.numberId})`)
                     )
                 })
@@ -270,6 +266,12 @@ export class KotlinLanguageWriter extends LanguageWriter {
        return this.typeConvertor.convert(type)
     }
 
+    override get interopModule(): string {
+        return "koalaui.interop"
+    }
+
+    override maybeSemicolon(): string { return "" }
+
     writeClass(
         name: string,
         op: (writer: this) => void,
@@ -342,30 +344,71 @@ export class KotlinLanguageWriter extends LanguageWriter {
         let name = method.name
         let signature = method.signature
         this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
+            const pins = signature.args.flatMap((type, index) => this.pinArrayArgument(signature.argName(index), type))
+            const unpins = signature.args.flatMap((type, index) => this.unpinArrayArgument(signature.argName(index), type))
+            pins.filter(it => !!it).forEach(it => this.writeStatement(it!))
             const args = signature.args.map((type, index) => this.convertInteropArgument(signature.argName(index), type))
+            this.printForeignApiOptIn()
             const interopCallExpression = this.makeFunctionCall(`kotlin${name}`, args)
             if (signature.returnType === idl.IDLVoidType) {
                 this.writeExpressionStatement(interopCallExpression)
+                unpins.filter(it => !!it).forEach(it => this.writeStatement(it!))
                 return
             }
             const retval = "retval"
             this.writeStatement(this.makeAssign(retval, undefined, interopCallExpression))
+            unpins.filter(it => !!it).forEach(it => this.writeStatement(it!))
+            this.printForeignApiOptIn()
             this.writeStatement(this.makeReturn(this.convertInteropReturnValue(retval, signature.returnType)))
         })
+    }
+    private printForeignApiOptIn() {
+        this.writeStatement(this.foreignApiOptIn)
+    }
+    private get foreignApiOptIn(): LanguageStatement {
+        return new ExpressionStatement(this.makeString("@OptIn(ExperimentalForeignApi::class)"))
+    }
+    private isPrimitiveArray(type: idl.IDLType): boolean {
+        if (!idl.IDLContainerUtils.isSequence(type)) {
+            return false
+        }
+        const elementType = (type as idl.IDLContainerType).elementType[0]
+        const allowedTypes: idl.IDLType[] = [idl.IDLU8Type, idl.IDLI32Type, idl.IDLF32Type]
+        return allowedTypes.includes(elementType)
+    }
+    private pinArrayArgument(varName: string, type: idl.IDLType): LanguageStatement[] {
+        if (this.isPrimitiveArray(type)) {
+            const pinCall = this.makeMethodCall(varName, "pin", [])
+            const assign = this.makeAssign(`${varName}Pinned`, undefined, pinCall, true, true)
+            return [this.foreignApiOptIn, assign]
+        }
+        return []
+    }
+    private unpinArrayArgument(varName: string, type: idl.IDLType): LanguageStatement[] {
+        if (this.isPrimitiveArray(type)) {
+            const call = new ExpressionStatement(this.makeMethodCall(`${varName}Pinned`, "unpin", []))
+            return [this.foreignApiOptIn, call]
+        }
+        return []
     }
     private convertInteropArgument(varName: string, type: idl.IDLType): LanguageExpression {
         const realInteropType = this.getNodeName(type)
         let expr: string
         switch (realInteropType) {
+            case "UByteArray":
+            case "IntArray":
+            case "FloatArray": expr = `${varName}Pinned.addressOf(0)`; break
             case "KPointer":
+            case "KNativePointer":
             case "KSerializerBuffer": expr = `${varName}.toCPointer<CPointed>()!!`; break
+            case "BigInteger":
             case "KInt":
             case "KLong":
             case "KFloat":
             case "KDouble":
+            case "String":
             case "KStringPtr":
             case "KBoolean":
-            case "Float64":
             case "Float":
             case "Double":
             case "UInt":
@@ -378,10 +421,11 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const realInteropType = this.getNodeName(type)
         let expr: string
         switch (realInteropType) {
+            case "KNativePointer":
             case "KPointer": expr = `${varName}.toLong()`; break
             case "KInt":
             case "KLong":
-            case "Float64":
+            case "BigInteger":
             case "Float":
             case "Double":
             case "Long":
@@ -423,29 +467,21 @@ export class KotlinLanguageWriter extends LanguageWriter {
     writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void {
         let containerName = propName.concat("_container")
         let truePropName = this.escapeKeyword(propName)
-        if (getter) {
-            if(!getter!.op) {
-                this.print(`private var ${containerName}: ${this.getNodeName(propType)}`)
-            }
-        }
-        let isMutable = !modifiers.includes(FieldModifier.READONLY)
+        const isReadonly = modifiers.includes(FieldModifier.READONLY)
+        const isGetter = modifiers.includes(FieldModifier.GET)
+        const isSetter = modifiers.includes(FieldModifier.SET)
+        const isImmutable = isReadonly || (isGetter && !isSetter)
         let isOverride = modifiers.includes(FieldModifier.OVERRIDE)
         let initializer = initExpr ? ` = ${initExpr.asString()}` : ""
-        this.print(`${isOverride ? 'override ' : ''}public ${isMutable ? "var " : "val "}${truePropName}: ${this.getNodeName(propType)}${initializer}`)
+        this.print(`${isOverride ? 'override ' : ''}public ${isImmutable ? "val " : "var "}${truePropName}: ${this.getNodeName(propType)}${initializer}`)
         if (getter) {
             this.pushIndent()
             this.writeGetterImplementation(getter.method, getter.op)
-            if (isMutable) {
-                if (setter) {
-                    this.writeSetterImplementation(setter.method, setter ? setter.op : (writer) => {this.print(`${containerName} = ${truePropName}`)})
-                } else {
-                    this.print(`set(${truePropName}) {`)
-                    this.pushIndent()
-                    this.print(`${containerName} = ${truePropName}`)
-                    this.popIndent()
-                    this.print(`}`)
-                }
-            }
+            this.popIndent()
+        }
+        if (setter) {
+            this.pushIndent()
+            this.writeSetterImplementation(setter.method, setter ? setter.op : (writer) => { writer.print(`${containerName} = ${truePropName}`) })
             this.popIndent()
         }
     }
@@ -467,7 +503,16 @@ export class KotlinLanguageWriter extends LanguageWriter {
         throw new Error("Not implemented")
     }
     writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
-        throw new Error("Not implemented")
+        this.print(`val ${constName} = ${constVal}`)
+    }
+    override writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void {
+        if (importedFeatures.length !== aliases.length) {
+            throw new Error(`Inconsistent imports from ${moduleName}`)
+        }
+        for (let i = 0; i < importedFeatures.length; i++) {
+            const alias =  aliases[i] ? ` as ${aliases[i]}` : ``
+            this.writeExpressionStatement(this.makeString(`import ${moduleName}.${importedFeatures[i]}` + alias))
+        }
     }
     makeNull(): LanguageExpression {
         return this.makeString('null')
@@ -563,14 +608,14 @@ export class KotlinLanguageWriter extends LanguageWriter {
             return this.makeDefinedCheck(varName)
         } else {
             const op = equals ? "==" : "!="
-            return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`${typeVarName}.toInt()`)])
+            return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`${typeVarName}`)])
         }
     }
     getTagType(): idl.IDLType {
         return idl.createReferenceType("Tag")
     }
     getRuntimeType(): idl.IDLType {
-        return idl.IDLNumberType
+        return idl.IDLI8Type
     }
     makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
         throw new Error("Not implemented")

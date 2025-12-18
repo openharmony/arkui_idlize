@@ -21,37 +21,57 @@
         "UIGestureEvent",
         "TouchTestInfo",
         "TouchResult",
-        "SectionOptions"
+        "SectionOptions",
+        "LengthMetrics",
+        "ColorMetrics"
     ],
     "ignoreGenerics": [
         "arkui.component.common.AttributeModifier",
         "arkui.component.common.ContentModifier",
         "arkui.component.ContentModifier"
     ],
+    "transformOnSerialize": [
+        {
+            "from": "ohos.base.BusinessError",
+            "to": "arkui.component.idlize.BusinessErrorInterface"
+        },
+        {
+            "from": "arkui.component.builder.PageMapBuilder",
+            "to": "arkui.component.idlize.PageMapNodeBuilder"
+        },
+        {
+            "from": "arkui.component.builder.CustomBuilderT",
+            "to": "arkui.component.idlize.CustomNodeBuilderT"
+        },
+        {
+            "from": "arkui.component.waterFlow.WaterFlowSections",
+            "to": "arkui.component.idlize.WaterFlowSectionsInterface"
+        }
+    ],
     "forceMaterialized": [
-        "TapGestureInterface",
-        "LongPressGestureInterface",
-        "PanGestureInterface",
-        "SwipeGestureInterface",
-        "PinchGestureInterface",
-        "RotationGestureInterface",
-        "GestureGroupInterface",
-        "BaseContext",
-        "ClickEvent",
-        "AccessibilityHoverEvent",
-        "BaseEvent",
-        "BaseGestureEvent",
-        "FocusAxisEvent",
-        "GestureEvent",
-        "HoverEvent",
-        "KeyEvent",
-        "LongPressGestureEvent",
-        "MouseEvent",
-        "PanGestureEvent",
-        "PinchGestureEvent",
-        "RotationGestureEvent",
-        "SwipeGestureEvent",
-        "TapGestureEvent",
+        "arkui.component.gesture.extra.TapGestureInterface",
+        "arkui.component.gesture.extra.LongPressGestureInterface",
+        "arkui.component.gesture.extra.PanGestureInterface",
+        "arkui.component.gesture.extra.SwipeGestureInterface",
+        "arkui.component.gesture.extra.PinchGestureInterface",
+        "arkui.component.gesture.extra.RotationGestureInterface",
+        "arkui.component.gesture.extra.GestureGroupInterface",
+        "application.BaseContext.BaseContext",
+        "arkui.component.common.ClickEvent",
+        "arkui.component.common.AccessibilityHoverEvent",
+        "arkui.component.common.BaseEvent",
+        "arkui.component.gesture.BaseGestureEvent",
+        "arkui.component.common.FocusAxisEvent",
+        "arkui.component.gesture.GestureEvent",
+        "arkui.component.common.HoverEvent",
+        "arkui.component.common.KeyEvent",
+        "arkui.component.gesture.LongPressGestureEvent",
+        "arkui.component.common.MouseEvent",
+        "arkui.component.gesture.PanGestureEvent",
+        "arkui.component.gesture.PinchGestureEvent",
+        "arkui.component.gesture.RotationGestureEvent",
+        "arkui.component.gesture.SwipeGestureEvent",
+        "arkui.component.gesture.TapGestureEvent",
         "arkui.ComponentContent.ComponentContent",
         "ohos.animator.AnimatorOptions",
         "ohos.animator.AnimatorResult",
@@ -445,9 +465,28 @@
         ]
     },
     "forceResource": [
+        "PeerNode",
+        "ExtendableComponent",
+        "LifeCycle",
         "ContentModifier",
         "ComponentContentBase",
-        "UserDataSpan"
+        "UserDataSpan",
+        "Gesture",
+        "GestureGroup",
+        "TapGesture",
+        "LongPressGesture",
+        "PanGesture",
+        "PinchGesture",
+        "RotationGesture",
+        "SwipeGesture",
+        "GestureGroup",
+        "GestureHandler",
+        "LongPressGestureHandler",
+        "PanGestureHandler",
+        "PinchGestureHandler",
+        "TapGestureHandler",
+        "RotationGestureHandler",
+        "SwipeGestureHandler"
     ],
     "boundProperties": {
         "Checkbox": [
@@ -558,12 +597,30 @@
         "Record"
     ],
     "builderClasses": [
+        "Indicator",
+        "SubTabBarStyle",
+        "BottomTabBarStyle",
+        "DotIndicator",
+        "DigitIndicator"
     ],
     "components": {
         "customNodeTypes": [
             "CustomNode"
         ],
         "handWritten": [
+            "CustomDialogControllerOptions",
+            "CustomDialogControllerExternalOptions",
+            "CustomDialogController",
+            "EmbeddedComponentAttribute",
+            "EmbeddedComponent",
+            "EmbeddedComponentImpl",
+            "NodeContainerAttribute",
+            "NodeContainer",
+            "NodeContainerImpl",
+            "Initializer",
+            "PeerNode",
+            "LifeCycle",
+            "ExtendableComponent",
             "LocalStorage",
             "SyncedPropertyOneWay",
             "SubscribedAbstractProperty",
@@ -607,11 +664,9 @@
             "RotationGestureHandler",
             "SwipeGestureHandler",
             "GestureType",
-            "TouchTestInfo",
-            "TouchResult",
-            "WaterFlowSections",
             "Badge",
-            "ChildrenMainSize"
+            "ChildrenMainSize",
+            "WaterFlowSections"
         ],
         "ignoreEntry": [
             "Optional",
@@ -680,7 +735,7 @@
         ]
     },
     "hooks": {
-        "DragEventInternal":{
+        "DragEventInternal": {
             "startDataLoading": {
                 "hookName": "hookDragEventStartDataLoading",
                 "replaceImplementation": true
@@ -765,17 +820,13 @@
         "ListAttribute": {
             "childrenMainSize": {
                 "hookName": "hookListChildrenMainSizeImpl",
-                "replaceImplementation": false
+                "replaceImplementation": true
             }
         },
         "ListItemGroupAttribute": {
             "childrenMainSize": {
                 "hookName": "hookListItemGroupChildrenMainSizeImpl",
-                "replaceImplementation": false
-            },
-            "setListItemGroupOptions": {
-                "hookName": "hookListItemGroupOptionsImpl",
-                "replaceImplementation": false
+                "replaceImplementation": true
             }
         },
         "LoadingProgressAttribute": {
@@ -913,7 +964,7 @@
                 "hookName": "hookCommonMethodModifierSize",
                 "replaceImplementation": true
             },
-            "customProperty" : {
+            "customProperty": {
                 "hookName": "hookCommonMethodModifierCustomProperty",
                 "replaceImplementation": true
             }
@@ -986,6 +1037,7 @@
     },
     "patchMaterialized": {},
     "forceContext": [
+        "ExtendableComponent",
         "LoadUserView",
         "MeasureLayoutAndDraw",
         "MeasureNode",

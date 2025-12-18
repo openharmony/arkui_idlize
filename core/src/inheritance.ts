@@ -12,9 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ts from "typescript"
 import { generatorConfiguration } from "./config"
-import { asString, heritageDeclarations, identName } from "./util"
 
 export enum InheritanceRole {
     Finalizable,
@@ -22,20 +20,6 @@ export enum InheritanceRole {
     Root,
     Heir,
     Standalone,
-}
-
-export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
-    let name = identName(decl.name)!
-    let isSubclass = isRoot(name)
-    decl.heritageClauses?.forEach(it => {
-        heritageDeclarations(typeChecker, it).forEach(it => {
-            let name = asString(it.name)
-            isSubclass = isSubclass || isRoot(name)
-            if (!ts.isClassDeclaration(it)) return isSubclass
-            isSubclass = isSubclass || isCommonMethodOrSubclass(typeChecker, it)
-        })
-    })
-    return isSubclass
 }
 
 export function determineInheritanceRole(name: string): InheritanceRole {

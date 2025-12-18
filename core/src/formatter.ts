@@ -86,9 +86,12 @@ export function outputDiagnosticMessageFormatted(message: DiagnosticMessage): vo
             let lines = location.lines
             console.log(`${indent}${lastPath != part.location.documentPath ? "-->" : ":::"} ${part.location.documentPath}:${range.start.line}:${range.start.character}`)
             console.log(`${indent} |`)
-            for (let i = range.start.line; i <= range.end.line; ++i) {
+            const last = Math.min(range.end.line + 1, lines.length - 1)
+            for (let i = Math.max(range.start.line - 1, 1); i <= last; ++i) {
                 console.log(formatLine(digits, lines, i))
-                console.log(formatUnderline(indent, lines, i, range, "^", first ? "-" : "~", part.message))
+                if (i >= range.start.line && i <= range.end.line) {
+                    console.log(formatUnderline(indent, lines, i, range, "^", first ? "-" : "~", part.message))
+                }
             }
         } else {
             console.log(`${indent}--> ${part.location.documentPath}`)

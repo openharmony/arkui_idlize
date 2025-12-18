@@ -18,7 +18,7 @@ import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { isMaterialized } from '../../peer-generation/isMaterialized'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
-import { removePoints } from './CJConvertors'
+import { removePoints } from '../../util'
 import { InteropReturnTypeConvertor } from './InteropConvertors'
 
 export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
@@ -60,16 +60,21 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
     }
     convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
-                return `ArrayList<${convertType(this, type.elementType[0])}>`
+            switch (type.elementType[0]) {
+                case idl.IDLU8Type: return "UByteArray"
+                case idl.IDLI32Type: return "IntArray"
+                case idl.IDLF32Type: return "FloatArray"
             }
-            if (idl.IDLContainerUtils.isRecord(type)) {
-                const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it))
-                return `MutableMap<${stringes[0]}, ${stringes[1]}>`
-            }
-            if (idl.IDLContainerUtils.isPromise(type)) {
-                return `Any`
-            }
-            throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
+            return `ArrayList<${convertType(this, type.elementType[0])}>`
+        }
+        if (idl.IDLContainerUtils.isRecord(type)) {
+            const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it))
+            return `MutableMap<${stringes[0]}, ${stringes[1]}>`
+        }
+        if (idl.IDLContainerUtils.isPromise(type)) {
+            return `Any`
+        }
+        throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
     convertImport(type: idl.IDLImport): string {
         throw new Error("Not implemented")
@@ -99,7 +104,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
             case idl.IDLUnknownType:
             case idl.IDLCustomObjectType: return 'Any'
             case idl.IDLThisType: return 'this'
-            case idl.IDLObjectType: return 'Object'
+            case idl.IDLObjectType: return 'Any'
             case idl.IDLAnyType: return 'Any'
             case idl.IDLUndefinedType: return 'Nothing?'
             case idl.IDLPointerType: return 'KPointer'
@@ -151,7 +156,6 @@ const KLong = "KLong"
 const KFloat = "KFloat"
 const KDouble = "KDouble"
 const KNativePointer = "KNativePointer"
-const KInteropNumber = "KInteropNumber"
 const KStringPtr = "KStringPtr"
 const KInteropReturnBuffer = "KInteropReturnBuffer"
 const KInteropBuffer = "KInteropBuffer"
@@ -172,7 +176,7 @@ export class KotlinCInteropReturnTypeConvertor extends InteropReturnTypeConverto
             case idl.IDLF16Type:
             case idl.IDLF32Type:
             case idl.IDLF64Type: return KInt
-            case idl.IDLNumberType: return KInteropNumber
+            case idl.IDLNumberType: return KDouble
             case idl.IDLBooleanType: return KBoolean
             case idl.IDLBigintType: return KLong
             case idl.IDLAnyType:
@@ -237,7 +241,7 @@ export class KotlinCInteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLU32Type: return KInt
             case idl.IDLF32Type: return KFloat
             case idl.IDLF64Type: return KDouble
-            case idl.IDLNumberType: return KInteropNumber
+            case idl.IDLNumberType: return KDouble
             case idl.IDLBigintType: return KLong
             case idl.IDLSerializerBuffer: return KSerializerBuffer
             case idl.IDLBooleanType:

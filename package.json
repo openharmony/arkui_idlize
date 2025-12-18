@@ -6,6 +6,7 @@
   "workspaces": [
     "core/webidl2.js",
     "arkgen",
+    "arkgen/tests-template/arkts",
     "ohosgen/demos/*",
     "ohosgen",
     "core",
