@@ -20,6 +20,22 @@ export function collectPeersForFile(library: PeerLibrary, file: idl.IDLFile): Pe
     return collectPeers(library).filter(it => it.file === file)
 }
 
+export function extractContentParameter(method: idl.IDLMethod | idl.IDLCallable): {
+    hasContentParameter: boolean,
+    parameters: idl.IDLParameter[]
+} {
+    if (idl.isCallable(method) && method.parameters.at(-1)?.name === 'content_') {
+        return {
+            hasContentParameter: true,
+            parameters: method.parameters.slice(0, -1)
+        }
+    }
+    return {
+        hasContentParameter: false,
+        parameters: method.parameters
+    }
+}
+
 function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | idl.IDLCallable, peer: PeerClass, parentName?: string): PeerMethod | undefined {
     if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name!))
         return
@@ -31,12 +47,13 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
     const retType = method.returnType!
     const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T" || retType === idl.IDLThisType)
     const originalParentName = parentName ?? peer.originalClassName!
+    const { parameters } = extractContentParameter(method)
     const signature = new NamedMethodSignature(
         (isThisRet ? idl.IDLThisType : retType) ?? method.returnType!,
-        method.parameters.map(it => it.type),
-        method.parameters.map(it => it.name),
+        parameters.map(it => it.type),
+        parameters.map(it => it.name),
         undefined,
-        method.parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined)
+        parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined)
     )
     const realRetType = isThisRet ? idl.IDLVoidType : retType
     const overloadInfo = PeerMethodSignature.mangleOverloadedName(method)
