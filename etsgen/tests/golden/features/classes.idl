@@ -5,11 +5,9 @@ interface ClassWithConstructor {
 };
 [Entity=Class]
 interface ClassWithoutConstructor {
-    constructor();
 };
 [Entity=Class]
 interface ClassWithMethods {
-    constructor();
     attribute number field1;
     attribute number field2;
     [Accessor=Getter]

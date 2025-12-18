@@ -983,6 +983,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     properties.push(prop)
                     return
                 }
+                if (member.isConstructor) {
+                    if (member.startPosition.getIndex() == member.endPosition.getIndex()) {
+                        return
+                    }
+                }
                 const serializedMethod = this.serializeMethod(member, scopeName)
                 const key = scopeName + '.' + serializedMethod.name
                 if (this.config.ForceCallback.has(key) && idl.isMethod(serializedMethod)) {

@@ -141,5 +141,8 @@
                 "replaceImplementation": true
             }
         }
-    }
+    },
+    "forceMaterialized": [
+        "arkui.component.tabContent.TabBarSymbol"
+    ]
 }

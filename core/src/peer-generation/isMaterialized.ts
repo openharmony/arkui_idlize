@@ -56,6 +56,13 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     // excluding components and related classes
     if (declaration.methods.length > 0 || declaration.constructors.length > 0) return true
 
+    if (declaration.properties.some((prop) => {
+        const accessor = idl.getExtAttribute(prop, idl.IDLExtendedAttributes.Accessor)
+        return (accessor === idl.IDLAccessorAttribute.Getter || accessor === idl.IDLAccessorAttribute.Setter)
+    })) {
+        return true
+    }
+
     // Or a class or an interface derived from materialized class
     const superClass = getSuper(declaration, resolver)
     if (superClass) {
