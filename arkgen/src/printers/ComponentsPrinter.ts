@@ -46,6 +46,7 @@ import {
     allowNamedOverloads,
     peerGeneratorConfiguration,
     PrinterFunction,
+    extractContentParameter,
 } from '@idlizer/libohos'
 import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
@@ -268,6 +269,13 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                 const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
                 const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
                 const callableName = allowNamedOverloads(this.library.language) ? callableMethods[callableIndex].uniqueOverloadName : callableMethod.name
+                const { hasContentParameter } = extractContentParameter(callableMethods[callableIndex].decl as idl.IDLCallable)
+                const contentParameter = hasContentParameter
+                    ? `\n    @memo @memo_skip\n    content_?: () => void,`
+                    : ""
+                const contentParameterInvocation = hasContentParameter
+                    ? `\n        content_?.()`
+                    : ""
                 const callableInvocation = callableMethod?.name ? `receiver.${callableName}(${mappedCallableParamsValues})` : ""
                 const peerClassName = componentToPeerClass(peer.componentName)
                 if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
@@ -293,7 +301,9 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                     .replaceAll("%FUNCTION_PARAMETERS%", shiftIfIsNotEmpty(paramsList ?? ""))
                     .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
                     .replaceAll("%PEER_CLASS_NAME%", peerClassName)
-                    .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
+                    .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation)
+                    .replaceAll("%CONTENT_PARAMETER%", contentParameter)
+                    .replaceAll("%CONTENT_PARAMETER_INVOCATION%", contentParameterInvocation))
             })
             if (allowNamedOverloads(this.library.language) && collapsedCallables.length > 1) {
                 const overloads = peer.componentBuilderInfos.map(it => it.uniqueOverloadName).filter(it => it !== component.name)
