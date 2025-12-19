@@ -32,6 +32,7 @@ import test_promise.*
 import test_return_types.*
 import test_transform.*
 import test_union.*
+import test_hierarchy.*
 
 fun checkConstant() {
     // 1. Check dts const value
@@ -638,6 +639,62 @@ fun checkTransformOnSerialize() {
     assertEQ(false, resultTransformSrcCallbackC.flag)
 }
 
+fun checkHierarchy() {
+    var parentI: ParentI = object: ParentI {
+        override var parentFlag = false
+        override var parentCount = 0.0
+        override var parentText = ""
+    }
+    var resultParentI: ParentI = testParentInterfaceHierarchy(parentI)
+    assertEQ(false, parentI.parentFlag)
+    assertEQ(0.0, parentI.parentCount)
+    assertEQ("", parentI.parentText)
+
+    parentI = object: ParentI {
+        override var parentFlag = true
+        override var parentCount = 789.0
+        override var parentText = "ijk"
+    }
+    resultParentI = testParentInterfaceHierarchy(parentI)
+    assertEQ(true, resultParentI.parentFlag)
+    assertEQ(789.0, resultParentI.parentCount)
+    assertEQ("ijk", resultParentI.parentText)
+
+
+    var childI: ChildI = object: ChildI {
+        override var parentFlag = false
+        override var parentCount = 0.0
+        override var parentText = ""
+        override var childFlag = true
+        override var childCount = 0.0
+        override var childText = ""
+    }
+    var resultChildI: ChildI = testChildInterfaceHierarchy(childI)
+    assertEQ(false, resultChildI.parentFlag)
+    assertEQ(0.0, resultChildI.parentCount)
+    assertEQ("", resultChildI.parentText)
+    assertEQ(true, resultChildI.childFlag)
+    assertEQ(0.0, resultChildI.childCount)
+    assertEQ("", resultChildI.childText)
+
+    childI = object: ChildI {
+        override var parentFlag = true
+        override var parentCount = 3.0
+        override var parentText = "ab"
+        override var childFlag = false
+        override var childCount = 5.0
+        override var childText = "cde"
+    }
+
+    resultChildI = testChildInterfaceHierarchy(childI)
+    assertEQ(true, resultChildI.parentFlag)
+    assertEQ(3.0, resultChildI.parentCount)
+    assertEQ("ab", resultChildI.parentText)
+    assertEQ(false, resultChildI.childFlag)
+    assertEQ(5.0, resultChildI.childCount)
+    assertEQ("cde", resultChildI.childText)
+}
+
 fun checkMultipleInstances() {
     // getSomeClassInstance returns the same object every time
     // check that destructing of local wrappers does not destroy
@@ -682,6 +739,7 @@ suspend fun run(): Unit {
     suite.addAsyncTest("checkPromiseRejected", ::checkPromiseRejected)
     suite.addTest("checkHandwrittenDeserializer", ::checkHandwrittenDeserializer)
     suite.addTest("checkTransformOnSerialize", ::checkTransformOnSerialize)
+    suite.addTest("checkHierarchy", ::checkHierarchy)
     suite.addTest("checkMultipleInstances", ::checkMultipleInstances)
 
     suite.run()
