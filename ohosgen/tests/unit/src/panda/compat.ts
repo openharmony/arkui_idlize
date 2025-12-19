@@ -92,6 +92,17 @@ export {
 } from "../../generated/arkts"
 export { getSomeClassInstance, SomeClass } from "../../generated/arkts"
 
+export {
+  ParentI,
+  ChildI,
+  ParentC,
+  ChildC,
+  testParentInterfaceHierarchy,
+  testChildInterfaceHierarchy,
+  testParentClassHierarchy,
+  testChildClassHierarchy,
+} from "../../generated/arkts"
+
 export type OHBuffer = NativeBuffer
 export type OHAny = object
 

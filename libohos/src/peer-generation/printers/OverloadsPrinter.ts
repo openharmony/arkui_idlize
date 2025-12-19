@@ -22,9 +22,8 @@ import {
 } from "../LanguageWriters";
 import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, copyMethod, hasAccessModifier,
     PeerMethodSignature, maybeRestoreThrows, 
-    getSuper,
-    isMaterialized,
-    isStaticMaterialized} from "@idlizer/core"
+    isMaterializedMethodOverridden,
+} from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { UndefinedConvertor } from "@idlizer/core"
 import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -339,16 +338,8 @@ export class OverloadsPrinter {
                     collapsedMethodToPrint.modifiers!.push(MethodModifier.PUBLIC)
                 }
                 if (interfaceDeclaration) {
-                    if (collapsedMethodToPrint.name === PeerMethodSignature.CALL_HOLDER) {
-                        let ancestor = getSuper(interfaceDeclaration, this.library)
-                        if (ancestor && isMaterialized(ancestor, this.library)) {
-                            collapsedMethodToPrint.modifiers!.push(MethodModifier.OVERRIDE)
-                        } else {
-                            collapsedMethodToPrint.modifiers!.push(MethodModifier.OPEN)
-                        }
-                    } else if (idl.isInterfaceSubkind(interfaceDeclaration) && !isStaticMaterialized(interfaceDeclaration, this.library)) {
-                        collapsedMethodToPrint.modifiers!.push(MethodModifier.OVERRIDE)
-                    }
+                    const isOverridden = isMaterializedMethodOverridden(interfaceDeclaration, collapsedMethodToPrint.name, this.library)
+                    collapsedMethodToPrint.modifiers!.push(isOverridden ? MethodModifier.OVERRIDE : MethodModifier.OPEN)
                 }
             }
         }

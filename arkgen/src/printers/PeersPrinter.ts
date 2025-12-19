@@ -36,6 +36,7 @@ import {
     IDLPointerType,
     IDLStringType,
     IDLVoidType,
+    isMethodOverridden,
 } from '@idlizer/core'
 import {
     ImportsCollector,
@@ -186,9 +187,10 @@ class PeerFileVisitor {
         })
     }
 
-    protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
+    protected printPeerMethod(decl: idl.IDLInterface, method: PeerMethod, printer: LanguageWriter) {
         this.library.setCurrentContext(`${method.originalParentName}.${method.sig.name}`)
-        writePeerMethod(this.library, printer, method, this.dumpSerialized, "Attribute", "this.peer.ptr")
+        const isOverridden = isMethodOverridden(decl, method.method.name, this.library)
+        writePeerMethod(this.library, printer, method, this.dumpSerialized, "Attribute", "this.peer.ptr", undefined, isOverridden)
         this.library.setCurrentContext(undefined)
     }
 
@@ -197,7 +199,7 @@ class PeerFileVisitor {
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])
-                .forEach(method => this.printPeerMethod(method, writer))
+                .forEach(method => this.printPeerMethod(peer.decl, method, writer))
         }, this.generatePeerParentName(peer))
     }
 

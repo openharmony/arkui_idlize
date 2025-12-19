@@ -100,6 +100,17 @@ import {
     checkTransformSrcCToCallback,
 } from "#compat"
 
+import {
+  ParentI,
+  ChildI,
+  ParentC,
+  ChildC,
+  testParentInterfaceHierarchy,
+  testChildInterfaceHierarchy,
+  testParentClassHierarchy,
+  testChildClassHierarchy,
+} from "#compat"
+
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
 }
@@ -668,6 +679,132 @@ function checkTransformOnSerialize() {
   assertEQ(false, resultTransformSrcCallbackC.flag)
 }
 
+function checkHierarchy() {
+  let parentI: ParentI = { parentFlag: false, parentCount: 0, parentText: "" }
+  let resultParentI: ParentI = testParentInterfaceHierarchy(parentI)
+  assertEQ(false, resultParentI.parentFlag)
+  assertEQ(0, resultParentI.parentCount)
+  assertEQ("", resultParentI.parentText)
+
+  parentI = { parentFlag: true, parentCount: 789, parentText: "ijk" }
+  resultParentI = testParentInterfaceHierarchy(parentI)
+  assertEQ(true, resultParentI.parentFlag)
+  assertEQ(789, resultParentI.parentCount)
+  assertEQ("ijk", resultParentI.parentText)
+
+  let childI: ChildI = {
+    parentFlag: false,
+    parentCount: 0,
+    parentText: "",
+    childFlag: true,
+    childCount: 0,
+    childText: "",
+  }
+  let resultChildI: ChildI = testChildInterfaceHierarchy(childI)
+  assertEQ(false, resultChildI.parentFlag)
+  assertEQ(0, resultChildI.parentCount)
+  assertEQ("", resultChildI.parentText)
+  assertEQ(true, resultChildI.childFlag)
+  assertEQ(0, resultChildI.childCount)
+  assertEQ("", resultChildI.childText)
+
+  childI = {
+    parentFlag: true,
+    parentCount: 3,
+    parentText: "ab",
+    childFlag: false,
+    childCount: 5,
+    childText: "cde",
+  }
+  resultChildI = testChildInterfaceHierarchy(childI)
+  assertEQ(true, resultChildI.parentFlag)
+  assertEQ(3, resultChildI.parentCount)
+  assertEQ("ab", resultChildI.parentText)
+  assertEQ(false, resultChildI.childFlag)
+  assertEQ(5, resultChildI.childCount)
+  assertEQ("cde", resultChildI.childText)
+
+  resultParentI = testParentInterfaceHierarchy(childI)
+  assertEQ(true, resultChildI.parentFlag)
+  assertEQ(3, resultChildI.parentCount)
+  assertEQ("ab", resultChildI.parentText)
+
+  let parentC: ParentC = new ParentC(false, 0, "")
+  let resultParentC: ParentC = testParentClassHierarchy(parentC)
+  assertEQ(false, resultParentC.parentFlag)
+  assertEQ(0, resultParentC.parentCount)
+  assertEQ("", resultParentC.parentText)
+
+  assertEQ("Parent", parentC.parentMethod(true, 31, "31"))
+  assertEQ("ParentCommon", parentC.commonMethod(true, 32, "32"))
+
+  parentC = new ParentC(true, 11, "fjk")
+  resultParentC = testParentClassHierarchy(parentC)
+  assertEQ(true, resultParentC.parentFlag)
+  assertEQ(11, resultParentC.parentCount)
+  assertEQ("fjk", resultParentC.parentText)
+
+  parentC.parentFlag = false
+  parentC.parentCount = -101
+  parentC.parentText = ""
+  assertEQ(false, parentC.parentFlag)
+  assertEQ(-101, parentC.parentCount)
+  assertEQ("", parentC.parentText)
+
+  parentC.parentFlag = true
+  parentC.parentCount = 101
+  parentC.parentText = "101"
+  assertEQ(true, parentC.parentFlag)
+  assertEQ(101, parentC.parentCount)
+  assertEQ("101", parentC.parentText)
+
+  let childC: ChildC = new ChildC(0, "", false)
+  let resultChildC: ChildC = testChildClassHierarchy(childC)
+  assertEQ(false, resultChildC.childFlag)
+  assertEQ(0, resultChildC.childCount)
+  assertEQ("", resultChildC.childText)
+
+  childC = new ChildC(21, "uvwx", true)
+  resultChildC = testChildClassHierarchy(childC)
+  assertEQ(true, resultChildC.childFlag)
+  assertEQ(21, resultChildC.childCount)
+  assertEQ("uvwx", resultChildC.childText)
+
+  assertEQ("Child", childC.childMethod("33", true, 33))
+  assertEQ("ChildCommon", childC.commonMethod(true, 34, "34"))
+
+  // TBD: check setting parent properties
+  // childC.parentFlag = false
+  // childC.parentCount = -201
+  // childC.parentText = ""
+  childC.childFlag = true
+  childC.childCount = -202
+  childC.childText = ""
+  // assertEQ(false, childC.parentFlag)
+  // assertEQ(-201, childC.parentCount)
+  // assertEQ("", childC.parentText)
+  assertEQ(true, childC.childFlag)
+  assertEQ(-202, childC.childCount)
+  assertEQ("", childC.childText)
+
+  // TBD: check setting parent properties
+  // childC.parentFlag = true
+  // childC.parentCount = 201
+  // childC.parentText = "201"
+  childC.childFlag = false
+  childC.childCount = 202
+  childC.childText = "202"
+  // assertEQ(true, childC.parentFlag)
+  // assertEQ(201, childC.parentCount)
+  // assertEQ("201", childC.parentText)
+  assertEQ(false, childC.childFlag)
+  assertEQ(202, childC.childCount)
+  assertEQ("202", childC.childText)
+
+  let c: ParentC = new ChildC(1, "1", true)
+  assertEQ("ChildCommon", c.commonMethod(true, 34, "34"))
+}
+
 function checkMultipleInstances() {
   // getSomeClassInstance returns the same object every time
   // check that destructing of local wrappers does not destroy
@@ -713,6 +850,8 @@ export function run() {
   suite.addTest("checkHandwrittenDeserializer", checkHandwrittenDeserializer)
   suite.addTest("checkTransformOnSerialize", checkTransformOnSerialize)
   suite.addTest("checkMultipleInstances", checkMultipleInstances)
+  suite.addTest("checkHierarchy", checkHierarchy)
+
 
   return suite.run()
 }

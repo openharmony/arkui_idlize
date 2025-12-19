@@ -93,6 +93,18 @@ export {
     checkTransformSrcCToCallback,
 } from "../../generated/ts"
 
+export {
+  ParentI,
+  ChildI,
+  ParentC,
+  ChildC,
+  testParentInterfaceHierarchy,
+  testChildInterfaceHierarchy,
+  testParentClassHierarchy,
+  testChildClassHierarchy,
+} from "../../generated/ts"
+
+
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
 

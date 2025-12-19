@@ -35,6 +35,25 @@ OH_String copy_string(OH_String str)
     return OH_String { .chars = chars, .length = str.length };
 }
 
+InteropInt32 string_len(const char* str) {
+    return static_cast<InteropInt32>(strlen(str));
+}
+
+void assert_eq_bool(bool golden, OH_Boolean b, const char* comment) {
+    if (b == golden) return;
+    INTEROP_FATAL("%s, golden: %d, curr: %d", comment, golden, b);
+}
+
+void assert_eq_int(int golden, OH_Number num, const char* comment) {
+    if (num.tag == INTEROP_TAG_INT32 && num.i32 == golden) return;
+    INTEROP_FATAL("%s, golden: %d, curr: [tag: %d, i32: %d]", comment, golden, num.tag, num.i32);
+}
+
+void assert_eq_str(const char* golden, OH_String str, const char* comment) {
+    if (str.length == string_len(golden) && strcmp(golden, str.chars) == 0) return;
+    INTEROP_FATAL("%s, golden: '%s', curr: [length: %d, chars: '%s']", comment, golden, str.length, str.chars);
+}
+
 OH_UNIT_HelloHandle Hello_constructImpl()
 {
     return {};
@@ -1507,4 +1526,118 @@ UNIT_TransformDstCallbackC GlobalScope_checkTransformSrcCToCallbackImpl(const UN
 OH_UNIT_SomeClassHandle GlobalScope_getSomeClassInstance() {
     static SomeClass obj;
     return reinterpret_cast<OH_UNIT_SomeClassHandle>(&obj);
+}
+
+// Hierarchy
+
+class IDLParentCPeer
+{
+public:
+    OH_Boolean flag;
+    OH_Number count;
+    OH_String text;
+    IDLParentCPeer(OH_Boolean f, const OH_Number c, const OH_String t) : flag(f), count(c), text(t)  {}
+};
+
+class IDLChildCPeer
+{
+public:
+    OH_Boolean childFlag;
+    OH_Number childCount;
+    OH_String childText;
+    IDLChildCPeer(const OH_Number c, const OH_String t, OH_Boolean f) : childFlag(f), childCount(c), childText(t)  {}
+};
+
+void ParentC_callHolderImpl(OH_NativePointer thisPtr) {
+}
+OH_UNIT_ParentCHandle ParentC_constructImpl(OH_Boolean parentFlag, const OH_Number* parentCount, const OH_String* parentText) {
+    return (OH_UNIT_ParentCHandle) new IDLParentCPeer(parentFlag, *parentCount, copy_string(*parentText));
+}
+void ParentC_destructImpl(OH_UNIT_ParentCHandle thisPtr) {
+}
+OH_Boolean ParentC_getParentFlagImpl(OH_NativePointer thisPtr) {
+    return ((IDLParentCPeer*)thisPtr)->flag;
+}
+OH_Number ParentC_getParentCountImpl(OH_NativePointer thisPtr) {
+    return ((IDLParentCPeer*)thisPtr)->count;
+}
+OH_String ParentC_getParentTextImpl(OH_NativePointer thisPtr) {
+    return ((IDLParentCPeer*)thisPtr)->text;
+}
+void ParentC_setParentFlagImpl(OH_NativePointer thisPtr, OH_Boolean value) {
+    ((IDLParentCPeer*)thisPtr)->flag = value;
+}
+void ParentC_setParentCountImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+    ((IDLParentCPeer*)thisPtr)->count = *value;
+}
+void ParentC_setParentTextImpl(OH_NativePointer thisPtr, const OH_String* value) {
+    ((IDLParentCPeer*)thisPtr)->text = copy_string(*value);
+}
+OH_String ParentC_parentMethodImpl(OH_NativePointer thisPtr, OH_Boolean parentFlag, const OH_Number* parentCount, const OH_String* parentText) {
+    assert_eq_bool(true, parentFlag, "parent flag value is not correct");
+    assert_eq_int(31, *parentCount, "parent count value is not correct");
+    assert_eq_str("31", *parentText, "parent text value is not correct");
+    return OH_String{.chars = "Parent", .length = string_len("Parent")};
+}
+OH_String ParentC_commonMethodImpl(OH_NativePointer thisPtr, OH_Boolean commonFlag, const OH_Number* commonCount, const OH_String* commonText) {
+    assert_eq_bool(true, commonFlag, "parent common flag value is not correct");
+    assert_eq_int(32, *commonCount, "parent common count value is not correct");
+    assert_eq_str("32", *commonText, "parent common text value is not correct");
+    return OH_String{.chars = "ParentCommon", .length = string_len("ParentCommon")};
+}
+
+
+void ChildC_callHolderImpl(OH_NativePointer thisPtr) {
+}
+OH_UNIT_ChildCHandle ChildC_constructImpl(const OH_Number* childCount, const OH_String* childText, OH_Boolean childFlag) {
+    return (OH_UNIT_ChildCHandle) new IDLChildCPeer(*childCount, copy_string(*childText), childFlag);
+}
+void ChildC_destructImpl(OH_UNIT_ChildCHandle thisPtr) {
+}
+OH_Boolean ChildC_getChildFlagImpl(OH_NativePointer thisPtr) {
+    return ((IDLChildCPeer*)thisPtr)->childFlag;
+}
+OH_Number ChildC_getChildCountImpl(OH_NativePointer thisPtr) {
+    return ((IDLChildCPeer*)thisPtr)->childCount;
+}
+OH_String ChildC_getChildTextImpl(OH_NativePointer thisPtr) {
+    return ((IDLChildCPeer*)thisPtr)->childText;
+}
+void ChildC_setChildFlagImpl(OH_NativePointer thisPtr, OH_Boolean value) {
+    ((IDLChildCPeer*)thisPtr)->childFlag = value;
+}
+void ChildC_setChildCountImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+    ((IDLChildCPeer*)thisPtr)->childCount = *value;
+}
+void ChildC_setChildTextImpl(OH_NativePointer thisPtr, const OH_String* value) {
+    ((IDLChildCPeer*)thisPtr)->childText = copy_string(*value);
+}
+
+OH_String ChildC_childMethodImpl(OH_NativePointer thisPtr, const OH_String* childText, OH_Boolean childFlag, const OH_Number* childCount) {
+    assert_eq_bool(true, childFlag, "child flag value is not correct");
+    assert_eq_int(33, *childCount, "child count value is not correct");
+    assert_eq_str("33", *childText, "child text value is not correct");
+    return OH_String{.chars = "Child", .length = string_len("Child")};
+}
+OH_String ChildC_commonMethodImpl(OH_NativePointer thisPtr, OH_Boolean commonFlag, const OH_Number* commonCount, const OH_String* commonText) {
+    assert_eq_bool(true, commonFlag, "child common flag value is not correct");
+    assert_eq_int(34, *commonCount, "child common count value is not correct");
+    assert_eq_str("34", *commonText, "child common text value is not correct");
+    return OH_String{.chars = "ChildCommon", .length = string_len("ChildCommon")};
+}
+
+OH_UNIT_ParentI GlobalScope_testParentInterfaceHierarchyImpl(const OH_UNIT_ParentI* arg) {
+    return *arg;
+}
+
+OH_UNIT_ChildI GlobalScope_testChildInterfaceHierarchyImpl(const OH_UNIT_ChildI* arg) {
+    return *arg;
+}
+
+OH_UNIT_ParentC GlobalScope_testParentClassHierarchyImpl(OH_UNIT_ParentC arg) {
+    return arg;
+}
+
+OH_UNIT_ChildC GlobalScope_testChildClassHierarchyImpl(OH_UNIT_ChildC arg) {
+    return arg;
 }

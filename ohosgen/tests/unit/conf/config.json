@@ -45,6 +45,7 @@
                 "test_buffer",
                 "test_bigint",
                 "test_const",
+                "test_hierarchy",
                 "test_idl_constants",
                 "test_constants",
                 "test_data_class",

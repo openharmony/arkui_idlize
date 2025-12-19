@@ -29,7 +29,8 @@ import {
     PeerMethodSignature,
     getExtractor,
     maybeRestoreThrows,
-    isThrows
+    isThrows,
+    MethodModifier,
 } from '@idlizer/core'
 import { getHookMethod } from '../../DefaultConfiguration'
 import {
@@ -50,7 +51,7 @@ export function componentToPeerClass(component: string) {
 const returnValName = "retval"  // make sure this doesn't collide with parameter names!
 
 export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
-    methodPostfix: string, ptr: string, returnTypeOverride?: IDLType
+    methodPostfix: string, ptr: string, returnTypeOverride?: IDLType, isOverridden: boolean = false
 ) {
     let returnType = returnTypeOverride ?? method.sig.returnType
     if (returnType === idl.IDLThisType) {
@@ -59,10 +60,11 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
     const hookMethod = getHookMethod(method.originalParentName, method.method.name)
     if (hookMethod && hookMethod.replaceImplementation) return
     const signature = method.method.signature as NamedMethodSignature
+    const modifiers = [...(method.method.modifiers ?? []), isOverridden ? MethodModifier.OVERRIDE : MethodModifier.OPEN]
     let peerMethod = new Method(
         `${method.sig.name}${methodPostfix}`,
         new NamedMethodSignature(returnType, signature.args, signature.argsNames, signature.defaults, signature.argsModifiers),
-        method.method.modifiers, method.method.generics
+        modifiers, method.method.generics
     )
     if (maybeRestoreThrows(returnType, library) === idl.IDLThisType) {
         peerMethod.signature.returnType = idl.IDLVoidType

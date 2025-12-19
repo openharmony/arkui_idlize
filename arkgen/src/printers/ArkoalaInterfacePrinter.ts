@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinDeclarationConvertor, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, maybeRestoreThrows, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, isMethodOverridden, Language, LanguageWriter, maybeRestoreThrows, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface } from "./PeersPrinter"
 
@@ -160,7 +160,9 @@ class ArkoalaKotlinDeclarationConvertor extends KotlinDeclarationConvertor {
                     : peerSig.returnType
                 const componentMethodSignature = new NamedMethodSignature(returnType, peerSig.args, peerSig.argsNames,
                     peerSig.defaults, peerSig.argsModifiers, peerSig.printHints)
-                writer.writeMethodDeclaration(peerMethod.method.name, componentMethodSignature)
+                const modifiers = isMethodOverridden(idlInterface, peerMethod.method.name, this.peerLibrary)
+                    ? [MethodModifier.OVERRIDE] : []
+                writer.writeMethodDeclaration(peerMethod.method.name, componentMethodSignature, modifiers)
             }
         }, superType ? [nameConvertor.convert(superType)] : undefined)
         return printer.getOutput()

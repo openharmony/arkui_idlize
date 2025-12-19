@@ -27,6 +27,10 @@ import {
     ArkCheckOptionalComponent,
     ArkCheckTransformPeer,
     ArkCheckTransformComponent,
+    ArkCheckParentPeer,
+    ArkCheckParentComponent,
+    ArkCheckChildPeer,
+    ArkCheckChildComponent,
 } from "./."
 
 import { InteropNativeModule } from "@koalaui/interop"
@@ -154,6 +158,23 @@ function checkTransformOnSerialize() {
     checkResult("sampleTransformUnion", () => comp.sampleTransformUnion({text: "defgh"}), `setSampleTransformUnion({.selector=1, .value1={.length={.tag=102, .i32=5}}})`)
 }
 
+function checkHierarchy() {
+    const parentPeer = ArkCheckParentPeer.create()
+    const parentComp = new ArkCheckParentComponent()
+    parentComp.setPeer(parentPeer)
+    checkResult("parent hierarchy test", () => parentComp.commonMethodBoolean(false),
+        `setCommonMethodBoolean(false)`)
+    checkResult("parent hierarchy test", () => parentComp.commonMethodBoolean(true),
+        `setCommonMethodBoolean(true)`)
+    const childPeer = ArkCheckChildPeer.create()
+    const childComp = new ArkCheckChildComponent()
+    childComp.setPeer(childPeer)
+    checkResult("child hierarchy test", () => childComp.commonMethodBoolean(false),
+        `setCommonMethodBoolean(false)`)
+    checkResult("child hierarchy test", () => childComp.commonMethodBoolean(true),
+        `setCommonMethodBoolean(true)`)
+}
+
 export function main(): void {
     initNatives()
 
@@ -162,6 +183,7 @@ export function main(): void {
     checkExceptions()
     checkOptional()
     checkTransformOnSerialize()
+    checkHierarchy()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")
