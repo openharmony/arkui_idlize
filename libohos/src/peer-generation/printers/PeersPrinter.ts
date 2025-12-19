@@ -60,7 +60,11 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
     const hookMethod = getHookMethod(method.originalParentName, method.method.name)
     if (hookMethod && hookMethod.replaceImplementation) return
     const signature = method.method.signature as NamedMethodSignature
-    const modifiers = isOverridden == undefined ? [] : [...(method.method.modifiers ?? []), isOverridden ? MethodModifier.OVERRIDE : MethodModifier.OPEN]
+    const modifiers = method.method.modifiers ?? []
+    const isStatic = modifiers.includes(MethodModifier.STATIC)
+    if (!isStatic && isOverridden != undefined) {
+        modifiers.push(isOverridden ? MethodModifier.OVERRIDE : MethodModifier.OPEN)
+    }
     let peerMethod = new Method(
         `${method.sig.name}${methodPostfix}`,
         new NamedMethodSignature(returnType, signature.args, signature.argsNames, signature.defaults, signature.argsModifiers),
