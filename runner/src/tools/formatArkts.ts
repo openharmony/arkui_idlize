@@ -87,7 +87,7 @@ export function formatArkts(options: ArkTSFormatOptions) {
         withFileTypes: true
     })
     for (const file of files) {
-        const fullPath = path.join(file.parentPath ?? file.path, file.name)
+        const fullPath = path.join((file as any/* support node<18 */).parentPath ?? file.path, file.name)
         const relPath = path.relative(inputDir, fullPath)
         const outputFilePath = path.join(outputDir, relPath)
         if (fs.lstatSync(fullPath).isFile()) {

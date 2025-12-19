@@ -20,13 +20,15 @@ import { resolve } from "path"
 
 interface ScrapeOptions {
     idlDirectory: string
+    extraIdlPaths: string[]
     configPath:string
 }
 
 export function scrape(options:ScrapeOptions) {
     const filesPath = resolve(options.idlDirectory)
+    const extraPaths = options.extraIdlPaths.map(path => resolve(path))
     const configPath = resolve(options.configPath)
     return withCWD(SCRAPER_CWD, () => {
-        return runScraper(filesPath, configPath)
+        return runScraper(filesPath, extraPaths, configPath)
     })
 }
