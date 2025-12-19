@@ -693,6 +693,12 @@ fun checkHierarchy() {
     assertEQ(false, resultChildI.childFlag)
     assertEQ(5.0, resultChildI.childCount)
     assertEQ("cde", resultChildI.childText)
+
+  resultParentI = testParentInterfaceHierarchy(childI)
+  assertEQ(true, resultParentI.parentFlag)
+  assertEQ(3.0, resultParentI.parentCount)
+  assertEQ("ab", resultParentI.parentText)
+
 }
 
 fun checkMultipleInstances() {
