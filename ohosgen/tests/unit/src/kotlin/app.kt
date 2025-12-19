@@ -28,6 +28,7 @@ import test_length.*
 import test_materialized_classes.*
 import test_multiple_instances.*
 import test_number.*
+import test_promise.*
 import test_return_types.*
 import test_transform.*
 import test_union.*
@@ -427,7 +428,7 @@ fun checkNativeBuffer() {
     checkReversedBuffer(buffer, reversedBuffer)
 }
 
-fun checkThrowException() {
+suspend fun checkThrowException() {
     var catchException = false
     val checkExceptionClass = CheckExceptionClass()
 
@@ -455,17 +456,16 @@ fun checkThrowException() {
     }
     assertEQ(true, catchException, "Exception has not been thrown!")
 
-//   Promises are not supported
-//   catchException = false
-//   try {
-//     await checkExceptionClass.getPromiseInterface()
-//   } catch (error) {
-//     let errObj = error as Error
-//     catchException = true
-//     console.log(`promise error: ${errObj.message}`)
-//     assertEQ("(Test passed) Promise for @throw annotated method was rejected", `${errObj.message}`)
-//   }
-//   assertEQ(true, catchException, "Exception has not been thrown!")
+    catchException = false
+    try {
+        checkExceptionClass.getPromiseInterface().await()
+    } catch (error: Throwable) {
+        val errObj = error as Exception
+        catchException = true
+        println("promise error: ${errObj.message}")
+        assertEQ("(Test passed) Promise for @throw annotated method was rejected", "${errObj.message}")
+    }
+    assertEQ(true, catchException, "Exception has not been thrown!")
 
     catchException = false
     try {
@@ -585,12 +585,16 @@ fun checkExternalTypes() {
     // check.checkSDKExternalType(sdkExternalType)
 }
 
-// Promises are not supported
-// fun checkPromiseRejected() {
-//   return PromiseTester.wait(200)
-//     .then(() => assertEQ(false, true, "Should not be called"))
-//     .catch((e:object): void => { console.log(e.toString()) })
-// }
+suspend fun checkPromiseRejected() {
+    val promise = PromiseTester.wait(200.0)
+    try {
+        promise.await()
+        assertEQ(false, true, "Should not be called")
+    }
+    catch (e: Exception) {
+        println("${e.message}")
+    }
+}
 
 fun checkHandwrittenDeserializer() {
   val gesture = BaseGesture.createGesture2()
@@ -649,7 +653,7 @@ fun checkMultipleInstances() {
     assertEQ(obj.getValue(), 5.0)
 }
 
-fun run(): Unit {
+suspend fun run(): Unit {
     println("Run common unit tests")
 
     val suite = UnitTestsuite("idlize ut")
@@ -675,7 +679,7 @@ fun run(): Unit {
     suite.addTest("checkHooks", ::checkHooks)
     suite.addTest("checkInternalLib", ::checkInternalLib)
     suite.addTest("checkExternalTypes", ::checkExternalTypes)
-    // suite.addAsyncTest("checkPromiseRejected", ::checkPromiseRejected)
+    suite.addAsyncTest("checkPromiseRejected", ::checkPromiseRejected)
     suite.addTest("checkHandwrittenDeserializer", ::checkHandwrittenDeserializer)
     suite.addTest("checkTransformOnSerialize", ::checkTransformOnSerialize)
     suite.addTest("checkMultipleInstances", ::checkMultipleInstances)

@@ -1682,6 +1682,7 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
         imports.push({ feature: "KBoolean", module: "koalaui.interop" })
         imports.push({ feature: "NativeBuffer", module: "koalaui.interop" })
         imports.push({ feature: "KStringPtr", module: "koalaui.interop" })
+        imports.push({ feature: "Promise", module: "koalaui.interop" })
     }
     return imports
 }

@@ -210,6 +210,7 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
             "KPointer",
             "KNativePointer",
             "toPeerPtr",
+            "Promise",
         ], "koalaui.interop")
     }
     collectDeclItself(library, idl.createReferenceType('idlize.internal.CallbackKind'), collector)
