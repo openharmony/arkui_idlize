@@ -265,6 +265,14 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                     : []
             if (collapsedCallables.length > 1 && [Language.TS, Language.ARKTS].includes(this.library.language))
                 collapsedCallables = [collapsedCallables[0]]
+            // for ArkTS we must control: every builder function must be printed once, because it is only includes `style` and `content_` arguments
+            const printedBuildersTags = new Set<string>()
+            const testPrintedBuilderTag = (tag: string) => {
+                if (printedBuildersTags.has(tag))
+                    return false
+                printedBuildersTags.add(tag)
+                return true
+            }
             collapsedCallables.forEach((callableMethod, callableIndex) => {
                 const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
                 const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
@@ -278,16 +286,12 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                     : ""
                 const callableInvocation = callableMethod?.name ? `receiver.${callableName}(${mappedCallableParamsValues})` : ""
                 const peerClassName = componentToPeerClass(peer.componentName)
-                if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
-                    return [{
-                        collector: this.printImports(peer, component),
-                        content: printer,
-                        over: {
-                            node: component.attributeDeclaration,
-                            role: LayoutNodeRole.COMPONENT,
-                            hint: 'component.function'
-                        }
-                    }]
+                let printedBuilderTag = `${callableIndex}`
+                if (this.library.language === Language.ARKTS) {
+                    printedBuilderTag = `hasContentParameter=${hasContentParameter}`
+                }
+                if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration || !testPrintedBuilderTag(printedBuilderTag))
+                    return
                 const declaredPostrix = this.options.isDeclared ? "decl_" : ""
                 const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
                 let paramsList = mappedCallableParams?.join(", ")
