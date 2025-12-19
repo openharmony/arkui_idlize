@@ -95,7 +95,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
             return `MutableMap<${stringes[0]}, ${stringes[1]}>`
         }
         if (idl.IDLContainerUtils.isPromise(type)) {
-            return `Any`
+            return `Promise<${this.convert(type.elementType[0])}>`
         }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }

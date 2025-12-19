@@ -54,7 +54,7 @@ fun checkReversedBuffer(buffer: NativeBuffer, reversedBuffer: NativeBuffer) {
     }
 }
 
-class Test(val name: String, val test: () -> Unit) {}
+class Test(val name: String, val test: suspend () -> Unit) {}
 
 class UnitTestsuite(val name: String) {
 
@@ -64,11 +64,11 @@ class UnitTestsuite(val name: String) {
         tests.add(Test(testName, test))
     }
 
-    fun addAsyncTest(testName: String, test: () -> Unit): Unit {
+    fun addAsyncTest(testName: String, test: suspend () -> Unit): Unit {
         tests.add(Test(testName, test))
     }
 
-    fun run(): Unit {
+    suspend fun run(): Unit {
         val failedTests = mutableListOf<String>()
         for (t in tests) {
             try {

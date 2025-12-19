@@ -785,6 +785,7 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
             "MaterializedBase",
             "MaterializedBaseTag",
             "NativeBuffer",
+            "Promise",
         ], "koalaui.interop")
 
         const hookMethods = peerGeneratorConfiguration().hooks.get(this.clazz.className)
