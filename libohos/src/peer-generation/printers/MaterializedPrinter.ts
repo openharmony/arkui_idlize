@@ -325,7 +325,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
         const useProtected = this.printer.supportedModifiers.includes(MethodModifier.PROTECTED)
         const privateMethod = method.getPrivateMethod(useProtected)
-        const isOverridden = isMaterializedMethodOverridden(this.clazz.decl, method.method.name, this.library, true)
+        const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
+        const isOverridden = isStatic
+            ? undefined
+            : isMaterializedMethodOverridden(this.clazz.decl, method.method.name, this.library, true)
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         returnType = returnType ?? method.sig.returnType
         returnType = idl.isTypeParameterType(method.sig.returnType) ? idl.IDLVoidType : returnType
