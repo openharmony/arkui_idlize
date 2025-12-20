@@ -14,7 +14,6 @@
  */
 
 package arkui.component.idlize;
-import ohos.base.AsyncCallback as AsyncCallback;
 import ohos.router.default as router;
 
 callback RouterFinishCallback = void (pointer value);
@@ -27,28 +26,45 @@ interface RouterOptionsInner {
   attribute boolean recoverable;
 };
 
+interface RouterStateInner {
+  attribute i32 index;
+  attribute String name;
+  attribute String path;
+  attribute String params;
+};
+
 interface PageRouterOptions {
   attribute RouterOptionsInner options;
   [Optional]
   attribute router.RouterMode mode;
 };
 
+callback Router_BusinessError_Void = void (i32 code, String message);
+
 [Entity=Class]
 interface RouterExtender {
-  static pointer push(pointer jsView, String url, optional boolean recover, optional RouterFinishCallback finishCallback);
-  static pointer replace(pointer jsView, String url, optional boolean recover, optional RouterFinishCallback enterFinishCallback);
-  static void moveCommonUnderPageNode(pointer commonNode, pointer pageNode);
-  static void back();
-  static void backWithOptions(String url, optional Object params);
-  static pointer runPage(pointer jsView, String url, optional boolean recover, optional RouterFinishCallback finishCallback);
+  static Promise<void> push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
+  static void push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Router_BusinessError_Void callback_);
+  static Promise<void> replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
+  static void replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Router_BusinessError_Void callback_);
+  static void back(optional RouterOptionsInner options);
+  static void back(i32 index, optional String params);
+  static void runPage(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
   static void clear();
   static void showAlertBeforeBackPage(String message);
   static void hideAlertBeforeBackPage();
+  static String getLength();
+  static RouterStateInner getState();
+  static (RouterStateInner or undefined) getStateByIndex(i32 index);
+  static sequence<RouterStateInner> getStateByUrl(String url);
+  static String getParams();
   static Promise<void> pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
-  static void pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
+  static void pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Router_BusinessError_Void callback_);
   static Promise<void> replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
-  static void replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
-  static pointer createDynamic(String url, optional boolean recover);
-  static pointer pushDynamic(pointer pageNode, String url, optional boolean recover, optional RouterFinishCallback finishCallback);
-  static pointer replaceDynamic(pointer pageNode, String url, optional boolean recover, optional RouterFinishCallback finishCallback);
+  static void replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Router_BusinessError_Void callback_);
+  static pointer createDynamic(RouterOptionsInner options);
+  static Promise<void> pushDynamic(pointer pageNode, PageRouterOptions options, optional RouterFinishCallback finishCallback);
+  static void pushDynamic(pointer pageNode, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Router_BusinessError_Void callback_);
+  static Promise<void> replaceDynamic(pointer pageNode, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
+  static void replaceDynamic(pointer pageNode, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional Router_BusinessError_Void callback_);
 };
