@@ -7,9 +7,9 @@ import {
   formatTypeScript,
   inferLanguageFromFilePath,
   PrettierFormattingError
-} from '../../../libs/prettier_formatter';
+} from '../libs/prettier_formatter';
 
-const FIXTURES_ROOT = path.resolve(__dirname, 'fixtures');
+const FIXTURES_ROOT = path.resolve(__dirname, '../libs/prettier_formatter/tests/fixtures');
 
 function loadFixture(...segments: string[]): string {
   const filePath = path.join(FIXTURES_ROOT, ...segments);
@@ -83,3 +83,4 @@ suite('Prettier formatter', () => {
     assert(errorThrown, 'Expected PrettierFormattingError to be thrown');
   });
 });
+

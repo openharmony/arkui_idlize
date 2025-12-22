@@ -3,25 +3,23 @@
     {
       "description": "function call arguments wrap",
       "original": "someVeryLongFunctionNameThatExceedsLineLimit(firstArgument, secondArgument, thirdArgument, fourthArgument, fifthArgument, sixthArgument);",
-      "expected": "someVeryLongFunctionNameThatExceedsLineLimit(\n  firstArgument,\n  secondArgument,\n  thirdArgument,\n  fourthArgument,\n  fifthArgument,\n  sixthArgument\n);"
+      "expected": "someVeryLongFunctionNameThatExceedsLineLimit(\n    firstArgument, secondArgument, thirdArgument, fourthArgument, fifthArgument, sixthArgument);"
     },
     {
       "description": "nested function calls",
       "original": "outerFunction(innerFunction(arg1, arg2, arg3), anotherInnerFunction(arg4, arg5, arg6), yetAnotherFunction(arg7));",
-      "expected": "outerFunction(\n  innerFunction(arg1, arg2, arg3),\n  anotherInnerFunction(arg4, arg5, arg6),\n  yetAnotherFunction(arg7)\n);"
+      "expected": "outerFunction(innerFunction(arg1, arg2, arg3), anotherInnerFunction(arg4, arg5, arg6), yetAnotherFunction(arg7));"
     },
     {
       "description": "function arguments with objects",
       "original": "createUser({ name: 'John', age: 30, email: 'john@example.com' }, { role: 'admin', permissions: ['read', 'write'] });",
-      "expected": "createUser(\n  { name: 'John', age: 30, email: 'john@example.com' },\n  { role: 'admin', permissions: ['read', 'write'] }\n);"
+      "expected": "createUser({ name: 'John', age: 30, email: 'john@example.com' }, { role: 'admin', permissions: ['read', 'write'] });"
     },
     {
       "description": "method chaining",
       "original": "database.collection('users').find({ status: 'active' }).sort({ createdAt: -1 }).limit(10).toArray();",
-      "expected": "database\n  .collection('users')\n  .find({ status: 'active' })\n  .sort({ createdAt: -1 })\n  .limit(10)\n  .toArray();"
+      "expected": "database.collection('users').find({ status: 'active' }).sort({ createdAt: -1 }).limit(10).toArray();"
     }
   ],
   "notEquivalent": []
 }
-
-

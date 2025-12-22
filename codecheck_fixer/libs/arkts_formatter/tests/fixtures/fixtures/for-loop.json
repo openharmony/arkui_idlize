@@ -2,36 +2,34 @@
   "equivalent": [
     {
       "description": "classic for with long parts",
-      "original": "for (let i = startIndex; i < array.length && i < maxIterations && !shouldStop; i += step) {",
-      "expected": "for (\n  let i = startIndex;\n  i < array.length && i < maxIterations && !shouldStop;\n  i += step\n) {"
+      "original": "for (let i = startIndex; i < array.length && i < maxIterations && !shouldStop; i += step) { }",
+      "expected": "for (let i = startIndex; i < array.length && i < maxIterations && !shouldStop; i += step) { }"
     },
     {
       "description": "for-of with object destructuring",
-      "original": "for (const { propertyName, propertyValue, propertyType, propertyMetadata } of objectProperties) {",
-      "expected": "for (const {\n  propertyName,\n  propertyValue,\n  propertyType,\n  propertyMetadata\n} of objectProperties) {"
+      "original": "for (const { propertyName, propertyValue, propertyType, propertyMetadata } of objectProperties) { }",
+      "expected": "for (const { propertyName, propertyValue, propertyType, propertyMetadata } of objectProperties) { }"
     },
     {
       "description": "for-of with filter",
-      "original": "for (const item of items.filter(x => x.isActive && x.isValid && x.hasPermission)) {",
-      "expected": "for (const item of items.filter(\n  x => x.isActive && x.isValid && x.hasPermission\n)) {"
+      "original": "for (const item of items.filter(x => x.isActive && x.isValid && x.hasPermission)) { }",
+      "expected": "for (const item of items.filter(x => x.isActive && x.isValid && x.hasPermission)) { }"
     },
     {
       "description": "multiple vars in init",
-      "original": "for (let i = 0, length = array.length, step = 1, total = 0; i < length; i += step) {",
-      "expected": "for (\n  let i = 0, length = array.length, step = 1, total = 0;\n  i < length;\n  i += step\n) {"
+      "original": "for (let i = 0, length = array.length, step = 1, total = 0; i < length; i += step) { }",
+      "expected": "for (let i = 0, length = array.length, step = 1, total = 0; i < length; i += step) { }"
     },
     {
       "description": "for with nested call chain",
-      "original": "for (const result of await database.collection('users').find(query).sort({ createdAt: -1 }).toArray()) {",
-      "expected": "for (const result of await database\n  .collection('users')\n  .find(query)\n  .sort({ createdAt: -1 })\n  .toArray()) {"
+      "original": "for (const result of await database.collection('users').find(query).sort({ createdAt: -1 }).toArray()) { }",
+      "expected": "for (const result of await database.collection('users').find(query).sort({ createdAt: -1 }).toArray()) { }"
     },
     {
       "description": "for await of with pipeline",
-      "original": "for await (const chunk of readableStream.pipe(transform).filter(isValid).map(process)) {",
-      "expected": "for await (const chunk of readableStream\n  .pipe(transform)\n  .filter(isValid)\n  .map(process)) {"
+      "original": "for await (const chunk of readableStream.pipe(transform).filter(isValid).map(process)) { }",
+      "expected": "for await (const chunk of readableStream.pipe(transform).filter(isValid).map(process)) { }"
     }
   ],
   "notEquivalent": []
 }
-
-

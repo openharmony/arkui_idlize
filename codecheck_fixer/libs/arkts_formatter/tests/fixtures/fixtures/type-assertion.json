@@ -3,35 +3,33 @@
     {
       "description": "as-style assertion",
       "original": "const user = getUserFromDatabase() as { firstName: string; lastName: string; email: string; role: string };",
-      "expected": "const user = getUserFromDatabase() as {\n  firstName: string;\n  lastName: string;\n  email: string;\n  role: string;\n};"
+      "expected": "const user = getUserFromDatabase() as { firstName: string; lastName: string; email: string; role: string };"
     },
     {
       "description": "angle-bracket assertion",
       "original": "const data = <{ id: number; name: string; description: string; metadata: object }>parseResponse(response);",
-      "expected": "const data = <{\n  id: number;\n  name: string;\n  description: string;\n  metadata: object;\n}>parseResponse(response);"
+      "expected": "const data = <{ id: number; name: string; description: string; metadata: object }>parseResponse(response);"
     },
     {
       "description": "generic assertion",
       "original": "const result = await fetchData() as Promise<{ data: ResponseData; meta: MetaInfo; errors: ErrorInfo[] }>;",
-      "expected": "const result = await fetchData() as Promise<{\n  data: ResponseData;\n  meta: MetaInfo;\n  errors: ErrorInfo[];\n}>;"
+      "expected": "const result = await fetchData() as Promise<{ data: ResponseData; meta: MetaInfo; errors: ErrorInfo[] }>;"
     },
     {
       "description": "double assertion via unknown",
       "original": "const value = (input as unknown) as VeryLongTypeName<GenericParameter1, GenericParameter2, GenericParameter3>;",
-      "expected": "const value = (input as unknown) as VeryLongTypeName<\n  GenericParameter1,\n  GenericParameter2,\n  GenericParameter3\n>;"
+      "expected": "const value = (input as unknown) as VeryLongTypeName<GenericParameter1, GenericParameter2, GenericParameter3>;"
     },
     {
       "description": "assertion in expression",
       "original": "return (result.data as ResponsePayload).items.filter(item => item.isActive) as ProcessedItem[];",
-      "expected": "return (\n  (result.data as ResponsePayload)\n    .items\n    .filter(item => item.isActive) as ProcessedItem[]\n);"
+      "expected": "return (result.data as ResponsePayload).items.filter(item => item.isActive) as ProcessedItem[];"
     },
     {
       "description": "satisfies operator",
       "original": "const config = { host: 'localhost', port: 3000, ssl: false } satisfies { host: string; port: number; ssl: boolean };",
-      "expected": "const config = {\n  host: 'localhost',\n  port: 3000,\n  ssl: false\n} satisfies {\n  host: string;\n  port: number;\n  ssl: boolean;\n};"
+      "expected": "const config = { host: 'localhost', port: 3000, ssl: false } satisfies { host: string; port: number; ssl: boolean };"
     }
   ],
   "notEquivalent": []
 }
-
-

@@ -3,35 +3,33 @@
     {
       "description": "jsx with many props",
       "original": "const element = <Button onClick={handleClick} disabled={isDisabled} className=\"primary\" style={{ color: 'blue' }} data-testid=\"submit-button\" />;",
-      "expected": "const element = (\n  <Button\n    onClick={handleClick}\n    disabled={isDisabled}\n    className=\"primary\"\n    style={{ color: 'blue' }}\n    data-testid=\"submit-button\"\n  />\n);"
+      "expected": "const element = <Button onClick={handleClick} disabled={isDisabled} className=\"primary\" style={{ color: 'blue' }} data-testid=\"submit-button\" />;"
     },
     {
       "description": "jsx with children",
       "original": "const component = <Container className=\"wrapper\"><Header title=\"Title\" /><Content>{data.map(item => <Item key={item.id} {...item} />)}</Content></Container>;",
-      "expected": "const component = (\n  <Container className=\"wrapper\">\n    <Header title=\"Title\" />\n    <Content>\n      {data.map(item => (\n        <Item key={item.id} {...item} />\n      ))}\n    </Content>\n  </Container>\n);"
+      "expected": "const component = <Container className=\"wrapper\"><Header title=\"Title\" /><Content>{data.map(item => <Item key={item.id} {...item} />)}</Content></Container>;"
     },
     {
       "description": "jsx with spread props",
       "original": "return <Component {...baseProps} {...customProps} additionalProp={value} onEvent={handler} />;",
-      "expected": "return (\n  <Component\n    {...baseProps}\n    {...customProps}\n    additionalProp={value}\n    onEvent={handler}\n  />\n);"
+      "expected": "return <Component {...baseProps} {...customProps} additionalProp={value} onEvent={handler} />;"
     },
     {
       "description": "conditional jsx rendering",
       "original": "return <div>{isLoading ? <Spinner size=\"large\" color=\"blue\" /> : hasError ? <Error message={errorMessage} /> : <Content data={data} />}</div>;",
-      "expected": "return (\n  <div>\n    {isLoading ? (\n      <Spinner size=\"large\" color=\"blue\" />\n    ) : hasError ? (\n      <Error message={errorMessage} />\n    ) : (\n      <Content data={data} />\n    )}\n  </div>\n);"
+      "expected": "return <div>{isLoading ? <Spinner size=\"large\" color=\"blue\" /> : hasError ? <Error message={errorMessage} /> : <Content data={data} />}</div>;"
     },
     {
       "description": "jsx with inline styles",
       "original": "const styled = <div style={{ backgroundColor: 'white', padding: '20px', margin: '10px', borderRadius: '8px' }}>Content</div>;",
-      "expected": "const styled = (\n  <div\n    style={{\n      backgroundColor: 'white',\n      padding: '20px',\n      margin: '10px',\n      borderRadius: '8px'\n    }}\n  >\n    Content\n  </div>\n);"
+      "expected": "const styled = <div style={{ backgroundColor: 'white', padding: '20px', margin: '10px', borderRadius: '8px' }}>Content</div>;"
     },
     {
       "description": "jsx fragment with many items",
       "original": "return <>{items.map(item => <ListItem key={item.id} title={item.title} description={item.description} />)}</>;",
-      "expected": "return (\n  <>\n    {items.map(item => (\n      <ListItem\n        key={item.id}\n        title={item.title}\n        description={item.description}\n      />\n    ))}\n  </>\n);"
+      "expected": "return <>{items.map(item => <ListItem key={item.id} title={item.title} description={item.description} />)}</>;"
     }
   ],
   "notEquivalent": []
 }
-
-

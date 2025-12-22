@@ -3,35 +3,33 @@
     {
       "description": "return object (no break right after return)",
       "original": "return { firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role };",
-      "expected": "return {\n  firstName: user.firstName,\n  lastName: user.lastName,\n  email: user.email,\n  role: user.role\n};"
+      "expected": "return { firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role };"
     },
     {
       "description": "return long expression wrapped",
       "original": "return firstValue + secondValue + thirdValue + fourthValue + fifthValue + sixthValue;",
-      "expected": "return (\n  firstValue +\n  secondValue +\n  thirdValue +\n  fourthValue +\n  fifthValue +\n  sixthValue\n);"
+      "expected": "return firstValue + secondValue + thirdValue + fourthValue + fifthValue + sixthValue;"
     },
     {
       "description": "return function call arguments wrap",
       "original": "return someLongFunctionName(argument1, argument2, argument3, argument4, argument5, argument6);",
-      "expected": "return someLongFunctionName(\n  argument1,\n  argument2,\n  argument3,\n  argument4,\n  argument5,\n  argument6\n);"
+      "expected": "return someLongFunctionName(argument1, argument2, argument3, argument4, argument5, argument6);"
     },
     {
       "description": "return array elements wrap",
       "original": "return [firstElement, secondElement, thirdElement, fourthElement, fifthElement, sixthElement];",
-      "expected": "return [\n  firstElement,\n  secondElement,\n  thirdElement,\n  fourthElement,\n  fifthElement,\n  sixthElement\n];"
+      "expected": "return [firstElement, secondElement, thirdElement, fourthElement, fifthElement, sixthElement];"
     },
     {
       "description": "return ternary wrapped",
       "original": "return condition1 ? longTrueValue : condition2 ? anotherLongValue : defaultVeryLongValue;",
-      "expected": "return condition1\n  ? longTrueValue\n  : condition2\n  ? anotherLongValue\n  : defaultVeryLongValue;"
+      "expected": "return condition1 ? longTrueValue : condition2 ? anotherLongValue : defaultVeryLongValue;"
     },
     {
       "description": "return long logical expression",
       "original": "return user.isAuthenticated && user.hasPermission('read') && !user.isBanned && user.emailVerified;",
-      "expected": "return (\n  user.isAuthenticated &&\n  user.hasPermission('read') &&\n  !user.isBanned &&\n  user.emailVerified\n);"
+      "expected": "return user.isAuthenticated && user.hasPermission('read') && !user.isBanned && user.emailVerified;"
     }
   ],
   "notEquivalent": []
 }
-
-

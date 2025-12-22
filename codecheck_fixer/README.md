@@ -22,7 +22,7 @@ A library and CLI tool for static analysis and automated formatting of TypeScrip
     -   `ora`: For displaying spinners during long-running tasks.
     -   `glob`: For matching file paths using patterns.
 -   **Development Tools**:
-    -   `jest`: For testing.
+    -   `mocha` + `@koalaui/harness`: For unit testing.
     -   `eslint`: For linting the project's own codebase.
     -   TypeScript Compiler API: Used for both analysis and formatting.
 
@@ -148,12 +148,8 @@ For repeatable checks with pinned configs, the repo includes helper scripts:
 # Line length check and fix (via main CLI)
 ./run.sh line-length --fix --verbose -c config.json
 
-# Unit tests
-./run_unit_tests.sh
-
-# Test harness examples
-./run_test.sh
-./run_test0.sh
+# Run unit tests
+npm test
 ```
 
 Artifacts:

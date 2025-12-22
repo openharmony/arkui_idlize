@@ -2,8 +2,8 @@
   "equivalent": [
     {
       "description": "simple template literal (no formatting)",
-      "original": "const message = `Hello ${user.firstName} ${user.lastName}, your order #${order.id} has been shipped to ${order.address}`;",
-      "expected": "const message = `Hello ${user.firstName} ${user.lastName}, your order #${order.id} has been shipped to ${order.address}`;"
+      "original": "const message = `Hello ${user.firstName} ${user.lastName}, order #${order.id} shipped to ${order.address}`;",
+      "expected": "const message = `Hello ${user.firstName} ${user.lastName}, order #${order.id} shipped to ${order.address}`;"
     },
     {
       "description": "template literal with expression",
@@ -33,5 +33,3 @@
   ],
   "notEquivalent": []
 }
-
-

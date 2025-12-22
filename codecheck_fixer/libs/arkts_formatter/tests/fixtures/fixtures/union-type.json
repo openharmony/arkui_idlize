@@ -3,30 +3,28 @@
     {
       "description": "simple union type",
       "original": "type Status = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled' | 'archived' | 'deleted';",
-      "expected": "type Status =\n  | 'pending'\n  | 'in_progress'\n  | 'completed'\n  | 'failed'\n  | 'cancelled'\n  | 'archived'\n  | 'deleted';"
+      "expected": "type Status = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled' | 'archived' | 'deleted';"
     },
     {
       "description": "union of object types",
       "original": "type Response = { status: 'success', data: string } | { status: 'error', message: string } | { status: 'loading' };",
-      "expected": "type Response =\n  | { status: 'success', data: string }\n  | { status: 'error', message: string }\n  | { status: 'loading' };"
+      "expected": "type Response = { status: 'success', data: string } | { status: 'error', message: string } | { status: 'loading' };"
     },
     {
       "description": "function parameter with union",
       "original": "function process(value: string | number | boolean | null | undefined | symbol | bigint): void {}",
-      "expected": "function process(value:\n  | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | symbol\n  | bigint\n): void {}"
+      "expected": "function process(value: string | number | boolean | null | undefined | symbol | bigint): void {}"
     },
     {
       "description": "generic union",
       "original": "type Result<T> = Promise<T> | Observable<T> | AsyncIterable<T> | Generator<T> | (() => T);",
-      "expected": "type Result<T> =\n  | Promise<T>\n  | Observable<T>\n  | AsyncIterable<T>\n  | Generator<T>\n  | (() => T);"
+      "expected": "type Result<T> = Promise<T> | Observable<T> | AsyncIterable<T> | Generator<T> | (() => T);"
     },
     {
       "description": "intersection + union",
       "original": "type ComplexType = (BaseType & { prop1: string }) | (BaseType & { prop2: number }) | (BaseType & { prop3: boolean });",
-      "expected": "type ComplexType =\n  | (BaseType & { prop1: string })\n  | (BaseType & { prop2: number })\n  | (BaseType & { prop3: boolean });"
+      "expected": "type ComplexType = (BaseType & { prop1: string }) | (BaseType & { prop2: number }) | (BaseType & { prop3: boolean });"
     }
   ],
   "notEquivalent": []
 }
-
-
