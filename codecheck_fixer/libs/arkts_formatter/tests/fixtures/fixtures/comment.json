@@ -3,35 +3,33 @@
     {
       "description": "single-line comment wrap",
       "original": "// This is a very long single line comment that exceeds the maximum line length limit and needs to be broken into multiple lines",
-      "expected": "// This is a very long single line comment that exceeds the maximum line\n// length limit and needs to be broken into multiple lines"
+      "expected": "// This is a very long single line comment that exceeds the maximum line length limit and needs to be broken into\n// multiple lines"
     },
     {
       "description": "block comment wrap",
       "original": "/* This is a very long block comment that exceeds the maximum line length limit and needs to be properly formatted across multiple lines */",
-      "expected": "/* This is a very long block comment that exceeds the maximum line\n * length limit and needs to be properly formatted across multiple\n * lines */"
+      "expected": "/* This is a very long block comment that exceeds the maximum line length limit and needs to be properly formatted\n * across multiple lines */"
     },
     {
       "description": "JSDoc comment wrap",
       "original": "/** This is a very long JSDoc comment that describes a function parameter and its behavior in great detail exceeding the line limit */",
-      "expected": "/**\n * This is a very long JSDoc comment that describes a function parameter\n * and its behavior in great detail exceeding the line limit\n */"
+      "expected": "/** * This is a very long JSDoc comment that describes a function parameter and its behavior in great detail exceeding\n * the line limit */"
     },
     {
       "description": "multiline star comment wrap",
       "original": " * This is a continuation line in a multi-line comment that is very long and exceeds the maximum line length limit",
-      "expected": " * This is a continuation line in a multi-line comment that is very\n * long and exceeds the maximum line length limit"
+      "expected": " * This is a continuation line in a multi-line comment that is very long and exceeds the maximum line length limit"
     },
     {
       "description": "comment with code",
       "original": "// Example usage: const result = someLongFunctionName(parameter1, parameter2, parameter3, parameter4, parameter5);",
-      "expected": "// Example usage: const result = someLongFunctionName(parameter1,\n// parameter2, parameter3, parameter4, parameter5);"
+      "expected": "// Example usage: const result = someLongFunctionName(parameter1, parameter2, parameter3, parameter4, parameter5);"
     },
     {
       "description": "TODO comment wrap",
       "original": "// TODO: Implement error handling for all edge cases including network failures, timeout errors, validation errors, and authentication failures",
-      "expected": "// TODO: Implement error handling for all edge cases including network\n// failures, timeout errors, validation errors, and authentication failures"
+      "expected": "// TODO: Implement error handling for all edge cases including network failures, timeout errors, validation errors, and\n// authentication failures"
     }
   ],
   "notEquivalent": []
 }
-
-

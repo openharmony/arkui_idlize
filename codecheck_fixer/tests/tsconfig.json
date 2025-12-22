@@ -1,0 +1,16 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "module": "CommonJS",
+        "rootDir": "../",
+        "baseUrl": "../",
+        "outDir": "../build/tests",
+        "types": ["node", "mocha"]
+    },
+    "include": [
+        "../src/**/*.ts",
+        "../libs/**/*.ts",
+        "../tests/**/*.ts"
+    ]
+}
+

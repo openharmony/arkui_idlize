@@ -3,35 +3,33 @@
     {
       "description": "named imports wrap",
       "original": "import { FirstComponent, SecondComponent, ThirdComponent, FourthComponent, FifthComponent, SixthComponent } from './components';",
-      "expected": "import {\n  FirstComponent,\n  SecondComponent,\n  ThirdComponent,\n  FourthComponent,\n  FifthComponent,\n  SixthComponent\n} from './components';"
+      "expected": "import { FirstComponent, SecondComponent, ThirdComponent, FourthComponent, FifthComponent, SixthComponent } from './components';"
     },
     {
       "description": "mixed default + named imports",
       "original": "import DefaultExport, { NamedExport1, NamedExport2, NamedExport3, NamedExport4, NamedExport5 } from './module';",
-      "expected": "import DefaultExport, {\n  NamedExport1,\n  NamedExport2,\n  NamedExport3,\n  NamedExport4,\n  NamedExport5\n} from './module';"
+      "expected": "import DefaultExport, { NamedExport1, NamedExport2, NamedExport3, NamedExport4, NamedExport5 } from './module';"
     },
     {
       "description": "type-only imports",
       "original": "import type { FirstType, SecondType, ThirdType, FourthType, FifthType, SixthType, SeventhType } from './types';",
-      "expected": "import type {\n  FirstType,\n  SecondType,\n  ThirdType,\n  FourthType,\n  FifthType,\n  SixthType,\n  SeventhType\n} from './types';"
+      "expected": "import type { FirstType, SecondType, ThirdType, FourthType, FifthType, SixthType, SeventhType } from './types';"
     },
     {
       "description": "imports with alias",
       "original": "import { VeryLongComponentName as Component1, AnotherVeryLongComponentName as Component2 } from './components';",
-      "expected": "import {\n  VeryLongComponentName as Component1,\n  AnotherVeryLongComponentName as Component2\n} from './components';"
+      "expected": "import { VeryLongComponentName as Component1, AnotherVeryLongComponentName as Component2 } from './components';"
     },
     {
       "description": "dynamic import with long path",
       "original": "const module = await import('./very-long-path/to/some/module/that/exceeds/the/maximum/line/length/limit');",
-      "expected": "const module = await import(\n  './very-long-path/to/some/module/that/exceeds/the/maximum/line/length/limit'\n);"
+      "expected": "const module = await import('./very-long-path/to/some/module/that/exceeds/the/maximum/line/length/limit');"
     },
     {
       "description": "re-export named",
       "original": "export { FirstExport, SecondExport, ThirdExport, FourthExport, FifthExport, SixthExport } from './exports';",
-      "expected": "export {\n  FirstExport,\n  SecondExport,\n  ThirdExport,\n  FourthExport,\n  FifthExport,\n  SixthExport\n} from './exports';"
+      "expected": "export { FirstExport, SecondExport, ThirdExport, FourthExport, FifthExport, SixthExport } from './exports';"
     }
   ],
   "notEquivalent": []
 }
-
-
