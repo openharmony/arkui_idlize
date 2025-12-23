@@ -51,6 +51,7 @@ import {
     componentToStyleClass,
     allowNamedOverloads,
     peerGeneratorConfiguration,
+    extractContentParameter,
 } from '@idlizer/libohos'
 import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
@@ -308,22 +309,33 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             : callableMethods.length > 0
                 ? [collapseSameNamedMethods(callableMethods.map(it => it.method))]
                 : []
+        // for ArkTS we must control: every builder function must be printed once, because it is only includes `style` and `content_` arguments
+        const printedBuildersTags = new Set<string>()
+        const testPrintedBuilderTag = (tag: string) => {
+            if (printedBuildersTags.has(tag))
+                return false
+            printedBuildersTags.add(tag)
+            return true
+        }
         collapsedCallables.forEach((callableMethod, callableIndex) => {
             const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
             const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
             const callableName = allowNamedOverloads(this.library.language) ? callableMethods[callableIndex].uniqueOverloadName : callableMethod.name
+            const { hasContentParameter } = extractContentParameter(callableMethods[callableIndex].decl as idl.IDLCallable)
+            const contentParameter = hasContentParameter
+                ? `\n    @memo\n    content_?: () => void,`
+                : ""
+            const contentParameterInvocation = hasContentParameter
+                ? `\n        content_?.()`
+                : ""
             const callableInvocation = callableMethod?.name ? `receiver.${callableName}(${mappedCallableParamsValues})` : ""
             const peerClassName = componentToPeerClass(peer.componentName)
-            if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
-                return [{
-                    collector: this.printImports(peer, component),
-                    content: printer,
-                    over: {
-                        node: component.attributeDeclaration,
-                        role: LayoutNodeRole.COMPONENT,
-                        hint: 'component.function'
-                    }
-                }]
+            let printedBuilderTag = `${callableIndex}`
+            if (this.library.language === Language.ARKTS) {
+                printedBuilderTag = `hasContentParameter=${hasContentParameter}`
+            }
+            if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration || !testPrintedBuilderTag(printedBuilderTag))
+                return
             const declaredPostrix = this.options.isDeclared ? "decl_" : ""
             const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
             let paramsList = mappedCallableParams?.join(", ")
@@ -337,7 +349,9 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 .replaceAll("%FUNCTION_PARAMETERS%", paramsList ?? "")
                 .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
                 .replaceAll("%PEER_CLASS_NAME%", peerClassName)
-                .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
+                .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation)
+                .replaceAll("%CONTENT_PARAMETER%", contentParameter)
+                .replaceAll("%CONTENT_PARAMETER_INVOCATION%", contentParameterInvocation))
         })
         if (allowNamedOverloads(this.library.language) && collapsedCallables.length > 1) {
             const overloads = peer.componentBuilderInfos.map(it => it.uniqueOverloadName).filter(it => it !== component.name)

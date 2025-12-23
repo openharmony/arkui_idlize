@@ -10,7 +10,7 @@ callback Callback_Void = void ();
 [ComponentInterface]
 interface ButtonInterface {
     [Annotations=memo, CallSignature]
-    ButtonAttribute invoke();
+    ButtonAttribute invoke(optional Callback_Void content_);
     [Annotations=memo, CallSignature]
-    ButtonAttribute invoke(String label);
+    ButtonAttribute invoke(String label, optional Callback_Void content_);
 };
