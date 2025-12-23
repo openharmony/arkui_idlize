@@ -645,10 +645,28 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return node
     }
 
+    private isBuilderFuncImpl(decl:arkts.FunctionDeclaration): boolean {
+        if (this.mode !== 'arkoala') {
+            return false
+        }
+        const func = decl.function!
+        if (func.id?.name.endsWith('Impl')
+            && decl.annotations.some(a => arkts.isIdentifier(a.expr) && a.expr.name === 'memo')) {
+            const params = func.params as arkts.ETSParameterExpression[]
+            const styleOk = params.length >= 1 && params[0].name === "style"
+            const contentOk = params.length === 1 || params.length === 2 && params[1].name === "content_"
+            return styleOk && contentOk
+        }
+        return false
+    }
+
     visitFunctionDeclaration(node: arkts.FunctionDeclaration): arkts.FunctionDeclaration {
         const func = node.function!
         if (func.id?.name && this.config.DeletedDeclarations.includes(func.id.name)) {
             this.traceDeleted('DeletedDeclarations')
+            return node
+        }
+        if (this.isBuilderFuncImpl(node)) {
             return node
         }
         const { set: paramsSet, parameters } = this.extractTypeParameters(func.typeParams)
@@ -696,7 +714,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (node.annotations.find(it => arkts.isIdentifier(it.expr) && it.expr.name === "ComponentBuilder")) {
                 const callable = idl.createCallable(
                     "invoke",
-                    method.parameters.slice(0, method.parameters.length - 1),
+                    method.parameters,
                     method.returnType,
                     {
                         isAsync: method.isAsync,
