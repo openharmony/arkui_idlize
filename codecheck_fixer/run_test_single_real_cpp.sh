@@ -4,7 +4,19 @@ set -e
 rm -rf out
 npm run build
 # Запускаем форматирование C/C++ через встроенную команду cpp-format, пишем результат в out/fixed
-/bin/bash run.sh cpp-format -c tests/test_single_real_cpp.json --verbose --output out/fixed
+REPO_ROOT="/data/home/mlobakh/BZ_OHOS/OHOS"
+CPP_PATHS=(
+  "foundation/arkui/ace_engine/frameworks/bridge/arkts_frontend/koala_projects/arkoala-arkts/framework/native/src/generated"
+  "foundation/arkui/ace_engine/frameworks/core/interfaces/native/generated"
+  "foundation/arkui/ace_engine/frameworks/core/interfaces/native/implementation"
+)
+
+/bin/bash run.sh cpp-format \
+  -c config.json \
+  --repo "$REPO_ROOT" \
+  --cpp "${CPP_PATHS[@]}" \
+  --verbose \
+  --output out/fixed
 
 cd out/fixed
 

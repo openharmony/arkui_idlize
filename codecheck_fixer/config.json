@@ -1,24 +1,11 @@
 {
-    "description": "A library for static analysis and automated formatting of TypeScript and C++ code. Ensures CI compliance by providing an API for application integration and a CLI for standalone use.",
-    "repo_path": "/data/home/mlobakh/BZ_OHOS/OHOS/foundation/arkui/ace_engine",
-    "paths_for_check": {
-        "ts": [],
-        "ets": [
-            "frameworks/bridge/arkts_frontend/koala_projects/arkoala-arkts/arkui-ohos/generated",
-            "frameworks/bridge/arkts_frontend/koala_projects/arkoala-arkts/arkui-ohos/src"
-        ],
-        "cpp": [
-            "frameworks/bridge/arkts_frontend/koala_projects/arkoala-arkts/framework/native/src/generated",
-            "frameworks/core/interfaces/native/generated",
-            "frameworks/core/interfaces/native/implementation"
-        ]
-    },
-    "analysis": {
-        "maxFileSize": 1048576
-    },
-    "formatting": {
-        "tabSize": 4,
-        "useTabs": false,
-        "maxLineLength": 120
-    }
+  "description": "A library for static analysis and automated formatting of TypeScript and C++ code. Ensures CI compliance by providing an API for application integration and a CLI for standalone use.",
+  "analysis": {
+    "maxFileSize": 1048576
+  },
+  "formatting": {
+    "tabSize": 4,
+    "useTabs": false,
+    "maxLineLength": 120
+  }
 }
