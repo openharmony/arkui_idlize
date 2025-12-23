@@ -22,7 +22,7 @@ A library and CLI tool for static analysis and automated formatting of TypeScrip
     -   `ora`: For displaying spinners during long-running tasks.
     -   `glob`: For matching file paths using patterns.
 -   **Development Tools**:
-    -   `mocha` + `@koalaui/harness`: For unit testing.
+    -   `jest`: For testing.
     -   `eslint`: For linting the project's own codebase.
     -   TypeScript Compiler API: Used for both analysis and formatting.
 
@@ -38,20 +38,40 @@ npm install codecheck-fixer
 
 It is recommended to use the provided `run.sh` script, which automatically installs dependencies and builds the project if needed.
 
-The script forwards all arguments to the CLI. The CLI uses the `paths_for_check` property from your `config.json` file, specified as a nested object by file types (strict, required). ETS files are processed with the TypeScript analyzers/formatters.
+The script forwards all arguments to the CLI. Paths are now passed via CLI flags; the config file stores only analysis/formatting settings.
+
+#### Path Options (available for all commands)
+
+- `--repo <path>` — Repository root path (used as cwd for glob patterns)
+- `--ts <paths...>` — TypeScript/TSX file or directory paths (space or comma separated)
+- `--ets <paths...>` — ETS file or directory paths (space or comma separated)
+- `--cpp <paths...>` — C/C++ file or directory paths (space or comma separated)
+- `--paths <paths...>` — Untyped file or directory paths (space or comma separated)
+
+**Note**: Multiple paths can be specified either space-separated or comma-separated:
+```bash
+--ts src apps/ui           # space-separated
+--ts src,apps/ui           # comma-separated
+--ets arkui/generated,src  # comma-separated
+```
+
+#### Available Commands
 
 ```bash
-# Analyze files defined in config.json
-./run.sh analyze -c config.json
+# Analyze code files for issues
+./run.sh analyze --repo /abs/repo --ts src apps/ui --ets arkui/generated --cpp native/src -c config.json
 
-# Format files defined in config.json
-./run.sh format -c config.json
+# Format code files
+./run.sh format --repo /abs/repo --ts src --ets arkui/generated --cpp native/src -c config.json --output out/formatted
 
-# Automatically fix issues in files from config.json
-./run.sh fix -c config.json
+# Automatically fix issues (TS/ETS only)
+./run.sh fix --repo /abs/repo --ts src --ets arkui/generated -c config.json --output out/fixed
 
-# Check and fix long lines in files from config.json
-./run.sh line-length --fix -c config.json
+# Check and fix long lines (TS/ETS)
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated --fix -c config.json --output out/fixed
+
+# Format C/C++ files using clang-format
+./run.sh cpp-format --repo /abs/repo --cpp native/src -c config.json --output out/formatted
 ```
 
 ### Step-by-step guide (from clone to run)
@@ -77,16 +97,10 @@ npm ci
 npm run build
 ```
 
-4. Prepare a config (strict format, grouped by file types)
+4. Prepare a config (analysis/formatting only; paths are passed via CLI)
 
 ```json
 {
-  "repo_path": "/absolute/path/to/your/repo",
-  "paths_for_check": {
-    "ts": ["src"],
-    "ets": ["foundation/arkui/ace_engine/.../arkui/generated"],
-    "cpp": ["native/src"]
-  },
   "analysis": {
     "maxFileSize": 1048576
   },
@@ -101,38 +115,52 @@ npm run build
 5. Run analysis (with report)
 
 ```bash
-./run.sh analyze -c tests/test_real_config.json -o ./out/analysis_report.md --verbose
+./run.sh analyze --repo /abs/repo --ts src --ets arkui/generated --cpp native/src -c config.json -o ./out/analysis_report.md --verbose
 ```
 
 6. Run automatic fixes (real-world example)
 
 ```bash
-./run.sh fix -c tests/test_real_config.json --output ./out/fixed --verbose
+./run.sh fix --repo /abs/repo --ts src --ets arkui/generated -c config.json --output ./out/fixed --verbose
 ```
 
 7. Run line-length check (dry-run and fix)
 
 ```bash
 # Dry-run (analysis only, creates report)
-./run.sh line-length -c tests/test_real_config.json --dry-run --verbose
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated -c config.json --dry-run --verbose
 
 # Apply fixes and write fixed files to out/fixed
-./run.sh line-length -c tests/test_real_config.json --fix --output ./out/fixed --verbose
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated -c config.json --fix --output ./out/fixed --verbose
 
 # Custom max line length
-./run.sh line-length -c config.json --fix --max-length 100
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated -c config.json --fix --max-length 100
 
 # Ignore specific content types
-./run.sh line-length -c config.json --fix --ignore-urls --ignore-strings
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated -c config.json --fix --ignore-urls --ignore-strings
+
+# Ignore template literals
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated -c config.json --fix --ignore-templates
 
 # Generate custom report
-./run.sh line-length -c config.json --dry-run --report ./my-report.md
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated -c config.json --dry-run --report ./my-report.md
 ```
 
-Notes:
+8. Format C/C++ files
+
+```bash
+# Format C/C++ files to output directory
+./run.sh cpp-format --repo /abs/repo --cpp native/src -c config.json --output ./out/formatted --verbose
+
+# Use custom clang-format binary
+./run.sh cpp-format --repo /abs/repo --cpp native/src --clang-format /path/to/clang-format
+```
+
+**Notes:**
 - The `out/` directory is created automatically when saving reports or fixed files.
 - ETS files are handled by the TypeScript analyzer/formatter.
 - Lines that cannot be safely shortened (e.g., due to extremely long identifiers + indentation) are reported as warnings with diagnostic details (indent, longestToken).
+- For `line-length` command: if `--fix` is specified, files are written to the output directory; in dry-run mode (default), only analysis is performed and a report is generated.
 
 ### Temporary helper scripts
 
@@ -145,18 +173,26 @@ For repeatable checks with pinned configs, the repo includes helper scripts:
 # Real-world single-run check for C++ files
 ./run_test_single_real_cpp.sh
 
-# Line length check and fix (via main CLI)
-./run.sh line-length --fix --verbose -c config.json
+# Debug mode check with fixtures
+./run_test_for_debug.sh
 
-# Run unit tests
-npm test
+# Line length check and fix (via main CLI) - requires repo and paths arguments
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated --fix --verbose -c config.json
+
+# Unit tests
+npm test  # or npx mocha
 ```
+
+**Helper script requirements:**
+- `run_test_single_real_ets.sh` — requires `REPO_ROOT` and `ETS_PATHS` to be configured in the script
+- `run_test_single_real_cpp.sh` — requires `REPO_ROOT` and `CPP_PATHS` to be configured in the script
+- `run_test_for_debug.sh` — uses fixtures from `tests/fixtures/`
 
 Artifacts:
 - Fixed files are written under `out/fixed/`
-- Change log: `out/fixed/fix-log.md`
-- Remaining long lines report (CSV): `out/fixed/long_lines.csv`
-- Aggregated summary (optional): `line-length-issues.md`
+- Summary report: `out/fixed/summary.md` (generated by `line-length` with `--fix`)
+- Remaining long lines report (CSV): `out/fixed/long_lines.csv` (if post-processing scripts are run)
+- C++ format log: `out/fixed/cpp-format.log` (if C++ paths are configured in `line-length --fix`)
 
 ### Manual Build and Execution
 
@@ -202,17 +238,11 @@ console.log(orchestrator.generateReport(results));
 
 Create a `config.json` file in your project root to customize the behavior.
 
-Preferred nested-by-type format (strict):
+**Important:** The config now stores **only** analysis and formatting settings. Repository path and file paths are provided via CLI flags.
 
 ```json
 {
   "description": "My Project",
-  "repo_path": "./",
-  "paths_for_check": {
-    "ts": ["frameworks/ts/src", "apps/ui/src"],
-    "ets": ["frameworks/arkui/generated"],
-    "cpp": ["native/src"]
-  },
   "analysis": {
     "rules": [
       { "name": "syntax_errors", "enabled": true, "severity": "error" },
@@ -233,10 +263,14 @@ Preferred nested-by-type format (strict):
     "maxLineLength": 120
   }
 }
+```
 
-Notes:
-- ETS files are handled by the TypeScript analyzer/formatter.
-- When saving reports or fixed files, the `out/` directory is created automatically.
+**Configuration notes:**
+- Pass repo and file paths via CLI: `--repo <path> --ts <...> --ets <...> --cpp <...>` or `--paths <...>`
+- The deprecated `paths_for_check` field in config is **no longer used** and should be removed
+- ETS files are handled by the TypeScript analyzer/formatter
+- When saving reports or fixed files, the `out/` directory is created automatically
+- `excludePatterns` are matched as substrings in file paths (not glob patterns)
 
 ## Supported Languages
 

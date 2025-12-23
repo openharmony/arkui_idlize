@@ -14,12 +14,12 @@ This directory contains tests and test fixtures for the `codecheck-fixer` projec
 
 - `fixtures/` — Test files for CLI integration testing
 - `test-long-lines.ts` — File with long lines for testing
-- `test_*.json` — Configuration files for various test scenarios
 
 ### Configuration
 
 - `scripts/register.js` — ts-node registration for running TypeScript tests
 - `tsconfig.json` — TypeScript configuration for tests
+- Use root `../config.json` for CLI integration tests
 
 ## Running Tests
 
@@ -37,15 +37,19 @@ npx mocha
 
 ### Integration Tests via CLI
 
-For integration checks, use the `run.sh` script with configuration files:
+For integration checks, use the `run.sh` script with repository and path arguments:
 
 ```bash
 # Check line length formatting
-./run.sh line-length --fix -c tests/test-config.json
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated --fix -c config.json
 
 # CLI help
 ./run.sh --help
 ./run.sh line-length --help
+./run.sh analyze --help
+./run.sh format --help
+./run.sh fix --help
+./run.sh cpp-format --help
 ```
 
 #### Examples
@@ -53,26 +57,44 @@ For integration checks, use the `run.sh` script with configuration files:
 **Dry-run (no fixes) with report:**
 
 ```bash
-./run.sh line-length -c tests/test-config.json --dry-run -r out/line-length-report.md -v
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated -c config.json --dry-run -r out/line-length-report.md -v
 ```
 
 **Fix long lines:**
 
 ```bash
-./run.sh line-length -c tests/test-config.json --fix -o out/fixed --verbose
+./run.sh line-length --repo /abs/repo --ts src --ets arkui/generated -c config.json --fix -o out/fixed --verbose
 ```
 
 **General analysis:**
 
 ```bash
-./run.sh analyze -c tests/test-config.json -o out/analysis.txt -v
+./run.sh analyze --repo /abs/repo --ts src --ets arkui/generated --cpp native/src -c config.json -o out/analysis.txt -v
 ```
 
 **Auto-fixes:**
 
 ```bash
-./run.sh fix -c tests/test-config.json -o out/fixed -v
+./run.sh fix --repo /abs/repo --ts src --ets arkui/generated -c config.json -o out/fixed -v
 ```
+
+**Format code files:**
+
+```bash
+./run.sh format --repo /abs/repo --ts src --ets arkui/generated --cpp native/src -c config.json -o out/formatted -v
+```
+
+**C/C++ formatting:**
+
+```bash
+./run.sh cpp-format --repo /abs/repo --cpp native/src -c config.json --output out/formatted -v
+```
+
+**Important notes:**
+- All commands now require `--repo` to specify the repository root
+- File paths are passed via type-specific flags: `--ts`, `--ets`, `--cpp`, or generic `--paths`
+- Multiple paths can be space-separated or comma-separated
+- Use the root `config.json` for configuration (contains only analysis/formatting settings)
 
 ## Test System
 

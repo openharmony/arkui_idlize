@@ -18,13 +18,114 @@ import { generateSummaryMd, writeSummary } from '../reporting/summary';
 
 const program = new Command();
 
+type CliPathOverrides = {
+  repoPath?: string;
+  paths?: string[];
+  pathsByType?: PathsForCheckByType;
+};
+
+const collectList = (value: string, previous: string[]) => {
+  const parts = value
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean);
+  return previous.concat(parts);
+};
+
+const normalizePaths = (paths?: string[]) =>
+  Array.from(new Set((paths || []).filter(Boolean)));
+
+const hasAnyPaths = (byType?: PathsForCheckByType): boolean =>
+  !!byType && Object.values(byType).some(v => Array.isArray(v) && v.length > 0);
+
+const flattenByType = (byType?: PathsForCheckByType): string[] => {
+  if (!byType) return [];
+  return Object.values(byType)
+    .flat()
+    .filter((v): v is string => typeof v === 'string');
+};
+
+function buildPathsByTypeFromOptions(options: any): PathsForCheckByType | undefined {
+  const next: PathsForCheckByType = {};
+  if (options.ts && options.ts.length > 0) next.ts = normalizePaths(options.ts);
+  if (options.ets && options.ets.length > 0) next.ets = normalizePaths(options.ets);
+  if (options.cpp && options.cpp.length > 0) next.cpp = normalizePaths(options.cpp);
+  return hasAnyPaths(next) ? next : undefined;
+}
+
+function buildPathOverrides(options: any): CliPathOverrides {
+  const pathsByType = buildPathsByTypeFromOptions(options);
+  const base: CliPathOverrides = {
+    repoPath: options.repo,
+    paths: normalizePaths(options.paths),
+  };
+  return pathsByType ? { ...base, pathsByType } : base;
+}
+
+function pickSourcePaths(config: ProjectConfig, allowedTypes?: string[]): string[] {
+  const byType = config.pathsForCheckByType || {};
+  let selected: string[] = [];
+
+  if (allowedTypes && allowedTypes.length > 0) {
+    for (const t of allowedTypes) {
+      const value = (byType as any)[t];
+      if (Array.isArray(value)) {
+        selected.push(...value);
+      }
+    }
+  } else if (hasAnyPaths(byType)) {
+    selected = flattenByType(byType);
+  }
+
+  if (selected.length === 0) {
+    selected.push(...(config.pathsForCheck || []));
+  }
+
+  return Array.from(new Set(selected));
+}
+
+function buildPatternsFromPaths(paths: string[], repoPath: string, globTail: string): string[] {
+  const patterns: string[] = [];
+
+  for (const raw of paths) {
+    const resolvedPath = path.isAbsolute(raw) ? raw : path.resolve(repoPath, raw);
+    const relativeBase = path.relative(repoPath, resolvedPath) || '.';
+    const outsideRepo = relativeBase.startsWith('..');
+    const exists = fs.existsSync(resolvedPath);
+    const stat = exists ? fs.statSync(resolvedPath) : undefined;
+    const isDir = stat?.isDirectory();
+
+    if (isDir) {
+      const base = outsideRepo ? resolvedPath : relativeBase;
+      patterns.push(path.join(base, globTail));
+      continue;
+    }
+
+    // если путь указывает на файл или ещё не существует — используем как есть
+    patterns.push(outsideRepo ? resolvedPath : relativeBase);
+  }
+
+  return Array.from(new Set(patterns));
+}
+
+function attachPathOptions(cmd: Command): Command {
+  return cmd
+    .option('--repo <path>', 'Root repository path used as glob base (cwd)')
+    .option('--paths <paths...>', 'Un-typed file/dir paths (comma or space separated)', collectList, [])
+    .option('--ts <paths...>', 'TypeScript/TSX paths (comma or space separated)', collectList, [])
+    .option('--ets <paths...>', 'ETS paths (comma or space separated)', collectList, [])
+    .option('--cpp <paths...>', 'C/C++ paths (comma or space separated)', collectList, []);
+}
+
 program
   .name('codecheck-fixer')
   .description('A library for static analysis and automated formatting of TypeScript and C++ code')
   .version('1.0.0');
 
-program
+attachPathOptions(
+  program
   .command('analyze')
+)
   .description('Analyze code files for issues')
   .option('-c, --config <path>', 'Path to configuration file')
   .option('-o, --output <path>', 'Output file for analysis results')
@@ -36,29 +137,17 @@ program
   .option('--ignore-comments', 'Ignore comments in line length check')
   .action(async (options: any) => {
     try {
-      const config = await loadConfig(options.config);
-      const byType = config.pathsForCheckByType;
-      const sourcePaths = byType
-        ? Array.from(new Set<string>([
-            ...((byType.ts || [])),
-            ...((byType.ets || [])),
-            ...((byType.cpp || []))
-          ]))
-        : (config.pathsForCheck || []);
+      const config = await loadConfig(options.config, buildPathOverrides(options));
+      const sourcePaths = pickSourcePaths(config, ['ts', 'ets', 'cpp']);
 
-      const extensions = '{ts,tsx,ets,cpp,cc,cxx,c++,hpp,h}';
-      const patterns = sourcePaths.map(p => {
-        const resolvedPath = path.resolve(config.repoPath, p);
-        const relativeBase = path.relative(config.repoPath, resolvedPath) || '.';
-        if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
-          return path.join(relativeBase, `**/*.${extensions}`);
-        }
-        // если указали конкретный файл, возвращаем относительный путь до файла
-        return relativeBase;
-      });
+      const patterns = buildPatternsFromPaths(
+        sourcePaths,
+        config.repoPath,
+        '**/*.{ts,tsx,ets,cpp,cc,cxx,c++,hpp,h}'
+      );
 
       if (patterns.length === 0) {
-        console.error(chalk.red('Error: "paths_for_check" is not defined in your config file.'));
+        console.error(chalk.red('Error: no input paths provided. Use --ts/--ets/--cpp/--paths.'));
         process.exit(1);
       }
 
@@ -94,8 +183,10 @@ program
     }
   });
 
-program
+attachPathOptions(
+  program
   .command('format')
+)
   .description('Format code files')
   .option('-c, --config <path>', 'Path to configuration file')
   .option('-o, --output <path>', 'Output directory for formatted files')
@@ -103,27 +194,17 @@ program
   .option('-q, --quiet', 'Quiet mode')
   .action(async (options: any) => {
     try {
-      const config = await loadConfig(options.config);
-      const byType = config.pathsForCheckByType;
-      const sourcePaths = byType
-        ? Array.from(new Set<string>([
-            ...((byType.ts || [])),
-            ...((byType.ets || [])),
-            ...((byType.cpp || []))
-          ]))
-        : (config.pathsForCheck || []);
+      const config = await loadConfig(options.config, buildPathOverrides(options));
+      const sourcePaths = pickSourcePaths(config, ['ts', 'ets', 'cpp']);
 
-      const extensions = '{ts,tsx,ets,cpp,cc,cxx,c++,hpp,h}';
-      const patterns = sourcePaths.map(p => {
-        const resolvedPath = path.resolve(config.repoPath, p);
-        if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
-          return path.join(resolvedPath, `**/*.${extensions}`);
-        }
-        return resolvedPath;
-      });
+      const patterns = buildPatternsFromPaths(
+        sourcePaths,
+        config.repoPath,
+        '**/*.{ts,tsx,ets,cpp,cc,cxx,c++,hpp,h}'
+      );
 
       if (patterns.length === 0) {
-        console.error(chalk.red('Error: "paths_for_check" is not defined in your config file.'));
+        console.error(chalk.red('Error: no input paths provided. Use --ts/--ets/--cpp/--paths.'));
         process.exit(1);
       }
       const orchestrator = new Orchestrator(config);
@@ -160,8 +241,10 @@ program
     }
   });
 
-program
+attachPathOptions(
+  program
   .command('line-length')
+)
   .description('Check and fix long lines in TypeScript files')
   .option('-c, --config <path>', 'Path to configuration file')
   .option('-o, --output <path>', 'Output directory for fixed files', './out/fixed')
@@ -177,28 +260,20 @@ program
   .option('--dry-run', 'Only show issues without fixing (default)')
   .action(async (options: any) => {
     try {
-      const config = await loadConfig(options.config);
-      // Для проверки длинных строк берём только ts/ets пути, если они заданы в типизированной форме
-      const typedTs = (config.pathsForCheckByType?.ts || []);
-      const typedEts = (config.pathsForCheckByType?.ets || []);
-      const sourcePaths = (typedTs.length + typedEts.length) > 0
-        ? Array.from(new Set<string>([...typedTs, ...typedEts]))
-        : (config.pathsForCheck || []);
+      const config = await loadConfig(options.config, buildPathOverrides(options));
+      const sourcePaths = pickSourcePaths(config, ['ts', 'ets']);
 
-      const patterns = sourcePaths.map(p => {
-        const resolvedPath = path.resolve(config.repoPath, p);
-        const relativeBase = path.relative(config.repoPath, resolvedPath) || '.';
-        if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
-          return path.join(relativeBase, '**/*.{ts,ets}');
-        }
-        return relativeBase;
-      });
+      const patterns = buildPatternsFromPaths(
+        sourcePaths,
+        config.repoPath,
+        '**/*.{ts,ets}'
+      );
 
       if (options.verbose) {
       }
 
       if (patterns.length === 0) {
-        console.error(chalk.red('Error: "paths_for_check" is not defined or is empty in your config file.'));
+        console.error(chalk.red('Error: no input paths provided. Use --ts/--ets/--paths.'));
         process.exit(1);
       }
       
@@ -211,13 +286,8 @@ program
 
       if (allFiles.length === 0) {
         console.error(chalk.yellow('No files matched the provided paths. Diagnostics:'));
-        const typedTs = (config.pathsForCheckByType?.ts || []);
-        const typedEts = (config.pathsForCheckByType?.ets || []);
-        const sourcePaths = (typedTs.length + typedEts.length) > 0
-          ? Array.from(new Set<string>([...typedTs, ...typedEts]))
-          : (config.pathsForCheck || []);
         for (const p of sourcePaths) {
-          const resolvedPath = path.resolve(config.repoPath, p);
+          const resolvedPath = path.isAbsolute(p) ? p : path.resolve(config.repoPath, p);
           if (!fs.existsSync(resolvedPath)) {
             console.error(chalk.red(`- ${p} -> [NOT FOUND] ${resolvedPath}`));
             continue;
@@ -228,7 +298,7 @@ program
             if (matches.length === 0) {
               console.error(chalk.yellow(`- ${p} -> [NO MATCH] ${resolvedPath} for **/*.{ts,ets}`));
             } else {
-              console.error(chalk.yellow(`- ${p} -> [MATCHES NOT UNDER repo_path?] ${resolvedPath}`));
+              console.error(chalk.yellow(`- ${p} -> [MATCHES NOT UNDER repo?] ${resolvedPath}`));
             }
           } else {
             const ext = path.extname(resolvedPath).toLowerCase();
@@ -432,8 +502,10 @@ program
     }
   });
 
-program
+attachPathOptions(
+  program
   .command('cpp-format')
+)
   .description('Format C/C++ files using clang-format based on config paths')
   .option('-c, --config <path>', 'Path to configuration file')
   .option('-o, --output <path>', 'Output directory for formatted files (writes in-place if omitted)')
@@ -441,23 +513,18 @@ program
   .option('-v, --verbose', 'Verbose output')
   .action(async (options: any) => {
     try {
-      const config = await loadConfig(options.config);
-      const byType = config.pathsForCheckByType;
-      const cppPaths = byType?.cpp || [];
+      const config = await loadConfig(options.config, buildPathOverrides(options));
+      const cppPaths = pickSourcePaths(config, ['cpp']);
       if (!cppPaths || cppPaths.length === 0) {
-        console.error(chalk.red('Error: no cpp paths provided in paths_for_check.cpp'));
+        console.error(chalk.red('Error: no cpp paths provided. Use --cpp.'));
         process.exit(1);
       }
 
-      const exts = '{cpp,cc,cxx,c++,hpp,h}';
-      const patterns = cppPaths.map(p => {
-        const resolvedPath = path.resolve(config.repoPath, p);
-        const relativeBase = path.relative(config.repoPath, resolvedPath) || '.';
-        if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
-          return path.join(relativeBase, `**/*.${exts}`);
-        }
-        return relativeBase;
-      });
+      const patterns = buildPatternsFromPaths(
+        cppPaths,
+        config.repoPath,
+        '**/*.{cpp,cc,cxx,c++,hpp,h}'
+      );
 
       if (patterns.length === 0) {
         console.error(chalk.red('Error: no patterns resolved for cpp paths'));
@@ -521,8 +588,10 @@ program
     }
   });
 
-program
+attachPathOptions(
+  program
   .command('fix')
+)
   .description('Analyze and automatically fix issues where possible')
   .option('-c, --config <path>', 'Path to configuration file')
   .option('-o, --output <path>', 'Output directory for fixed files', './out/fixed')
@@ -530,23 +599,17 @@ program
   .option('-q, --quiet', 'Quiet mode')
   .action(async (options: any) => {
     try {
-      const config = await loadConfig(options.config);
-      const typedTs = (config.pathsForCheckByType?.ts || []);
-      const typedEts = (config.pathsForCheckByType?.ets || []);
-      const sourcePaths = (typedTs.length + typedEts.length) > 0
-        ? Array.from(new Set<string>([...typedTs, ...typedEts]))
-        : (config.pathsForCheck || []);
+      const config = await loadConfig(options.config, buildPathOverrides(options));
+      const sourcePaths = pickSourcePaths(config, ['ts', 'ets']);
 
-      const patterns = sourcePaths.map(p => {
-        const resolvedPath = path.resolve(config.repoPath, p);
-        if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
-          return path.join(resolvedPath, '**/*.{ts,ets}');
-        }
-        return resolvedPath;
-      });
+      const patterns = buildPatternsFromPaths(
+        sourcePaths,
+        config.repoPath,
+        '**/*.{ts,ets}'
+      );
 
       if (patterns.length === 0) {
-        console.error(chalk.red('Error: "paths_for_check" is not defined in your config file.'));
+        console.error(chalk.red('Error: no input paths provided. Use --ts/--ets/--paths.'));
         process.exit(1);
       }
       const orchestrator = new Orchestrator(config);
@@ -580,7 +643,7 @@ program
     }
   });
 
-async function loadConfig(configPath?: string): Promise<ProjectConfig> {
+async function loadConfig(configPath?: string, overrides?: CliPathOverrides): Promise<ProjectConfig> {
   let configData: any = {};
   
   if (configPath && fs.existsSync(configPath)) {
@@ -622,43 +685,52 @@ async function loadConfig(configPath?: string): Promise<ProjectConfig> {
     maxLineLength: 120
   };
   
-  // Строгая валидация формата: paths_for_check должен быть объектом по типам
-  if (!configData.paths_for_check || typeof configData.paths_for_check !== 'object' || Array.isArray(configData.paths_for_check)) {
+  const byTypeFromConfig = parsePathsForCheck(configData.paths_for_check);
+  const byTypeFromCli = overrides?.pathsByType && hasAnyPaths(overrides.pathsByType)
+    ? overrides.pathsByType
+    : undefined;
+  const effectiveByType = byTypeFromCli || byTypeFromConfig;
+
+  const flatFromConfig = effectiveByType ? flattenByType(effectiveByType) : [];
+  const flatFromCli = normalizePaths(overrides?.paths);
+  const normalizedPaths: string[] = flatFromCli.length > 0 ? flatFromCli : flatFromConfig;
+
+  const repoPath = overrides?.repoPath || configData.repo_path || configData.repoPath || process.cwd();
+  if (normalizedPaths.length === 0) {
+    throw new Error('No input paths provided. Use CLI flags (--ts/--ets/--cpp/--paths) or specify paths_for_check in config.json (deprecated).');
+  }
+
+  const baseConfig = {
+    description: configData.description || 'CodeCheck Fixer Project',
+    repoPath,
+    pathsForCheck: normalizedPaths,
+    analysis: { ...defaultAnalysisConfig, ...configData.analysis },
+    formatting: { ...defaultFormatterConfig, ...mapFormattingConfig(configData.formatting) }
+  } as ProjectConfig;
+
+  if (effectiveByType && hasAnyPaths(effectiveByType)) {
+    (baseConfig as any).pathsForCheckByType = effectiveByType;
+  }
+
+  return baseConfig;
+}
+
+function parsePathsForCheck(pathsForCheck: any): PathsForCheckByType | undefined {
+  if (pathsForCheck === undefined) {
+    return undefined;
+  }
+  if (typeof pathsForCheck !== 'object' || Array.isArray(pathsForCheck)) {
     throw new Error('Invalid config: "paths_for_check" must be an object grouped by file types (e.g., { "ts": ["..."], "ets": ["..."], "cpp": ["..."] }).');
   }
 
-  const byType: PathsForCheckByType = configData.paths_for_check as PathsForCheckByType;
-
-  // Доп. валидация значений
+  const byType: PathsForCheckByType = pathsForCheck as PathsForCheckByType;
   for (const [key, value] of Object.entries(byType)) {
     if (value !== undefined && !Array.isArray(value)) {
       throw new Error(`Invalid config: paths_for_check.${key} must be an array of paths`);
     }
   }
 
-  const flattenedFromByType: string[] = Object.values(byType)
-    .flat()
-    .filter((v): v is string => typeof v === 'string');
-
-  if (flattenedFromByType.length === 0) {
-    throw new Error('Invalid config: paths_for_check is empty. Provide at least one path for a supported type.');
-  }
-
-  const normalizedPaths: string[] = flattenedFromByType;
-
-  const baseConfig = {
-    description: configData.description || 'CodeCheck Fixer Project',
-    repoPath: configData.repo_path || configData.repoPath || process.cwd(),
-    pathsForCheck: normalizedPaths,
-    analysis: { ...defaultAnalysisConfig, ...configData.analysis },
-    formatting: { ...defaultFormatterConfig, ...mapFormattingConfig(configData.formatting) }
-  } as ProjectConfig;
-
-  if (byType) {
-    (baseConfig as any).pathsForCheckByType = byType;
-  }
-
-  return baseConfig;
+  return byType;
 }
 
 function mapFormattingConfig(userFmt: any | undefined): Partial<FormatterConfig> {

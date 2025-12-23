@@ -3,9 +3,20 @@ set -e
 
 rm -rf out
 npm run build
-/bin/bash run.sh line-length -c tests/test_single_real_ets.json --fix --output out/fixed --verbose
 
 REPO_ROOT="/data/home/mlobakh/BZ_OHOS/OHOS/foundation/arkui/ace_engine"
+ETS_PATHS=(
+  "frameworks/bridge/arkts_frontend/koala_projects/arkoala-arkts/arkui-ohos/generated"
+  "frameworks/bridge/arkts_frontend/koala_projects/arkoala-arkts/arkui-ohos/src"
+)
+
+/bin/bash run.sh line-length \
+  -c config.json \
+  --repo "$REPO_ROOT" \
+  --ets "${ETS_PATHS[@]}" \
+  --fix \
+  --output out/fixed \
+  --verbose
 
 # scripts/check_long_lines.sh -x ets\
 #     -p "$REPO_ROOT/frameworks/bridge/arkts_frontend/koala_projects/arkoala-arkts/arkui-ohos/generated/component/button.ets"\
