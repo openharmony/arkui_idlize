@@ -64,6 +64,11 @@ interface AlertDialog {
 };
 
 [Entity=Class]
+interface ContextMenu {
+  static void close();
+};
+
+[Entity=Class]
 interface LevelOrderExtender {
   static LevelOrderExtender clamp(number order);
   number getOrder();
