@@ -3,9 +3,19 @@
     "compilerOptions": {
         "module": "CommonJS",
         "rootDir": "../",
-        "baseUrl": "../",
+        "baseUrl": "../src",
         "outDir": "../build/tests",
-        "types": ["node", "mocha"]
+        "types": ["node", "mocha"],
+        "paths": {
+            "@/*": ["*"],
+            "@/core/*": ["core/*"],
+            "@/analyzers/*": ["analyzers/*"],
+            "@/formatters/*": ["formatters/*"],
+            "@/cli/*": ["cli/*"],
+            "@/types/*": ["types/*"],
+            "@/utils/*": ["utils/*"],
+            "@/reporting/*": ["reporting/*"]
+        }
     },
     "include": [
         "../src/**/*.ts",
