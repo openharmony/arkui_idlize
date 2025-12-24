@@ -8,11 +8,11 @@ import { createEnhancedASTWithQuery } from '../libs/arkts_enhanced_ast';
 import cases from '../libs/arkts_formatter/tests/expression-normalizer/fixtures/pairs.json';
 
 function makeContext(content: string): FormattingContext {
-  // Используем .ets, чтобы отключить синтаксическую проверку для фрагментов
+  // Use .ets to disable syntax checking for fragments
   const fileName = 'temp.ets';
   const sourceFile = ts.createSourceFile(fileName, content, ts.ScriptTarget.Latest, true);
   
-  // Строим Enhanced AST с запросником
+  // Build Enhanced AST with query engine
   const enhancedAST = createEnhancedASTWithQuery(sourceFile, {
     preserveComments: true,
     preserveWhitespace: false,
@@ -63,7 +63,7 @@ suite('Expression Normalizer fixtures (ResultValidator.normalizeCode)', () => {
       process.stdout.write(`[Normalizer][${kind}] ${description} => ${coloredStatus}\n`);
     }
     if (!isPass && normalized) {
-      // Показываем нормализованные строки для быстрой диагностики
+      // Show normalized strings for quick diagnostics
       process.stdout.write(`  expected: ${normalized.original}\n`);
       process.stdout.write(`  received: ${normalized.formatted}\n`);
     }

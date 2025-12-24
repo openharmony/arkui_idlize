@@ -561,8 +561,8 @@ Format C++ files through external clang-format process with comprehensive statis
    **Progress display:**
    ```
    [1/42] src/core/parser.cpp ✓
-   [2/42] src/utils/string_helper.cpp ⚠ 3 длинных
-   [3/42] src/api/handler.cpp ✗ ошибка парсинга
+   [2/42] src/utils/string_helper.cpp ⚠ 3 long lines
+   [3/42] src/api/handler.cpp ✗ parse error
    ```
    
    - Gray directory, white filename
@@ -587,22 +587,22 @@ After completion, displays comprehensive statistics:
 
 ```
 ══════════════════════════════════════════════════════════════════════
-Статистика форматирования C++
+C++ Formatting Statistics
 ══════════════════════════════════════════════════════════════════════
-Всего файлов: 42
-Успешно отформатировано: 40
-Ошибок: 2
-Длинных строк до: 156
-Длинных строк после: 23
-Исправлено: 133 (85.3%)
-Время выполнения: 00:00:12.345
-Выходная директория: ./out/fixed
-Лог: ./out/fixed/cpp-format.log
+Total files: 42
+Successfully formatted: 40
+Errors: 2
+Long lines before: 156
+Long lines after: 23
+Fixed: 133 (85.3%)
+Execution time: 00:00:12.345
+Output directory: ./out/fixed
+Log: ./out/fixed/cpp-format.log
 ══════════════════════════════════════════════════════════════════════
 
-! Оставшиеся длинные строки сохранены в: ./out/fixed/long_lines_cpp_remaining.csv
+! Remaining long lines saved to: ./out/fixed/long_lines_cpp_remaining.csv
 
-✓ Форматирование C++ завершено
+✓ C++ formatting completed
 ```
 
 ### Automatic Execution
@@ -618,9 +618,9 @@ When executing `line-length --fix` with `paths_for_check.cpp` section in config:
 ### Error Handling
 
 **Categorized error messages:**
-- `ENOENT` → "clang-format не найден"
-- `EACCES` → "нет прав доступа"
-- Parse errors → "ошибка парсинга"
+- `ENOENT` → "clang-format not found"
+- `EACCES` → "permission denied"
+- Parse errors → "parse error"
 - Long messages → truncated to 50 chars
 
 **Detailed logging:**

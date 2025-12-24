@@ -1,4 +1,4 @@
-/** Контроллер для прерывания блокирующих основной поток операций */
+/** Controller for cancelling main thread blocking operations */
 class CancellationTokenController {
   private cancelled = false;
   private initialized = false;
@@ -17,7 +17,7 @@ class CancellationTokenController {
       if (!this.cancelled) {
         this.cancelled = true;
         try {
-          process.stderr.write('\nПолучен сигнал Ctrl+C. Прерываем работу.\n');
+          process.stderr.write('\nReceived Ctrl+C signal. Aborting.\n');
         } catch {}
       }
       process.exit(130);

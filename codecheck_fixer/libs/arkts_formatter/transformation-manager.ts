@@ -1,5 +1,5 @@
 /**
- * Менеджер трансформаций для форматирования длинных строк
+ * Transformation manager for formatting long lines
  */
 
 import { TransformationResult, FormattingContext } from './types';
@@ -8,10 +8,10 @@ export class TransformationManager {
   private transformations: TransformationResult[] = [];
 
   /**
-   * Добавляет трансформацию
+   * Adds transformation
    */
   addTransformation(start: number, width: number, newText: string): void {
-    // Проверяем, есть ли уже трансформация в этой позиции
+    // Check if transformation already exists at this position
     const existingIndex = this.transformations.findIndex(t => t.start === start);
     
     if (existingIndex >= 0) {
@@ -26,14 +26,14 @@ export class TransformationManager {
   }
 
   /**
-   * Применяет все трансформации к контенту
+   * Applies all transformations to content
    */
   applyTransformations(content: string): string {
     if (this.transformations.length === 0) {
       return content;
     }
     
-    // Сортируем трансформации от конца к началу, чтобы не сбить позиции
+    // Sort transformations from end to start to not mess up positions
     const sortedTransformations = [...this.transformations].sort((a, b) => b.start - a.start);
     
     let result = content;
@@ -47,7 +47,7 @@ export class TransformationManager {
   }
 
   /**
-   * Проверяет, есть ли конфликтующие трансформации
+   * Checks if there are conflicting transformations
    */
   hasConflicts(): boolean {
     const sorted = [...this.transformations].sort((a, b) => a.start - b.start);
@@ -57,7 +57,7 @@ export class TransformationManager {
       const next = sorted[i + 1];
       
       if (current && next && current.end > next.start) {
-        return true; // Перекрытие
+        return true; // Overlap
       }
     }
     
@@ -65,28 +65,28 @@ export class TransformationManager {
   }
 
   /**
-   * Очищает все трансформации
+   * Clears all transformations
    */
   clear(): void {
     this.transformations = [];
   }
 
   /**
-   * Получает количество трансформаций
+   * Gets transformation count
    */
   getCount(): number {
     return this.transformations.length;
   }
 
   /**
-   * Получает все трансформации (только для чтения)
+   * Gets all transformations (readonly)
    */
   getTransformations(): readonly TransformationResult[] {
     return this.transformations;
   }
 
   /**
-   * Валидирует результат трансформации
+   * Validates transformation result
    */
   validateResult(original: string, transformed: string, context: FormattingContext): TransformationValidationResult {
     const originalLines = original.split('\n');
@@ -94,12 +94,12 @@ export class TransformationManager {
     
     const issues: string[] = [];
     
-    // Проверяем, что количество строк не уменьшилось критично
+    // Check that line count didn't decrease critically
     if (transformedLines.length < originalLines.length * 0.8) {
-      issues.push('Слишком большое сокращение количества строк');
+      issues.push('Too large reduction in line count');
     }
     
-    // Проверяем, что длинные строки действительно стали короче
+    // Check that long lines actually became shorter
     let improvedLines = 0;
     let worsenedLines = 0;
     
@@ -116,7 +116,7 @@ export class TransformationManager {
       }
     }
     
-    // Проверяем дополнительные строки
+    // Check additional lines
     for (let i = originalLines.length; i < transformedLines.length; i++) {
       const lineLength = transformedLines[i]?.length || 0;
       if (lineLength > context.maxLineLength) {
@@ -125,7 +125,7 @@ export class TransformationManager {
     }
     
     if (worsenedLines > improvedLines) {
-      issues.push('Трансформация ухудшила ситуацию с длинными строками');
+      issues.push('Transformation worsened long lines situation');
     }
     
     return {

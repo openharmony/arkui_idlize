@@ -1,5 +1,5 @@
 /**
- * CodeCheck Fixer - Основной экспорт библиотеки
+ * CodeCheck Fixer - Main library export
  */
 
 export { Orchestrator } from './core/orchestrator';
@@ -13,5 +13,5 @@ export { LineLengthFormatter } from '../libs/arkts_formatter/line-length-formatt
 
 export * from './types';
 
-// CLI экспорт
+// CLI export
 export * from './cli/index';

@@ -1,5 +1,5 @@
 /**
- * Основные типы для библиотеки CodeCheck Fixer
+ * Core types for CodeCheck Fixer library
  */
 
 export interface AnalysisIssue {
@@ -10,7 +10,7 @@ export interface AnalysisIssue {
   severity: 'error' | 'warning' | 'info';
   type: 'syntax' | 'style' | 'performance' | 'best-practice' | 'security' | 'custom';
   isFixable?: boolean;
-  lineLength?: number; // Длина строки для правила line-length
+  lineLength?: number; // Line length for line-length rule
 }
 
 export interface AnalysisResult {
@@ -81,7 +81,7 @@ export interface RuleConfig {
 }
 
 export interface FormatterConfig {
-  tabSize: number; // число пробелов для одного таба
+  tabSize: number; // Number of spaces for one tab
   useTabs: boolean;
   quoteStyle: 'single' | 'double';
   semicolons: boolean;

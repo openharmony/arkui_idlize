@@ -1,7 +1,7 @@
 /**
- * Модуль для запросов к расширенному AST
+ * Module for querying extended AST
  * 
- * Предоставляет удобные методы для поиска и анализа узлов в расширенном AST.
+ * Provides convenient methods for finding and analyzing nodes in extended AST.
  */
 
 import * as ts from 'typescript';
@@ -14,40 +14,40 @@ import {
 } from './enhanced-ast-types';
 
 /**
- * Результат поиска узлов
+ * Node search result
  */
 export interface NodeSearchResult {
-  /** Найденные узлы */
+  /** Found nodes */
   nodes: EnhancedASTNode[];
   
-  /** Общее количество проверенных узлов */
+  /** Total number of checked nodes */
   totalChecked: number;
   
-  /** Время поиска в миллисекундах */
+  /** Search time in milliseconds */
   searchTimeMs: number;
 }
 
 /**
- * Предикат для фильтрации узлов
+ * Predicate for filtering nodes
  */
 export type NodePredicate = (node: EnhancedASTNode) => boolean;
 
 /**
- * Опции для поиска узлов
+ * Options for node search
  */
 export interface SearchOptions {
-  /** Максимальная глубина поиска */
+  /** Maximum search depth */
   maxDepth?: number;
   
-  /** Включить ли дочерние узлы в результат */
+  /** Whether to include child nodes in result */
   includeChildren?: boolean;
   
-  /** Остановиться на первом найденном узле */
+  /** Stop on first found node */
   stopOnFirst?: boolean;
 }
 
 /**
- * Класс для выполнения запросов к расширенному AST
+ * Class for executing queries to extended AST
  */
 export class EnhancedASTQuery {
   private ast: EnhancedASTResult;
@@ -57,14 +57,14 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Находит узел по абсолютной позиции в файле
+   * Finds node by absolute position in file
    */
   public findNodeAtPosition(position: number): EnhancedASTNode | undefined {
     return this.ast.positionMap.get(position);
   }
 
   /**
-   * Находит узел по позиции строки и колонки
+   * Finds node by line and column position
    */
   public findNodeAtLineColumn(line: number, column: number): EnhancedASTNode | undefined {
     const position = this.ast.sourceFile.getPositionOfLineAndCharacter(line, column);
@@ -72,7 +72,7 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Находит все узлы в заданном диапазоне
+   * Finds all nodes in given range
    */
   public findNodesInRange(range: SourceRange): EnhancedASTNode[] {
     const nodes: EnhancedASTNode[] = [];
@@ -88,14 +88,14 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Находит минимальный узел, который полностью покрывает заданный диапазон
+   * Finds minimal node that completely covers given range
    */
   public findMinimalCoveringNode(range: SourceRange): EnhancedASTNode | undefined {
     let minimalNode: EnhancedASTNode | undefined;
     let minimalSize = Infinity;
 
     const checkNode = (node: EnhancedASTNode) => {
-      // Узел должен полностью покрывать диапазон
+      // Node must completely cover range
       if (node.fullRange.start.offset <= range.start.offset && 
           node.fullRange.end.offset >= range.end.offset) {
         
@@ -112,28 +112,28 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Находит все узлы заданного типа
+   * Finds all nodes of given type
    */
   public findNodesByKind(kind: ts.SyntaxKind, options: SearchOptions = {}): NodeSearchResult {
     return this.findNodes(node => node.kind === kind, options);
   }
 
   /**
-   * Находит все узлы с заданными флагами
+   * Finds all nodes with given flags
    */
   public findNodesByFlags(flags: NodeFlags, options: SearchOptions = {}): NodeSearchResult {
     return this.findNodes(node => (node.metadata.flags & flags) !== 0, options);
   }
 
   /**
-   * Находит все узлы, которые можно разбить
+   * Finds all nodes that can be broken
    */
   public findBreakableNodes(options: SearchOptions = {}): NodeSearchResult {
     return this.findNodes(node => node.metadata.canBreak, options);
   }
 
   /**
-   * Находит все длинные узлы (превышающие заданную длину)
+   * Finds all long nodes (exceeding given length)
    */
   public findLongNodes(maxLength: number, options: SearchOptions = {}): NodeSearchResult {
     return this.findNodes(node => {
@@ -143,11 +143,11 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Находит все узлы с комментариями
+   * Finds all nodes with comments
    */
   public findNodesWithComments(options: SearchOptions = {}): NodeSearchResult {
     return this.findNodes(node => {
-      // Проверяем наличие комментариев в синтаксических токенах
+      // Check for comments in syntactic tokens
       return node.syntaxTokens.some(token => 
         token.type === SyntaxTokenType.LINE_COMMENT || 
         token.type === SyntaxTokenType.BLOCK_COMMENT
@@ -156,7 +156,7 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Находит все узлы, соответствующие предикату
+   * Finds all nodes matching predicate
    */
   public findNodes(predicate: NodePredicate, options: SearchOptions = {}): NodeSearchResult {
     const startTime = Date.now();
@@ -166,27 +166,27 @@ export class EnhancedASTQuery {
     const search = (node: EnhancedASTNode, depth: number = 0) => {
       totalChecked++;
 
-      // Проверяем ограничение глубины
+      // Check depth limit
       if (options.maxDepth !== undefined && depth > options.maxDepth) {
         return;
       }
 
-      // Проверяем предикат
+      // Check predicate
       if (predicate(node)) {
         nodes.push(node);
         
-        // Останавливаемся на первом найденном, если требуется
+        // Stop on first found if required
         if (options.stopOnFirst) {
           return;
         }
       }
 
-      // Обрабатываем дочерние узлы
+      // Process child nodes
       if (options.includeChildren !== false) {
         for (const child of node.children) {
           search(child, depth + 1);
           
-          // Проверяем, нужно ли остановиться
+          // Check if need to stop
           if (options.stopOnFirst && nodes.length > 0) {
             return;
           }
@@ -204,7 +204,7 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Получает путь от корня до заданного узла
+   * Gets path from root to given node
    */
   public getNodePath(targetNode: EnhancedASTNode): EnhancedASTNode[] {
     const path: EnhancedASTNode[] = [];
@@ -219,11 +219,11 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Получает соседние узлы (предыдущий и следующий)
+   * Gets sibling nodes (previous and next)
    */
   public getSiblings(node: EnhancedASTNode): { previous?: EnhancedASTNode; next?: EnhancedASTNode } {
     if (!node.parent) {
-      return {}; // Корневой узел не имеет соседей
+      return {}; // Root node has no siblings
     }
 
     const siblings = node.parent.children;
@@ -246,7 +246,7 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Получает все узлы на заданном уровне вложенности
+   * Gets all nodes at given nesting level
    */
   public getNodesAtDepth(depth: number): EnhancedASTNode[] {
     const nodes: EnhancedASTNode[] = [];
@@ -254,7 +254,7 @@ export class EnhancedASTQuery {
     const traverse = (node: EnhancedASTNode, currentDepth: number = 0) => {
       if (currentDepth === depth) {
         nodes.push(node);
-        return; // Не углубляемся дальше
+        return; // Don't go deeper
       }
 
       if (currentDepth < depth) {
@@ -269,7 +269,7 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Получает статистику по типам узлов
+   * Gets statistics by node types
    */
   public getNodeTypeStatistics(): Map<ts.SyntaxKind, number> {
     const statistics = new Map<ts.SyntaxKind, number>();
@@ -283,14 +283,14 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Проверяет, содержит ли узел заданную позицию
+   * Checks if node contains given position
    */
   public nodeContainsPosition(node: EnhancedASTNode, position: number): boolean {
     return node.fullRange.start.offset <= position && position < node.fullRange.end.offset;
   }
 
   /**
-   * Проверяет, пересекаются ли два узла
+   * Checks if two nodes intersect
    */
   public nodesIntersect(node1: EnhancedASTNode, node2: EnhancedASTNode): boolean {
     return !(node1.fullRange.end.offset <= node2.fullRange.start.offset ||
@@ -298,46 +298,46 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Получает текст узла с учетом всех токенов
+   * Gets node text including all tokens
    */
   public getFullNodeText(node: EnhancedASTNode): string {
-    // Восстанавливаем текст из синтаксических токенов
+    // Reconstruct text from syntactic tokens
     return node.syntaxTokens.map(token => token.text).join('');
   }
 
   /**
-   * Восстанавливает оригинальный текст из AST узлов
+   * Reconstructs original text from AST nodes
    */
   public reconstructOriginalText(): string {
-    // НАСТОЯЩЕЕ восстановление из узлов AST
+    // REAL reconstruction from AST nodes
     return this.reconstructFromNode(this.ast.root);
   }
 
   /**
-   * Рекурсивно восстанавливает текст из узла AST
+   * Recursively reconstructs text from AST node
    */
   private reconstructFromNode(node: EnhancedASTNode): string {
     let result = '';
 
-    // Сначала добавляем модификаторы (export, async и т.д.)
+    // First add modifiers (export, async, etc.)
     if (node.modifiers && node.modifiers.length > 0) {
       for (const modifier of node.modifiers) {
         result += this.reconstructFromNode(modifier);
       }
     }
 
-    // Добавляем ключевые слова на основе флагов узла
+    // Add keywords based on node flags
     result += this.getKeywordsFromFlags(node);
 
-    // Для всех узлов используем их собственный текст
-    // (он уже включает все содержимое, включая детей)
+    // For all nodes use their own text
+    // (it already includes all content, including children)
     result += node.text;
 
     return result;
   }
 
   /**
-   * Извлекает ключевые слова на основе флагов узла
+   * Extracts keywords based on node flags
    */
   private getKeywordsFromFlags(node: EnhancedASTNode): string {
     if (!node.nodeFlags) {
@@ -346,7 +346,7 @@ export class EnhancedASTQuery {
 
     let keywords = '';
     
-    // Обрабатываем флаги VariableDeclarationList
+    // Handle VariableDeclarationList flags
     if (node.kind === ts.SyntaxKind.VariableDeclarationList) {
       if (node.nodeFlags & ts.NodeFlags.Const) {
         keywords += 'const ';
@@ -365,7 +365,7 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Проверяет корректность восстановления текста
+   * Validates correctness of text reconstruction
    */
   public validateTextReconstruction(): { isValid: boolean; differences?: string[] } {
     const reconstructed = this.reconstructOriginalText();
@@ -375,7 +375,7 @@ export class EnhancedASTQuery {
       return { isValid: true };
     }
 
-    // Анализируем различия
+    // Analyze differences
     const differences: string[] = [];
     const minLength = Math.min(reconstructed.length, original.length);
 
@@ -386,18 +386,18 @@ export class EnhancedASTQuery {
         const end = Math.min(minLength, i + context);
         
         differences.push(
-          `Позиция ${i}: ` +
-          `оригинал="${original.substring(start, end)}", ` +
-          `восстановлено="${reconstructed.substring(start, end)}"`
+          `Position ${i}: ` +
+          `original="${original.substring(start, end)}", ` +
+          `reconstructed="${reconstructed.substring(start, end)}"`
         );
         
-        if (differences.length >= 5) break; // Ограничиваем количество различий
+        if (differences.length >= 5) break; // Limit number of differences
       }
     }
 
     if (reconstructed.length !== original.length) {
       differences.push(
-        `Различие в длине: оригинал=${original.length}, восстановлено=${reconstructed.length}`
+        `Length difference: original=${original.length}, reconstructed=${reconstructed.length}`
       );
     }
 
@@ -405,7 +405,7 @@ export class EnhancedASTQuery {
   }
 
   /**
-   * Вспомогательный метод для обхода всех узлов
+   * Helper method for traversing all nodes
    */
   private traverseNodes(node: EnhancedASTNode, callback: (node: EnhancedASTNode) => void): void {
     callback(node);

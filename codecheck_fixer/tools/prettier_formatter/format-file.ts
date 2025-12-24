@@ -17,12 +17,12 @@ async function main() {
     .option('file', {
       type: 'string',
       demandOption: true,
-      describe: 'Путь до файла TypeScript/TSX, который нужно отформатировать'
+      describe: 'Path to TypeScript/TSX file to format'
     })
     .option('strict', {
       type: 'boolean',
       default: false,
-      describe: 'Включить строгий режим: падать при ошибке разбора исходника'
+      describe: 'Enable strict mode: fail on source parsing error'
     })
     .help()
     .parse();
@@ -44,14 +44,14 @@ async function main() {
   });
 
   if (formattingError) {
-    console.warn('[prettier-based] Предупреждение: не удалось отформатировать файл в строгом режиме. Возвращаю входные данные без изменений.');
-    console.warn(`Причина: ${formattingError.message}`);
+    console.warn('[prettier-based] Warning: failed to format file in strict mode. Returning input unchanged.');
+    console.warn(`Reason: ${formattingError.message}`);
   }
 
   process.stdout.write(formatted);
 }
 
 main().catch((error) => {
-  console.error('Ошибка форматирования:', error);
+  console.error('Formatting error:', error);
   process.exit(1);
 });

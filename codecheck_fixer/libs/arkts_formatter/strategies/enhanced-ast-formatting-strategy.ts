@@ -1,12 +1,12 @@
 /**
- * Улучшенная AST-стратегия форматирования с использованием расширенного AST
+ * Enhanced AST formatting strategy using extended AST
  * 
- * Эта стратегия использует новый модуль расширенного AST для получения
- * полной информации о координатах и токенах, что обеспечивает
- * более точное и надежное форматирование.
+ * This strategy uses new extended AST module to obtain
+ * complete information about coordinates and tokens, which ensures
+ * more accurate and reliable formatting.
  */
 
-// Типы строго контролируем внутри файла; отключение проверок не требуется
+// Types are strictly controlled within the file; disabling checks not required
 
 import * as ts from 'typescript';
 import { FormattingStrategy, FormattingContext, FormatterResult, LineBreakInsertion } from '../types';
@@ -26,89 +26,89 @@ import {
 import { cancellationToken } from '../../common/cancellation';
 
 /**
- * Информация о потенциальном месте разбиения
- * Хранит как локальную, так и глобальную позиции
+ * Information about potential breakpoint
+ * Stores both local and global positions
  */
 interface BreakPoint {
-  /** Локальная позиция относительно начала строки (для симуляции) */
+  /** Local position relative to line start (for simulation) */
   position: number;
   
-  /** Глобальная позиция в файле (для финального применения) */
+  /** Global position in file (for final application) */
   globalPosition: number;
   
-  /** Уровень отступа */
+  /** Indent level */
   indentLevel: number;
   
-  /** Приоритет (меньше = выше приоритет) */
+  /** Priority (lower = higher priority) */
   priority: number;
   
-  /** Причина разбиения */
+  /** Break reason */
   reason: string;
   
-  /** Узел AST, связанный с этой точкой */
+  /** AST node associated with this point */
   node: EnhancedASTNode;
   
-  /** Тип разбиения */
+  /** Break type */
   breakType: BreakType;
 
-  /** Количество символов пробела, удалённых после применения переноса */
+  /** Number of whitespace characters removed after applying break */
   trimmedWhitespace?: number;
 }
 
 /**
- * Типы разбиения
+ * Break types
  */
 enum BreakType {
-  /** Разбиение перед узлом */
+  /** Break before node */
   BEFORE_NODE = 'before_node',
   
-  /** Разбиение после узла */
+  /** Break after node */
   AFTER_NODE = 'after_node',
   
-  /** Разбиение внутри узла */
+  /** Break inside node */
   INSIDE_NODE = 'inside_node',
   
   /** 
-   * Разбиение по семантическому разделителю
-   * Перенос вставляется ДО или ПОСЛЕ токена в зависимости от предпочтений,
-   * вычисленных классификатором разделителей (см. getSemanticSeparators).
+   * Break at semantic separator
+   * Newline is inserted BEFORE or AFTER token depending on preferences,
+   * calculated by separator classifier (see getSemanticSeparators).
    */
   AT_TOKEN = 'at_token'
 }
 
 /**
- * Результат анализа строки
+ * Line analysis result
  */
 interface LineAnalysisResult {
-  /** Исходная строка */
+  /** Original line */
   originalLine: string;
   
-  /** Индекс строки */
+  /** Line index */
   lineIndex: number;
   
-  /** Глобальные позиции строки */
+  /** Global line positions */
   globalStart: number;
   globalEnd: number;
   
-  /** Узлы AST, покрывающие строку */
+  /** AST nodes covering line */
   coveringNodes: EnhancedASTNode[];
   
-  /** Найденные точки разбиения */
+  /** Found breakpoints */
   breakPoints: BreakPoint[];
   
-  /** Расширенный AST для анализа */
+  /** Extended AST for analysis */
   ast: EnhancedASTQuery;
 
-  /** Локальный индекс позиции пересечения лимита длины строки */
+  /** Local index of position crossing line length limit */
   crossingLocalIndex: number;
 
-  /** Верхний покрывающий узел для приоритезации переносов */
+  /** Upper covering node for prioritizing breaks */
   upperCoveringNode: EnhancedASTNode | undefined;
 
-  /** Позиции верхнеуровневых запятых (глобальные) внутри upperCoveringNode на этой строке */
+  /** Top-level comma positions (global) inside upperCoveringNode on this line */
   topLevelCommaGlobalPositions?: number[];
 
-  /** Позиции верхнеуровневых запятых (локальные относительно начала строки) */
+  /** Top-level comma positions (local relative to line start) */
   topLevelCommaLocalPositions?: number[];
 }
 
@@ -119,7 +119,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     return `${lineIndex}|${line}`;
   }
 
-  // Возвращает true только тогда, когда длина строки превышает лимит
+  // Returns true only when line length exceeds limit
   canHandle(line: string, lineIndex: number, context: FormattingContext): boolean {
     const lineInfo = getLineInfo(line, lineIndex, context.maxLineLength);
     return lineInfo.exceedsLimit;
@@ -130,7 +130,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       return {
         lineBreaks: [],
         success: false,
-        reason: 'Отмена пользователем'
+        reason: 'User cancellation'
       };
     }
 
@@ -140,39 +140,39 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     }
 
     try {
-      // Анализируем строку с помощью расширенного AST
+      // Analyze line using extended AST
       const analysis = this.analyzeLineWithEnhancedAST(line, lineIndex, context);
       
       if (!analysis) {
         return {
           lineBreaks: [],
           success: false,
-          reason: 'Не удалось проанализировать строку с помощью расширенного AST'
+          reason: 'Failed to analyze line with extended AST'
         };
       }
 
-      // Находим оптимальные точки разбиения
+      // Find optimal breakpoints
       const optimalBreaks = this.selectOptimalBreakPoints(analysis, context);
       
       if (optimalBreaks.length === 0) {
         return {
           lineBreaks: [],
           success: false,
-          reason: 'Не найдены подходящие точки разбиения'
+          reason: 'No suitable breakpoints found'
         };
       }
 
-      // Преобразуем в формат LineBreakInsertion
+      // Convert to LineBreakInsertion format
       const lineBreaks = this.convertToLineBreaks(optimalBreaks);
       
-      // Валидируем результат
+      // Validate result
       const isValid = this.validateBreaks(lineBreaks, analysis, context);
       
       if (!isValid) {
         return {
           lineBreaks: [],
           success: false,
-          reason: 'Валидация переносов не прошла'
+          reason: 'Break validation failed'
         };
       }
 
@@ -186,18 +186,18 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       return {
         lineBreaks: [],
         success: false,
-        reason: `Внутренняя ошибка: ${error}`
+        reason: `Internal error: ${error}`
       };
     }
   }
 
   getPriority(): number {
-    return 150; // Максимальный приоритет для Enhanced AST стратегии
+    return 150; // Maximum priority for Enhanced AST strategy
   }
 
   /**
-   * Анализирует строку с помощью расширенного AST.
-   * Преобразует глобальные позиции в локальные
+   * Analyzes line using extended AST.
+   * Converts global positions to local
    */
   private analyzeLineWithEnhancedAST(
     line: string, 
@@ -220,36 +220,36 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     }
 
     try {
-      // Получаем Enhanced AST из контекста (уже построен)
+      // Get Enhanced AST from context (already built)
       const ast = context.enhancedAST.query;
       
-      // Вычисляем глобальные позиции строки
+      // Calculate global line positions
       const { globalStart, globalEnd } = this.calculateLinePositions(lineIndex, context);
       
       
-      // Находим МИНИМАЛЬНЫЙ узел, покрывающий эту строку
+      // Find MINIMAL node covering this line
       const minimalNode = ast.findMinimalCoveringNode({
         start: { offset: globalStart, line: lineIndex, column: 0 },
         end: { offset: globalEnd, line: lineIndex, column: line.length }
       });
       
-      // Формируем список узлов для анализа: минимальный + целевой родитель Call/New при строках внутри скобок
+      // Form list of nodes to analyze: minimal + target Call/New parent for lines inside parentheses
       const coveringNodes: EnhancedASTNode[] = [];
       if (minimalNode) {
-        // Проверяем, находится ли minimalNode внутри ASI-критичного statement
-        // Если да, анализируем statement вместо minimalNode для правильной ASI-фильтрации
+        // Check if minimalNode is inside ASI-critical statement
+        // If yes, analyze statement instead of minimalNode for correct ASI filtering
         let nodeToAnalyze: EnhancedASTNode = minimalNode;
         let currentParent = minimalNode.parent;
         
         while (currentParent) {
-          // Не блокируем анализ для throw/return/break/continue/yield
+          // Don't block analysis for throw/return/break/continue/yield
           currentParent = currentParent.parent;
         }
         
         coveringNodes.push(nodeToAnalyze);
         
-        // Поднимаемся к ближайшим бинарным выражениям (включая цепочки || &&)
-        // Это обеспечивает наличие breakpoints по операторам внутри длинных условий
+        // Ascend to nearest binary expressions (including || && chains)
+        // This ensures breakpoints exist at operators inside long conditions
         let ascend: EnhancedASTNode | undefined = minimalNode.parent;
         let safetyCounter = 0;
         while (ascend && safetyCounter < 20) {
@@ -264,8 +264,8 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
           ascend = ascend.parent;
         }
 
-        // Если исходный minimalNode - строка, и мы НЕ заменили его на ASI-критичный statement,
-        // добавляем также родителя Call/NewExpression для анализа
+        // If original minimalNode is string, and we DID NOT replace it with ASI-critical statement,
+        // also add Call/NewExpression parent for analysis
         const isStringish = (
           minimalNode.kind === ts.SyntaxKind.StringLiteral ||
           minimalNode.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral ||
@@ -285,17 +285,17 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       }
       
       
-      // Определяем позицию пересечения лимита строки (локально и глобально)
+      // Define position where line limit is crossed (local and global)
       const crossingLocalIndex = Math.min(context.maxLineLength, Math.max(0, line.length - 1));
       const crossingGlobalOffset = globalStart + crossingLocalIndex;
 
-      // Определяем верхний покрывающий узел вокруг позиции пересечения
+      // Find upper covering node around crossing position
       const upperCoveringNode = this.findUpperCoveringNodeAroundOffset(ast, crossingGlobalOffset, crossingGlobalOffset + 1, globalStart, globalEnd);
       if (upperCoveringNode && !coveringNodes.includes(upperCoveringNode)) {
         coveringNodes.push(upperCoveringNode);
       }
 
-      // Анализируем каждый узел на предмет точек разбиения
+      // Analyze each node for breakpoints
       const breakPoints: BreakPoint[] = [];
       
       for (const node of coveringNodes) {
@@ -303,7 +303,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         breakPoints.push(...nodeBreaks);
       }
       
-      // ДОПОЛНИТЕЛЬНО: усиливаем breakpoints для логических операторов (|| &&) в пределах строки
+      // ADDITIONAL: augment breakpoints for logical operators (|| &&) within line
       try {
         const nodesInRange = ast.findNodesInRange({
           start: { offset: globalStart, line: lineIndex, column: 0 },
@@ -316,7 +316,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
             const tEnd = tStart + (tok.text?.length ?? 0);
             if (tEnd <= globalStart || tStart >= globalEnd) continue;
             if (tok.type === 'operator' && (tok.text === '||' || tok.text === '&&')) {
-              const position = tEnd; // перенос ПОСЛЕ оператора
+              const position = tEnd; // break AFTER operator
               const augmented: BreakPoint = {
                 position,
                 globalPosition: position,
@@ -332,7 +332,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         }
       } catch {}
 
-      // Если определён верхний покрывающий узел, находим верхнеуровневые запятые в его пределах на этой строке
+      // If upper covering node is defined, find top-level commas within it on this line
       let topLevelCommaGlobalPositions: number[] = [];
       let topLevelCommaLocalPositions: number[] = [];
       if (upperCoveringNode) {
@@ -340,12 +340,12 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         topLevelCommaLocalPositions = topLevelCommaGlobalPositions.map(p => p - globalStart);
       }
 
-      // Повышаем приоритет верхнеуровневых запятых этого узла и избегаем дубликатов
+      // Increase priority for top-level commas of this node and avoid duplicates
       if (topLevelCommaGlobalPositions.length > 0) {
         const preferred = new Set(topLevelCommaGlobalPositions);
         for (const bp of breakPoints) {
           if (preferred.has(bp.globalPosition)) {
-            // Продвигаем такие переносы как наиболее эстетичные
+            // Promote such breaks as most aesthetic
             bp.priority = Math.min(1, bp.priority);
             if (!bp.reason.includes('(top-level)')) {
               bp.reason = bp.reason + ' (top-level)';
@@ -354,12 +354,12 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         }
       }
 
-      // Преобразуем глобальные позиции в локальные
-      // Это критично для корректной работы simulateBreakApplication!
+      // Convert global positions to local
+      // This is critical for correct simulateBreakApplication operation!
       const localBreakPoints = breakPoints.map(bp => ({
         ...bp,
-        globalPosition: bp.globalPosition ?? bp.position,  // Используем существующую globalPosition если есть
-        position: bp.position - globalStart  // Преобразуем в локальную позицию относительно строки
+        globalPosition: bp.globalPosition ?? bp.position,  // Use existing globalPosition if available
+        position: bp.position - globalStart  // Convert to local position relative to line
       }));
       
       
@@ -369,7 +369,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         globalStart,
         globalEnd,
         coveringNodes,
-        breakPoints: localBreakPoints,  // Теперь с локальными позициями!
+        breakPoints: localBreakPoints,  // Now with local positions!
         ast,
         crossingLocalIndex,
         upperCoveringNode,
@@ -390,18 +390,18 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Вычисляет глобальные позиции строки в файле
+   * Calculates global positions of line in file
    */
   private calculateLinePositions(lineIndex: number, context: FormattingContext): { globalStart: number; globalEnd: number } {
     const sourceFile = context.enhancedAST.ast.sourceFile;
     const globalStart = sourceFile.getPositionOfLineAndCharacter(lineIndex, 0);
     
-    // Находим конец строки
+    // Find end of line
     let globalEnd: number;
     try {
-      globalEnd = sourceFile.getPositionOfLineAndCharacter(lineIndex + 1, 0) - 1; // -1 для исключения \n
+      globalEnd = sourceFile.getPositionOfLineAndCharacter(lineIndex + 1, 0) - 1; // -1 to exclude \n
     } catch {
-      // Последняя строка файла
+      // Last line in file
       globalEnd = sourceFile.getEnd();
     }
     
@@ -409,7 +409,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Анализирует узел AST на предмет точек разбиения
+   * Analyzes AST node for breakpoints
    */
   private analyzeNodeForBreakPoints(
     node: EnhancedASTNode, 
@@ -419,9 +419,9 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   ): BreakPoint[] {
     const breakPoints: BreakPoint[] = [];
     
-    // Проверяем, пересекается ли узел с анализируемой строкой
+    // Check if node intersects with analyzed line
     if (node.fullRange.end.offset <= lineStart || node.fullRange.start.offset >= lineEnd) {
-      return breakPoints; // Узел не пересекается со строкой
+      return breakPoints; // Node doesn't intersect with line
     }
 
     const parentKind = node.parent?.kind;
@@ -429,11 +429,11 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       (node.kind === ts.SyntaxKind.NewExpression || node.kind === ts.SyntaxKind.CallExpression) &&
       (parentKind === ts.SyntaxKind.ThrowStatement || parentKind === ts.SyntaxKind.ReturnStatement)
     ) {
-      // Та же точка разрыва будет обработана специализированной логикой Throw/Return
+      // Same breakpoint will be handled by specialized Throw/Return logic
       return breakPoints;
     }
 
-    // Обработчики для различных типов узлов
+    // Handlers for different node types
     switch (node.kind) {
       case ts.SyntaxKind.ImportDeclaration:
         // breakPoints.push(...this.analyzeImportDeclaration(node));
@@ -441,13 +441,13 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
-        // Анализируем декларацию класса/интерфейса через синтаксические токены.
-        // Токены позволяют точно определить безопасные места для переносов.
+        // Analyze class/interface declaration via syntax tokens.
+        // Tokens allow precise determination of safe break locations.
         // 
-        // Декларация класса - это всё до открывающей скобки { (включительно).
-        // Тело класса - это всё после {.
+        // Class declaration - everything up to opening brace { (inclusive).
+        // Class body - everything after {.
         //
-        // Решение: проверяем, что строка НЕ находится полностью после первого элемента тела.
+        // Solution: check that line is NOT completely after first body element.
         
         const firstBodyElement = node.children.find(child => 
           child.kind === ts.SyntaxKind.PropertyDeclaration ||
@@ -457,20 +457,20 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
           child.kind === ts.SyntaxKind.SetAccessor
         );
         
-        // Если есть элементы тела И строка полностью после первого элемента - это тело
+        // If there are body elements AND line is completely after first element - it's body
         if (firstBodyElement && lineStart >= firstBodyElement.fullRange.start.offset) {
           break;
         }
         
-        // Иначе строка содержит декларацию (возможно с частью тела на той же строке)
-        // Используем токены для точного разбиения декларации класса/интерфейса
+        // Otherwise line contains declaration (possibly with part of body on same line)
+        // Use tokens for precise class/interface declaration splitting
         const tokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...tokenBreaks);
         break;
         
       case ts.SyntaxKind.HeritageClause:
-        // HeritageClause (extends/implements) анализируем через токены
-        // Ключевые слова extends/implements имеют высокий приоритет (2)
+        // Analyze HeritageClause (extends/implements) via tokens
+        // Keywords extends/implements have high priority (2)
         const heritageTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...heritageTokenBreaks);
         break;
@@ -488,30 +488,30 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.MethodDeclaration:
       case ts.SyntaxKind.ArrowFunction:
-        // Анализируем функции/методы через токены
+        // Analyze functions/methods via tokens
         const functionTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...functionTokenBreaks);
         break;
         
       case ts.SyntaxKind.UnionType:
       case ts.SyntaxKind.IntersectionType:
-        // Анализируем union/intersection типы через специальный метод
-        // Используется calculateIndentLevelForInlineExpression для правильных отступов
+        // Analyze union/intersection types via specialized method
+        // Uses calculateIndentLevelForInlineExpression for correct indents
         const unionTokenBreaks = this.findBreakableTokensForTypeExpression(node, lineStart, lineEnd, context);
         breakPoints.push(...unionTokenBreaks);
         break;
         
       case ts.SyntaxKind.CallExpression:
       case ts.SyntaxKind.NewExpression:
-        // Анализируем вызовы функций и конструкторов через токены
-        // Разрыв после запятых в аргументах, после открывающей скобки
+        // Analyze function calls and constructors via tokens
+        // Break after commas in arguments, after opening paren
         const callTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...callTokenBreaks);
         break;
         
       case ts.SyntaxKind.BinaryExpression:
-        // Анализируем бинарные выражения через токены
-        // Разрыв после операторов (+, -, *, /, &&, ||, и т.д.)
+        // Analyze binary expressions via tokens
+        // Break after operators (+, -, *, /, &&, ||, etc.)
         const binaryTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...binaryTokenBreaks);
         break;
@@ -519,54 +519,54 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       case ts.SyntaxKind.IfStatement:
       case ts.SyntaxKind.WhileStatement:
       case ts.SyntaxKind.ForStatement:
-        // Анализируем условные операторы и циклы через токены
-        // Разрыв после логических операторов в условиях
+        // Analyze conditional operators and loops via tokens
+        // Break after logical operators in conditions
         const conditionalTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...conditionalTokenBreaks);
         break;
         
       case ts.SyntaxKind.VariableStatement:
       case ts.SyntaxKind.VariableDeclaration:
-        // Анализируем объявления переменных через токены
-        // Разрыв после =, запятых, и т.д.
+        // Analyze variable declarations via tokens
+        // Break after =, commas, etc.
         const varTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...varTokenBreaks);
         break;
         
       case ts.SyntaxKind.ObjectLiteralExpression:
-        // Анализируем объектные литералы через токены
-        // Разрыв после запятых между свойствами, после открывающей скобки
+        // Analyze object literals via tokens
+        // Break after commas between properties, after opening brace
         const objTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...objTokenBreaks);
         break;
         
       case ts.SyntaxKind.ArrayLiteralExpression:
-        // Анализируем массивы через токены
-        // Разрыв после запятых между элементами, после открывающей скобки
+        // Analyze arrays via tokens
+        // Break after commas between elements, after opening bracket
         const arrTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...arrTokenBreaks);
         break;
         
       case ts.SyntaxKind.TemplateExpression:
       case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-        // КРИТИЧНО: НЕ разбиваем template literals - перенос внутри ${} меняет семантику!
-        // Любой перенос и отступ внутри `${}` становится частью строки в runtime
-        // НЕ анализируем токены этого узла, НЕ анализируем дочерние узлы
+        // CRITICAL: DON'T break template literals - break inside ${} changes semantics!
+        // Any break and indent inside `${}` becomes part of runtime string
+        // DON'T analyze tokens of this node, DON'T analyze child nodes
         break;
         
       case ts.SyntaxKind.TaggedTemplateExpression:
-        // КРИТИЧНО: НЕ разбиваем tagged template expressions
-        // НЕ анализируем токены этого узла, НЕ анализируем дочерние узлы
+        // CRITICAL: DON'T break tagged template expressions
+        // DON'T analyze tokens of this node, DON'T analyze child nodes
         break;
         
       case ts.SyntaxKind.ReturnStatement:
-        // КРИТИЧНО: НЕ разрываем сразу после 'return' - это ASI ошибка!
-        // return\n{ → return; { (возвращает undefined вместо объекта)
-        // Можем разрывать ВНУТРИ возвращаемого выражения, но не сразу после return
+        // CRITICAL: DON'T break immediately after 'return' - this is ASI error!
+        // return\n{ → return; { (returns undefined instead of object)
+        // Can break INSIDE returned expression, but not immediately after return
         const returnTokenBreaks = this.findBreakableTokensForASICritical(node, lineStart, lineEnd, context, 'return');
         breakPoints.push(...returnTokenBreaks);
-        // КРИТИЧНО: НЕ анализируем дочерние узлы рекурсивно!
-        // findBreakableTokensForASICritical УЖЕ проанализировал их с правильной фильтрацией!
+        // CRITICAL: DON'T analyze child nodes recursively!
+        // findBreakableTokensForASICritical ALREADY analyzed them with correct filtering!
         return breakPoints;
         
       case ts.SyntaxKind.ThrowStatement:
@@ -576,20 +576,20 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         
       case ts.SyntaxKind.TemplateExpression:
       case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-        // КРИТИЧНО: НЕ разбиваем template literals - перенос внутри ${} меняет семантику!
-        // Любой перенос и отступ внутри `${}` становится частью строки в runtime
-        // НЕ анализируем токены этого узла, НЕ анализируем дочерние узлы
+        // CRITICAL: DON'T break template literals - break inside ${} changes semantics!
+        // Any break and indent inside `${}` becomes part of runtime string
+        // DON'T analyze tokens of this node, DON'T analyze child nodes
         break;
         
       case ts.SyntaxKind.TaggedTemplateExpression:
-        // КРИТИЧНО: НЕ разбиваем tagged template expressions - это ASI ошибка!
-        // "str"\n`template` → "str"`template` (строка как функция - runtime error)
-        // НЕ анализируем токены этого узла, НЕ анализируем дочерние узлы
+        // CRITICAL: DON'T break tagged template expressions - this is ASI error!
+        // "str"\n`template` → "str"`template` (string as function - runtime error)
+        // DON'T analyze tokens of this node, DON'T analyze child nodes
         break;
         
       case ts.SyntaxKind.AsExpression:
-        // Анализируем as-выражения через токены
-        // Можем разрывать после 'as', внутри типа
+        // Analyze as-expressions via tokens
+        // Can break after 'as', inside type
         const asTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...asTokenBreaks);
         break;
@@ -605,24 +605,24 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         break;
 
       case ts.SyntaxKind.TypeAssertionExpression:
-        // Анализируем type assertion (<Type>value) через токены
+        // Analyze type assertion (<Type>value) via tokens
         const assertTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...assertTokenBreaks);
         break;
         
       default:
-        // Для остальных типов узлов используется рекурсивный анализ дочерних элементов
+        // For other node types use recursive analysis of child elements
         break;
     }
 
-    // Анализируем дочерние узлы, только если они пересекаются со строкой
+    // Analyze child nodes, only if they intersect with line
     for (const child of node.children) {
-      // Пропускаем дочерние узлы, которые не пересекаются с анализируемой строкой
+      // Skip child nodes that don't intersect with analyzed line
       if (child.fullRange.end.offset <= lineStart || child.fullRange.start.offset >= lineEnd) {
         continue;
       }
       
-      // Пропускаем modifiers - они уже включены в syntaxTokens родительского узла
+      // Skip modifiers - they are already included in syntaxTokens of parent node
       const isModifier = child.kind === ts.SyntaxKind.ExportKeyword ||
                          child.kind === ts.SyntaxKind.PublicKeyword ||
                          child.kind === ts.SyntaxKind.PrivateKeyword ||
@@ -633,11 +633,11 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
                          child.kind === ts.SyntaxKind.AbstractKeyword;
       
       if (isModifier) {
-        continue; // Не анализируем modifiers отдельно
+        continue; // Don't analyze modifiers separately
       }
       
-      // КРИТИЧНО: Пропускаем дочерние узлы критических конструкций
-      // Template literals - перенос внутри ${} меняет семантику
+      // CRITICAL: Skip child nodes of critical constructs
+      // Template literals - break inside ${} changes semantics
       const isCriticalNode = child.kind === ts.SyntaxKind.TemplateExpression ||
                              child.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral ||
                              child.kind === ts.SyntaxKind.TaggedTemplateExpression ||
@@ -647,7 +647,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
                              child.kind === ts.SyntaxKind.TemplateHead;
       
       if (isCriticalNode) {
-        continue; // НЕ анализируем критические конструкции
+        continue; // DON'T analyze critical constructs
       }
       
       const childBreaks = this.analyzeNodeForBreakPoints(child, lineStart, lineEnd, context);
@@ -658,8 +658,8 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Находит точки разбиения для Union/Intersection типов
-   * Использует специальную логику отступов для вложенных выражений
+   * Finds breakpoints for Union/Intersection types
+   * Uses specialized indent logic for nested expressions
    */
   private findBreakableTokensForTypeExpression(
     node: EnhancedASTNode,
@@ -790,7 +790,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     const firstBreakPos = lineStartOffset + openParenIndex + 1;
     const secondBreakPos = lineStartOffset + breakPipeIndex + 1;
 
-    // Защита от некорректных вычислений
+    // Protection against invalid calculations
     if (secondBreakPos <= firstBreakPos) {
       return null;
     }
@@ -816,7 +816,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Находит точки разбиения, используя семантические разделители узла.
+   * Finds breakpoints using semantic separators of node.
    */
   private findBreakableTokens(
     node: EnhancedASTNode,
@@ -1032,30 +1032,30 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Вычисляет уровень отступа для узла на основе его позиции в файле
+   * Calculates indent level for node based on its position in file
    * 
-   * Возвращает базовый отступ строки + 1 фиксированный уровень для вложенности.
-   * Это обеспечивает единообразное форматирование для всех типов конструкций.
+   * Returns base line indent + 1 fixed level for nesting.
+   * This ensures uniform formatting for all construct types.
    */
   private calculateIndentLevel(node: EnhancedASTNode, context: FormattingContext): number {
-    // Не используем node.metadata.indentLevel - он содержит глубину в AST, а не отступ строки
+    // Don't use node.metadata.indentLevel - it contains depth in AST, not line indent
     // if (node.metadata.indentLevel !== undefined) {
     //   return node.metadata.indentLevel;
     // }
 
-    // Находим строку, на которой начинается узел
+    // Find line where node starts
     const startPosition = node.fullRange.start;
     const lineStart = startPosition.offset - startPosition.column;
     
-    // Получаем текст строки от начала до позиции узла
+    // Get line text from start to node position
     const sourceText = context.enhancedAST.ast.sourceFile.text;
     if (!sourceText) {
-      return 0; // Не можем определить отступ - возвращаем 0
+      return 0; // Can't determine indent - return 0
     }
     
     const lineText = sourceText.substring(lineStart, startPosition.offset);
     
-    // Считаем эквивалент пробельных символов в "единицах отступа" конфигурации
+    // Count whitespace equivalent in configuration "indent units"
     const indentUnitWidth = context.formatterConfig.useTabs ? 1 : context.formatterConfig.tabSize;
     let leadingEquivalent = 0;
     for (const char of lineText) {
@@ -1064,56 +1064,56 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       else break;
     }
     
-    // Возвращаем базовый отступ (в единицах) + 1 уровень для вложенности
+    // Return base indent (in units) + 1 level for nesting
     return Math.floor(leadingEquivalent / Math.max(1, indentUnitWidth)) + 1;
   }
 
   /**
-   * Вычисляет уровень отступа для вложенных выражений (UnionType, IntersectionType, и т.д.)
-   * Использует базовый отступ строки + 1 фиксированный уровень
+   * Calculates indent level for nested expressions (UnionType, IntersectionType, etc.)
+   * Uses base line indent + 1 fixed level
    * 
-   * Теперь использует ТОЛЬКО базовый отступ строки, а не позицию узла в строке.
-   * Это предотвращает огромные отступы для inline-выражений в середине строки.
+   * Now uses ONLY base line indent, not node position in line.
+   * This prevents huge indents for inline expressions in middle of line.
    */
   private calculateIndentLevelForInlineExpression(node: EnhancedASTNode, context: FormattingContext): number {
     const startPosition = node.fullRange.start;
     const lineStart = startPosition.offset - startPosition.column;
     
-    // Получаем текст строки от начала до позиции узла
+    // Get line text from start to node position
     const sourceText = context.enhancedAST.ast.sourceFile.text;
     if (!sourceText) {
       return 0;
     }
     
-    // Получаем полную строку для определения базового отступа
+    // Get full line to determine base indent
     const lineEndOffset = sourceText.indexOf('\n', lineStart);
     const fullLineText = lineEndOffset >= 0 
       ? sourceText.substring(lineStart, lineEndOffset)
       : sourceText.substring(lineStart);
     
-    // Считаем ТОЛЬКО ведущий эквивалент пробелов в единицах конфигурации
+    // Count ONLY leading whitespace equivalent in configuration units
     const indentUnitWidth = context.formatterConfig.useTabs ? 1 : context.formatterConfig.tabSize;
     let leadingEquivalent = 0;
     for (const char of fullLineText) {
       if (char === ' ') leadingEquivalent++;
       else if (char === '\t') leadingEquivalent += indentUnitWidth;
-      else break; // Останавливаемся на первом не-пробельном символе
+      else break; // Stop at first non-whitespace character
     }
     
-    // Базовый отступ строки (в единицах) + 1 фиксированный уровень
+    // Base line indent (in units) + 1 fixed level
     return Math.floor(leadingEquivalent / Math.max(1, indentUnitWidth)) + 1;
   }
 
   /**
-   * Выбирает оптимальные точки разбиения
-   * Предпочитает non-paren breakpoints, но использует paren если non-paren не решают проблему
+   * Selects optimal breakpoints
+   * Prefers non-paren breakpoints, but uses paren if non-paren doesn't solve problem
    */
   private selectOptimalBreakPoints(analysis: LineAnalysisResult, context: FormattingContext): BreakPoint[] {
     if (analysis.breakPoints.length === 0) {
       return [];
     }
 
-    // Разделяем breakpoints на paren и non-paren
+    // Separate breakpoints into paren and non-paren
     const parenBreaks = analysis.breakPoints.filter(bp =>
       bp.reason?.includes('open_paren') || bp.reason?.includes('close_paren')
     );
@@ -1121,26 +1121,26 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       !bp.reason?.includes('open_paren') && !bp.reason?.includes('close_paren')
     );
 
-    // 1) Пробуем non-paren в приоритете
+    // 1) Try non-paren first
     if (nonParenBreaks.length > 0) {
       const result = this.trySelectBreaksFromList(nonParenBreaks, analysis, context);
       if (result.length > 0) return result;
     }
 
-    // 2) Пробуем сочетание с paren
+    // 2) Try combination with paren
     const mixed = [...nonParenBreaks, ...parenBreaks];
     if (mixed.length > 0) {
       const result = this.trySelectBreaksFromList(mixed, analysis, context);
       if (result.length > 0) return result;
     }
     
-    // 3) Пробуем все оставшиеся
+    // 3) Try all remaining
     return this.trySelectBreaksFromList(analysis.breakPoints, analysis, context);
   }
 
   /**
-   * Пытается выбрать breakpoints из списка
-   * Возвращает пустой массив если breakpoints не решают проблему с длиной строк
+   * Attempts to select breakpoints from list
+   * Returns empty array if breakpoints don't solve line length problem
    */
   private trySelectBreaksFromList(
     breakPoints: BreakPoint[],
@@ -1174,8 +1174,8 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       currentText = this.simulateBreakApplication(currentText, nextBreak, analysis, context, selectedBreaks.slice(0, -1));
     }
 
-    // Возвращаем результат ТОЛЬКО если проблема решена
-    // Иначе возвращаем пустой массив, чтобы попробовать другие варианты
+    // Return result ONLY if problem is solved
+    // Otherwise return empty array to try other options
     if (this.hasLongLines(currentText, context.maxLineLength)) {
       return [];
     }
@@ -1184,15 +1184,15 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Проверяет, есть ли в тексте длинные строки
+   * Checks if text has long lines
    */
   private hasLongLines(text: string, maxLength: number): boolean {
     return text.split('\n').some(line => line.length > maxLength);
   }
 
   /**
-   * Находит следующий оптимальный перенос
-   * ДИНАМИЧЕСКАЯ ОЦЕНКА: выбирает тот перенос, который даёт максимальное улучшение
+   * Finds next optimal break
+   * DYNAMIC EVALUATION: selects break that gives maximum improvement
    */
   private findNextOptimalBreak(
     candidates: BreakPoint[],
@@ -1214,13 +1214,13 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         continue;
       }
 
-      // Симулируем применение переноса
+      // Simulate break application
       const simulatedText = this.simulateBreakApplication(currentText, candidate, analysis, context, alreadySelected);
       
-      // Оцениваем улучшение
+      // Evaluate improvement
       const score = this.calculateImprovementScore(currentText, simulatedText, context.maxLineLength, candidate, analysis);
       
-      // Выбираем кандидата с наилучшим score
+      // Select candidate with best score
       if (score > 0 && score > bestScore) {
         bestScore = score;
         bestCandidate = candidate;
@@ -1231,9 +1231,9 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Вычисляет score улучшения (чем больше - тем лучше)
-   * Учитывает: сокращение длины, количество исправленных строк, приоритет
-   * Ослаблены требования, учитываются частичные улучшения
+   * Calculates improvement score (higher is better)
+   * Considers: length reduction, number of fixed lines, priority
+   * Relaxed requirements, partial improvements are considered
    */
   private calculateImprovementScore(
     original: string, 
@@ -1251,55 +1251,55 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     const originalLongCount = originalLines.filter(line => line.length > maxLength).length;
     const modifiedLongCount = modifiedLines.filter(line => line.length > maxLength).length;
     
-    // Базовый score: сколько строк стали короткими
+    // Base score: how many lines became short
     let score = (originalLongCount - modifiedLongCount) * 100;
     
-    // Даже если количество длинных строк не уменьшилось, 
-    // даем существенный бонус за сокращение максимальной длины
+    // Even if count of long lines didn't decrease,
+    // give significant bonus for reducing maximum length
     if (score <= 0) {
       const originalMaxLength = Math.max(...originalLines.map(l => l.length));
       const modifiedMaxLength = Math.max(...modifiedLines.map(l => l.length));
       
       if (modifiedMaxLength < originalMaxLength) {
-        // УВЕЛИЧЕН коэффициент с 0.5 до 3.0 для большего веса частичных улучшений
+        // INCREASED coefficient from 0.5 to 3.0 for greater weight of partial improvements
         score = (originalMaxLength - modifiedMaxLength) * 3.0;
       } else {
-        // Нет улучшения — не повышаем score
+        // No improvement — don't increase score
         score = 0;
       }
     }
     
-    // Увеличен priorityBonus с 0.5 до 2.0 для большего влияния приоритета
+    // Increased priorityBonus from 0.5 to 2.0 for greater priority influence
     const priorityBonus = Math.max(0, 10 - breakPoint.priority) * 2.0;
     score += priorityBonus;
     
-    // Бонус за равномерное распределение длины строк
+    // Bonus for even distribution of line lengths
     const modifiedLengths = modifiedLines.map(l => l.length);
     const avgLength = modifiedLengths.reduce((a, b) => a + b, 0) / modifiedLengths.length;
     const variance = modifiedLengths.reduce((sum, len) => sum + Math.pow(len - avgLength, 2), 0) / modifiedLengths.length;
     const balanceBonus = variance < 1000 ? 5 : 0;
     score += balanceBonus;
     
-    // ТАЙ-БРЕЙКЕР: При равных других условиях предпочитаем максимизацию первой строки
-    // (более логично чем разбиение пополам)
+    // TIE-BREAKER: With other things equal prefer maximizing first line
+    // (more logical than splitting in half)
     if (modifiedLines.length > 1 && score > 0) {
       const firstLineLength = (modifiedLines[0] ?? '').length;
       if (firstLineLength <= maxLength) {
-        // Очень малый бонус, не влияет на основные решения: 0..0.5
+        // Very small bonus, doesn't affect main decisions: 0..0.5
         score += (firstLineLength / maxLength) * 0.5;
       }
     }
     
-    // ЭСТЕТИЧЕСКАЯ МЕТРИКА (новая):
-    // - Предпочитаем переносы, находящиеся ближе к границе лимита
-    // - Сильно предпочитаем переносы ПОСЛЕ верхнеуровневых запятых выбранного покрывающего узла
-    // - Наказываем перенос СРАЗУ после открывающей скобки, если доступны запятые верхнего уровня
-    // - Слегка штрафуем переносы вне верхнего покрывающего узла (кроме логических операторов)
+    // AESTHETIC METRIC (new):
+    // - Prefer breaks located closer to limit boundary
+    // - Strongly prefer breaks AFTER top-level commas of selected covering node
+    // - Penalize break IMMEDIATELY after opening paren if top-level commas available
+    // - Slightly penalize breaks outside upper covering node (except logical operators)
 
     if (analysis) {
       const crossing = analysis.crossingLocalIndex ?? Math.floor(maxLength * 0.9);
       const distance = Math.abs((breakPoint.position ?? 0) - crossing);
-      // Чем ближе к границе — тем лучше (затухание 0.5 балла за символ)
+      // Closer to boundary is better (decay 0.5 points per character)
       const nearLimitBonus = Math.max(0, 30 - distance * 0.5);
       score += nearLimitBonus;
 
@@ -1308,15 +1308,15 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       const hasPreferredCommas = (analysis.topLevelCommaLocalPositions?.length || 0) > 0;
 
       if (isTopLevelCovering && isComma) {
-        score += 40; // Сильный бонус за перенос после верхнеуровневой запятой
+        score += 40; // Strong bonus for break after top-level comma
       }
 
-      // Штраф за перенос сразу после открывающей скобки в вызове
+      // Penalty for break immediately after opening paren in call
       if (/after open_paren/.test(breakPoint.reason || '')) {
         score += hasPreferredCommas ? -20 : -5;
       }
 
-      // Небольшой штраф за перенос вне целевого покрывающего узла (кроме логических операторов)
+      // Small penalty for break outside target covering node (except logical operators)
       if (!isTopLevelCovering && !/logical operator/.test(breakPoint.reason || '')) {
         score -= 10;
       }
@@ -1349,8 +1349,8 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Симулирует применение переноса
-   * Использует ЛОКАЛЬНЫЕ позиции
+   * Simulates break application
+   * Uses LOCAL positions
    */
   private simulateBreakApplication(
     text: string,
@@ -1359,17 +1359,17 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     context: FormattingContext,
     alreadySelected: BreakPoint[]
   ): string {
-    // Строим отступ по конфигурации (как в реальном применении)
+    // Build indent according to configuration (like in real application)
     const unit = context.indentUnit || '  ';
     const indent = unit.repeat(Math.max(0, breakPoint.indentLevel));
-
-    // Находим относительную позицию в строке
+    
+    // Find relative position in line
     if (!analysis) {
-      return text; // Не можем симулировать без анализа - возвращаем оригинал
+      return text; // Can't simulate without analysis - return original
     }
-
-    // breakPoint.position теперь УЖЕ ЛОКАЛЬНАЯ позиция!
-    // Больше не нужно вычитать globalStart
+    
+    // breakPoint.position is now ALREADY LOCAL position!
+    // No longer need to subtract globalStart
     let relativePos = breakPoint.position;
 
     for (const selected of alreadySelected) {
@@ -1411,9 +1411,9 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Находит верхний покрывающий узел вокруг указанного оффсета
-   * Поднимается вверх по родителям, выбирая ближайший "группирующий" узел,
-   * на токенах которого на этой строке есть верхнеуровневые разделители.
+   * Finds upper covering node around specified offset
+   * Ascends through parents, selecting nearest "grouping" node,
+   * that has top-level separators on its tokens on this line.
    */
   private findUpperCoveringNodeAroundOffset(
     ast: EnhancedASTQuery,
@@ -1428,7 +1428,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     });
     if (!nodeAt) return undefined;
 
-    // Идём вверх максимум 30 шагов в поиске подходящего узла
+    // Go up maximum 30 steps searching for suitable node
     let current: EnhancedASTNode | undefined = nodeAt;
     let fallback: EnhancedASTNode | undefined = undefined;
     let steps = 0;
@@ -1439,7 +1439,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         if (commaPositions.length > 0) {
           return current;
         }
-        if (!fallback) fallback = current; // запомним ближайший групповой узел как запасной
+        if (!fallback) fallback = current; // remember nearest grouping node as fallback
       }
       current = current.parent;
     }
@@ -1447,7 +1447,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Проверяет, является ли узел "группирующим" с разделителями верхнего уровня
+   * Checks if node is "grouping" with top-level separators
    */
   private isGroupingNode(kind: ts.SyntaxKind): boolean {
     return (
@@ -1464,8 +1464,8 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Возвращает позиции переносов ПОСЛЕ верхнеуровневых запятых для узла (глобальные позиции)
-   * Обрабатывает () / {} / [] в зависимости от типа узла.
+   * Returns break positions AFTER top-level commas for node (global positions)
+   * Handles () / {} / [] depending on node type.
    */
   private computeTopLevelCommaBreakPositions(
     node: EnhancedASTNode,
@@ -1479,7 +1479,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     let braceDepth = 0; // {}
     let bracketDepth = 0; // []
 
-    // Какой тип скобок считать верхнеуровневым для узла
+    // Which bracket type to consider top-level for node
     const trackParen = node.kind === ts.SyntaxKind.CallExpression || node.kind === ts.SyntaxKind.NewExpression;
     const trackBrace = node.kind === ts.SyntaxKind.ObjectLiteralExpression;
     const trackBracket = node.kind === ts.SyntaxKind.ArrayLiteralExpression;
@@ -1495,12 +1495,12 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       const tokenStart = token.position?.offset ?? 0;
       const tokenEnd = tokenStart + (token.text?.length ?? 0);
 
-      // интересуют только токены в анализируемой строке
+      // only interested in tokens on analyzed line
       if (tokenEnd <= lineStart || tokenStart >= lineEnd) {
         continue;
       }
 
-      // учёт глубины
+      // track depth
       if (token.type === 'open_paren') parenDepth++;
       if (token.type === 'close_paren') parenDepth = Math.max(0, parenDepth - 1);
       if (token.type === 'open_brace') braceDepth++;
@@ -1508,13 +1508,13 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       if (token.type === 'open_bracket') bracketDepth++;
       if (token.type === 'close_bracket') bracketDepth = Math.max(0, bracketDepth - 1);
 
-      // выбираем только запятые верхнего уровня для соответствующего типа узла
+      // select only top-level commas for corresponding node type
       if (token.type === 'comma' && commaSeparators.has(tokenStart)) {
         const isTopLevelParen = trackParen && parenDepth === 1 && braceDepth === 0 && bracketDepth === 0;
         const isTopLevelBrace = trackBrace && braceDepth === 1 && parenDepth === 0 && bracketDepth === 0;
         const isTopLevelBracket = trackBracket && bracketDepth === 1 && parenDepth === 0 && braceDepth === 0;
         if (isTopLevelParen || isTopLevelBrace || isTopLevelBracket) {
-          positions.push(tokenEnd); // перенос ПОСЛЕ запятой
+          positions.push(tokenEnd); // break AFTER comma
         }
       }
     }
@@ -1523,42 +1523,42 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Преобразует точки разбиения в формат LineBreakInsertion
-   * Использует глобальные позиции для финального применения
+   * Converts breakpoints to LineBreakInsertion format
+   * Uses global positions for final application
    */
   private convertToLineBreaks(breakPoints: BreakPoint[]): LineBreakInsertion[] {
     return breakPoints.map(bp => ({
-      position: bp.globalPosition,  // Используем глобальную позицию для TransformationManager!
+      position: bp.globalPosition,  // Use global position for TransformationManager!
       indentLevel: bp.indentLevel,
       reason: bp.reason
     }));
   }
 
   /**
-   * Валидирует переносы
+   * Validates breaks
    */
   private validateBreaks(
     lineBreaks: LineBreakInsertion[], 
     analysis: LineAnalysisResult, 
     _context: FormattingContext
   ): boolean {
-    // Строгая валидация - без переносов нет смысла
+    // Strict validation - without breaks makes no sense
     if (lineBreaks.length === 0) {
       return false;
     }
 
-    // ПРАВИЛЬНАЯ валидация: позиции переносов должны быть ТОЛЬКО внутри анализируемой строки
+    // CORRECT validation: break positions must be ONLY within analyzed line
     const validBreaks: LineBreakInsertion[] = [];
     
     for (const lineBreak of lineBreaks) {
-      // Позиция ДОЛЖНА быть строго внутри анализируемой строки
+      // Position MUST be strictly within analyzed line
       if (lineBreak.position >= analysis.globalStart && lineBreak.position <= analysis.globalEnd) {
         validBreaks.push(lineBreak);
       }
-      // Если позиция вне строки - это ошибка в логике AST анализа, просто игнорируем
+      // If position outside line - this is error in AST analysis logic, just ignore
     }
 
-    // Обновляем массив переносов, оставляя только валидные
+    // Update breaks array, keeping only valid ones
     lineBreaks.length = 0;
     lineBreaks.push(...validBreaks);
 
@@ -1566,9 +1566,9 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   }
 
   /**
-   * Находит точки разбиения для ASI-критичных конструкций (return, throw)
-   * Блокирует перенос между ключевым словом и первым значимым токеном (для безопасности ASI)
-   * Рекурсивно анализирует дочерние узлы
+   * Finds breakpoints for ASI-critical constructs (return, throw)
+   * Blocks break between keyword and first significant token (for ASI safety)
+   * Recursively analyzes child nodes
    */
   private findBreakableTokensForASICritical(
     node: EnhancedASTNode,
@@ -1583,7 +1583,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       return breakPoints;
     }
     
-    // Находим позицию ключевого слова в токенах
+    // Find keyword position in tokens
     let keywordIndex = -1;
     for (let i = 0; i < node.syntaxTokens.length; i++) {
       const token = node.syntaxTokens[i];
@@ -1594,12 +1594,12 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     }
     
     if (keywordIndex === -1) {
-      // Не нашли ключевое слово, используем обычную логику
+      // Didn't find keyword, use regular logic
       return this.findBreakableTokens(node, lineStart, lineEnd, context);
     }
     
-    // Находим конец первого значимого токена после ключевого слова
-    // Все breakpoints ДО этой позиции будут отфильтрованы (для безопасности ASI)
+    // Find end of first significant token after keyword
+    // All breakpoints BEFORE this position will be filtered (for ASI safety)
     let firstSignificantTokenEnd: number | null = null;
     
     for (let i = keywordIndex + 1; i < node.syntaxTokens.length; i++) {
@@ -1609,7 +1609,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       }
       
       if (token.type === 'semantic_node' && token.semanticNode) {
-        // Для semantic_node находим первый значимый токен внутри
+        // For semantic_node find first significant token inside
         let firstToken = null;
         for (const childToken of token.semanticNode.syntaxTokens || []) {
           if (childToken && childToken.type !== 'whitespace' && childToken.type !== 'newline') {
@@ -1622,7 +1622,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
           ? firstToken.position.offset + (firstToken.text?.length ?? 0)
           : token.semanticNode.fullRange.start.offset;
       } else {
-        // Для обычных токенов берём конец токена
+        // For regular tokens take end of token
         firstSignificantTokenEnd = (token.position?.offset ?? 0) + (token.text?.length ?? 0);
       }
       break;
@@ -1649,7 +1649,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
           }
 
           if (processedPositions.has(childBreak.position)) {
-            // Уже обработали перенос с этой глобальной позицией – ничего не делаем.
+            // Already processed break with this global position – do nothing.
             continue;
           }
 

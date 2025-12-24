@@ -1,5 +1,5 @@
 /**
- * Общие типы для всех подсистем (libs и core)
+ * Common types for all subsystems (libs and core)
  */
 
 export enum ContentType {

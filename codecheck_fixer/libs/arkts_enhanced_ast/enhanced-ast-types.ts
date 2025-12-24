@@ -1,307 +1,307 @@
 /**
- * Расширенные типы AST с полной информацией о координатах и токенах
+ * Extended AST types with complete coordinate and token information
  *
- * Этот модуль определяет структуры данных для построения полного AST,
- * который сохраняет всю информацию, необходимую для точного восстановления
- * оригинального текста файла.
+ * This module defines data structures for building complete AST,
+ * that preserves all information necessary for accurate reconstruction
+ * of original file text.
  */
 
 import * as ts from 'typescript';
 import type { SyntacticSeparator } from './syntactic-separators';
 
 /**
- * Позиция в исходном файле с полной информацией
+ * Position in source file with complete information
  */
 export interface SourcePosition {
-  /** Абсолютное смещение от начала файла */
+  /** Absolute offset from file start */
   offset: number;
-  /** Номер строки (начиная с 0) */
+  /** Line number (starting from 0) */
   line: number;
-  /** Позиция в строке (начиная с 0) */
+  /** Position in line (starting from 0) */
   column: number;
 }
 
 /**
- * Диапазон в исходном файле
+ * Range in source file
  */
 export interface SourceRange {
-  /** Начальная позиция (включительно) */
+  /** Starting position (inclusive) */
   start: SourcePosition;
-  /** Конечная позиция (исключительно) */
+  /** Ending position (exclusive) */
   end: SourcePosition;
 }
 
 /**
- * Типы синтаксических токенов (CST)
+ * Syntactic token types (CST)
  */
 export enum SyntaxTokenType {
-  /** Ключевое слово (export, class, interface, async, function, etc.) */
+  /** Keyword (export, class, interface, async, function, etc.) */
   KEYWORD = 'keyword',
-  /** Идентификатор */
+  /** Identifier */
   IDENTIFIER = 'identifier',
-  /** Открывающая фигурная скобка { */
+  /** Opening curly brace { */
   OPEN_BRACE = 'open_brace',
-  /** Закрывающая фигурная скобка } */
+  /** Closing curly brace } */
   CLOSE_BRACE = 'close_brace',
-  /** Открывающая круглая скобка ( */
+  /** Opening parenthesis ( */
   OPEN_PAREN = 'open_paren',
-  /** Закрывающая круглая скобка ) */
+  /** Closing parenthesis ) */
   CLOSE_PAREN = 'close_paren',
-  /** Открывающая угловая скобка < */
+  /** Opening angle bracket < */
   OPEN_ANGLE = 'open_angle',
-  /** Закрывающая угловая скобка > */
+  /** Closing angle bracket > */
   CLOSE_ANGLE = 'close_angle',
-  /** Открывающая квадратная скобка [ */
+  /** Opening square bracket [ */
   OPEN_BRACKET = 'open_bracket',
-  /** Закрывающая квадратная скобка ] */
+  /** Closing square bracket ] */
   CLOSE_BRACKET = 'close_bracket',
-  /** Запятая , */
+  /** Comma , */
   COMMA = 'comma',
-  /** Точка с запятой ; */
+  /** Semicolon ; */
   SEMICOLON = 'semicolon',
-  /** Двоеточие : */
+  /** Colon : */
   COLON = 'colon',
-  /** Точка . */
+  /** Dot . */
   DOT = 'dot',
-  /** Оператор = */
+  /** Equals operator = */
   EQUALS = 'equals',
-  /** Оператор => */
+  /** Arrow operator => */
   ARROW = 'arrow',
-  /** Оператор ? */
+  /** Question operator ? */
   QUESTION = 'question',
-  /** Оператор ?? */
+  /** Nullish coalescing operator ?? */
   NULLISH_COALESCING = 'nullish_coalescing',
-  /** Оператор ... (spread/rest) */
+  /** Spread/rest operator ... */
   SPREAD = 'spread',
-  /** Оператор - (минус) */
+  /** Minus operator - */
   MINUS = 'minus',
-  /** Оператор + (плюс) */
+  /** Plus operator + */
   PLUS = 'plus',
-  /** Оператор (|, &, ||, &&, и другие) */
+  /** Operator (|, &, ||, &&, and others) */
   OPERATOR = 'operator',
-  /** Пробел */
+  /** Whitespace */
   WHITESPACE = 'whitespace',
-  /** Перенос строки */
+  /** Newline */
   NEWLINE = 'newline',
-  /** Однострочный комментарий */
+  /** Single-line comment */
   LINE_COMMENT = 'line_comment',
-  /** Многострочный комментарий */
+  /** Multi-line comment */
   BLOCK_COMMENT = 'block_comment',
-  /** Ссылка на покрывающий узел Enhanced AST */
+  /** Reference to covering Enhanced AST node */
   SEMANTIC_NODE = 'semantic_node',
-  /** Другой токен */
+  /** Other token */
   OTHER = 'other'
 }
 
 /**
- * Синтаксический токен (элемент CST)
+ * Syntactic token (CST element)
  * 
- * Представляет атомарный синтаксический элемент кода.
- * Получается из TypeScript Scanner API.
+ * Represents atomic syntactic code element.
+ * Obtained from TypeScript Scanner API.
  */
 export interface SyntaxToken {
-  /** Тип токена */
+  /** Token type */
   type: SyntaxTokenType;
   
-  /** Текст токена */
+  /** Token text */
   text: string;
   
-  /** Позиция токена в исходном файле */
+  /** Token position in source file */
   position: SourcePosition;
   
-  /** Ссылка на покрывающий узел (для SEMANTIC_NODE) */
+  /** Reference to covering node (for SEMANTIC_NODE) */
   semanticNode?: EnhancedASTNode;
   
-  /** Оригинальный TypeScript SyntaxKind */
+  /** Original TypeScript SyntaxKind */
   tsKind: ts.SyntaxKind;
 }
 
 /**
- * Расширенный узел AST с полной информацией
+ * Extended AST node with complete information
  */
 export interface EnhancedASTNode {
-  /** Оригинальный TypeScript узел */
+  /** Original TypeScript node */
   originalNode: ts.Node;
   
-  /** Тип узла (из TypeScript SyntaxKind) */
+  /** Node type (from TypeScript SyntaxKind) */
   kind: ts.SyntaxKind;
   
-  /** Полный диапазон узла в исходном файле */
+  /** Full node range in source file */
   fullRange: SourceRange;
   
-  /** Диапазон только содержимого узла (без leading/trailing trivia) */
+  /** Range of node content only (without leading/trailing trivia) */
   contentRange: SourceRange;
   
-  /** Исходный текст узла */
+  /** Source text of node */
   text: string;
   
-  /** Плоский список синтаксических токенов узла (CST) */
+  /** Flat list of node's syntactic tokens (CST) */
   syntaxTokens: SyntaxToken[];
 
-  /** Лениво вычисляемые дескрипторы синтаксических разделителей */
+  /** Lazily computed descriptors of syntactic separators */
   semanticSeparators?: SyntacticSeparator[];
   
-  /** Дочерние узлы */
+  /** Child nodes */
   children: EnhancedASTNode[];
   
-  /** Модификаторы узла (export, async, static и т.д.) */
+  /** Node modifiers (export, async, static, etc.) */
   modifiers?: EnhancedASTNode[];
   
-  /** Флаги узла TypeScript */
+  /** TypeScript node flags */
   nodeFlags?: ts.NodeFlags;
   
-  /** Родительский узел */
+  /** Parent node */
   parent?: EnhancedASTNode;
   
-  /** Дополнительные метаданные для форматирования */
+  /** Additional metadata for formatting */
   metadata: NodeMetadata;
 }
 
 /**
- * Метаданные узла для форматирования
+ * Node metadata for formatting
  */
 export interface NodeMetadata {
-  /** Может ли узел быть разбит на несколько строк */
+  /** Can node be split into multiple lines */
   canBreak: boolean;
   
-  /** Приоритет для разбиения (меньше = выше приоритет) */
+  /** Priority for breaking (lower = higher priority) */
   breakPriority: number;
   
-  /** Минимальная длина для принудительного разбиения */
+  /** Minimum length for forced break */
   forceBreakLength?: number;
   
-  /** Уровень вложенности для отступов */
+  /** Nesting level for indentation */
   indentLevel: number;
   
-  /** Является ли узел "атомарным" (не может быть разбит) */
+  /** Is node "atomic" (cannot be split) */
   isAtomic: boolean;
   
-  /** Дополнительные флаги для специальной обработки */
+  /** Additional flags for special handling */
   flags: NodeFlags;
 }
 
 /**
- * Флаги для специальной обработки узлов
+ * Flags for special node handling
  */
 export enum NodeFlags {
-  /** Обычный узел */
+  /** Regular node */
   NONE = 0,
   
-  /** Узел содержит комментарии */
+  /** Node contains comments */
   HAS_COMMENTS = 1 << 0,
   
-  /** Узел является частью цепочки вызовов */
+  /** Node is part of call chain */
   IN_CALL_CHAIN = 1 << 1,
   
-  /** Узел является частью типа union/intersection */
+  /** Node is part of union/intersection type */
   IN_TYPE_UNION = 1 << 2,
   
-  /** Узел содержит строковые литералы */
+  /** Node contains string literals */
   HAS_STRING_LITERALS = 1 << 3,
   
-  /** Узел является частью объявления функции */
+  /** Node is part of function declaration */
   IN_FUNCTION_DECLARATION = 1 << 4,
   
-  /** Узел является частью объявления класса/интерфейса */
+  /** Node is part of class/interface declaration */
   IN_CLASS_DECLARATION = 1 << 5,
   
-  /** Узел требует особого внимания при форматировании */
+  /** Node requires special attention during formatting */
   REQUIRES_SPECIAL_FORMATTING = 1 << 6
 }
 
 /**
- * Результат построения расширенного AST
+ * Result of building extended AST
  */
 export interface EnhancedASTResult {
-  /** Корневой узел AST */
+  /** Root AST node */
   root: EnhancedASTNode;
   
-  /** Исходный файл TypeScript */
+  /** TypeScript source file */
   sourceFile: ts.SourceFile;
   
-  /** Карта позиций для быстрого поиска узлов */
+  /** Position map for quick node lookup */
   positionMap: Map<number, EnhancedASTNode>;
   
-  /** Статистика построения AST */
+  /** AST build statistics */
   statistics: ASTStatistics;
   
-  /** Ошибки, возникшие при построении */
+  /** Errors that occurred during build */
   errors: ASTError[];
 }
 
 /**
- * Статистика построения AST
+ * AST build statistics
  */
 export interface ASTStatistics {
-  /** Общее количество узлов */
+  /** Total number of nodes */
   totalNodes: number;
   
-  /** Количество комментариев */
+  /** Number of comments */
   commentCount: number;
   
-  /** Время построения в миллисекундах */
+  /** Build time in milliseconds */
   buildTimeMs: number;
   
-  /** Размер исходного файла в символах */
+  /** Source file size in characters */
   sourceSize: number;
 }
 
 /**
- * Ошибка при построении AST
+ * Error during AST build
  */
 export interface ASTError {
-  /** Тип ошибки */
+  /** Error type */
   type: ASTErrorType;
   
-  /** Сообщение об ошибке */
+  /** Error message */
   message: string;
   
-  /** Позиция ошибки в файле */
+  /** Error position in file */
   position?: SourcePosition;
   
-  /** Узел, с которым связана ошибка */
+  /** Node associated with error */
   node?: ts.Node;
 }
 
 /**
- * Типы ошибок при построении AST
+ * Types of errors during AST build
  */
 export enum ASTErrorType {
-  /** Ошибка парсинга TypeScript */
+  /** TypeScript parsing error */
   TYPESCRIPT_PARSE_ERROR = 'typescript_parse_error',
   
-  /** Несоответствие позиций */
+  /** Position mismatch */
   POSITION_MISMATCH = 'position_mismatch',
   
-  /** Неожиданный символ */
+  /** Unexpected character */
   UNEXPECTED_CHARACTER = 'unexpected_character',
   
-  /** Внутренняя ошибка */
+  /** Internal error */
   INTERNAL_ERROR = 'internal_error'
 }
 
 /**
- * Опции для построения расширенного AST
+ * Options for building extended AST
  */
 export interface EnhancedASTOptions {
-  /** Сохранять ли комментарии */
+  /** Whether to preserve comments */
   preserveComments: boolean;
   
-  /** Сохранять ли пробелы */
+  /** Whether to preserve whitespace */
   preserveWhitespace: boolean;
   
-  /** Максимальная глубина рекурсии */
+  /** Maximum recursion depth */
   maxDepth: number;
   
-  /** Включить ли детальную диагностику */
+  /** Whether to enable detailed diagnostics */
   enableDiagnostics: boolean;
   
-  /** Функция для определения приоритета разбиения узлов */
+  /** Function for determining node break priority */
   breakPriorityCalculator?: (node: ts.Node) => number;
 
   /**
-   * Необязательный список диапазонов исходного файла, для которых нужно строить расширенный AST.
-   * Если указан, узлы и токены вне этих диапазонов будут пропущены для ускорения.
+   * Optional list of source file ranges for which to build extended AST.
+   * If specified, nodes and tokens outside these ranges will be skipped for faster build.
    */
   includeRanges?: SourceRange[];
 }

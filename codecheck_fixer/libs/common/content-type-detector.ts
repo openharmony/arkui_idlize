@@ -1,5 +1,5 @@
 /**
- * Детектор типа контента файла для определения TS/TSX/ARKTS
+ * File content type detector for determining TS/TSX/ARKTS
  */
 import * as path from 'path';
 import { ContentType } from './common-types';

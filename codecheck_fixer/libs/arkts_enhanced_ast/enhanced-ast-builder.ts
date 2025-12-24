@@ -1,8 +1,8 @@
 /**
- * Построитель расширенного AST с полной информацией о координатах и токенах
+ * Extended AST builder with complete coordinate and token information
  *
- * Этот модуль отвечает за создание расширенного AST, который сохраняет всю
- * информацию, необходимую для точного восстановления оригинального текста.
+ * This module is responsible for creating extended AST that preserves all
+ * information necessary for accurate reconstruction of original text.
  */
 
 import * as ts from 'typescript';
@@ -23,10 +23,10 @@ import {
 import { SyntaxTokenizer, createTokenizer } from './syntax-tokenizer';
 
 /**
- * Построитель расширенного AST
+ * Extended AST builder
  */
 export class EnhancedASTBuilder {
-  /** Корневой узел стандартного TypeScript AST (не файл на диске!) */
+  /** Root node of standard TypeScript AST (not file on disk!) */
   private sourceFile: ts.SourceFile;
   private sourceText: string;
   private options: EnhancedASTOptions;
@@ -38,9 +38,9 @@ export class EnhancedASTBuilder {
   private includeRanges: SourceRange[] | undefined;
 
   /**
-   * Создаёт построитель расширенного AST
-   * @param typescriptAST - корневой узел стандартного TypeScript AST (результат ts.createSourceFile)
-   * @param options - опции построения
+   * Creates extended AST builder
+   * @param typescriptAST - root node of standard TypeScript AST (result of ts.createSourceFile)
+   * @param options - build options
    */
   constructor(typescriptAST: ts.SourceFile, options: Partial<EnhancedASTOptions> = {}) {
     this.sourceFile = typescriptAST;
@@ -62,25 +62,25 @@ export class EnhancedASTBuilder {
     };
     this.startTime = Date.now();
     
-    // Создаём токенизатор для получения синтаксических токенов
-    // Определяем LanguageVariant из SourceFile (JSX для .tsx файлов)
+    // Create tokenizer for obtaining syntactic tokens
+    // Determine LanguageVariant from SourceFile (JSX for .tsx files)
     const languageVariant = typescriptAST.languageVariant;
     this.tokenizer = createTokenizer(this.sourceText, typescriptAST.languageVersion, languageVariant);
     this.includeRanges = this.options.includeRanges;
   }
 
   /**
-   * Строит расширенный AST для всего файла
+   * Builds extended AST for entire file
    */
   public build(): EnhancedASTResult {
     try {
-      this.log('Начинаем построение расширенного AST');
+      this.log('Starting extended AST construction');
       
       const root = this.buildEnhancedNode(this.sourceFile) as EnhancedASTNode;
       this.statistics.buildTimeMs = Date.now() - this.startTime;
       
-      this.log(`Построение завершено за ${this.statistics.buildTimeMs}ms`);
-      this.log(`Создано узлов: ${this.statistics.totalNodes}`);
+      this.log(`Construction completed in ${this.statistics.buildTimeMs}ms`);
+      this.log(`Nodes created: ${this.statistics.totalNodes}`);
       
       return {
         root,
@@ -90,44 +90,44 @@ export class EnhancedASTBuilder {
         errors: this.errors
       };
     } catch (error) {
-      this.addError(ASTErrorType.INTERNAL_ERROR, `Критическая ошибка при построении AST: ${error}`);
+      this.addError(ASTErrorType.INTERNAL_ERROR, `Critical error during AST construction: ${error}`);
       throw error;
     }
   }
 
   /**
-   * Строит расширенный узел для TypeScript узла
+   * Builds extended node for TypeScript node
    */
   private buildEnhancedNode(node: ts.Node, parent?: EnhancedASTNode, depth: number = 0): EnhancedASTNode | null {
     if (depth > this.options.maxDepth) {
-      this.addError(ASTErrorType.INTERNAL_ERROR, 'Превышена максимальная глубина рекурсии', this.getSourcePosition(node.getStart()));
-      throw new Error('Превышена максимальная глубина рекурсии');
+      this.addError(ASTErrorType.INTERNAL_ERROR, 'Maximum recursion depth exceeded', this.getSourcePosition(node.getStart()));
+      throw new Error('Maximum recursion depth exceeded');
     }
 
     this.statistics.totalNodes++;
 
-    // Получаем полную информацию о позициях узла
+    // Get complete position information for node
     const fullRange = this.getFullRange(node);
     const contentRange = this.getContentRange(node);
     
-    // Если включена фильтрация диапазонов и узел полностью вне интересующих диапазонов —
-    // пропускаем построение этого поддерева (оптимизация производительности)
+    // If range filtering is enabled and node is completely outside interesting ranges —
+    // skip building this subtree (performance optimization)
     if (this.includeRanges && !this.intersectsAny(fullRange, this.includeRanges)) {
       return null;
     }
 
-    // Извлекаем текст узла (от start до end, без leading trivia)
+    // Extract node text (from start to end, without leading trivia)
     const nodeStart = node.getStart(this.sourceFile);
     const nodeEnd = node.getEnd();
     const text = this.sourceText.substring(nodeStart, nodeEnd);
 
-    // Создаем метаданные узла
+    // Create node metadata
     const metadata = this.createNodeMetadata(node, depth);
     
-    // Получаем синтаксические токены для узла
+    // Get syntactic tokens for node
     const syntaxTokens = this.buildSyntaxTokens(node);
     
-    // Обрабатываем модификаторы - передаем текущий node как родителя
+    // Process modifiers - pass current node as parent
     const modifiers: EnhancedASTNode[] = [];
     if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
       for (const modifier of node.modifiers) {
@@ -136,10 +136,10 @@ export class EnhancedASTBuilder {
       }
     }
 
-    // Получаем флаги узла
+    // Get node flags
     const nodeFlags = 'flags' in node ? (node.flags as ts.NodeFlags) : undefined;
 
-    // Создаем расширенный узел
+    // Create extended node
     const enhancedNode: EnhancedASTNode = {
       originalNode: node,
       kind: node.kind,
@@ -154,79 +154,79 @@ export class EnhancedASTBuilder {
       metadata
     };
 
-    // Добавляем в карту позиций
+    // Add to position map
     for (let pos = fullRange.start.offset; pos < fullRange.end.offset; pos++) {
       this.positionMap.set(pos, enhancedNode);
     }
 
-    // Обрабатываем дочерние узлы (исключая модификаторы)
+    // Process child nodes (excluding modifiers)
     const children: EnhancedASTNode[] = [];
     const modifierNodes = new Set(modifiers.map(m => m.originalNode));
     
     ts.forEachChild(node, (child) => {
-      // Если включена фильтрация и дочерний узел вне диапазонов — пропускаем его
+      // If filtering is enabled and child node is outside ranges — skip it
       if (this.includeRanges) {
         const cFull = this.getFullRange(child);
         if (!this.intersectsAny(cFull, this.includeRanges)) {
           return;
         }
       }
-      // Пропускаем модификаторы - они уже обработаны отдельно
+      // Skip modifiers - they are already processed separately
       if (!modifierNodes.has(child)) {
         const enhancedChild = this.buildEnhancedNode(child, enhancedNode, depth + 1);
         if (enhancedChild) children.push(enhancedChild);
       }
     });
 
-    // Сортируем дочерние узлы по позиции
+    // Sort child nodes by position
     if (children.length > 0) {
       children.sort((a, b) => a.fullRange.start.offset - b.fullRange.start.offset);
     }
 
-    // Узлы без дочерних элементов остаются как есть - никаких fallback разбиений
+    // Nodes without child elements remain as is - no fallback splits
 
     enhancedNode.children = children;
     
-    // Связываем синтаксические токены с покрывающими узлами
-    // Это нужно делать после построения всех дочерних узлов
+    // Link syntactic tokens with covering nodes
+    // This needs to be done after building all child nodes
     this.linkSemanticNodesToTokens(enhancedNode);
 
-    this.log(`Создан узел ${ts.SyntaxKind[node.kind]} в позиции ${fullRange.start.offset}-${fullRange.end.offset}, текст: "${text.substring(0, 30)}..."`);
+    this.log(`Created node ${ts.SyntaxKind[node.kind]} at position ${fullRange.start.offset}-${fullRange.end.offset}, text: "${text.substring(0, 30)}..."`);
     
     return enhancedNode;
   }
 
   /**
-   * Строит расширенный узел с явным указанием оригинального родительского узла
-   * Используется для модификаторов и других специальных узлов
+   * Builds extended node with explicit specification of original parent node
+   * Used for modifiers and other special nodes
    */
   private buildEnhancedNodeWithParentNode(node: ts.Node, _parentNode: ts.Node, depth: number = 0): EnhancedASTNode {
     if (depth > this.options.maxDepth) {
-      this.addError(ASTErrorType.INTERNAL_ERROR, 'Превышена максимальная глубина рекурсии', this.getSourcePosition(node.getStart()));
-      throw new Error('Превышена максимальная глубина рекурсии');
+      this.addError(ASTErrorType.INTERNAL_ERROR, 'Maximum recursion depth exceeded', this.getSourcePosition(node.getStart()));
+      throw new Error('Maximum recursion depth exceeded');
     }
 
     this.statistics.totalNodes++;
 
-    // Получаем полную информацию о позициях узла
+    // Get complete position information for node
     const fullRange = this.getFullRange(node);
     const contentRange = this.getContentRange(node);
     
-    // Извлекаем текст узла (от start до end, без leading trivia)
+    // Extract node text (from start to end, without leading trivia)
     const nodeStart = node.getStart(this.sourceFile);
     const nodeEnd = node.getEnd();
     const text = this.sourceText.substring(nodeStart, nodeEnd);
 
-    // Создаем метаданные узла
+    // Create node metadata
     const metadata = this.createNodeMetadata(node, depth);
     
-    // Получаем синтаксические токены для узла
+    // Get syntactic tokens for node
     const syntaxTokens = this.buildSyntaxTokens(node);
 
-    // Получаем флаги узла
+    // Get node flags
     const nodeFlags = 'flags' in node ? (node.flags as ts.NodeFlags) : undefined;
 
-    // Создаем расширенный узел (без parent, так как модификаторы хранятся отдельно)
+    // Create extended node (without parent, as modifiers are stored separately)
     const enhancedNode: EnhancedASTNode = {
       originalNode: node,
       kind: node.kind,
@@ -239,45 +239,45 @@ export class EnhancedASTBuilder {
       metadata
     };
 
-    // Добавляем в карту позиций
+    // Add to position map
     for (let pos = fullRange.start.offset; pos < fullRange.end.offset; pos++) {
       this.positionMap.set(pos, enhancedNode);
     }
 
-    this.log(`Создан узел-модификатор ${ts.SyntaxKind[node.kind]} в позиции ${fullRange.start.offset}-${fullRange.end.offset}, текст: "${text}"`);
+    this.log(`Created modifier node ${ts.SyntaxKind[node.kind]} at position ${fullRange.start.offset}-${fullRange.end.offset}, text: "${text}"`);
     
     return enhancedNode;
   }
 
   /**
-   * Строит список синтаксических токенов для узла
-   * Использует TypeScript Scanner API для получения токенов
+   * Builds list of syntactic tokens for node
+   * Uses TypeScript Scanner API to obtain tokens
    * 
-   * Для дочерних узлов создаёт специальные токены типа SEMANTIC_NODE,
-   * которые ссылаются на соответствующие Enhanced AST узлы.
-   * Это будет сделано позже, после построения всех дочерних узлов.
+   * For child nodes creates special tokens of type SEMANTIC_NODE,
+   * that reference corresponding Enhanced AST nodes.
+   * This will be done later, after building all child nodes.
    */
   private buildSyntaxTokens(node: ts.Node): SyntaxToken[] {
     const fullStart = node.getFullStart();
     const end = node.getEnd();
     
-    // Токенизируем весь диапазон узла (включая leading trivia)
-    // Замена токенов на SEMANTIC_NODE будет выполнена в linkSemanticNodesToTokens
+    // Tokenize entire node range (including leading trivia)
+    // Token replacement with SEMANTIC_NODE will be performed in linkSemanticNodesToTokens
     return this.tokenizer.tokenize(fullStart, end);
   }
 
   /**
-   * Связывает покрывающие узлы с синтаксическими токенами
+   * Links covering nodes with syntactic tokens
    * 
-   * Заменяет диапазоны дочерних узлов на токены типа SEMANTIC_NODE,
-   * которые содержат ссылки на соответствующие Enhanced AST узлы.
+   * Replaces child node ranges with tokens of type SEMANTIC_NODE,
+   * that contain references to corresponding Enhanced AST nodes.
    * 
-   * @param enhancedNode - узел Enhanced AST с построенными children
+   * @param enhancedNode - Enhanced AST node with built children
    */
   private linkSemanticNodesToTokens(enhancedNode: EnhancedASTNode): void {
     if (enhancedNode.children.length === 0 && 
         (!enhancedNode.modifiers || enhancedNode.modifiers.length === 0)) {
-      // Нет дочерних узлов - токены остаются как есть
+      // No child nodes - tokens remain as is
       return;
     }
 
@@ -287,7 +287,7 @@ export class EnhancedASTBuilder {
       ...enhancedNode.children
     ];
 
-    // Сортируем дочерние узлы по позиции
+    // Sort child nodes by position
     allChildNodes.sort((a, b) => a.fullRange.start.offset - b.fullRange.start.offset);
 
     let tokenIndex = 0;
@@ -297,7 +297,7 @@ export class EnhancedASTBuilder {
       const token = enhancedNode.syntaxTokens[tokenIndex];
       if (!token) break;
       
-      // Проверяем, попадает ли текущий токен в диапазон дочернего узла
+      // Check if current token falls within child node range
       if (childIndex < allChildNodes.length) {
         const child = allChildNodes[childIndex];
         if (!child) {
@@ -310,11 +310,11 @@ export class EnhancedASTBuilder {
         const tokenStart = token.position.offset;
         const tokenEnd = tokenStart + token.text.length;
 
-        // Токен полностью внутри дочернего узла - пропускаем
+        // Token completely inside child node - skip
         if (tokenStart >= childStart && tokenEnd <= childEnd && !this.shouldExposeChildTokens(child)) {
-          // Если это первый токен дочернего узла, создаём SEMANTIC_NODE
-          // SEMANTIC_NODE будет пропущен при форматировании, а его дочерние узлы
-          // будут обработаны рекурсивно, включая операторы, запятые и другие токены
+          // If this is first token of child node, create SEMANTIC_NODE
+          // SEMANTIC_NODE will be skipped during formatting, and its child nodes
+          // will be processed recursively, including operators, commas and other tokens
           if (tokenStart === childStart) {
             newTokens.push({
               type: SyntaxTokenType.SEMANTIC_NODE,
@@ -325,7 +325,7 @@ export class EnhancedASTBuilder {
             });
           }
           
-          // Пропускаем все токены до конца дочернего узла
+          // Skip all tokens until end of child node
           while (tokenIndex < enhancedNode.syntaxTokens.length) {
             const t = enhancedNode.syntaxTokens[tokenIndex];
             if (!t) break;
@@ -341,19 +341,19 @@ export class EnhancedASTBuilder {
           continue;
         }
         
-        // Токен перед дочерним узлом - добавляем как обычный токен
+        // Token before child node - add as regular token
         if (tokenEnd <= childStart) {
           newTokens.push(token);
           tokenIndex++;
           continue;
         }
         
-        // Токен пересекает границу дочернего узла - такого не должно быть
-        // Добавляем токен и переходим к следующему дочернему узлу
+        // Token crosses child node boundary - shouldn't happen
+        // Add token and move to next child node
         newTokens.push(token);
         tokenIndex++;
       } else {
-        // Все дочерние узлы обработаны - добавляем оставшиеся токены
+        // All child nodes processed - add remaining tokens
         newTokens.push(token);
         tokenIndex++;
       }
@@ -361,15 +361,15 @@ export class EnhancedASTBuilder {
 
     enhancedNode.syntaxTokens = newTokens;
     
-    // Рекурсивно обрабатываем дочерние узлы
+    // Recursively process child nodes
     for (const child of allChildNodes) {
       this.linkSemanticNodesToTokens(child);
     }
   }
 
   /**
-   * Некоторые узлы (например, FirstAssignment/LastAssignment) должны сохранять свои токены,
-   * чтобы операторы (например, '=') были доступны на родительском уровне.
+   * Some nodes (e.g., FirstAssignment/LastAssignment) should preserve their tokens,
+   * so operators (e.g., '=') are available at parent level.
    */
   private shouldExposeChildTokens(node: EnhancedASTNode): boolean {
     return (
@@ -379,7 +379,7 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Получает полный диапазон узла (включая leading/trailing trivia)
+   * Gets full node range (including leading/trailing trivia)
    */
   private getFullRange(node: ts.Node): SourceRange {
     const fullStart = node.getFullStart();
@@ -392,7 +392,7 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Получает диапазон содержимого узла (без trivia)
+   * Gets node content range (without trivia)
    */
   private getContentRange(node: ts.Node): SourceRange {
     const start = node.getStart(this.sourceFile);
@@ -405,7 +405,7 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Преобразует абсолютное смещение в позицию с номером строки и колонки
+   * Converts absolute offset to position with line and column number
    */
   private getSourcePosition(offset: number): SourcePosition {
     const lineAndChar = this.sourceFile.getLineAndCharacterOfPosition(offset);
@@ -417,7 +417,7 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Создает метаданные для узла
+   * Creates metadata for node
    */
   private createNodeMetadata(node: ts.Node, depth: number): NodeMetadata {
     const canBreak = this.canNodeBreak(node);
@@ -439,7 +439,7 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Определяет, может ли узел быть разбит на несколько строк
+   * Determines if node can be split into multiple lines
    */
   private canNodeBreak(node: ts.Node): boolean {
     switch (node.kind) {
@@ -457,23 +457,23 @@ export class EnhancedASTBuilder {
         return true;
       
       default:
-        return node.getEnd() - node.getStart() > 40; // Эвристика: длинные узлы можно разбивать
+        return node.getEnd() - node.getStart() > 40; // Heuristic: long nodes can be split
     }
   }
 
   /**
-   * Вычисляет приоритет разбиения узла
+   * Calculates node break priority
    */
   private calculateBreakPriority(node: ts.Node): number {
     if (this.options.breakPriorityCalculator) {
       return this.options.breakPriorityCalculator(node);
     }
 
-    // Базовые приоритеты по типам узлов
+    // Base priorities by node types
     switch (node.kind) {
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
-        return 1; // Высший приоритет
+        return 1; // Highest priority
       
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.MethodDeclaration:
@@ -490,12 +490,12 @@ export class EnhancedASTBuilder {
         return 5;
       
       default:
-        return 10; // Низкий приоритет
+        return 10; // Low priority
     }
   }
 
   /**
-   * Определяет, является ли узел атомарным (неделимым)
+   * Determines if node is atomic (indivisible)
    */
   private isAtomicNode(node: ts.Node): boolean {
     switch (node.kind) {
@@ -513,12 +513,12 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Вычисляет флаги узла
+   * Calculates node flags
    */
   private calculateNodeFlags(node: ts.Node): NodeFlags {
     let flags = NodeFlags.NONE;
 
-    // Проверяем наличие комментариев
+    // Check for comments
     const fullStart = node.getFullStart();
     const start = node.getStart(this.sourceFile);
     if (fullStart < start) {
@@ -528,7 +528,7 @@ export class EnhancedASTBuilder {
       }
     }
 
-    // Проверяем контекст узла
+    // Check node context
     if (this.isInCallChain(node)) {
       flags |= NodeFlags.IN_CALL_CHAIN;
     }
@@ -553,23 +553,23 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Вычисляет длину для принудительного разбиения
+   * Calculates length for forced break
    */
   private calculateForceBreakLength(node: ts.Node): number | undefined {
     const nodeLength = node.getEnd() - node.getStart();
     
-    // Для очень длинных узлов устанавливаем принудительное разбиение
+    // For very long nodes set forced break
     if (nodeLength > 120) {
-      return 80; // Разбиваем на части по 80 символов
+      return 80; // Split into parts of 80 characters
     }
     
     return undefined;
   }
 
 
-  // Fallback методы удалены - никаких принудительных разбиений
+  // Fallback methods removed - no forced splits
 
-  // Вспомогательные методы для определения контекста узлов
+  // Helper methods for determining node context
 
   private isInCallChain(node: ts.Node): boolean {
     let parent = node.parent;
@@ -631,7 +631,7 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Добавляет ошибку в список
+   * Adds error to list
    */
   private addError(type: ASTErrorType, message: string, position?: SourcePosition, node?: ts.Node): void {
     this.errors.push({
@@ -643,14 +643,14 @@ export class EnhancedASTBuilder {
   }
 
   /**
-   * Логирует сообщение (если включена диагностика)
+   * Logs message (if diagnostics enabled)
    */
   private log(_message: string): void {
     if (this.options.enableDiagnostics) {
     }
   }
 
-  /** Проверяет пересечение диапазонов */
+  /** Checks range intersection */
   private intersectsAny(a: SourceRange, ranges: SourceRange[]): boolean {
     for (const r of ranges) {
       if (a.start.offset < r.end.offset && r.start.offset < a.end.offset) return true;

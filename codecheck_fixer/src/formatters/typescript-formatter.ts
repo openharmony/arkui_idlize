@@ -1,5 +1,5 @@
 /**
- * Форматтер для TypeScript кода
+ * Formatter for TypeScript code
  */
 
 import { FormatterConfig } from '@/types';
@@ -14,22 +14,22 @@ export class TypeScriptFormatter {
   format(content: string): string {
     let formatted = content;
     
-    // Нормализация отступов
+    // Normalize indentation
     formatted = this.normalizeIndentation(formatted);
     
-    // Форматирование кавычек
+    // Format quotes
     formatted = this.formatQuotes(formatted);
     
-    // Добавление/удаление точек с запятой
+    // Add/remove semicolons
     formatted = this.formatSemicolons(formatted);
     
-    // Форматирование trailing commas
+    // Format trailing commas
     formatted = this.formatTrailingCommas(formatted);
     
-    // Обрезка длинных строк
+    // Wrap long lines
     formatted = this.wrapLongLines(formatted);
     
-    // Удаление лишних пробелов
+    // Remove trailing whitespace
     formatted = this.removeTrailingWhitespace(formatted);
     
     return formatted;
@@ -43,7 +43,7 @@ export class TypeScriptFormatter {
       if (line.trim() === '') return line;
       
       const leadingSpaces = line.match(/^(\s*)/)?.[1] || '';
-      const normalizedSpaces = leadingSpaces.replace(/\t/g, ' '.repeat(this.config.tabSize)); // Конвертируем табы в пробелы
+      const normalizedSpaces = leadingSpaces.replace(/\t/g, ' '.repeat(this.config.tabSize)); // Convert tabs to spaces
       const indentLevel = Math.floor(normalizedSpaces.length / this.config.tabSize);
       
       return indentChar.repeat(indentLevel) + line.trim();
@@ -54,11 +54,11 @@ export class TypeScriptFormatter {
     const quote = this.config.quoteStyle === 'single' ? "'" : '"';
     const otherQuote = this.config.quoteStyle === 'single' ? '"' : "'";
     
-    // Заменяем кавычки, но избегаем замены внутри строковых литералов
+    // Replace quotes, but avoid replacement inside string literals
     return content.replace(
       new RegExp(otherQuote + '([^' + otherQuote + ']*)' + otherQuote, 'g'),
       (match, content) => {
-        // Проверяем, что это не экранированная кавычка
+        // Check that this is not an escaped quote
         if (content.includes('\\' + otherQuote)) {
           return match;
         }
@@ -69,10 +69,10 @@ export class TypeScriptFormatter {
 
   private formatSemicolons(content: string): string {
     if (!this.config.semicolons) {
-      // Удаляем точки с запятой в конце строк
+      // Remove semicolons at end of lines
       return content.replace(/;(\s*)$/gm, '$1');
     } else {
-      // Добавляем точки с запятой где нужно
+      // Add semicolons where needed
       const lines = content.split('\n');
       return lines.map(line => {
         const trimmed = line.trim();
@@ -97,7 +97,7 @@ export class TypeScriptFormatter {
 
   private formatTrailingCommas(content: string): string {
     if (this.config.trailingCommas) {
-      // Добавляем trailing commas в объектах и массивах
+      // Add trailing commas in objects and arrays
       return content.replace(/(\w+)\s*$/gm, (match, p1, offset, string) => {
         const nextChar = string[offset + match.length];
         if (nextChar === '}' || nextChar === ']') {
@@ -106,7 +106,7 @@ export class TypeScriptFormatter {
         return match;
       });
     } else {
-      // Удаляем trailing commas
+      // Remove trailing commas
       return content.replace(/,(\s*[}\]])/g, '$1');
     }
   }
@@ -122,7 +122,7 @@ export class TypeScriptFormatter {
         return line;
       }
 
-      // Простое перенос строки по словам
+      // Simple line wrapping by words
       const words = line.split(' ');
       let result = '';
       let currentLine = '';

@@ -1,19 +1,19 @@
 /**
- * Типы для системы форматирования длинных строк
+ * Types for long line formatting system
  */
 
 import * as ts from 'typescript';
 import type { EnhancedASTResult, EnhancedASTQuery } from '../arkts_enhanced_ast';
 
 /**
- * Результат построения Enhanced AST с запросником
+ * Result of building Enhanced AST with query
  */
 export interface EnhancedASTWithQuery {
   ast: EnhancedASTResult;
   query: EnhancedASTQuery;
 }
 
-// Типы конфигурации
+// Configuration types
 export interface FormatterConfig {
   tabSize: number;
   useTabs: boolean;
@@ -32,7 +32,7 @@ export interface LineLengthConfig {
 }
 
 /**
- * Результат трансформации
+ * Transformation result
  */
 export interface TransformationResult {
   start: number;
@@ -43,43 +43,43 @@ export interface TransformationResult {
 export interface LineBreakInsertion {
   position: number;
   indentLevel: number;
-  reason: string; // для отладки: "after extends", "before parameter", etc.
+  reason: string; // for debugging: "after extends", "before parameter", etc.
 }
 
 /**
- * Контекст форматирования
+ * Formatting context
  */
 export interface FormattingContext {
-  /** Расширенное AST (Enhanced AST) с запросником для форматирования ArkTS/TypeScript кода */
+  /** Enhanced AST with query for formatting ArkTS/TypeScript code */
   enhancedAST: EnhancedASTWithQuery;
   
-  /** Исходный текст */
+  /** Source text */
   content: string;
   
-  /** Строки исходного текста */
+  /** Source text lines */
   lines: string[];
   
-  /** Конфигурация форматтера */
+  /** Formatter configuration */
   formatterConfig: FormatterConfig;
   
-  /** Конфигурация проверки длины строк */
+  /** Line length check configuration */
   lineLengthConfig: LineLengthConfig;
   
-  /** Максимальная длина строки */
+  /** Maximum line length */
   maxLineLength: number;
   
-  /** Единица отступа (строка с пробелами или табуляцией) */
+  /** Indent unit (string with spaces or tabs) */
   indentUnit: string;
   
   /** 
-   * Имя файла для кэширования и определения типа
-   * Примеры: 'temp.ets' (ArkTS), 'temp.ts' (TypeScript)
+   * File name for caching and type determination
+   * Examples: 'temp.ets' (ArkTS), 'temp.ts' (TypeScript)
    */
   fileName: string;
 }
 
 /**
- * Результат работы форматтера
+ * Formatter result
  */
 export interface FormatterResult {
   lineBreaks: LineBreakInsertion[];
@@ -88,53 +88,53 @@ export interface FormatterResult {
 }
 
 /**
- * Интерфейс стратегии форматирования
+ * Formatting strategy interface
  */
 export interface FormattingStrategy {
   /**
-   * Проверяет, может ли стратегия обработать данную строку
+   * Checks if strategy can handle given line
    */
   canHandle(line: string, lineIndex: number, context: FormattingContext): boolean;
 
   /**
-   * Форматирует строку
+   * Formats line
    */
   format(line: string, lineIndex: number, context: FormattingContext): FormatterResult;
 
   /**
-   * Приоритет стратегии (чем больше, тем выше приоритет)
+   * Strategy priority (higher number means higher priority)
    */
   getPriority(): number;
 
   /**
-   * Очищает внутренний кэш стратегии (опционально)
-   * ДОБАВЛЕНО: Для корректной работы итеративного форматирования
+   * Clears internal strategy cache (optional)
+   * ADDED: For correct iterative formatting operation
    */
   clearCache?(): void;
 }
 
 /**
- * Интерфейс специализированного форматтера
+ * Specialized formatter interface
  */
 export interface SpecializedFormatter {
   /**
-   * Проверяет, может ли форматтер обработать данный узел AST
+   * Checks if formatter can handle given AST node
    */
   canFormat(node: ts.Node, context: FormattingContext): boolean;
 
   /**
-   * Форматирует узел AST
+   * Formats AST node
    */
   formatNode(node: ts.Node, context: FormattingContext): string;
 
   /**
-   * Получает имя форматтера для отладки
+   * Gets formatter name for debugging
    */
   getName(): string;
 }
 
 /**
- * Информация о строке для анализа
+ * Line information for analysis
  */
 export interface LineInfo {
   content: string;

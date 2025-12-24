@@ -1,12 +1,12 @@
 /**
- * Утилиты для форматирования
+ * Utilities for formatting
  */
 
 import * as ts from 'typescript';
 import { LineInfo } from './types';
 
 /**
- * Получает информацию о строке
+ * Gets line information
  */
 export function getLineInfo(line: string, index: number, maxLength: number): LineInfo {
   const trimmed = line.trim();
@@ -23,7 +23,7 @@ export function getLineInfo(line: string, index: number, maxLength: number): Lin
 }
 
 /**
- * Получает отступ строки
+ * Gets line indent
  */
 export function getIndent(line: string): string {
   const match = line.match(/^(\s*)/);
@@ -31,14 +31,14 @@ export function getIndent(line: string): string {
 }
 
 /**
- * Получает единицу отступа
+ * Gets indent unit
  */
 export function getIndentUnit(useTabs: boolean, tabSize: number): string {
   return useTabs ? '\t' : ' '.repeat(tabSize);
 }
 
 /**
- * Получает отступ для узла AST
+ * Gets indent for AST node
  */
 export function getIndentForNode(node: ts.Node, sourceFile: ts.SourceFile): string {
   const { line } = ts.getLineAndCharacterOfPosition(sourceFile, node.getStart());
@@ -50,7 +50,7 @@ export function getIndentForNode(node: ts.Node, sourceFile: ts.SourceFile): stri
 }
 
 /**
- * Извлекает строку для узла AST
+ * Extracts line for AST node
  */
 export function extractLineForNode(node: ts.Node, sourceFile: ts.SourceFile): string | null {
   const startLC = ts.getLineAndCharacterOfPosition(sourceFile, node.getStart());
@@ -59,7 +59,7 @@ export function extractLineForNode(node: ts.Node, sourceFile: ts.SourceFile): st
 }
 
 /**
- * Проверяет, является ли узел длинным (превышает лимит строки)
+ * Checks if node is long (exceeds line limit)
  */
 export function isNodeLong(node: ts.Node, sourceFile: ts.SourceFile, maxLength: number): boolean {
   const start = ts.getLineAndCharacterOfPosition(sourceFile, node.getStart());
@@ -68,11 +68,11 @@ export function isNodeLong(node: ts.Node, sourceFile: ts.SourceFile, maxLength: 
     const lineText = sourceFile.text.split('\n')[start.line];
     return lineText ? lineText.length > maxLength : false;
   }
-  return false; // Узел уже многострочный
+  return false; // Node is already multi-line
 }
 
 /**
- * Разбивает содержимое по запятым на верхнем уровне
+ * Splits content by top-level commas
  */
 export function splitByTopLevelCommas(content: string): string[] {
   const parts: string[] = [];
@@ -107,7 +107,7 @@ export function splitByTopLevelCommas(content: string): string[] {
 }
 
 /**
- * Проверяет, содержит ли строка URL
+ * Checks if line contains URL
  */
 export function containsUrl(line: string): boolean {
   const urlRegex = /https?:\/\/[^\s]+/;
@@ -115,7 +115,7 @@ export function containsUrl(line: string): boolean {
 }
 
 /**
- * Проверяет, является ли строка комментарием
+ * Checks if line is a comment
  */
 export function isComment(line: string): boolean {
   const trimmed = line.trim();
@@ -123,7 +123,7 @@ export function isComment(line: string): boolean {
 }
 
 /**
- * Проверяет, является ли строка строковым литералом
+ * Checks if line is a string literal
  */
 export function isStringLiteral(line: string): boolean {
   const trimmed = line.trim();
@@ -133,7 +133,7 @@ export function isStringLiteral(line: string): boolean {
 }
 
 /**
- * Удаляет пробелы в конце строк
+ * Removes trailing whitespace from lines
  */
 export function removeTrailingWhitespace(content: string): string {
   return content
@@ -143,22 +143,22 @@ export function removeTrailingWhitespace(content: string): string {
 }
 
 /**
- * Проверяет, может ли строка быть безопасно разбита
+ * Checks if line can be safely broken
  */
 export function canSafelyBreak(line: string): boolean {
-  // Эвристики для определения возможности разбиения
-  if (/[|,]/.test(line)) return true; // union или список
+  // Heuristics for determining breakability
+  if (/[|,]/.test(line)) return true; // union or list
   if (/(\sas\s)/.test(line)) return true; // type assertion
-  if (/[()]/.test(line)) return true; // вызовы/параметры
-  if (/{.*}/.test(line)) return true; // объектный литерал
-  if (/\+/.test(line)) return true; // конкатенация строк
-  if (/:\s*\S/.test(line)) return true; // аннотация типа
+  if (/[()]/.test(line)) return true; // calls/parameters
+  if (/{.*}/.test(line)) return true; // object literal
+  if (/\+/.test(line)) return true; // string concatenation
+  if (/:\s*\S/.test(line)) return true; // type annotation
   
   return false;
 }
 
 /**
- * Получает AST контекст для строки
+ * Gets AST context for line
  */
 export function getASTContextForLine(lineNumber: number, sourceFile: ts.SourceFile): ts.Node | null {
   const lineStart = sourceFile.getPositionOfLineAndCharacter(lineNumber, 0);

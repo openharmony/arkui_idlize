@@ -1,4 +1,4 @@
-// Тестовый файл с длинными строками для проверки функциональности
+// Test file with long lines for functionality verification
 export class TestClass {
   private veryLongMethodNameThatExceedsTheMaximumLineLengthAndShouldBeFormattedProperly(): string {
     return "This is a very long string that should be formatted properly when the line length exceeds the maximum allowed length";

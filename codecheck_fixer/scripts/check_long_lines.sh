@@ -2,17 +2,17 @@
 set -e
 
 #
-# Использование:
+# Usage:
 #   scripts/check_long_lines.sh [-o|--output path/to/report.csv] [-p|--path PATH[,PATH2...]]... [FILES_OR_DIRS ...]
 #
-# По умолчанию ищет C/C++ файлы в текущем каталоге.
-# Если указаны позиционные аргументы, будут проанализированы только они:
-#   - файл(ы): анализируются напрямую
-#   - директория(и): производится поиск файлов с расширениями *.cpp, *.cc, *.cxx, *.c++, *.hpp, *.h
-#   - glob-паттерны разрешаются оболочкой и анализируются как список файлов
+# By default searches for C/C++ files in current directory.
+# If positional arguments are specified, only they will be analyzed:
+#   - file(s): analyzed directly
+#   - director(y/ies): search for files with extensions *.cpp, *.cc, *.cxx, *.c++, *.hpp, *.h
+#   - glob patterns are resolved by shell and analyzed as file list
 #
 
-# Дефолтные значения
+# Default values
 DEFAULT_OUTPUT_FILE="long_lines.csv"
 DEFAULT_MAX_LENGTH=120
 DEFAULT_EXTENSIONS_CPP=( "*.cpp" "*.cc" "*.cxx" "*.c++" "*.hpp" "*.h" )
@@ -20,31 +20,31 @@ DEFAULT_EXTENSIONS_TS=( "*.ts" )
 DEFAULT_EXTENSIONS_ETS=( "*.ets" )
 DEFAULT_EXTENSIONS_TS_ETS=( "*.ts" "*.ets" )
 DEFAULT_SEARCH_PATHS=( "$(pwd)" )
-# Набор расширений по умолчанию (может быть переопределён ключом -x/--ext)
+# Default extension set (can be overridden with -x/--ext key)
 DEFAULT_EXTENSIONS=( "${DEFAULT_EXTENSIONS_CPP[@]}" )
 
-# Текущая конфигурация (инициализируется дефолтами)
+# Current configuration (initialized with defaults)
 OUTPUT_FILE="$DEFAULT_OUTPUT_FILE"
 MAX_LENGTH="$DEFAULT_MAX_LENGTH"
 ARGS=( "${DEFAULT_SEARCH_PATHS[@]}" )
 PATHS_SET=false
 
 show_help() {
-    echo "Использование: $0 [-o|--output REPORT_CSV] [-p|--path PATH[,PATH2...]]... [FILES_OR_DIRS ...]"
+    echo "Usage: $0 [-o|--output REPORT_CSV] [-p|--path PATH[,PATH2...]]... [FILES_OR_DIRS ...]"
     echo ""
-    echo "Опции:"
-    echo "  -o, --output FILE   Путь к CSV-отчету (по умолчанию: $DEFAULT_OUTPUT_FILE)"
-    echo "  -p, --path PATHS    Файл/директория/паттерн для анализа; можно указывать несколько раз или через запятую"
-    echo "  -x, --ext TYPE      Набор расширений: cpp | ets | ts | ts_ets | all (по умолчанию: cpp)"
-    echo "  -h, --help          Показать справку"
+    echo "Options:"
+    echo "  -o, --output FILE   Path to CSV report (default: $DEFAULT_OUTPUT_FILE)"
+    echo "  -p, --path PATHS    File/directory/pattern to analyze; can be specified multiple times or comma-separated"
+    echo "  -x, --ext TYPE      Extension set: cpp | ets | ts | ts_ets | all (default: cpp)"
+    echo "  -h, --help          Show help"
     echo ""
-    echo "Примеры:"
-    echo "  $0                                                        # проверить текущий каталог"
-    echo "  $0 -o out/report.csv src include/                           # отчет в out/report.csv, анализ двух директорий"
-    echo "  $0 -o report.csv -p file1.cpp -p 'dir/**/*.h'               # через ключи --path"
-    echo "  $0 -p src,include -p file1.cpp                              # список путей через запятую"
-    echo "  $0 -x ets -p foundation/.../arkui-ohos/src                  # анализ ETS-файлов"
-    echo "  $0 -x all -p src                                            # анализ cpp+ts+ets"
+    echo "Examples:"
+    echo "  $0                                                        # check current directory"
+    echo "  $0 -o out/report.csv src include/                           # report to out/report.csv, analyze two directories"
+    echo "  $0 -o report.csv -p file1.cpp -p 'dir/**/*.h'               # using --path keys"
+    echo "  $0 -p src,include -p file1.cpp                              # path list comma-separated"
+    echo "  $0 -x ets -p foundation/.../arkui-ohos/src                  # analyze ETS files"
+    echo "  $0 -x all -p src                                            # analyze cpp+ts+ets"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -83,7 +83,7 @@ while [[ $# -gt 0 ]]; do
                     DEFAULT_EXTENSIONS=( "${DEFAULT_EXTENSIONS_CPP[@]}" "${DEFAULT_EXTENSIONS_TS[@]}" "${DEFAULT_EXTENSIONS_ETS[@]}" )
                     ;;
                 *)
-                    echo "Неизвестное значение для --ext: $2 (ожидается: cpp | ets | ts | ts_ets | all)" >&2
+                    echo "Unknown value for --ext: $2 (expected: cpp | ets | ts | ts_ets | all)" >&2
                     exit 1
                     ;;
             esac
@@ -98,7 +98,7 @@ while [[ $# -gt 0 ]]; do
             break
             ;;
         -*)
-            echo "Неизвестная опция: $1" >&2
+            echo "Unknown option: $1" >&2
             show_help
             exit 1
             ;;
@@ -113,7 +113,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Если аргументы остались после "--", добавим их как пути
+# If arguments remain after "--", add them as paths
 if [[ $# -gt 0 ]]; then
     while [[ $# -gt 0 ]]; do
         if [[ "$PATHS_SET" == false ]]; then
@@ -125,11 +125,11 @@ if [[ $# -gt 0 ]]; then
     done
 fi
 
-# Подготовим файл отчета
+# Prepare report file
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 echo "filename,line_number,length,text" > "$OUTPUT_FILE"
 
-# Общий awk-скрипт для поиска длинных строк (использует переменную max_len)
+# Common awk script for finding long lines (uses max_len variable)
 AWK_SCRIPT='BEGIN { PROCINFO["encoding"] = "utf-8" }
 length($0) > max_len {
     sub(/^\xef\xbb\xbf/, "")
@@ -138,13 +138,13 @@ length($0) > max_len {
     printf "%s,%d,%d,\"%s\"\n", FILENAME, FNR, line_len, $0
 }'
 
-# Разбор переданных путей/паттернов (ARGS уже содержит дефолты, если пользователь их не переопределил)
-# shopt -s — включает опции оболочки Bash.
-# nullglob — шаблоны без совпадений разворачиваются в пустой список (а не остаются строкой pattern), чтобы не передавать «сырые» паттерны дальше.
-# globstar — включает рекурсивный глов **, позволяющий матчить вложенные директории.
+# Parse passed paths/patterns (ARGS already contains defaults if user didn't override them)
+# shopt -s — enables Bash shell options.
+# nullglob — patterns without matches expand to empty list (not remain as pattern string), to avoid passing "raw" patterns further.
+# globstar — enables recursive glob **, allowing matching of nested directories.
 shopt -s nullglob globstar
 
-# Подготовка выражения для find по расширениям
+# Prepare find expression for extensions
 FIND_NAME_EXPR=()
 for __ext in "${DEFAULT_EXTENSIONS[@]}"; do
     if [[ ${#FIND_NAME_EXPR[@]} -gt 0 ]]; then
@@ -154,15 +154,15 @@ for __ext in "${DEFAULT_EXTENSIONS[@]}"; do
 done
 unset __ext
 
-# Сначала соберем явные файлы из переданных аргументов (после раскрытия glob)
+# First collect explicit files from passed arguments (after glob expansion)
 FILES_TO_CHECK=()
 DIRS_TO_SCAN=()
 
 for arg in "${ARGS[@]}"; do
-    # Раскрываем паттерны оболочки (если есть)
+    # Expand shell patterns (if any)
     matches=( $arg )
     if [[ ${#matches[@]} -eq 0 ]]; then
-        # Если ничего не сматчилось, оставим как есть — может быть путь с пробелами в кавычках
+        # If nothing matched, leave as is — might be path with spaces in quotes
         matches=("$arg")
     fi
 
@@ -175,15 +175,15 @@ for arg in "${ARGS[@]}"; do
     done
 done
 
-# Прогоним awk по явным файлам, если они есть
+# Run awk on explicit files, if any
 if [[ ${#FILES_TO_CHECK[@]} -gt 0 ]]; then
     gawk -v max_len="$MAX_LENGTH" "$AWK_SCRIPT" "${FILES_TO_CHECK[@]}" >> "$OUTPUT_FILE"
 fi
 
-# Для директорий — используем find с фильтром по расширениям
+# For directories — use find with extension filter
 for d in "${DIRS_TO_SCAN[@]}"; do
     find "$d" -type f \( "${FIND_NAME_EXPR[@]}" \) -exec gawk -v max_len="$MAX_LENGTH" "$AWK_SCRIPT" {} + >> "$OUTPUT_FILE"
 done
 
-# Подсчёт уникальных строк отчёта (без заголовка)
+# Count unique report lines (without header)
 cut -d';' -f1 "$OUTPUT_FILE" | tail -n +2 | sort | uniq | wc -l
