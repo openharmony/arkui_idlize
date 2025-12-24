@@ -120,7 +120,7 @@ function attachPathOptions(cmd: Command): Command {
 program
   .name('codecheck-fixer')
   .description('A library for static analysis and automated formatting of TypeScript and C++ code')
-  .version('1.0.0');
+  .version('0.10.0');
 
 attachPathOptions(
   program
