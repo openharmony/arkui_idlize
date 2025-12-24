@@ -48,7 +48,19 @@ export interface ScraperResult {
     arkuiConfig: string,
 }
 
-export function runScraper(root: string, configPath:string):ScraperResult {
+function parseIDLDirectory(path: string): IDLFile[] {
+    const input = scan(resolve(path))
+    return input.flatMap(source => {
+        try {
+            return [parseIDLFile(source)]
+        } catch (e) {
+            console.error('skipped', source)
+            return []
+        }
+    })
+}
+
+export function runScraper(root: string, extraPaths: string[], configPath:string):ScraperResult {
 
     /////////////////////////////////////////////////////////////
     // constants
@@ -80,24 +92,9 @@ export function runScraper(root: string, configPath:string):ScraperResult {
     /////////////////////////////////////////////////////////////
     // scan and startup
 
-    const interfacesLibrary = readLibrary("arkuiExtra").flatMap(source => {
-        try {
-            return [parseIDLFile(source)]
-        } catch (e) {
-            console.error('skipped', source)
-            return []
-        }
-    })
+    const interfacesLibrary = extraPaths.flatMap(parseIDLDirectory)
 
-    const input = scan(resolve(root))
-    const library = input.flatMap(source => {
-        try {
-            return [parseIDLFile(source)]
-        } catch (e) {
-            console.error('skipped', source)
-            return []
-        }
-    })
+    const library = parseIDLDirectory(root)
 
     /////////////////////////////////////////////////////////////
     // the algorithm
