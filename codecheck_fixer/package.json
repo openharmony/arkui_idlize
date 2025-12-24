@@ -1,6 +1,6 @@
 {
   "name": "codecheck-fixer",
-  "version": "1.0.0",
+  "version": "0.10.0",
   "description": "A library for static analysis and automated formatting of TypeScript and C++ code. Ensures CI compliance by providing an API for application integration and a CLI for standalone use.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

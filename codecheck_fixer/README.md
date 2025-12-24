@@ -22,7 +22,7 @@ A library and CLI tool for static analysis and automated formatting of TypeScrip
     -   `ora`: For displaying spinners during long-running tasks.
     -   `glob`: For matching file paths using patterns.
 -   **Development Tools**:
-    -   `jest`: For testing.
+    -   `mocha` + `@koalaui/harness`: For unit testing.
     -   `eslint`: For linting the project's own codebase.
     -   TypeScript Compiler API: Used for both analysis and formatting.
 
@@ -101,6 +101,13 @@ npm run build
 
 ```json
 {
+  "description": "My Project",
+  "repo_path": "/absolute/path/to/repo",
+  "paths_for_check": {
+    "ts": ["src/"],
+    "ets": [],
+    "cpp": []
+  },
   "analysis": {
     "maxFileSize": 1048576
   },
@@ -111,6 +118,8 @@ npm run build
   }
 }
 ```
+
+**Note:** You can provide paths via CLI (`--repo`, `--ts`, `--ets`, `--cpp`) or in config, or both. CLI paths override config paths.
 
 5. Run analysis (with report)
 
@@ -238,11 +247,17 @@ console.log(orchestrator.generateReport(results));
 
 Create a `config.json` file in your project root to customize the behavior.
 
-**Important:** The config now stores **only** analysis and formatting settings. Repository path and file paths are provided via CLI flags.
+**Important:** The config stores analysis and formatting settings. Repository path and file paths can be provided via CLI flags (`--repo`, `--ts`, `--ets`, `--cpp`) or in config. CLI paths override config paths.
 
 ```json
 {
   "description": "My Project",
+  "repo_path": "/absolute/path/to/repo",
+  "paths_for_check": {
+    "ts": ["src/", "lib/", "tests/"],
+    "ets": ["frameworks/arkui/generated/"],
+    "cpp": ["native/src/"]
+  },
   "analysis": {
     "rules": [
       { "name": "syntax_errors", "enabled": true, "severity": "error" },
@@ -267,7 +282,8 @@ Create a `config.json` file in your project root to customize the behavior.
 
 **Configuration notes:**
 - Pass repo and file paths via CLI: `--repo <path> --ts <...> --ets <...> --cpp <...>` or `--paths <...>`
-- The deprecated `paths_for_check` field in config is **no longer used** and should be removed
+- Paths in config are used if CLI paths not provided
+- CLI paths override config paths for flexibility
 - ETS files are handled by the TypeScript analyzer/formatter
 - When saving reports or fixed files, the `out/` directory is created automatically
 - `excludePatterns` are matched as substrings in file paths (not glob patterns)
