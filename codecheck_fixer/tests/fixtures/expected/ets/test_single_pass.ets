@@ -1,4 +1,4 @@
-// Тест однопроходного форматирования с очень длинной строкой (более 300 символов)
+// Test single-pass formatting with very long line (more than 300 characters)
 export class VeryLongClassName extends BaseClassWithLongName implements InterfaceOne, InterfaceTwo, InterfaceThree,
 InterfaceFour, InterfaceFive, InterfaceSix, InterfaceSeven {
 veryLongMethodName(parameterOne: string, parameterTwo: number, parameterThree: boolean, parameterFour: Date,

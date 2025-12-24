@@ -18,7 +18,7 @@ interface TestFile {
 }
 
 /**
- * Создает минимальную конфигурацию для тестов форматирования
+ * Creates minimal configuration for formatting tests
  */
 function createTestConfig(): ProjectConfig {
   return {
@@ -49,7 +49,7 @@ function createTestConfig(): ProjectConfig {
 }
 
 /**
- * Собирает список тестовых файлов для указанного типа
+ * Collects list of test files for specified type
  */
 function collectTestFiles(type: 'ts' | 'ets' | 'cpp'): TestFile[] {
   const files: TestFile[] = [];
@@ -79,7 +79,7 @@ function collectTestFiles(type: 'ts' | 'ets' | 'cpp'): TestFile[] {
 }
 
 /**
- * Создает output директории если их нет
+ * Creates output directories if they don't exist
  */
 function ensureOutputDirs() {
   for (const type of ['ts', 'ets', 'cpp']) {
@@ -91,7 +91,7 @@ function ensureOutputDirs() {
 }
 
 /**
- * Очищает output директорию перед тестами
+ * Cleans output directory before tests
  */
 function cleanOutputDir() {
   if (fs.existsSync(OUTPUT_DIR)) {
@@ -100,42 +100,42 @@ function cleanOutputDir() {
 }
 
 suite('Format Fixtures — Input → Output → Expected comparison', () => {
-  // Подготовка: очищаем и создаем output директории
+  // Preparation: clean and create output directories
   cleanOutputDir();
   ensureOutputDirs();
   
-  // Создаем Orchestrator
+  // Create Orchestrator
   const config = createTestConfig();
   const orchestrator = new Orchestrator(config);
 
-  // Тесты для TypeScript файлов
+  // Tests for TypeScript files
   const tsFiles = collectTestFiles('ts');
   if (tsFiles.length > 0) {
     suite('TypeScript files', () => {
       for (const file of tsFiles) {
         test(`should format ${file.name} correctly`, async () => {
-          // Читаем входной файл
+          // Read input file
           const input = fs.readFileSync(file.inputPath, 'utf-8');
           
-          // Форматируем
+          // Format
           const formatted = await orchestrator.formatFile(file.inputPath, input);
           
-          // Сохраняем в output
+          // Save to output
           fs.writeFileSync(file.outputPath, formatted, 'utf-8');
           
-          // Проверяем существование expected
+          // Check if expected exists
           if (!fs.existsSync(file.expectedPath)) {
             console.log(`\n⚠️  Expected file not found: ${file.expectedPath}`);
             console.log(`   Output saved to: ${file.outputPath}`);
             console.log(`   Please review and copy output to expected if correct.\n`);
-            // Не падаем, просто предупреждаем
+            // Don't fail, just warn
             return;
           }
           
-          // Читаем expected
+          // Read expected
           const expected = fs.readFileSync(file.expectedPath, 'utf-8');
           
-          // Сравниваем
+          // Compare
           if (formatted !== expected) {
             const outputRel = path.relative(process.cwd(), file.outputPath);
             const expectedRel = path.relative(process.cwd(), file.expectedPath);
@@ -152,7 +152,7 @@ suite('Format Fixtures — Input → Output → Expected comparison', () => {
     });
   }
 
-  // Тесты для ETS файлов
+  // Tests for ETS files
   const etsFiles = collectTestFiles('ets');
   if (etsFiles.length > 0) {
     suite('ArkTS/ETS files', () => {
@@ -187,7 +187,7 @@ suite('Format Fixtures — Input → Output → Expected comparison', () => {
     });
   }
 
-  // Тесты для C++ файлов
+  // Tests for C++ files
   const cppFiles = collectTestFiles('cpp');
   if (cppFiles.length > 0) {
     suite('C/C++ files', () => {

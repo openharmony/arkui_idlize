@@ -4,10 +4,10 @@ set -e
 rm -rf out
 npm run build
 
-# Путь к репозиторию (текущая директория)
+# Repository path (current directory)
 REPO_ROOT="$(pwd)"
 
-# Пути для тестирования (относительные пути от корня репозитория)
+# Paths for testing (relative paths from repository root)
 TEST_PATHS=(
     "tests/fixtures/test_for_debug.ets"
     "tests/fixtures/ListModifier.ets"
@@ -29,7 +29,7 @@ TEST_PATHS=(
     --output out/fixed \
     --verbose
 
-# Проверка длинных строк до исправления
+# Check long lines before fix
 scripts/check_long_lines.sh -x ets \
     -p "tests/fixtures/test_for_debug.ets" \
     -p "tests/fixtures/ListModifier.ets" \
@@ -43,5 +43,5 @@ scripts/check_long_lines.sh -x ets \
     -p "tests/fixtures/CallbackDeserializeCall.ets" \
     -o out/fixed/debug_before_fix.csv
 
-# Проверка длинных строк после исправления
+# Check long lines after fix
 scripts/check_long_lines.sh -x ets -p out/fixed -o out/fixed/debug_after_fix.csv

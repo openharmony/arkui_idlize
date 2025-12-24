@@ -40,23 +40,23 @@ export class FixCoordinator {
   }
 
   public async run(): Promise<void> {
-    // Фильтруем файлы заранее для точного подсчета
+    // Filter files early for accurate count
     const validFiles = this.filePaths.filter(filePath => /\.(ts|ets)$/.test(filePath));
     
-    console.log(`Найдено файлов для обработки: ${validFiles.length}`);
+    console.log(`Found files for processing: ${validFiles.length}`);
     
     let processed = 0;
     
     for (const filePath of validFiles) {
       if (cancellationToken.isCancelled()) {
-        console.log('\nОбработка прервана пользователем.');
+        console.log('\nProcessing cancelled by user.');
         break;
       }
 
       const fileStartTime = Date.now();
       processed++;
       
-      // Путь относительно репозитория (если есть repoPath в options)
+      // Path relative to repository (if repoPath in options)
       let displayPath = filePath;
       if (this.options.repoPath) {
         displayPath = path.relative(this.options.repoPath, filePath);
@@ -71,7 +71,7 @@ export class FixCoordinator {
         return `\x1b[90m${dir}\x1b[0m${file}`;
       })();
       
-      // Онлайн-индикация текущего файла
+      // Online indication of current file
       try { process.stdout.write(`[${processed}/${validFiles.length}] ${coloredDisplayPath} …`); } catch {}
 
       const preload = await this.prepareFileForProcessing(filePath);
@@ -79,20 +79,20 @@ export class FixCoordinator {
       const quickCount = preload.longLineCount;
 
       if (cancellationToken.isCancelled()) {
-        console.log('\nОбработка прервана пользователем.');
+        console.log('\nProcessing cancelled by user.');
         break;
       }
 
       try {
-        process.stdout.write(`\r[${processed}/${validFiles.length}] ${coloredDisplayPath} … случаев: \x1b[36m${quickCount}\x1b[0m`);
+        process.stdout.write(`\r[${processed}/${validFiles.length}] ${coloredDisplayPath} … cases: \x1b[36m${quickCount}\x1b[0m`);
       } catch {}
 
       const result = await this.processFile(filePath, preload);
       
-      // Время обработки этого файла (секунды)
+      // File processing time (seconds)
       const fileTime = (Date.now() - fileStartTime) / 1000;
-      const timeColored = `\x1b[90m${fileTime.toFixed(1)}с\x1b[0m`;
-      const suffix = ` (${timeColored}, случаев: \x1b[36m${result.totalCases}\x1b[0m, исправлено: ${result.fixedCases})`;
+      const timeColored = `\x1b[90m${fileTime.toFixed(1)}s\x1b[0m`;
+      const suffix = ` (${timeColored}, cases: \x1b[36m${result.totalCases}\x1b[0m, fixed: ${result.fixedCases})`;
       try {
         process.stdout.write(`\r[${processed}/${validFiles.length}] ${coloredDisplayPath}${suffix}\n`);
       } catch {
@@ -103,7 +103,7 @@ export class FixCoordinator {
     const totalDurationMs = Date.now() - this.startTime;
     const finalMessage = this.formatFinalDuration(totalDurationMs);
 
-    console.log(`✅ Обработка файлов завершена! Сводка сгенерирована. ${finalMessage}`);
+    console.log(`✅ File processing complete! Summary generated. ${finalMessage}`);
     
     this.writeDryRunReport().catch(error => {
       console.error('Error writing dry-run report:', error);
@@ -117,7 +117,7 @@ export class FixCoordinator {
     const seconds = totalSeconds % 60;
 
     const formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${seconds.toFixed(3).padStart(6, '0')}`;
-    return `Потраченное время: \x1b[36m${formatted}\x1b[0m`;
+    return `Time spent: \x1b[36m${formatted}\x1b[0m`;
   }
 
   private async processFile(
@@ -143,7 +143,7 @@ export class FixCoordinator {
         await this.applyFixes(filePath, fixedContent, result);
       }
 
-      // Подсчитываем итоги по случаям для этого файла
+      // Calculate case totals for this file
       const totalCases = result.issues.length;
       let fixedCases = 0;
       if (fixedContent) {
@@ -188,7 +188,7 @@ export class FixCoordinator {
         if (currentLength > maxLength) count++;
         currentLength = 0;
       } else if (ch === 13) { // \r
-        // обрабатываем CRLF: следующий символ \n
+        // handle CRLF: next character is \n
         continue;
       } else {
         currentLength++;
@@ -223,7 +223,7 @@ export class FixCoordinator {
     await fs.writeFile(this.options.reportPath, reportContent);
   }
 
-  // buildFixLogContent удалён как устаревший
+  // buildFixLogContent removed as obsolete
 
   private async applyFixes(originalPath: string, fixedContent: string, result: AnalysisResult): Promise<void> {
     const relativePath = path.relative(this.options.repoPath, originalPath);
@@ -240,9 +240,9 @@ export class FixCoordinator {
     });
   }
 
-  // writeChangeLog удалён как устаревший
+  // writeChangeLog removed as obsolete
 
-  // Отчётные данные для внешнего сборщика отчётов
+  // Report data for external report collector
   public getAnalysisResults(): AnalysisResult[] {
     return this.analysisResults;
   }

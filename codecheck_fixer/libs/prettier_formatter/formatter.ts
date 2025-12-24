@@ -62,30 +62,30 @@ export class PrettierFormattingError extends Error {
 }
 
 export interface FormatSourceOptions {
-  /** Исходная строка кода, которую требуется отформатировать. */
+  /** Source code string to format. */
   code: string;
-  /** Тип исходника, влияющий на выбор parser и виртуального расширения. */
+  /** Source type affecting parser choice and virtual extension. */
   language: SupportedSourceType;
   /**
-   * Путь до файла (может быть виртуальным). Используется для привязки к конфигурации
-   * и детектирования parser Prettier.
+   * Path to file (can be virtual). Used for binding to configuration
+   * and detecting Prettier parser.
    */
   filePath?: string;
   /**
-   * Явный путь до конфигурации Prettier. Можно передать файл или директорию,
-   * содержащую `.prettierrc`.
+   * Explicit path to Prettier configuration. Can pass file or directory
+   * containing `.prettierrc`.
    */
   configPath?: string;
-  /** Дополнительные опции Prettier, перекрывающие найденные настройки. */
+  /** Additional Prettier options overriding found settings. */
   prettierOptions?: Partial<PrettierOptions>;
   /**
-   * Управляет реакцией на ошибки разбора исходника.
-   * По умолчанию исходный код возвращается как есть, не прерывая выполнение.
-   * В строгом режиме генерируется исключение `PrettierFormattingError`.
+   * Controls reaction to source parsing errors.
+   * By default source code is returned as is, without interrupting execution.
+   * In strict mode `PrettierFormattingError` exception is thrown.
    */
   strictParsing?: boolean;
   /**
-   * Колбэк, вызываемый при ошибке форматирования (до применения fallback).
+   * Callback invoked on formatting error (before applying fallback).
    */
   onFormattingError?: (error: PrettierFormattingError) => void;
 }
@@ -93,7 +93,7 @@ export interface FormatSourceOptions {
 export type FormatOverrides = Omit<FormatSourceOptions, 'code' | 'language'>;
 
 /**
- * Возвращает язык по расширению файла.
+ * Returns language by file extension.
  */
 export function inferLanguageFromFilePath(filePath: string): SupportedSourceType {
   const extension = path.extname(filePath).toLowerCase();
@@ -104,13 +104,13 @@ export function inferLanguageFromFilePath(filePath: string): SupportedSourceType
       return 'tsx';
     default:
       throw new PrettierFormattingError(
-        `Неизвестное расширение файла: ${extension || '[пусто]'}`
+        `Unknown file extension: ${extension || '[empty]'}`
       );
   }
 }
 
 /**
- * Форматирует строку кода в соответствии с настройками Prettier.
+ * Formats code string according to Prettier settings.
  */
 export async function formatSourceCode(options: FormatSourceOptions): Promise<string> {
   const effectiveFilePath = resolveFilePath(options.filePath, options.language);
@@ -146,7 +146,7 @@ export async function formatSourceCode(options: FormatSourceOptions): Promise<st
       error instanceof PrettierFormattingError
         ? error
         : new PrettierFormattingError(
-            `Не удалось отформатировать исходный код (${options.language}).`,
+            `Failed to format source code (${options.language}).`,
             error
           );
 
@@ -161,7 +161,7 @@ export async function formatSourceCode(options: FormatSourceOptions): Promise<st
 }
 
 /**
- * Форматирует TypeScript-строку.
+ * Formats TypeScript string.
  */
 export async function formatTypeScript(
   code: string,
@@ -171,7 +171,7 @@ export async function formatTypeScript(
 }
 
 /**
- * Форматирует TSX-строку.
+ * Formats TSX string.
  */
 export async function formatTsx(
   code: string,
@@ -212,18 +212,18 @@ async function normalizeConfigPath(configPath: string): Promise<string> {
       const exists = await fileExists(candidate);
       if (!exists) {
         throw new PrettierConfigError(
-          `В директории ${resolvedPath} не найден файл .prettierrc.`
+          `.prettierrc file not found in directory ${resolvedPath}.`
         );
       }
       return candidate;
     }
-    throw new PrettierConfigError(`Путь ${resolvedPath} не является файлом или директорией.`);
+    throw new PrettierConfigError(`Path ${resolvedPath} is not a file or directory.`);
   } catch (error) {
     if (error instanceof PrettierConfigError) {
       throw error;
     }
     throw new PrettierConfigError(
-      `Не удалось прочитать конфигурацию Prettier по пути ${resolvedPath}.`,
+      `Failed to read Prettier configuration at path ${resolvedPath}.`,
       error
     );
   }
@@ -232,7 +232,7 @@ async function normalizeConfigPath(configPath: string): Promise<string> {
 async function readJsonConfig(configPath: string): Promise<Partial<PrettierOptions>> {
   const exists = await fileExists(configPath);
   if (!exists) {
-    throw new PrettierConfigError(`Файл конфигурации отсутствует: ${configPath}`);
+    throw new PrettierConfigError(`Configuration file not found: ${configPath}`);
   }
 
   try {
@@ -240,7 +240,7 @@ async function readJsonConfig(configPath: string): Promise<Partial<PrettierOptio
     return JSON.parse(raw) as PrettierOptions;
   } catch (error) {
     throw new PrettierConfigError(
-      `Не удалось разобрать файл конфигурации Prettier: ${configPath}.`,
+      `Failed to parse Prettier configuration file: ${configPath}.`,
       error
     );
   }
@@ -268,7 +268,7 @@ async function findWorkspaceConfig(startDir: string): Promise<Partial<PrettierOp
           return await readJsonConfig(candidatePath);
         } catch (error) {
           throw new PrettierConfigError(
-            `Не удалось прочитать конфигурацию Prettier: ${candidatePath}.`,
+            `Failed to read Prettier configuration: ${candidatePath}.`,
             error
           );
         }
@@ -347,7 +347,7 @@ function normalizePlugins(value: unknown): PrettierPlugin[] {
     }
 
     throw new PrettierConfigError(
-      'Поддерживаются только объекты плагинов Prettier. Передайте модуль плагина вместо пути или названия.'
+      'Only Prettier plugin objects are supported. Pass plugin module instead of path or name.'
     );
   }
 

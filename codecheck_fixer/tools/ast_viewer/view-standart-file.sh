@@ -1,41 +1,41 @@
 #!/bin/bash
 
-# AST Viewer - пусковой скрипт
-# Отредактируйте переменную FILE_PATH, указав нужный файл для анализа
+# AST Viewer - launch script
+# Edit the FILE_PATH variable, specifying the file to analyze
 
 # =============================================================================
-# НАСТРОЙКИ - ИЗМЕНИТЕ ЗДЕСЬ ПУТЬ К ФАЙЛУ
+# SETTINGS - CHANGE FILE PATH HERE
 # =============================================================================
 
-# Укажите путь к файлу, который хотите проанализировать
+# Specify path to file you want to analyze
 # FILE_PATH="../libs/arkts_enhanced_ast/ast/enhanced-ast-types.ts"
 FILE_PATH="./test01.ets"
 
-# Альтернативные примеры (раскомментируйте нужный):
+# Alternative examples (uncomment the one you need):
 # FILE_PATH="../libs/arkts_enhanced_ast/ast/enhanced-ast-types.ts"
 # FILE_PATH="../tests/enhanced_ast/test-tokens.ts"
 # FILE_PATH="/absolute/path/to/your/file.ts"
 # FILE_PATH="/data/home/mlobakh/BZ_OHOS/OHOS/foundation/arkui/ace_engine/frameworks/bridge/arkts_frontend/koala_projects/arkoala-arkts/arkui-ohos/generated/AlphabetIndexerModifier.ets"
 
 # =============================================================================
-# ВЫПОЛНЕНИЕ (НЕ ИЗМЕНЯЙТЕ)
+# EXECUTION (DO NOT CHANGE)
 # =============================================================================
 
-# Переходим в директорию скрипта
+# Change to script directory
 cd "$(dirname "$0")"
 
-# Проверяем существование файла
+# Check file existence
 if [ ! -f "$FILE_PATH" ]; then
-    echo "❌ Ошибка: Файл '$FILE_PATH' не найден!"
+    echo "❌ Error: File '$FILE_PATH' not found!"
     echo ""
-    echo "Отредактируйте скрипт и укажите правильный путь к файлу в переменной FILE_PATH"
+    echo "Edit the script and specify correct file path in FILE_PATH variable"
     exit 1
 fi
 
-# Выводим информацию о запуске
-echo "Анализ AST файла: $FILE_PATH"
-echo "Рабочая директория: $(pwd)"
+# Output launch information
+echo "Analyzing AST of file: $FILE_PATH"
+echo "Working directory: $(pwd)"
 echo ""
 
-# Запускаем Standard AST viewer
+# Run Standard AST viewer
 npx ts-node ./standard-ast-viewer.ts "$FILE_PATH" > ./out_standart_tree.log 2>&1

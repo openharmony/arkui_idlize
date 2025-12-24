@@ -1,8 +1,8 @@
 /**
- * Токенизация исходного кода с использованием TypeScript Scanner API
+ * Source code tokenization using TypeScript Scanner API
  * 
- * Этот модуль отвечает за преобразование текста в плоский список синтаксических токенов (CST).
- * Использует встроенный ts.createScanner() для получения токенов.
+ * This module is responsible for converting text into flat list of syntactic tokens (CST).
+ * Uses built-in ts.createScanner() to obtain tokens.
  */
 
 import * as ts from 'typescript';
@@ -13,10 +13,10 @@ import {
 } from './enhanced-ast-types';
 
 /**
- * Токенизатор для преобразования исходного кода в синтаксические токены.
- * Является обёрткой над ts.Scanner, физически токенизация происходит в TypeScript Compiler API.
- * Этот класс добавляет координаты line/column и наши типы токенов (остальная информация
- * — через семантические разделители).
+ * Tokenizer for converting source code into syntactic tokens.
+ * Is a wrapper over ts.Scanner, physical tokenization happens in TypeScript Compiler API.
+ * This class adds line/column coordinates and our token types (remaining information
+ * — via semantic separators).
  */
 export class SyntaxTokenizer {
   private scanner: ts.Scanner;
@@ -31,20 +31,20 @@ export class SyntaxTokenizer {
     this.sourceText = sourceText;
     this.scanner = ts.createScanner(
       scriptTarget,
-      /* skipTrivia */ false, // Нам нужны все токены, включая пробелы и комментарии
+      /* skipTrivia */ false, // We need all tokens, including whitespace and comments
       languageVariant,
       sourceText
     );
     
-    // Вычисляем позиции начала строк для преобразования offset в line/column
+    // Compute line start positions for converting offset to line/column
     this.lineStarts = this.computeLineStarts(sourceText);
   }
 
   /**
-   * Вычисляет позиции начала каждой строки в исходном тексте
+   * Computes start positions of each line in source text
    */
   private computeLineStarts(text: string): number[] {
-    const result: number[] = [0]; // Первая строка начинается с позиции 0
+    const result: number[] = [0]; // First line starts at position 0
     
     for (let i = 0; i < text.length; i++) {
       if (text[i] === '\n') {
@@ -56,10 +56,10 @@ export class SyntaxTokenizer {
   }
 
   /**
-   * Преобразует абсолютный offset в позицию (line, column)
+   * Converts absolute offset to position (line, column)
    */
   private offsetToPosition(offset: number): SourcePosition {
-    // Бинарный поиск строки
+    // Binary search for line
     let line = 0;
     for (let i = 0; i < this.lineStarts.length; i++) {
       const lineStart = this.lineStarts[i];
@@ -80,31 +80,31 @@ export class SyntaxTokenizer {
   }
 
   /**
-   * Токенизирует диапазон исходного кода
+   * Tokenizes range of source code
    * 
-   * @param start - Начальная позиция диапазона
-   * @param end - Конечная позиция диапазона
-   * @returns Массив синтаксических токенов
-   * ??? зачем нужен ручной токенизер, если токены есть в CST?? TODO: проверить
+   * @param start - Starting position of range
+   * @param end - Ending position of range
+   * @returns Array of syntactic tokens
+   * ??? why is manual tokenizer needed if tokens exist in CST?? TODO: check
    */
   tokenize(start: number, end: number): SyntaxToken[] {
     const tokens: SyntaxToken[] = [];
     
-    // Устанавливаем позицию сканера
+    // Set scanner position
     this.scanner.setTextPos(start);
     
     while (this.scanner.getTextPos() < end) {
       const tokenStart = this.scanner.getTextPos();
       const tokenKind = this.scanner.scan();
       
-      // Прерываем, если достигли конца
+      // Break if reached end
       if (tokenKind === ts.SyntaxKind.EndOfFileToken) {
         break;
       }
       
       const tokenEnd = this.scanner.getTextPos();
       
-      // Прерываем, если вышли за границы диапазона
+      // Break if went beyond range boundaries
       if (tokenEnd > end) {
         break;
       }
@@ -125,15 +125,15 @@ export class SyntaxTokenizer {
   }
 
   /**
-   * Преобразует TypeScript SyntaxKind в наш SyntaxTokenType
+   * Converts TypeScript SyntaxKind to our SyntaxTokenType
    */
   private mapTokenKindToType(kind: ts.SyntaxKind): SyntaxTokenType {
-    // Ключевые слова
+    // Keywords
     if (kind >= ts.SyntaxKind.FirstKeyword && kind <= ts.SyntaxKind.LastKeyword) {
       return SyntaxTokenType.KEYWORD;
     }
     
-    // Специфичные токены
+    // Specific tokens
     switch (kind) {
       case ts.SyntaxKind.Identifier:
         return SyntaxTokenType.IDENTIFIER;
@@ -183,7 +183,7 @@ export class SyntaxTokenizer {
       case ts.SyntaxKind.PlusToken:
         return SyntaxTokenType.PLUS;
       
-      // Операторы union/intersection и другие
+      // Union/intersection operators and others
       case ts.SyntaxKind.BarToken:  // |
       case ts.SyntaxKind.AmpersandToken:  // &
       case ts.SyntaxKind.BarBarToken:  // ||
@@ -208,11 +208,11 @@ export class SyntaxTokenizer {
 }
 
 /**
- * Создаёт токенизатор для исходного текста
+ * Creates tokenizer for source text
  * 
- * @param sourceText - исходный текст
- * @param scriptTarget - целевая версия JavaScript
- * @param languageVariant - вариант языка (Standard или JSX)
+ * @param sourceText - source text
+ * @param scriptTarget - target JavaScript version
+ * @param languageVariant - language variant (Standard or JSX)
  */
 export function createTokenizer(
   sourceText: string,

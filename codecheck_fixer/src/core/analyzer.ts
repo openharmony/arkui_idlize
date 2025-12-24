@@ -1,5 +1,5 @@
 /**
- * Базовый класс для анализа кода
+ * Base class for code analysis
  */
 
 import { AnalysisResult, AnalysisConfig, Issue, CodeMetrics, IssueType, Severity } from '@/types';
@@ -48,23 +48,23 @@ export abstract class BaseAnalyzer {
   }
 
   private calculateCyclomaticComplexity(_content: string): number {
-    // Заглушка для расчета цикломатической сложности
-    // TODO: Реализовать через Compiler API
-    // Пока возвращаем базовое значение
+    // Placeholder for cyclomatic complexity calculation
+    // TODO: Implement via Compiler API
+    // Currently returns base value
     return 1;
   }
 
   private calculateMaintainabilityIndex(_content: string): number {
-    // Заглушка для расчета индекса поддерживаемости
-    // TODO: Реализовать через Compiler API
-    // Пока возвращаем базовое значение
+    // Placeholder for maintainability index calculation
+    // TODO: Implement via Compiler API
+    // Currently returns base value
     return 50;
   }
 
   private calculateTechnicalDebt(_content: string): number {
-    // Заглушка для расчета технического долга
-    // TODO: Реализовать через Compiler API
-    // Пока возвращаем базовое значение
+    // Placeholder for technical debt calculation
+    // TODO: Implement via Compiler API
+    // Currently returns base value
     return 0;
   }
 }

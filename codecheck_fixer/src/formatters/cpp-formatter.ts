@@ -1,6 +1,6 @@
 /**
- * Заглушка для форматтера C++ кода
- * TODO: Реализовать полноценный форматтер C++ с использованием clang-format или других инструментов
+ * Placeholder for C++ code formatter
+ * TODO: Implement full-featured C++ formatter using clang-format or other tools
  */
 
 import { FormatterConfig } from '@/types';
@@ -15,13 +15,13 @@ export class CppFormatter {
   format(content: string): string {
     let formatted = content;
     
-    // Базовая нормализация отступов
+    // Basic indentation normalization
     formatted = this.normalizeIndentation(formatted);
     
-    // Удаление лишних пробелов
+    // Remove trailing whitespace
     formatted = this.removeTrailingWhitespace(formatted);
     
-    // Базовая нормализация пробелов
+    // Basic spacing normalization
     formatted = this.normalizeSpacing(formatted);
     
     return formatted;
@@ -35,7 +35,7 @@ export class CppFormatter {
       if (line.trim() === '') return line;
       
       const leadingSpaces = line.match(/^(\s*)/)?.[1] || '';
-      const normalizedSpaces = leadingSpaces.replace(/\t/g, ' '.repeat(this.config.tabSize)); // Конвертируем табы в пробелы
+      const normalizedSpaces = leadingSpaces.replace(/\t/g, ' '.repeat(this.config.tabSize)); // Convert tabs to spaces
       const indentLevel = Math.floor(normalizedSpaces.length / this.config.tabSize);
       
       return indentChar.repeat(indentLevel) + line.trim();
@@ -47,10 +47,10 @@ export class CppFormatter {
   }
 
   private normalizeSpacing(content: string): string {
-    // Нормализация пробелов вокруг операторов
+    // Normalize spaces around operators
     let formatted = content;
     
-    // Пробелы вокруг операторов
+    // Spaces around operators
     formatted = formatted.replace(/\s*=\s*/g, ' = ');
     formatted = formatted.replace(/\s*\+\s*/g, ' + ');
     formatted = formatted.replace(/\s*-\s*/g, ' - ');
@@ -65,10 +65,10 @@ export class CppFormatter {
     formatted = formatted.replace(/\s*&&\s*/g, ' && ');
     formatted = formatted.replace(/\s*\|\|\s*/g, ' || ');
     
-    // Пробелы после запятых
+    // Spaces after commas
     formatted = formatted.replace(/,\s*/g, ', ');
     
-    // Пробелы после точек с запятой
+    // Spaces after semicolons
     formatted = formatted.replace(/;\s*/g, '; ');
     
     return formatted;

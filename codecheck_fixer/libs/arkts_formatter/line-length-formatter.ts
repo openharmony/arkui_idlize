@@ -1,6 +1,6 @@
 /**
- * Рефакторированный форматтер для разбиения длинных строк
- * Использует AST-first подход с текстовым fallback для ETS файлов
+ * Refactored formatter for splitting long lines
+ * Uses AST-first approach with text fallback for ETS files
  */
 
 import { 
@@ -20,25 +20,25 @@ import type { EnhancedASTWithQuery } from './types';
 import { cancellationToken } from '../common/cancellation';
 
 /**
- * Утилита для построения Enhanced AST
- * Инкапсулирует зависимость от libs/arkts_enhanced_ast
+ * Utility for building Enhanced AST
+ * Encapsulates dependency on libs/arkts_enhanced_ast
  * 
- * АРХИТЕКТУРА: Вся ответственность за построение Enhanced AST
- * делегирована библиотеке libs/arkts_enhanced_ast.
- * Этот класс только вызывает её API.
+ * ARCHITECTURE: All responsibility for building Enhanced AST
+ * is delegated to libs/arkts_enhanced_ast library.
+ * This class only calls its API.
  */
 class ASTBuilder {
   /**
-   * Строит Enhanced AST с запросником
-   * Ответственность за построение AST делегирована библиотеке arkts_enhanced_ast
+   * Builds Enhanced AST with query
+   * Responsibility for building AST delegated to arkts_enhanced_ast library
    */
   static buildEnhancedAST(content: string, fileName: string): EnhancedASTWithQuery {
-    // Динамический импорт для отложенной загрузки
-    // TypeScript также импортируется внутри arkts_enhanced_ast
+    // Dynamic import for lazy loading
+    // TypeScript is also imported inside arkts_enhanced_ast
     const ts = require('typescript');
     const { createEnhancedASTWithQuery } = require('../arkts_enhanced_ast');
     
-    // Создаём стандартный TypeScript AST (используется как парсер)
+    // Create standard TypeScript AST (used as parser)
     const sourceFile = ts.createSourceFile(
       fileName,
       content,
@@ -46,7 +46,7 @@ class ASTBuilder {
       true
     );
 
-    // Строим Enhanced AST с запросником через библиотеку arkts_enhanced_ast
+    // Build Enhanced AST with query through arkts_enhanced_ast library
     return createEnhancedASTWithQuery(sourceFile, {
       preserveComments: true,
       preserveWhitespace: false,
@@ -66,42 +66,42 @@ export class LineLengthFormatter {
     this.lineLengthConfig = lineLengthConfig;
     this.transformationManager = new TransformationManager();
     
-    // Инициализируем стратегии в порядке приоритета
+    // Initialize strategies in priority order
     this.strategies = [
       new EnhancedASTFormattingStrategy()
     ].sort((a, b) => b.getPriority() - a.getPriority());
   }
 
   /**
-   * Основной метод форматирования
-   * АРХИТЕКТУРА: Однопроходное форматирование без перестроения AST
+   * Main formatting method
+   * ARCHITECTURE: Single-pass formatting without AST rebuilding
    */
   public format(content: string, contentType: ContentType, providedContext?: FormattingContext): string {
-    // 1. Тип контента передается явно вызывающей стороной; контекст можно передать или он будет построен
+    // 1. Content type passed explicitly by caller; context can be passed or will be built
 
-    // 2. Получаем контекст: используем переданный или строим ОДИН РАЗ
+    // 2. Get context: use provided or build ONCE
     const context = providedContext ?? this.createFormattingContext(content, contentType);
 
-    // 3. Применяем форматирование за ОДИН ПРОХОД
-    // Внутренний цикл в selectOptimalBreakPoints уже разбивает
-    // очень длинные строки полностью (до 5 переносов на строку)
+    // 3. Apply formatting in ONE PASS
+    // Internal loop in selectOptimalBreakPoints already splits
+    // very long lines completely (up to 5 wraps per line)
     const { result } = this.applyFormatting(content, context, contentType);
 
     if (cancellationToken.isCancelled()) {
       return content;
     }
 
-    // 3.5. ПОСТ-ОБРАБОТКА: Разбиваем длинные комментарии (простым regexp)
+    // 3.5. POST-PROCESSING: Wrap long comments (simple regexp)
     const resultWithComments = this.wrapLongComments(result, context);
 
-    // 4. Валидируем результат (используем тот же контекст)
+    // 4. Validate result (use same context)
     const validation = ResultValidator.validate(content, resultWithComments, context, context.fileName);
     
-    // 5. Если валидация не прошла - откатываемся к исходному коду
+    // 5. If validation failed - rollback to original code
     if (!validation.isValid) {
-      console.warn('\nAST трансформация не прошла валидацию, откатываемся к исходному коду\n');
+      console.warn('\nAST transformation failed validation, rolling back to original code\n');
       
-      // Группируем ошибки по строкам и показываем детали
+      // Group errors by line and show details
       const errorsByLine = new Map<number, ValidationIssue[]>();
       for (const issue of validation.issues.filter(i => i.severity === 'error')) {
         if (issue.line !== undefined) {
@@ -112,51 +112,51 @@ export class LineLengthFormatter {
         }
       }
       
-      // Показываем первые 3 проблемные строки
+      // Show first 3 problematic lines
       const sortedLines = Array.from(errorsByLine.keys()).sort((a, b) => a - b).slice(0, 3);
       const originalLines = content.split('\n');
       const formattedLines = result.split('\n');
       
-      console.warn('Первые 3 проблемы:');
+      console.warn('First 3 issues:');
       
       if (sortedLines.length > 0) {
-        // Если есть ошибки с номерами строк - показываем их
+        // If there are errors with line numbers - show them
       for (const lineNum of sortedLines) {
         const issues = errorsByLine.get(lineNum) || [];
         const lineIdx = lineNum - 1; // 0-based index
         
-        console.warn(`\n  Строка ${lineNum}:`);
+        console.warn(`\n  Line ${lineNum}:`);
         for (const issue of issues) {
           console.warn(`    ${issue.type}: ${issue.message}`);
         }
         
-        // Показываем оригинал и результат (если строка существует)
+        // Show original and result (if line exists)
         if (lineIdx >= 0 && lineIdx < originalLines.length) {
           const origLine = originalLines[lineIdx] || '';
-          console.warn(`    Оригинал: ${origLine.substring(0, 100)}${origLine.length > 100 ? '...' : ''}`);
+          console.warn(`    Original: ${origLine.substring(0, 100)}${origLine.length > 100 ? '...' : ''}`);
         }
         
         if (lineIdx >= 0 && lineIdx < formattedLines.length) {
           const formLine = formattedLines[lineIdx] || '';
           const origLine = originalLines[lineIdx] || '';
           if (formLine !== origLine) {
-            console.warn(`    Результат: ${formLine.substring(0, 100)}${formLine.length > 100 ? '...' : ''}`);
+            console.warn(`    Result: ${formLine.substring(0, 100)}${formLine.length > 100 ? '...' : ''}`);
             }
           }
         }
       } else {
-        // Fallback: если нет ошибок с номерами строк, показываем первые ошибки из общего списка
+        // Fallback: if no errors with line numbers, show first errors from general list
         const errorIssues = validation.issues.filter(i => i.severity === 'error').slice(0, 3);
         for (const issue of errorIssues) {
           console.warn(`\n  ${issue.type}: ${issue.message}`);
         }
         
-        // Показываем фрагменты normalized кода для сравнения
+        // Show normalized code fragments for comparison
         if (validation.normalized) {
           const origNorm = validation.normalized.original;
           const formNorm = validation.normalized.formatted;
           
-          // Находим первое отличие
+          // Find first difference
           let diffPos = -1;
           const minLen = Math.min(origNorm.length, formNorm.length);
           for (let i = 0; i < minLen; i++) {
@@ -172,31 +172,31 @@ export class LineLengthFormatter {
             const origContext = origNorm.substring(contextStart, contextEnd);
             const formContext = formNorm.substring(contextStart, Math.min(formNorm.length, contextEnd));
             
-            console.warn(`\n  Первое отличие на позиции ${diffPos} (показано ±50 символов контекста):`);
-            console.warn(`\n  Оригинал:`);
+            console.warn(`\n  First difference at position ${diffPos} (showing ±50 characters context):`);
+            console.warn(`\n  Original:`);
             console.warn(`    ...${origContext.replace(/\n/g, '\\n').replace(/\s+/g, ' ')}...`);
-            console.warn(`\n  Результат:`);
+            console.warn(`\n  Result:`);
             console.warn(`    ...${formContext.replace(/\n/g, '\\n').replace(/\s+/g, ' ')}...`);
           } else if (origNorm.length !== formNorm.length) {
-            console.warn(`\n  Длины различаются: ${origNorm.length} vs ${formNorm.length}`);
-            console.warn(`\n  Конец оригинала:`);
+            console.warn(`\n  Lengths differ: ${origNorm.length} vs ${formNorm.length}`);
+            console.warn(`\n  End of original:`);
             console.warn(`    ...${origNorm.substring(Math.max(0, origNorm.length - 100)).replace(/\n/g, '\\n')}...`);
-            console.warn(`\n  Конец результата:`);
+            console.warn(`\n  End of result:`);
             console.warn(`    ...${formNorm.substring(Math.max(0, formNorm.length - 100)).replace(/\n/g, '\\n')}...`);
           }
         }
       }
       
-      console.warn(''); // Пустая строка для читаемости
+      console.warn(''); // Empty line for readability
       return content;
     }
     
-    // 6. Если валидация прошла - возвращаем результат
+    // 6. If validation passed - return result
     return resultWithComments;
   }
 
   /**
-   * Разбивает длинные комментарии простым regexp-ом
+   * Wraps long comments using simple regexp
    */
   private wrapLongComments(content: string, context: FormattingContext): string {
     const lines = content.split('\n');
@@ -207,34 +207,34 @@ export class LineLengthFormatter {
     for (const line of lines) {
       const trimmed = line.trim();
       
-      // Пропускаем короткие строки
+      // Skip short lines
       if (line.length <= maxLength) {
         result.push(line);
         continue;
       }
       
-      // Обрабатываем однострочные комментарии //
+      // Handle single-line comments //
       if (trimmed.startsWith('//')) {
         const wrapped = this.wrapSingleLineComment(line, maxLength);
         result.push(...wrapped);
         continue;
       }
       
-      // Обрабатываем продолжения многострочных комментариев (строки начинающиеся с *)
+      // Handle multi-line comment continuations (lines starting with *)
       if (trimmed.startsWith('*') && !trimmed.startsWith('*/')) {
         const wrapped = this.wrapMultiLineCommentContinuation(line, maxLength);
         result.push(...wrapped);
         continue;
       }
       
-      // Обрабатываем блочные комментарии /* ... */
+      // Handle block comments /* ... */
       if (trimmed.startsWith('/*')) {
         const wrapped = this.wrapBlockComment(line, maxLength);
         result.push(...wrapped);
         continue;
       }
       
-      // Не комментарий - оставляем как есть
+      // Not a comment - leave as is
       result.push(line);
     }
     
@@ -242,7 +242,7 @@ export class LineLengthFormatter {
   }
 
   /**
-   * Разбивает однострочный комментарий //
+   * Wraps single-line comment //
    */
   private wrapSingleLineComment(line: string, maxLength: number): string[] {
     const indent = line.substring(0, line.indexOf('//'));
@@ -264,12 +264,12 @@ export class LineLengthFormatter {
   }
 
   /**
-   * Разбивает продолжение многострочного комментария ( * ...)
+   * Wraps multi-line comment continuation ( * ...)
    */
   private wrapMultiLineCommentContinuation(line: string, maxLength: number): string[] {
     const indent = line.substring(0, line.indexOf('*'));
     const trimmed = line.trim();
-    const commentContent = trimmed.substring(1).trim(); // Убираем * и пробелы
+    const commentContent = trimmed.substring(1).trim(); // Remove * and spaces
     
     if (commentContent.length === 0) {
       return [line];
@@ -286,41 +286,41 @@ export class LineLengthFormatter {
   }
 
   /**
-   * Разбивает блочный комментарий slash-star ... star-slash
+   * Wraps block comment slash-star ... star-slash
    */
   private wrapBlockComment(line: string, maxLength: number): string[] {
     const indent = line.substring(0, line.indexOf('/*'));
     const trimmed = line.trim();
     
-    // Проверяем, закрывается ли комментарий на той же строке
+    // Check if comment closes on same line
     const hasClosing = trimmed.endsWith('*/');
     
     if (!hasClosing) {
-      // Многострочный комментарий начинается, но не заканчивается - оставляем как есть
+      // Multi-line comment starts but doesn't end - leave as is
       return [line];
     }
     
-    // Извлекаем содержимое между /* и */
+    // Extract content between /* and */
     let commentContent = trimmed.substring(2, trimmed.length - 2).trim();
     
     if (commentContent.length === 0) {
       return [line];
     }
     
-    // Для JSDoc-комментариев (/** ... */)
+    // For JSDoc comments (/** ... */)
     const isJSDoc = trimmed.startsWith('/**');
     const openingPrefix = isJSDoc ? '/**' : '/*';
     
     const firstLinePrefix = indent + openingPrefix + ' ';
     const continuationPrefix = indent + ' * ';
     const availableFirstLine = maxLength - firstLinePrefix.length;
-    const availableContinuation = maxLength - continuationPrefix.length - 3; // -3 для " */"
+    const availableContinuation = maxLength - continuationPrefix.length - 3; // -3 for " */"
     
     if (availableFirstLine < 20 || availableContinuation < 20) {
       return [line];
     }
     
-    // Разбиваем содержимое на слова
+    // Split content into words
     const words = commentContent.split(/\s+/);
     const result: string[] = [];
     let currentLine = '';
@@ -344,7 +344,7 @@ export class LineLengthFormatter {
           }
           currentLine = word;
         } else {
-          // Даже одно слово не помещается
+          // Even single word doesn't fit
           if (isFirstLine) {
             result.push(firstLinePrefix + word);
             isFirstLine = false;
@@ -355,16 +355,16 @@ export class LineLengthFormatter {
       }
     }
     
-    // Добавляем последнюю строку с закрывающим */
+    // Add last line with closing */
     if (currentLine) {
       if (isFirstLine) {
-        // Все поместилось на одну строку - возвращаем как есть
+        // Everything fit on one line - return as is
         result.push(firstLinePrefix + currentLine + ' */');
       } else {
         result.push(continuationPrefix + currentLine + ' */');
       }
     } else if (result.length > 0) {
-      // Закрываем комментарий
+      // Close comment
       result[result.length - 1] += ' */';
     }
     
@@ -372,7 +372,7 @@ export class LineLengthFormatter {
   }
 
   /**
-   * Вспомогательный метод: разбивает текст комментария на строки
+   * Helper method: wraps comment text into lines
    */
   private wrapCommentText(text: string, prefix: string, availableLength: number): string[] {
     const words = text.split(/\s+/);
@@ -391,7 +391,7 @@ export class LineLengthFormatter {
           result.push(prefix + currentLine);
           currentLine = word;
         } else {
-          // Даже одно слово не помещается
+          // Even single word doesn't fit
           result.push(prefix + word);
         }
       }
@@ -405,9 +405,9 @@ export class LineLengthFormatter {
   }
 
   /**
-   * Создает контекст форматирования
-   * АРХИТЕКТУРА: Построение Enhanced AST делегировано ASTBuilder,
-   * который инкапсулирует вызов libs/arkts_enhanced_ast
+   * Creates formatting context
+   * ARCHITECTURE: Enhanced AST building delegated to ASTBuilder,
+   * which encapsulates call to libs/arkts_enhanced_ast
    */
   private createFormattingContext(content: string, contentType: ContentType): FormattingContext {
     const fileName = contentType === ContentType.ARKTS
@@ -416,8 +416,8 @@ export class LineLengthFormatter {
         ? 'temp.tsx'
         : 'temp.ts';
     
-    // Строим Enhanced AST через утилиту ASTBuilder
-    // Ответственность за построение AST у libs/arkts_enhanced_ast
+    // Build Enhanced AST through ASTBuilder utility
+    // Responsibility for building AST lies with libs/arkts_enhanced_ast
     const enhancedAST = ASTBuilder.buildEnhancedAST(content, fileName);
 
     return {
@@ -435,8 +435,8 @@ export class LineLengthFormatter {
   
 
   /**
-   * Применяет форматирование с использованием стратегий
-   * Применяем немедленно от конца к началу, валидируя каждый шаг
+   * Applies formatting using strategies
+   * Apply immediately from end to beginning, validating each step
    */
   private applyFormatting(content: string, context: FormattingContext, _contentType: ContentType): {
     result: string; processedLines: number; unbreakableLongLines: number } {
@@ -498,7 +498,7 @@ export class LineLengthFormatter {
 
 
   /**
-   * Получает статистику форматирования
+   * Gets formatting statistics
    */
   public getFormattingStats(original: string, formatted: string): FormattingStats {
     const originalLines = original.split('\n');
@@ -517,7 +517,7 @@ export class LineLengthFormatter {
       if (line.length > maxLength) formattedLongLines++;
     });
     
-    // Подсчитываем улучшенные строки
+    // Count improved lines
     for (let i = 0; i < Math.min(originalLines.length, formattedLines.length); i++) {
       const originalLength = originalLines[i]?.length || 0;
       const formattedLength = formattedLines[i]?.length || 0;
@@ -537,7 +537,7 @@ export class LineLengthFormatter {
   }
 
   /**
-   * Проверяет, нужно ли форматирование
+   * Checks if formatting is needed
    */
   public needsFormatting(content: string): boolean {
     const lines = content.split('\n');
@@ -545,7 +545,7 @@ export class LineLengthFormatter {
   }
 
   /**
-   * Получает список длинных строк
+   * Gets list of long lines
    */
   public getLongLines(content: string): LongLineInfo[] {
     const lines = content.split('\n');
@@ -566,8 +566,8 @@ export class LineLengthFormatter {
   }
 
   /**
-   * Конвертирует позиции переносов в трансформации для применения к тексту
-   * ВАЖНО: AST возвращает абсолютные позиции в файле, мы используем их напрямую для вставки
+   * Converts line break positions to transformations for applying to text
+   * IMPORTANT: AST returns absolute positions in file, we use them directly for insertion
    */
   private convertLineBreaksToTransformations(
     lineBreaks: LineBreakInsertion[], 
@@ -580,33 +580,33 @@ export class LineLengthFormatter {
       return transformations;
     }
     
-    // Сортируем позиции по убыванию, чтобы применять с конца файла
+    // Sort positions descending to apply from end of file
     const sortedBreaks = [...lineBreaks].sort((a, b) => b.position - a.position);
     
-    // Вычисляем абсолютный offset начала текущей строки
+    // Calculate absolute offset of current line start
     let lineStartOffset = 0;
     for (let j = 0; j < lineIndex; j++) {
-      // +1 для символа переноса строки \n между строками
+      // +1 for newline character \n between lines
       lineStartOffset += (lines[j]?.length ?? 0) + 1;
     }
 
     const contentText = lines.join('\n');
 
     for (const lineBreak of sortedBreaks) {
-      // Создаем отступ используя конфигурационное значение
+      // Create indent using configuration value
       const indentChar = this.formatterConfig.useTabs ? '\t' : ' ';
       const indentSize = this.formatterConfig.useTabs ? 1 : this.formatterConfig.tabSize;
       const indent = indentChar.repeat(lineBreak.indentLevel * indentSize);
       
-      // Тримминг пробелов вокруг точки разрыва в пределах строки
+      // Trim spaces around break point within line
       let start = lineBreak.position;
       let end = lineBreak.position;
 
-      // Границы текущей строки в абсолютных координатах
+      // Current line boundaries in absolute coordinates
       const currentLineText = lines[lineIndex] ?? '';
       const lineEndOffset = lineStartOffset + currentLineText.length;
 
-      // Обрезаем пробелы/табы справа от позиции
+      // Trim spaces/tabs to the right of position
       if (contentText) {
         while (end < lineEndOffset) {
           const ch = contentText.charAt(end);
@@ -618,7 +618,7 @@ export class LineLengthFormatter {
         }
       }
 
-      // Обрезаем пробелы/табы слева от позиции
+      // Trim spaces/tabs to the left of position
       if (contentText) {
         while (start > lineStartOffset) {
           const ch = contentText.charAt(start - 1);
@@ -630,9 +630,9 @@ export class LineLengthFormatter {
         }
       }
 
-      // Заменяем диапазон [start, end) на перенос с отступом
-      // Спец-случай: вставка ровно в конец строки — поглощаем существующий перевод строки,
-      // чтобы не образовывался пустой визуальный ряд
+      // Replace range [start, end) with newline and indent
+      // Special case: insertion exactly at end of line — consume existing newline,
+      // so empty visual row doesn't form
       if (lineBreak.position === lineEndOffset && contentText.charAt(lineEndOffset) === '\n') {
         end = Math.max(end, lineEndOffset + 1);
       }

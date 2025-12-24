@@ -1,6 +1,6 @@
 #!/bin/bash
-# Скрипт для копирования output файлов в expected
-# Используется после проверки результатов форматирования
+# Script for copying output files to expected
+# Used after reviewing formatting results
 
 set -e
 
@@ -27,10 +27,10 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# Создаем expected директории если их нет
+# Create expected directories if they don't exist
 mkdir -p "$EXPECTED_DIR"/{ts,ets,cpp}
 
-# Копируем файлы
+# Copy files
 copied=0
 for type in ts ets cpp; do
     output_subdir="$OUTPUT_DIR/$type"

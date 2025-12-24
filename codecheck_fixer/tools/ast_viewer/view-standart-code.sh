@@ -1,32 +1,32 @@
 #!/bin/bash
 
-# AST Viewer - анализ кода напрямую
-# Отредактируйте переменную CODE, указав нужный код для анализа
+# AST Viewer - direct code analysis
+# Edit the CODE variable, specifying the code to analyze
 
 # =============================================================================
-# НАСТРОЙКИ - ИЗМЕНИТЕ ЗДЕСЬ КОД ДЛЯ АНАЛИЗА
+# SETTINGS - CHANGE CODE TO ANALYZE HERE
 # =============================================================================
 
-# Укажите код, который хотите проанализировать
+# Specify code you want to analyze
 CODE="const x = 42;"
 
-# Альтернативные примеры (раскомментируйте нужный):
+# Alternative examples (uncomment the one you need):
 # CODE="export const x = 42;"
 # CODE="function test(a: string): number { return 42; }"
 # CODE="interface MyInterface { prop: string; method(): void; }"
 # CODE="class MyClass extends BaseClass { constructor(private value: number) {} } { export const x = 42; function test(a: string): number { return 42; } }"
 
 # =============================================================================
-# ВЫПОЛНЕНИЕ (НЕ ИЗМЕНЯЙТЕ)
+# EXECUTION (DO NOT CHANGE)
 # =============================================================================
 
-# Переходим в директорию скрипта
+# Change to script directory
 cd "$(dirname "$0")"
 
-# Выводим информацию о запуске
-echo "Анализ AST кода: $CODE"
-echo "Рабочая директория: $(pwd)"
+# Output launch information
+echo "Analyzing AST of code: $CODE"
+echo "Working directory: $(pwd)"
 echo ""
 
-# Запускаем Standard AST viewer
+# Run Standard AST viewer
 npx ts-node ./standard-ast-viewer.ts --code "$CODE"

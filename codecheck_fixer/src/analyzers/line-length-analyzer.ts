@@ -1,6 +1,6 @@
 /**
- * Анализатор длинных строк для TypeScript файлов
- * Использует TypeScript Compiler API для корректного анализа контекста строк
+ * Line length analyzer for TypeScript files
+ * Uses TypeScript Compiler API for correct line context analysis
  */
 
 import * as ts from 'typescript';
@@ -28,9 +28,9 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   private enhancedAST!: EnhancedASTWithQuery;
 
   /**
-   * Создаёт анализатор длины строк.
-   * @param config Общая конфигурация анализа.
-   * @param lineLengthConfig Настройки правила длины строки и игноров.
+   * Creates line length analyzer.
+   * @param config General analysis configuration.
+   * @param lineLengthConfig Line length rule settings and ignores.
    */
   constructor(config: AnalysisConfig, lineLengthConfig: LineLengthConfig) {
     super(config);
@@ -38,11 +38,11 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Анализирует содержимое файла и формирует список проблем по превышению длины строки.
-   * Учитывает тип контента для корректного парсинга и вычисления AST-контекста по строкам.
-   * @param content Исходный текст файла.
-   * @param contentType Тип содержимого (TS/TSX/ETS).
-   * @returns Результат анализа с перечнем найденных Issues.
+   * Analyzes file content and generates list of line length violations.
+   * Takes content type into account for correct parsing and AST context calculation per line.
+   * @param content Source file text.
+   * @param contentType Content type (TS/TSX/ETS).
+   * @returns Analysis result with list of found issues.
    */
   async analyze(content: string, contentType: ContentType): Promise<AnalysisResult> {
     const virtualFile = contentType === ContentType.ARKTS
@@ -58,7 +58,7 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
       true
     );
 
-    // Строим Enhanced AST и запросник один раз для всего файла
+    // Build Enhanced AST and query once for entire file
     this.enhancedAST = createEnhancedASTWithQuery(this.sourceFile, {
       preserveComments: true,
       preserveWhitespace: false,
@@ -102,12 +102,12 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Оценивает, можно ли безопасно автоматизировать переносы в длинной строке.
-   * Использует лёгкие эвристики (знаки препинания, скобки, аннотации типов) и
-   * проверку на «неразбиваемый одиночный токен» без пробелов.
-   * @param line Анализируемая строка.
-   * @param _astContext AST-узел строки (не используется в текущей реализации).
-   * @returns true — строка потенциально автоисправляема; false — лучше править вручную.
+   * Evaluates whether line wrapping can be safely automated for a long line.
+   * Uses lightweight heuristics (punctuation, brackets, type annotations) and
+   * checks for "unbreakable single token" without spaces.
+   * @param line Analyzed line.
+   * @param _astContext AST node for line (not used in current implementation).
+   * @returns true — line is potentially auto-fixable; false — better to fix manually.
    */
   private isLinePotentiallyFixable(line: string, lineIndex: number, _astContext: ts.Node | null): boolean {
     const trimmed = line.trim();
@@ -136,9 +136,9 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Возвращает минимальный AST-узел, полностью попадающий в границы указанной строки.
-   * @param lineNumber Номер строки (0-based).
-   * @returns Найденный узел или null, если подходящий узел отсутствует.
+   * Returns minimal AST node that fully fits within specified line boundaries.
+   * @param lineNumber Line number (0-based).
+   * @returns Found node or null if no suitable node exists.
    */
   private getAstContextForLine(lineNumber: number): ts.Node | null {
     const lineStart = this.sourceFile.getPositionOfLineAndCharacter(lineNumber, 0);
@@ -152,55 +152,55 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Проверяет, нужно ли исключить строку из анализа по настройкам игнора.
-   * Выполняет быстрые текстовые проверки, затем уточняет по AST и применяет фоллбэки.
-   * @param line Текст строки.
-   * @param _lineNumber Номер строки (0-based).
-   * @param astContext AST-контекст строки, если доступен.
-   * @returns true — строка игнорируется; false — строка подлежит анализу.
+   * Checks if line should be excluded from analysis per ignore settings.
+   * Performs quick text checks, then refines by AST and applies fallbacks.
+   * @param line Line text.
+   * @param _lineNumber Line number (0-based).
+   * @param astContext AST context for line, if available.
+   * @returns true — line is ignored; false — line subject to analysis.
    */
   private shouldIgnoreLine(line: string, _lineNumber: number, astContext: ts.Node | null): boolean {
     const trimmedLine = line.trim();
 
-    // Пустая строка — игнорируем
+    // Empty line — ignore
     if (trimmedLine.length === 0) {
       return true;
     }
 
-    // Игнорируем строки с URL, если включён флаг ignoreUrls
+    // Ignore lines with URLs if ignoreUrls flag is enabled
     if (this.lineLengthConfig.ignoreUrls && this.containsUrl(line)) {
       return true;
     }
 
-    // Если есть AST-контекст, применяем точные игноры по типу узла
+    // If AST context available, apply precise ignores by node type
     if (astContext) {
-      // Игнорируем строковые литералы по AST при включённом ignoreStrings
+      // Ignore string literals by AST when ignoreStrings is enabled
       if (this.lineLengthConfig.ignoreStrings && ts.isStringLiteral(astContext)) {
         return true;
       }
 
-      // Игнорируем шаблонные литералы по AST при включённом ignoreTemplateLiterals
+      // Ignore template literals by AST when ignoreTemplateLiterals is enabled
       if (this.lineLengthConfig.ignoreTemplateLiterals && ts.isTemplateLiteral(astContext)) {
         return true;
       }
 
-      // Игнорируем JSDoc/комментарии по AST при включённом ignoreComments
+      // Ignore JSDoc/comments by AST when ignoreComments is enabled
       if (this.lineLengthConfig.ignoreComments && ts.isJSDoc(astContext)) {
         return true;
       }
     }
 
-    // Фоллбэк: игнорируем строковые литералы по текстовому анализу
+    // Fallback: ignore string literals by text analysis
     if (this.lineLengthConfig.ignoreStrings && this.isStringLiteral(line)) {
       return true;
     }
 
-    // Фоллбэк: игнорируем комментарии по текстовому анализу
+    // Fallback: ignore comments by text analysis
     if (this.lineLengthConfig.ignoreComments && this.isComment(line)) {
       return true;
     }
 
-    // Фоллбэк: игнорируем шаблонные литералы по текстовому анализу
+    // Fallback: ignore template literals by text analysis
     if (this.lineLengthConfig.ignoreTemplateLiterals && this.isTemplateLiteral(line)) {
       return true;
     }
@@ -209,9 +209,9 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Проверяет, содержит ли строка URL (http/https).
-   * @param line Текст строки.
-   * @returns true, если в строке обнаружен URL.
+   * Checks if line contains URL (http/https).
+   * @param line Line text.
+   * @returns true if URL detected in line.
    */
   private containsUrl(line: string): boolean {
     const urlRegex = /https?:\/\/[^\s]+/;
@@ -219,9 +219,9 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Грубая текстовая проверка: строка целиком является строковым литералом.
-   * @param line Текст строки.
-   * @returns true, если строка начинается и заканчивается кавычками (", ' или `).
+   * Rough text check: line is entirely a string literal.
+   * @param line Line text.
+   * @returns true if line starts and ends with quotes (", ' or `).
    */
   private isStringLiteral(line: string): boolean {
     const trimmed = line.trim();
@@ -231,9 +231,9 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Грубая текстовая проверка: строка является комментариевой строкой.
-   * @param line Текст строки.
-   * @returns true, если строка начинается с //, /* или *.
+   * Rough text check: line is a comment line.
+   * @param line Line text.
+   * @returns true if line starts with //, /* or *.
    */
   private isComment(line: string): boolean {
     const trimmed = line.trim();
@@ -241,9 +241,9 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Грубая текстовая проверка на шаблонный литерал (template literal).
-   * @param line Текст строки.
-   * @returns true, если строка окружена обратными кавычками (`).
+   * Rough text check for template literal.
+   * @param line Line text.
+   * @returns true if line is surrounded by backticks (`).
    */
   private isTemplateLiteral(line: string): boolean {
     const trimmed = line.trim();
@@ -251,8 +251,8 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Возвращает длину ведущего отступа строки (в символах), учитывая пробелы и табы.
-   * @param line Текст строки.
+   * Returns length of leading indent in line (in characters), accounting for spaces and tabs.
+   * @param line Line text.
    */
   private getLeadingIndentLength(line: string): number {
     let count = 0;
@@ -268,9 +268,9 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
   }
 
   /**
-   * Вычисляет длину самого длинного токена на указанной строке, используя сканер TypeScript.
-   * Токены комментариев и пробельные символы игнорируются (skipTrivia=true).
-   * @param lineIndex Индекс строки (0-based).
+   * Calculates length of longest token on specified line using TypeScript scanner.
+   * Comment tokens and whitespace characters are ignored (skipTrivia=true).
+   * @param lineIndex Line index (0-based).
    */
   private getLongestTokenLengthOnLine(lineIndex: number): number {
     const lineStart = this.sourceFile.getPositionOfLineAndCharacter(lineIndex, 0);
@@ -291,7 +291,7 @@ export class LineLengthAnalyzer extends BaseAnalyzer {
       for (const tok of node.syntaxTokens || []) {
         const pos = tok.position.offset;
         if (pos < lineStart || pos >= lineEnd) continue;
-        // Пропускаем пробелы и переносы строк
+        // Skip whitespace and newlines
         if (tok.type === SyntaxTokenType.WHITESPACE || tok.type === SyntaxTokenType.NEWLINE) {
           continue;
         }

@@ -1,34 +1,34 @@
 /**
- * Синтаксические разделители и их ленивое кеширование на уровне Enhanced AST.
+ * Syntactic separators and their lazy caching at Enhanced AST level.
  *
- * Модуль реализует:
- *  - классификацию синтаксических токенов в соответствии с определениями из
+ * Module implements:
+ *  - classification of syntactic tokens according to definitions from
  *    `docs/workflow/pipeline/top-level-semantic-break_ru.md`;
- *  - ленивую декорацию узлов Enhanced AST (см. `getSemanticSeparators()`), чтобы
- *    форматтеры могли получать дескрипторы без повторных обходов токенов.
+ *  - lazy decoration of Enhanced AST nodes (see `getSemanticSeparators()`), so
+ *    formatters can get descriptors without repeated token traversals.
  */
 
 import type { EnhancedASTNode, SyntaxToken } from './enhanced-ast-types';
 import { SyntaxTokenType } from './enhanced-ast-types';
 
 /**
- * Категории синтаксических разделителей.
+ * Categories of syntactic separators.
  */
 export enum SyntacticSeparatorCategory {
-  /** Разделители последовательностей: запятые, точки с запятой. */
+  /** Sequence separators: commas, semicolons. */
   Sequence = 'sequence',
-  /** Логические операторы: &&, || и т.п. */
+  /** Logical operators: &&, || etc. */
   Logical = 'logical',
-  /** Структурные границы: скобки, блоки. */
+  /** Structural boundaries: parentheses, blocks. */
   Structural = 'structural',
-  /** Типовые границы: union/intersection, аннотации. */
+  /** Type boundaries: union/intersection, annotations. */
   Type = 'type',
-  /** Прочие операционные разделители: арифметика, сравнение, присваивание. */
+  /** Other operational separators: arithmetic, comparison, assignment. */
   Operational = 'operational'
 }
 
 /**
- * Предпочтительное направление переноса относительно разделителя.
+ * Preferred break direction relative to separator.
  */
 export enum SeparatorBreakAffinity {
   Before = 'before',
@@ -37,7 +37,7 @@ export enum SeparatorBreakAffinity {
 }
 
 /**
- * Детальная роль разделителя для уточнения эвристик переноса.
+ * Detailed separator role for refining break heuristics.
  */
 export enum SyntacticSeparatorRole {
   Comma = 'comma',
@@ -63,14 +63,14 @@ export enum SyntacticSeparatorRole {
 }
 
 /**
- * Описание синтаксического разделителя.
+ * Syntactic separator description.
  */
 export interface SyntacticSeparator {
   token: SyntaxToken;
   category: SyntacticSeparatorCategory;
   role: SyntacticSeparatorRole;
   breakAffinity: SeparatorBreakAffinity;
-  /** Чем меньше значение, тем выше приоритет при выборе точки разбиения. */
+  /** Lower value means higher priority when choosing break point. */
   priority: number;
 }
 
@@ -264,7 +264,7 @@ function classifyKeywordToken(token: SyntaxToken): SeparatorDescriptor | null {
 }
 
 /**
- * Классифицирует один токен и возвращает описание разделителя либо `null`.
+ * Classifies single token and returns separator description or `null`.
  */
 export function classifySyntacticSeparator(token: SyntaxToken): SyntacticSeparator | null {
   const descriptor = classifyExplicitToken(token);
@@ -272,7 +272,7 @@ export function classifySyntacticSeparator(token: SyntaxToken): SyntacticSeparat
 }
 
 /**
- * Возвращает список разделителей для набора токенов.
+ * Returns list of separators for set of tokens.
  */
 export function collectSyntacticSeparators(tokens: SyntaxToken[]): SyntacticSeparator[] {
   const result: SyntacticSeparator[] = [];
@@ -285,27 +285,27 @@ export function collectSyntacticSeparators(tokens: SyntaxToken[]): SyntacticSepa
   return result;
 }
 
-/** Проверяет, является ли категория логической. */
+/** Checks if category is logical. */
 export function isLogicalSeparator(separator: SyntacticSeparator): boolean {
   return separator.category === SyntacticSeparatorCategory.Logical;
 }
 
-/** Проверяет, является ли категория структурной. */
+/** Checks if category is structural. */
 export function isStructuralSeparator(separator: SyntacticSeparator): boolean {
   return separator.category === SyntacticSeparatorCategory.Structural;
 }
 
-/** Проверяет, является ли категория последовательностью (запятые, точки с запятой). */
+/** Checks if category is sequence (commas, semicolons). */
 export function isSequenceSeparator(separator: SyntacticSeparator): boolean {
   return separator.category === SyntacticSeparatorCategory.Sequence;
 }
 
-/** Проверяет, относится ли разделитель к типовым конструкциям. */
+/** Checks if separator relates to type constructs. */
 export function isTypeSeparator(separator: SyntacticSeparator): boolean {
   return separator.category === SyntacticSeparatorCategory.Type;
 }
 
-/** Предпочтительно ли переносить после токена. */
+/** Is it preferable to break after token. */
 export function preferBreakAfter(separator: SyntacticSeparator): boolean {
   return (
     separator.breakAffinity === SeparatorBreakAffinity.After ||
@@ -313,7 +313,7 @@ export function preferBreakAfter(separator: SyntacticSeparator): boolean {
   );
 }
 
-/** Предпочтительно ли переносить перед токеном. */
+/** Is it preferable to break before token. */
 export function preferBreakBefore(separator: SyntacticSeparator): boolean {
   return (
     separator.breakAffinity === SeparatorBreakAffinity.Before ||
@@ -321,7 +321,7 @@ export function preferBreakBefore(separator: SyntacticSeparator): boolean {
   );
 }
 
-/** Быстрая проверка типа токена на принадлежность к разделителям. */
+/** Quick check of token type for membership in separators. */
 export function isPotentialSeparatorTokenType(tokenType: SyntaxTokenType): boolean {
   if (STATIC_TOKEN_DESCRIPTORS[tokenType]) {
     return true;
@@ -339,7 +339,7 @@ export function isPotentialSeparatorTokenType(tokenType: SyntaxTokenType): boole
 }
 
 /**
- * Ленивая декорация узла Enhanced AST: вычисляет и кеширует дескрипторы разделителей.
+ * Lazy decoration of Enhanced AST node: computes and caches separator descriptors.
  */
 export function getSemanticSeparators(node: EnhancedASTNode): SyntacticSeparator[] {
   if (node.semanticSeparators) {
@@ -353,7 +353,7 @@ export function getSemanticSeparators(node: EnhancedASTNode): SyntacticSeparator
 }
 
 /**
- * Сбрасывает кеш разделителей для узла (например, при повторном построении токенов).
+ * Resets separator cache for node (e.g., when rebuilding tokens).
  */
 export function resetSemanticSeparators(node: EnhancedASTNode): void {
   delete node.semanticSeparators;

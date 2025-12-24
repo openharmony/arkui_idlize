@@ -1,21 +1,21 @@
 /**
- * Тест для проверки работы токенизатора и Enhanced AST с токенами
+ * Test to verify tokenizer and Enhanced AST work with tokens
  */
 
 import * as ts from 'typescript';
 import { createEnhancedAST } from '../index';
 import { SyntaxTokenType } from '../enhanced-ast-types';
 
-// Простой тестовый код
+// Simple test code
 const testCode = `export class MyClass {
   private field: string;
 }`;
 
-console.log('Исходный код:');
+console.log('Source code:');
 console.log(testCode);
 console.log('\n' + '='.repeat(80) + '\n');
 
-// Создаём TypeScript AST
+// Create TypeScript AST
 const sourceFile = ts.createSourceFile(
   'test.ts',
   testCode,
@@ -23,23 +23,23 @@ const sourceFile = ts.createSourceFile(
   true
 );
 
-// Создаём Enhanced AST с токенами
+// Create Enhanced AST with tokens
 const enhancedAST = createEnhancedAST(sourceFile);
 
-console.log('Enhanced AST построен успешно!');
-console.log(`Всего узлов: ${enhancedAST.statistics.totalNodes}`);
-console.log(`Время построения: ${enhancedAST.statistics.buildTimeMs}ms`);
+console.log('Enhanced AST built successfully!');
+console.log(`Total nodes: ${enhancedAST.statistics.totalNodes}`);
+console.log(`Build time: ${enhancedAST.statistics.buildTimeMs}ms`);
 console.log('\n' + '='.repeat(80) + '\n');
 
-// Функция для вывода токенов узла
+// Function for printing node tokens
 function printTokens(node: any, depth: number = 0): void {
   const indent = '  '.repeat(depth);
   const kindName = ts.SyntaxKind[node.kind];
   
   console.log(`${indent}${kindName}: "${node.text.substring(0, 30)}..."`);
-  console.log(`${indent}  Токенов: ${node.syntaxTokens.length}`);
+  console.log(`${indent}  Tokens: ${node.syntaxTokens.length}`);
   
-  // Показываем первые несколько токенов
+  // Show first few tokens
   const tokensToShow = Math.min(5, node.syntaxTokens.length);
   for (let i = 0; i < tokensToShow; i++) {
     const token = node.syntaxTokens[i];
@@ -52,21 +52,21 @@ function printTokens(node: any, depth: number = 0): void {
   }
   
   if (node.syntaxTokens.length > tokensToShow) {
-    console.log(`${indent}    ... (ещё ${node.syntaxTokens.length - tokensToShow} токенов)`);
+    console.log(`${indent}    ... (${node.syntaxTokens.length - tokensToShow} more tokens)`);
   }
   
-  // Рекурсивно обрабатываем дочерние узлы
+  // Recursively process child nodes
   if (node.children && node.children.length > 0) {
-    console.log(`${indent}  Дочерних узлов: ${node.children.length}`);
+    console.log(`${indent}  Child nodes: ${node.children.length}`);
     for (const child of node.children) {
       printTokens(child, depth + 1);
     }
   }
 }
 
-console.log('Структура Enhanced AST с токенами:\n');
+console.log('Enhanced AST structure with tokens:\n');
 printTokens(enhancedAST.root);
 
 console.log('\n' + '='.repeat(80) + '\n');
-console.log('Тест завершён успешно!');
+console.log('Test completed successfully!');
 

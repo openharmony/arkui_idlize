@@ -23,29 +23,29 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
   
   const metadata: string[] = [];
   
-  // Вычисляем отступ (количество пробелов перед текстом)
+  // Calculate indent (number of spaces before text)
   const leadingTrivia = fullStart !== start ? sourceText.substring(fullStart, start) : '';
   const leadingSpaces = leadingTrivia.match(/^ */)?.[0]?.length || 0;
   
-  // Первым параметром - отступ и размер текста
+  // First parameter - indent and text size
   metadata.push(`{indent: ${leadingSpaces}, textLen: ${text.length}}`);
   
   metadata.push(`type: ${ts.SyntaxKind[node.kind]}`);
   
-  // Добавляем позиции
+  // Add positions
   if (fullStart !== start) {
     metadata.push(`pos: ${fullStart}-${start}-${end}`);
   } else {
     metadata.push(`pos: ${start}-${end}`);
   }
   
-  // Проверяем модификаторы
+  // Check modifiers
   if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
     const modifierNames = node.modifiers.map(m => ts.SyntaxKind[m.kind]).join(', ');
     metadata.push(`modifiers: [${modifierNames}]`);
   }
   
-  // Проверяем флаги
+  // Check flags
   if ('flags' in node && node.flags) {
     const flagNames: string[] = [];
     if (node.flags & ts.NodeFlags.Const) flagNames.push('Const');
@@ -60,7 +60,7 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
     }
   }
   
-  // Проверяем leading trivia
+  // Check leading trivia
   if (fullStart !== start) {
     const leadingTrivia = sourceText.substring(fullStart, start);
     if (leadingTrivia.length > 0) {
@@ -74,29 +74,29 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
     }
   }
   
-  // Добавляем количество детей
+  // Add number of children
   const modifiersCount = ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) ? node.modifiers.length : 0;
   const childrenCount = modifiersCount + node.getChildCount(sourceFile);
   if (childrenCount > 0) {
     metadata.push(`children: ${childrenCount}`);
   }
   
-  // Выводим узел в двухстрочном формате
+  // Output node in two-line format
   console.log(`${prefix}${connectorSymbol}"${escapedDisplayText}"`);
   const metadataLine = metadata.join('; ');
   console.log(`${childPrefix}┃(${metadataLine})`);
   
-  // Собираем ВСЕ дочерние узлы, включая модификаторы
+  // Collect ALL child nodes, including modifiers
   const children: ts.Node[] = [];
   
-  // Добавляем модификаторы если есть
+  // Add modifiers if any
   if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
     children.push(...node.modifiers);
   }
   
-  // Добавляем обычные дочерние узлы
+  // Add regular child nodes
   ts.forEachChild(node, child => {
-    // Избегаем дублирования модификаторов
+    // Avoid duplicating modifiers
     if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
       if (!node.modifiers.includes(child)) {
         children.push(child);
@@ -106,7 +106,7 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
     }
   });
   
-  // Рекурсивно выводим детей
+  // Recursively output children
   children.forEach((child, index) => {
     const isLastChild = index === children.length - 1;
     printTreeStructure(child, sourceFile, depth + 1, isLastChild, childPrefix);
@@ -132,7 +132,7 @@ function printAST(node: ts.Node, sourceFile: ts.SourceFile, depth = 0) {
     console.log(`${indent}  leadingTrivia: "${leadingTrivia}"`);
   }
   
-  // Показываем модификаторы
+  // Show modifiers
   if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
     console.log(`${indent}  modifiers:`);
     for (const modifier of node.modifiers) {
@@ -141,7 +141,7 @@ function printAST(node: ts.Node, sourceFile: ts.SourceFile, depth = 0) {
     }
   }
   
-  // Показываем флаги
+  // Show flags
   if ('flags' in node && node.flags) {
     const flagNames: string[] = [];
     if (node.flags & ts.NodeFlags.Const) flagNames.push('Const');
@@ -165,8 +165,8 @@ function main() {
   const args = process.argv.slice(2);
   
   if (args.length === 0) {
-    console.log('Использование: npx ts-node ast-viewer.ts <файл>');
-    console.log('Или: npx ts-node ast-viewer.ts --code "код"');
+    console.log('Usage: npx ts-node ast-viewer.ts <file>');
+    console.log('Or: npx ts-node ast-viewer.ts --code "code"');
     process.exit(1);
   }
   
@@ -175,41 +175,41 @@ function main() {
   
   if (args[0] === '--code') {
     if (!args[1]) {
-      console.error('Не указан код после --code');
+      console.error('Code not specified after --code');
       process.exit(1);
     }
     sourceCode = args[1];
     fileName = 'inline.ts';
   } else {
     if (!args[0]) {
-      console.error('Не указан файл');
+      console.error('File not specified');
       process.exit(1);
     }
     const filePath = path.resolve(args[0]);
     if (!fs.existsSync(filePath)) {
-      console.error(`Файл не найден: ${filePath}`);
+      console.error(`File not found: ${filePath}`);
       process.exit(1);
     }
     sourceCode = fs.readFileSync(filePath, 'utf-8');
     fileName = path.basename(filePath);
   }
   
-  console.log(`=== AST для файла: ${fileName} ===`);
-  console.log(`Размер: ${sourceCode.length} символов`);
+  console.log(`=== AST for file: ${fileName} ===`);
+  console.log(`Size: ${sourceCode.length} characters`);
   console.log('');
   
-  // Создание AST
+  // Create AST
   const sourceFile = ts.createSourceFile(fileName, sourceCode, ts.ScriptTarget.Latest, true);
   
-  console.log('=== СТРУКТУРА ДЕРЕВА ===');
+  console.log('=== TREE STRUCTURE ===');
   printTreeStructure(sourceFile, sourceFile);
   console.log('');
   
-  console.log('=== ПОДРОБНАЯ ИНФОРМАЦИЯ ===');
+  console.log('=== DETAILED INFORMATION ===');
   printAST(sourceFile, sourceFile);
   
   // console.log('');
-  // console.log('=== ИСХОДНЫЙ ТЕКСТ ===');
+  // console.log('=== SOURCE TEXT ===');
   // console.log(`"${sourceCode}"`);
 }
 

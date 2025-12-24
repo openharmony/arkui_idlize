@@ -1,6 +1,6 @@
 /**
- * Заглушка для анализатора C++ кода
- * TODO: Реализовать полноценный анализатор C++ с использованием clang или других инструментов
+ * Placeholder for C++ code analyzer
+ * TODO: Implement full-featured C++ analyzer using clang or other tools
  */
 
 import { BaseAnalyzer } from '../core/analyzer';
@@ -15,7 +15,7 @@ export class CppAnalyzer extends BaseAnalyzer {
   async analyze(_content: string, _contentType: ContentType): Promise<AnalysisResult> {
     const issues: AnalysisIssue[] = [];
     
-    // Заглушка, пока мы не реализуем полноценный анализ
+    // Placeholder until we implement full analysis
     
     return {
       issues,

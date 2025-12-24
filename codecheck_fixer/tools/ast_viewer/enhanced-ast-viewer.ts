@@ -12,7 +12,7 @@ interface ViewerOptions {
 }
 
 /**
- * Выводит псевдографическое дерево расширенного AST
+ * Prints pseudographical tree of enhanced AST
  */
 function printEnhancedTreeStructure(
   node: EnhancedASTNode,
@@ -106,7 +106,7 @@ function printEnhancedTreeStructure(
 }
 
 /**
- * Выводит подробную информацию о каждом узле расширенного AST
+ * Prints detailed information about each enhanced AST node
  */
 function printEnhancedAST(node: EnhancedASTNode, depth = 0) {
   const indent = '  '.repeat(depth);
@@ -139,7 +139,7 @@ function printEnhancedAST(node: EnhancedASTNode, depth = 0) {
     });
   }
   
-  // Добавляем отображение токенов
+  // Add token display
   if (node.syntaxTokens && node.syntaxTokens.length > 0) {
     console.log(`${indent}  Syntax Tokens: ${node.syntaxTokens.length}`);
     node.syntaxTokens.forEach((token, index) => {
@@ -168,7 +168,7 @@ function printEnhancedAST(node: EnhancedASTNode, depth = 0) {
 }
 
 /**
- * Главная функция
+ * Main function
  */
 function main() {
   const rawArgs = process.argv.slice(2);
@@ -196,10 +196,10 @@ function main() {
   }
 
   if (args.length === 0) {
-    console.log('Использование:');
-    console.log('  npx ts-node enhanced-ast-viewer.ts [--metadata] [--tokens] <файл>');
-    console.log('  npx ts-node enhanced-ast-viewer.ts [--metadata] [--tokens] --code "<код>"');
-    console.log('  Дополнительно можно использовать --full (эквивалентно --metadata --tokens)');
+    console.log('Usage:');
+    console.log('  npx ts-node enhanced-ast-viewer.ts [--metadata] [--tokens] <file>');
+    console.log('  npx ts-node enhanced-ast-viewer.ts [--metadata] [--tokens] --code "<code>"');
+    console.log('  Additionally, you can use --full (equivalent to --metadata --tokens)');
     console.log('');
     return;
   }
@@ -209,7 +209,7 @@ function main() {
 
   if (args[0] === '--code') {
     if (args.length < 2 || !args[1]) {
-      console.error('Ошибка: не указан код для анализа');
+      console.error('Error: code to analyze not specified');
       return;
     }
     sourceCode = args[1];
@@ -218,60 +218,60 @@ function main() {
     const filePath = args[0];
     
     if (!filePath) {
-      console.error('Ошибка: не указан файл для анализа');
+      console.error('Error: file to analyze not specified');
       return;
     }
     
     fileName = filePath;
     
-    // Проверяем существование файла
+    // Check file existence
     if (!fs.existsSync(fileName)) {
-      console.error(`Ошибка: файл "${fileName}" не найден`);
+      console.error(`Error: file "${fileName}" not found`);
       return;
     }
     
     try {
       sourceCode = fs.readFileSync(fileName, 'utf-8');
     } catch (error) {
-      console.error(`Ошибка чтения файла "${fileName}":`, error);
+      console.error(`Error reading file "${fileName}":`, error);
       return;
     }
   }
 
-  console.log(`=== Enhanced AST для файла: ${fileName} ===`);
+  console.log(`=== Enhanced AST for file: ${fileName} ===`);
   console.log('');
 
   try {
-    // Создаем стандартный TypeScript AST
+    // Create standard TypeScript AST
     const typescriptAST = ts.createSourceFile(fileName, sourceCode, ts.ScriptTarget.Latest, true);
     
-    // Создаем расширенный AST
+    // Create enhanced AST
     const builder = new EnhancedASTBuilder(typescriptAST);
     const enhancedAST = builder.build();
     
     if (enhancedAST.errors && enhancedAST.errors.length > 0) {
-      console.error('Ошибки при создании расширенного AST:');
+      console.error('Errors creating enhanced AST:');
       enhancedAST.errors.forEach(error => {
         console.error(`  ${error.type}: ${error.message}`);
       });
       return;
     }
 
-    console.log('=== Структура дерева ===');
+    console.log('=== Tree structure ===');
     printEnhancedTreeStructure(enhancedAST.root, viewerOptions);
     
-    console.log('\n=== Подробная информация ===');
+    console.log('\n=== Detailed information ===');
     printEnhancedAST(enhancedAST.root);
     
-    // console.log('=== Исходный текст ===');
+    // console.log('=== Source text ===');
     // console.log(sourceCode);
     
   } catch (error) {
-    console.error('Ошибка обработки:', error);
+    console.error('Processing error:', error);
   }
 }
 
-// Запускаем если файл выполняется напрямую
+// Run if file is executed directly
 if (require.main === module) {
   main();
 }

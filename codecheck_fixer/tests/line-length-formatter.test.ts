@@ -19,7 +19,7 @@ interface LLFFixtureFile {
 
 const FIXTURES_DIR = path.resolve(__dirname, '../libs/arkts_formatter/tests/fixtures/fixtures');
 
-// Конфигурация форматтера подобрана под текущие эталоны в JSON
+// Formatter configuration matched to current reference in JSON
 const formatterConfig: FormatterConfig = {
   tabSize: 2,
   useTabs: false,
@@ -30,7 +30,7 @@ const formatterConfig: FormatterConfig = {
 };
 
 const lineLengthConfig: LineLengthConfig = {
-  maxLineLength: 120, // Соответствует конфигурации проекта
+  maxLineLength: 120, // Matches project configuration
   ignoreUrls: false,
   ignoreStrings: false,
   ignoreComments: false,
@@ -59,8 +59,8 @@ suite('Line-Length Formatter — JSON fixtures', () => {
         test(testCase.description, () => {
           const result = formatter.format(testCase.original, ContentType.TS);
           if (result !== testCase.expected) {
-            // Диагностика различий для удобства
-            // Покажем первые 200 символов
+            // Diff diagnostics for convenience
+            // Show first 200 characters
             const exp = testCase.expected.replace(/\n/g, '\\n');
             const got = result.replace(/\n/g, '\\n');
             console.log(`\n[DIFF] expected: ${exp.substring(0, 200)}...`);

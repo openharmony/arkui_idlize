@@ -1,5 +1,5 @@
 /**
- * Валидатор результатов форматирования
+ * Formatting result validator
  */
 
 import * as ts from 'typescript';
@@ -38,7 +38,7 @@ export class ResultValidator {
   private static createCancellationIssue(): ValidationIssue {
     return {
       type: 'validation_error',
-      message: 'Валидация прервана пользователем',
+      message: 'Validation interrupted by user',
       severity: 'error'
     };
   }
@@ -52,7 +52,7 @@ export class ResultValidator {
   }
 
   /**
-   * Валидирует результат форматирования
+   * Validates formatting result
    */
 static validate(
     original: string,
@@ -97,7 +97,7 @@ static validate(
 
     const isArkTs = this.isArkTsContent(original) || context.fileName.endsWith('.ets');
 
-    // 1. Проверка синтаксиса (только для TS, для ArkTS отключена)
+    // 1. Syntax check (only for TS, disabled for ArkTS)
     if (!isArkTs && (context.fileName.endsWith('.ts') || context.fileName.endsWith('.tsx'))) {
       const syntaxValidation = this.validateSyntax(formatted, context);
       syntaxDiagnostics = syntaxValidation.diagnostics;
@@ -124,15 +124,15 @@ static validate(
       };
     }
 
-    // 2. Проверка семантической эквивалентности (основной алгоритм валидации)
+    // 2. Semantic equivalence check (main validation algorithm)
     const semanticValidation = this.validateSemanticEquivalence(original, formatted, filePath, context);
     issues.push(...semanticValidation.issues);
 
-    // 3. Проверка длины строк (временно отключена - проверяем только измененные строки)
+    // 3. Line length check (temporarily disabled - check only modified lines)
     // const lineLengthValidation = this.validateLineLength(formatted, context);
     // issues.push(...lineLengthValidation.issues);
 
-    // 4. Проверка регрессий (только если есть изменения)
+    // 4. Regression check (only if there are changes)
     if (original !== formatted) {
       const cancellationBeforeRegressions = checkCancellation();
       if (cancellationBeforeRegressions) {
@@ -163,7 +163,7 @@ static validate(
   }
 
   /**
-   * Проверяет синтаксическую корректность
+   * Checks syntax correctness
    */
   private static validateSyntax(
     content: string,
@@ -173,7 +173,7 @@ static validate(
     let diagnostics: readonly ts.Diagnostic[] = [];
 
     try {
-      // Создаем временный SourceFile для проверки синтаксиса
+      // Create temporary SourceFile for syntax check
       const sourceFile = ts.createSourceFile(
         'temp.ts',
         content,
@@ -181,7 +181,7 @@ static validate(
         true
       );
 
-      // Проверяем наличие синтаксических ошибок
+      // Check for syntax errors
       diagnostics = (sourceFile as any).parseDiagnostics || [];
       
       for (const diagnostic of diagnostics) {
@@ -191,7 +191,7 @@ static validate(
 
         issues.push({
           type: 'syntax_error',
-          message: `Синтаксическая ошибка: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')}`,
+          message: `Syntax error: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')}`,
           line,
           severity: 'error'
         });
@@ -199,7 +199,7 @@ static validate(
     } catch (error) {
       issues.push({
         type: 'syntax_error',
-        message: `Критическая ошибка парсинга: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Critical parsing error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         severity: 'error'
       });
     }
@@ -212,8 +212,8 @@ static validate(
   }
 
   /**
-   * Проверяет семантическую эквивалентность: если убрать переносы, отступы и комментарии,
-   * должно получиться то же самое (строки сохраняются)
+   * Checks semantic equivalence: if you remove newlines, indents and comments,
+   * should get the same thing (strings are preserved)
    */
   private static validateSemanticEquivalence(
     original: string,
@@ -225,24 +225,24 @@ static validate(
 
     try {
       this.ensureNotCancelled();
-      // 1. Проверяем код без комментариев
+      // 1. Check code without comments
       const normalizedOriginal = this.getOrNormalizeOriginal(context, original);
       this.ensureNotCancelled();
       const normalizedFormatted = this.normalizeCode(formatted);
 
-      // DEBUG (опционально): запись нормализованных версий отключена по умолчанию
-      // Для включения задайте переменную окружения CCF_WRITE_DEBUG=1
+      // DEBUG (optional): writing normalized versions disabled by default
+      // To enable set environment variable CCF_WRITE_DEBUG=1
       // if (process.env.CCF_WRITE_DEBUG === '1' && filePath) { ... }
 
       if (normalizedOriginal !== normalizedFormatted) {
-        // Семантическая разница обнаружена
+        // Semantic difference detected
           issues.push({
             type: 'semantic_change',
-            message: 'Трансформация изменила семантику кода',
+            message: 'Transformation changed code semantics',
             severity: 'error'
           });
         
-        // Возвращаем normalized данные для диагностики
+        // Return normalized data for diagnostics
         return { 
           issues, 
           normalized: { 
@@ -253,12 +253,12 @@ static validate(
       }
 
       this.ensureNotCancelled();
-      // 2. Проверяем комментарии отдельно (пока заглушка)
+      // 2. Check comments separately (placeholder for now)
       const commentsValid = this.validateComments(original, formatted);
       if (!commentsValid) {
         issues.push({
           type: 'semantic_change',
-          message: 'Трансформация некорректно обработала комментарии',
+          message: 'Transformation incorrectly handled comments',
           severity: 'error'
         });
       }
@@ -271,7 +271,7 @@ static validate(
 
       issues.push({
         type: 'validation_error',
-        message: `Ошибка при проверке семантической эквивалентности: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Error during semantic equivalence check: ${error instanceof Error ? error.message : 'Unknown error'}`,
         severity: 'error'
       });
     }
@@ -290,11 +290,11 @@ static validate(
   }
 
   /**
-   * Проверяет корректность обработки комментариев (заглушка)
+   * Checks comment handling correctness (placeholder)
    */
   private static validateComments(_original: string, _formatted: string): boolean {
-    // TODO: Реализовать проверку комментариев
-    // Пока всегда возвращаем true (комментарии считаются корректными)
+    // TODO: Implement comment validation
+    // For now always return true (comments considered correct)
     return true;
   }
 
@@ -324,7 +324,7 @@ static validate(
   }
 
   /**
-   * Нормализует код: убирает переносы, отступы и комментарии, сохраняет строки
+   * Normalizes code: removes newlines, indents and comments, preserves strings
    */
   private static normalizeCode(code: string): string {
     const builder: string[] = [];
@@ -352,7 +352,7 @@ static validate(
       const char = code.charAt(i);
       const nextChar = code.charAt(i + 1);
 
-      // Обработка многострочных комментариев - УБИРАЕМ их
+      // Handle multi-line comments - REMOVE them
       if (!inString && !inComment && char === '/' && nextChar === '*') {
         inMultiLineComment = true;
         i += 2;
@@ -365,7 +365,7 @@ static validate(
         continue;
       }
 
-      // Обработка однострочных комментариев - УБИРАЕМ их
+      // Handle single-line comments - REMOVE them
       if (!inString && !inMultiLineComment && char === '/' && nextChar === '/') {
         inComment = true;
         i += 2;
@@ -373,19 +373,19 @@ static validate(
       }
 
       if (inComment && char === '\n') {
-        // Завершение однострочного комментария: перенос входит в конструкцию комментария и удаляется вместе с ним
+        // End of single-line comment: newline is part of comment construct and removed with it
         inComment = false;
         i++;
         continue;
       }
 
-      // Если мы в комментарии - пропускаем символы
+      // If we're in a comment - skip characters
       if (inComment || inMultiLineComment) {
         i++;
         continue;
       }
 
-      // Обработка строк - СОХРАНЯЕМ как есть
+      // Handle strings - PRESERVE as is
       if (char === '"' || char === '\'' || char === '`') {
         if (!inString) {
           inString = true;
@@ -399,17 +399,17 @@ static validate(
         continue;
       }
 
-      // Если мы в строке - сохраняем как есть
+      // If we're in a string - preserve as is
       if (inString) {
         append(char);
         i++;
         continue;
       }
 
-      // Схлопываем whitespace последовательности, различая значащие/незначащие переносы и пробелы
+      // Collapse whitespace sequences, distinguishing significant/insignificant newlines and spaces
       if (char === ' ' || char === '\t' || char === '\n' || char === '\r') {
         let hadNewline = false;
-        // Собираем ВСЮ последовательность whitespace
+        // Collect ENTIRE whitespace sequence
         while (i < code.length) {
           const wsChar = code.charAt(i);
           if (wsChar === ' ' || wsChar === '\t') {
@@ -424,8 +424,8 @@ static validate(
           break;
         }
         
-        // Незначащие пробелы всегда удаляются (ничего не добавляем),
-        // значащие пробелы превращаются в один пробел, а значащие переносы — сохраняются как перенос
+        // Insignificant spaces always removed (add nothing),
+        // significant spaces converted to single space, and significant newlines — preserved as newline
         const nextNonWs = i < code.length ? code.charAt(i) : '';
 
         if (hadNewline && keywordNeedsLineBreak(lastWord)) {
@@ -433,15 +433,15 @@ static validate(
           continue;
         }
         
-        // Значащий пробел между двумя «словами» (идентификаторы/числа/доллар/подчерк)
+        // Significant space between two "words" (identifiers/numbers/dollar/underscore)
         if (this.needsSpaceBetween(lastCharOut, nextNonWs)) {
           append(' ');
         }
-        // Во всех остальных случаях пробелы/переносы удаляются
+        // In all other cases spaces/newlines are removed
         continue;
       }
 
-      // Обычные символы кода
+      // Regular code characters
       append(char);
       i++;
     }
@@ -450,44 +450,44 @@ static validate(
   }
 
   /**
-   * Определяет, нужен ли пробел между двумя символами
-   * Используется для определения значащих переносов строк
+   * Determines if space is needed between two characters
+   * Used to determine significant newlines
    */
   private static needsSpaceBetween(prev: string, next: string): boolean {
-    // Если один из символов пустой - пробел не нужен
+    // If one of characters is empty - space not needed
     if (!prev || !next) {
       return false;
     }
     
-    // Проверяем являются ли символы буквенно-цифровыми (идентификаторы, ключевые слова, числа)
+    // Check if characters are alphanumeric (identifiers, keywords, numbers)
     const isAlphaNum = (c: string) => /[a-zA-Z0-9_$]/.test(c);
     
-    // Если оба символа буквенно-цифровые - нужен пробел как разделитель
-    // Примеры: const\na → const a, return\nvalue → return value
+    // If both characters are alphanumeric - space needed as separator
+    // Examples: const\na → const a, return\nvalue → return value
     if (isAlphaNum(prev) && isAlphaNum(next)) {
       return true;
     }
     
-    // Во всех остальных случаях пробел не нужен:
-    // - Скобки: (\n  → (
-    // - Операторы: +\n  → +
-    // - Точка с запятой: ;\n → ;
+    // In all other cases space not needed:
+    // - Brackets: (\n  → (
+    // - Operators: +\n  → +
+    // - Semicolon: ;\n → ;
     return false;
   }
 
   // /**
-  //  * Проверяет длину строк (временно не используется)
+  //  * Checks line length (temporarily not used)
   //  */
   // private static _validateLineLength(
   //   _content: string,
   //   _context: FormattingContext
   // ): { issues: ValidationIssue[] } {
-  //   // Временно отключено - проверяем только измененные строки
+  //   // Temporarily disabled - check only modified lines
   //   return { issues: [] };
   // }
 
   /**
-   * Проверяет регрессии в форматировании
+   * Checks formatting regressions
    */
   private static validateRegressions(
     originalLines: string[],
@@ -496,7 +496,7 @@ static validate(
   ): { issues: ValidationIssue[] } {
     const issues: ValidationIssue[] = [];
 
-    // Проверяем, что форматирование не сделало ситуацию хуже
+    // Check that formatting didn't make situation worse
     let worsenedCount = 0;
     const maxLength = context.maxLineLength;
 
@@ -508,20 +508,20 @@ static validate(
         worsenedCount++;
         issues.push({
           type: 'regression',
-          message: `Строка ${i + 1} стала длиннее после форматирования (${originalLength} -> ${formattedLength})`,
+          message: `Line ${i + 1} became longer after formatting (${originalLength} -> ${formattedLength})`,
           line: i + 1,
           severity: 'warning'
         });
       }
     }
 
-    // Проверяем новые длинные строки
+    // Check new long lines
     for (let i = originalLines.length; i < formattedLines.length; i++) {
       const lineLength = formattedLines[i]?.length || 0;
       if (lineLength > maxLength) {
         issues.push({
           type: 'regression',
-          message: `Новая строка ${i + 1} превышает максимальную длину (${lineLength})`,
+          message: `New line ${i + 1} exceeds maximum length (${lineLength})`,
           line: i + 1,
           severity: 'warning'
         });
@@ -532,15 +532,15 @@ static validate(
   }
 
   // /**
-  //  * Проверяет общее качество форматирования
+  //  * Checks overall formatting quality
   //  */
   // private static _validateQuality(_metrics: ValidationMetrics): { issues: ValidationIssue[] } {
-  //   // Временно отключено
+  //   // Temporarily disabled
   //   return { issues: [] };
   // }
 
   /**
-   * Вычисляет метрики валидации
+   * Calculates validation metrics
    */
   private static calculateMetrics(
     original: string,
@@ -559,21 +559,21 @@ static validate(
     let improvedLines = 0;
     let worsenedLines = 0;
 
-    // Подсчитываем длинные строки в оригинале
+    // Count long lines in original
     originalSplit.forEach(line => {
       if (line.length > maxLength) {
         originalLongLines++;
       }
     });
 
-    // Подсчитываем длинные строки в результате
+    // Count long lines in result
     formattedSplit.forEach(line => {
       if (line.length > maxLength) {
         resultLongLines++;
       }
     });
 
-    // Анализируем изменения построчно
+    // Analyze changes line by line
     for (let i = 0; i < Math.min(originalSplit.length, formattedSplit.length); i++) {
       const originalLength = originalSplit[i]?.length || 0;
       const formattedLength = formattedSplit[i]?.length || 0;
@@ -587,7 +587,7 @@ static validate(
       }
     }
 
-    // Проверяем синтаксис
+    // Check syntax
     let syntaxValid = true;
     if (context.fileName.endsWith('.ts')) {
       syntaxValid = !syntaxDiagnostics || syntaxDiagnostics.length === 0;
@@ -604,24 +604,24 @@ static validate(
   }
 
   // /**
-  //  * Проверяет, является ли длинная строка допустимой
+  //  * Checks if long line is acceptable
   //  */
   // private static _isAcceptableLongLine(line: string): boolean {
   //   const trimmed = line.trim();
   //   
-  //   // URL в комментариях
+  //   // URLs in comments
   //   if (trimmed.startsWith('//') && /https?:\/\//.test(trimmed)) {
   //     return true;
   //   }
   //
-  //   // Длинные строковые литералы
+  //   // Long string literals
   //   if (trimmed.startsWith('"') && trimmed.endsWith('"') ||
   //       trimmed.startsWith("'") && trimmed.endsWith("'") ||
   //       trimmed.startsWith('`') && trimmed.endsWith('`')) {
   //     return true;
   //   }
   //
-  //   // Импорты с длинными путями
+  //   // Imports with long paths
   //   if (trimmed.startsWith('import') && trimmed.includes('from')) {
   //     return true;
   //   }

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Скрипт для просмотра Enhanced AST файла
-# Использование: ./view-enhanced-file.sh
+# Script for viewing Enhanced AST of a file
+# Usage: ./view-enhanced-file.sh
 
-# Настройки
+# Settings
 FILE_PATH="./test01.ets"
 EXTRA_ARGS=("$@")
 
@@ -11,40 +11,40 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 cd "$SCRIPT_DIR"
 
-# Проверяем существование файла
+# Check file existence
 if [ ! -f "$FILE_PATH" ]; then
-    echo "Ошибка: файл $FILE_PATH не найден"
-    echo "Отредактируйте скрипт и укажите правильный путь к файлу"
+    echo "Error: file $FILE_PATH not found"
+    echo "Edit the script and specify correct file path"
     exit 1
 fi
 
-# Проверяем существование Enhanced AST viewer
+# Check Enhanced AST viewer existence
 if [ ! -f "./enhanced-ast-viewer.ts" ]; then
-    echo "Ошибка: Enhanced AST viewer не найден"
+    echo "Error: Enhanced AST viewer not found"
     exit 1
 fi
 
-# Выводим информацию о запуске
-echo "Анализ Enhanced AST файла: $FILE_PATH"
-echo "Рабочая директория: $(pwd)"
+# Output launch information
+echo "Analyzing Enhanced AST of file: $FILE_PATH"
+echo "Working directory: $(pwd)"
 if [ ${#EXTRA_ARGS[@]} -gt 0 ]; then
-    echo "Дополнительные параметры: ${EXTRA_ARGS[*]}"
+    echo "Additional parameters: ${EXTRA_ARGS[*]}"
 fi
 echo ""
 
-# Запускаем Enhanced AST viewer
+# Run Enhanced AST viewer
 npx ts-node ./enhanced-ast-viewer.ts "${EXTRA_ARGS[@]}" "$FILE_PATH" > ./out_enhanced_tree.log 2>&1
 
-# Проверяем результат
+# Check result
 if [ $? -eq 0 ]; then
-    echo "Анализ завершен успешно"
-    echo "Результат сохранен в: out_enhanced_tree.log"
+    echo "Analysis completed successfully"
+    echo "Result saved in: out_enhanced_tree.log"
     echo ""
-    echo "Для просмотра результата:"
+    echo "To view result:"
     echo "  cat out_enhanced_tree.log"
     echo "  less out_enhanced_tree.log"
     echo "  code out_enhanced_tree.log"
 else
-    echo "Ошибка при анализе файла"
-    echo "Проверьте out_enhanced_tree.log для деталей"
+    echo "Error analyzing file"
+    echo "Check out_enhanced_tree.log for details"
 fi

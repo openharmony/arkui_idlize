@@ -1,5 +1,5 @@
 /**
- * Анализатор для TypeScript кода с использованием TypeScript Compiler API
+ * Analyzer for TypeScript code using TypeScript Compiler API
  */
 
 import * as ts from 'typescript';
@@ -24,7 +24,7 @@ export class TypeScriptAnalyzer extends BaseAnalyzer {
 
     const issues: AnalysisIssue[] = [];
 
-    // 1. Анализ с помощью TypeScript Compiler API (синтаксис, типы)
+    // 1. Analysis using TypeScript Compiler API (syntax, types)
     const program = this.createProgram(virtualFile, content);
     const diagnostics = ts.getPreEmitDiagnostics(program);
     
@@ -38,13 +38,13 @@ export class TypeScriptAnalyzer extends BaseAnalyzer {
                 line: line + 1,
                 column: character + 1,
                 severity: this.mapDiagnosticSeverity(diagnostic.category),
-                type: 'syntax' // Обобщаем как синтаксис/тип
+                type: 'syntax' // Generalize as syntax/type
             });
         }
     });
 
 
-    // 2. Дополнительный анализ AST (стиль, лучшие практики)
+    // 2. Additional AST analysis (style, best practices)
     this.visitNode(sourceFile, issues);
 
     return {
@@ -95,7 +95,7 @@ export class TypeScriptAnalyzer extends BaseAnalyzer {
   }
 
   private visitNode(node: ts.Node, issues: AnalysisIssue[]): void {
-    // Проверка на использование 'any'
+    // Check for 'any' type usage
     if (ts.isTypeNode(node) && node.kind === ts.SyntaxKind.AnyKeyword) {
         const sourceFile = node.getSourceFile();
         const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
@@ -109,7 +109,7 @@ export class TypeScriptAnalyzer extends BaseAnalyzer {
         });
     }
 
-    // Проверка на переменные с '_'
+    // Check for variables with '_'
     if (ts.isVariableDeclaration(node) && node.name.getText().startsWith('_')) {
         const sourceFile = node.getSourceFile();
         const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
