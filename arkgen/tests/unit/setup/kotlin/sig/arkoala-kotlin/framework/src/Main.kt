@@ -106,11 +106,29 @@ fun checkOptional() {
         "setMethodOptional({.tag=INTEROP_TAG_UNDEFINED, .value={}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}})")
 }
 
+fun checkHierarchy() {
+    val parentPeer = ArkCheckParentPeer.create()
+    val parentComp = ArkCheckParentComponent()
+    parentComp.setPeer(parentPeer)
+    checkResult("parent hierarchy test", { parentComp.commonMethodBoolean(false) },
+        "setCommonMethodBoolean(false)")
+    checkResult("parent hierarchy test", { parentComp.commonMethodBoolean(true) },
+        "setCommonMethodBoolean(true)")
+    val childPeer = ArkCheckChildPeer.create()
+    val childComp = ArkCheckChildComponent()
+    childComp.setPeer(childPeer)
+    checkResult("child hierarchy test", { childComp.commonMethodBoolean(false) },
+        "setCommonMethodBoolean(false)")
+    checkResult("child hierarchy test", { childComp.commonMethodBoolean(true) },
+        "setCommonMethodBoolean(true)")
+}
+
 public fun main() {
     checkDatebook()
     checkHooks()
     checkExceptions()
     checkOptional()
+    checkHierarchy()
 
     if (hasTestErrors) {
         println("Tests failed!")

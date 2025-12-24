@@ -338,8 +338,11 @@ export class OverloadsPrinter {
                     collapsedMethodToPrint.modifiers!.push(MethodModifier.PUBLIC)
                 }
                 if (interfaceDeclaration) {
-                    const isOverridden = isMaterializedMethodOverridden(interfaceDeclaration, collapsedMethodToPrint.name, this.library)
-                    collapsedMethodToPrint.modifiers!.push(isOverridden ? MethodModifier.OVERRIDE : MethodModifier.OPEN)
+                    const isStatic = collapsedMethod.modifiers?.includes(MethodModifier.STATIC)
+                    if (!isStatic) {
+                        const isOverridden = isMaterializedMethodOverridden(interfaceDeclaration, collapsedMethodToPrint.name, this.library)
+                        collapsedMethodToPrint.modifiers!.push(isOverridden ? MethodModifier.OVERRIDE : MethodModifier.OPEN)
+                    }
                 }
             }
         }

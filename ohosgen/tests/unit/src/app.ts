@@ -725,9 +725,9 @@ function checkHierarchy() {
   assertEQ("cde", resultChildI.childText)
 
   resultParentI = testParentInterfaceHierarchy(childI)
-  assertEQ(true, resultChildI.parentFlag)
-  assertEQ(3, resultChildI.parentCount)
-  assertEQ("ab", resultChildI.parentText)
+  assertEQ(true, resultParentI.parentFlag)
+  assertEQ(3, resultParentI.parentCount)
+  assertEQ("ab", resultParentI.parentText)
 
   let parentC: ParentC = new ParentC(false, 0, "")
   let resultParentC: ParentC = testParentClassHierarchy(parentC)
