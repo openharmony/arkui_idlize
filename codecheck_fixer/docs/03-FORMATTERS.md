@@ -517,63 +517,153 @@ try {
 
 ### Purpose
 
-Format C++ files through external clang-format process.
+Format C++ files through external clang-format process with comprehensive statistics and progress tracking.
 
 ### CLI Interface
 
 ```bash
 ./run.sh cpp-format -c config.json -o ./out/fixed --verbose
+./run.sh cpp-format -c config.json -l 100 --clang-format /path/to/clang-format
 ```
 
 **Options:**
-- `-c, --config <path>` — path to configuration
-- `-o, --output <path>` — output directory
-- `--clang-format <path>` — path to clang-format binary
-- `-v, --verbose` — verbose output
+- `-c, --config <path>` — path to configuration file
+- `-o, --output <path>` — output directory (default: `./out/fixed`)
+- `-l, --max-length <number>` — maximum line length for statistics (default: 120)
+- `--clang-format <path>` — explicit path to clang-format binary
+- `-v, --verbose` — verbose output with version info and detailed progress
 
 ### Workflow Algorithm
 
-1. **Determine clang-format path**
-   - Check `$OHOS_DIR/prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format`
-   - Fallback to system `clang-format`
+1. **Determine clang-format path** (priority order):
+   - User-specified path via `--clang-format` option
+   - `$OHOS_DIR/prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format` (if OHOS_DIR set)
+   - `<repoPath>/prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format`
+   - System PATH via `which clang-format` (Linux/macOS)
+   - System PATH via `where clang-format` (Windows)
+   - Fallback to `clang-format` command
 
-2. **Find files**
+2. **Validate clang-format availability**
+   - Run `clang-format --version` to verify accessibility
+   - Display version info in verbose mode
+   - Exit with clear error message if not available
+
+3. **Find files**
    - Glob by `paths_for_check.cpp` from configuration
    - Filter by extensions: `.cpp`, `.cc`, `.cxx`, `.c++`, `.hpp`, `.h`
+   - Display total count
 
-3. **Format each file**
+4. **Format each file with progress tracking**
    ```bash
    clang-format -style=file -assume-filename=<file> < input > output
    ```
+   
+   **Progress display:**
+   ```
+   [1/42] src/core/parser.cpp ✓
+   [2/42] src/utils/string_helper.cpp ⚠ 3 длинных
+   [3/42] src/api/handler.cpp ✗ ошибка парсинга
+   ```
+   
+   - Gray directory, white filename
+   - Green ✓ for success without long lines
+   - Yellow ⚠ for success with remaining long lines
+   - Red ✗ for errors with short description
 
-4. **Save result**
+5. **Count long lines**
+   - Before formatting (baseline)
+   - After formatting (remaining)
+   - Only for source files (skip `.h`, `.hpp` headers)
+   - Generate CSV report with remaining long lines
+
+6. **Save results**
    - In `outputDir` preserving directory structure
-   - Log to `cpp-format.log`
+   - Detailed log to `cpp-format.log`
+   - CSV report to `long_lines_cpp_remaining.csv`
+
+### Statistics Output
+
+After completion, displays comprehensive statistics:
+
+```
+══════════════════════════════════════════════════════════════════════
+Статистика форматирования C++
+══════════════════════════════════════════════════════════════════════
+Всего файлов: 42
+Успешно отформатировано: 40
+Ошибок: 2
+Длинных строк до: 156
+Длинных строк после: 23
+Исправлено: 133 (85.3%)
+Время выполнения: 00:00:12.345
+Выходная директория: ./out/fixed
+Лог: ./out/fixed/cpp-format.log
+══════════════════════════════════════════════════════════════════════
+
+! Оставшиеся длинные строки сохранены в: ./out/fixed/long_lines_cpp_remaining.csv
+
+✓ Форматирование C++ завершено
+```
 
 ### Automatic Execution
 
 When executing `line-length --fix` with `paths_for_check.cpp` section in config:
-- C++ formatting automatically runs
+- C++ formatting automatically runs after TS/ETS processing
+- Progress indicator with colored paths
+- Validation of clang-format availability
 - "Before/after" statistics collected
-- Results included in SUMMARY.md
+- Results included in summary report
+- CSV report for remaining issues
 
-### Log Format
+### Error Handling
 
+**Categorized error messages:**
+- `ENOENT` → "clang-format не найден"
+- `EACCES` → "нет прав доступа"
+- Parse errors → "ошибка парсинга"
+- Long messages → truncated to 50 chars
+
+**Detailed logging:**
 ```
-clang-format run at 2025-12-10T12:00:00.000Z
 [OK] /path/to/file.cpp -> /path/to/out/file.cpp
 [FAIL] /path/to/error.cpp
-error: unexpected token
+error: unexpected token at line 42
 status: 1
-stderr: ...
+stderr: ...detailed error output...
+[STDERR] /path/to/warning.cpp
+warning: file uses tabs instead of spaces
 ```
 
-### Result Verification
+### CSV Report Format
 
-After formatting, the following is performed:
-- Count baseline long lines (before)
-- Count remaining long lines (after)
-- Generate list of problematic lines for report
+`long_lines_cpp_remaining.csv`:
+```csv
+file,line,length
+/out/fixed/src/parser.cpp,123,145
+/out/fixed/src/utils.cpp,456,138
+```
+
+### Cross-Platform Support
+
+- **Linux/macOS:** Uses `which` to find clang-format in PATH
+- **Windows:** Uses `where` to find clang-format in PATH
+- **All platforms:** Supports explicit path via `--clang-format`
+
+### Performance Features
+
+- Progress tracking with real-time updates
+- Efficient file processing with buffering (100MB maxBuffer)
+- Execution timer with HH:MM:SS.mmm format
+- Minimal overhead for statistics collection
+
+### Integration with Library
+
+The CLI command uses the `libs/clang_formatter` library which provides:
+- `formatCpp(code, filePath, options)` — format single code snippet
+- `formatCppCode(options)` — format with full options control
+- `ClangFormatError` — typed error handling
+- Automatic clang-format path resolution
+- Strict and non-strict parsing modes
 
 ## Formatter Comparison
 

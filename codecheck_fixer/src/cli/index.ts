@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * CLI обертка для CodeCheck Fixer
+ * CLI wrapper for CodeCheck Fixer
  */
 
 import { Command } from 'commander';
@@ -13,7 +13,7 @@ import { glob } from 'glob';
 import { Orchestrator } from '../core/orchestrator';
 import { FixCoordinator } from '../core/coordinator';
 import { ProjectConfig, AnalysisConfig, FormatterConfig, PathsForCheckByType } from '../types';
-import { execFileSync, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { generateSummaryMd, writeSummary } from '../reporting/summary';
 
 const program = new Command();
@@ -101,7 +101,7 @@ function buildPatternsFromPaths(paths: string[], repoPath: string, globTail: str
       continue;
     }
 
-    // если путь указывает на файл или ещё не существует — используем как есть
+    // if path points to a file or doesn't exist yet — use as is
     patterns.push(outsideRepo ? resolvedPath : relativeBase);
   }
 
@@ -211,7 +211,7 @@ attachPathOptions(
       
       const spinner = ora('Formatting files...').start();
       
-      // Сначала анализируем файлы
+      // First analyze files
       const results = await orchestrator.analyzeProject({
         config: options.config,
         output: options.output,
@@ -222,15 +222,15 @@ attachPathOptions(
         paths: patterns,
       });
       
-      // Получаем список файлов для форматирования
+      // Get list of files for formatting
       const filesToFormat = results
         .map(result => result.filePath)
         .filter((p): p is string => !!p);
       
-      // Определяем выходную директорию
+      // Determine output directory
       const outputDir = options.output || './formatted';
       
-      // Форматируем файлы в выходную директорию
+      // Format files to output directory
       await orchestrator.formatFiles(filesToFormat, outputDir);
       
       spinner.succeed(`Formatted ${filesToFormat.length} files.`);
@@ -279,9 +279,9 @@ attachPathOptions(
       
       const allFiles = await glob(patterns, { absolute: true, nodir: true, cwd: config.repoPath });
 
-      console.log(`Найдено файлов по паттернам: ${allFiles.length}`);
+      console.log(`Found files by patterns: ${allFiles.length}`);
       if (options.verbose) {
-        console.log(`Паттерны поиска: ${patterns.join(', ')}`);
+        console.log(`Search patterns: ${patterns.join(', ')}`);
       }
 
       if (allFiles.length === 0) {
@@ -322,15 +322,15 @@ attachPathOptions(
         ignoreTemplateLiterals: options.ignoreTemplates || false,
       };
 
-      // Для dry-run по умолчанию сохраняем отчёт, если путь не задан
+      // For dry-run save report by default if path not specified
       const defaultReport = (!options.fix && !options.report) ? path.join('out', 'line-length-report.md') : undefined;
       if (defaultReport) {
         options.report = defaultReport;
       }
 
-      console.log(`Запуск обработки файлов (режим: ${options.fix ? 'исправление' : 'анализ'})...`);
+      console.log(`Running file processing (mode: ${options.fix ? 'fix' : 'analyze'})...`);
       const spinner = ora({
-        text: 'Инициализация обработки файлов...',
+        text: 'Initializing file processing...',
         spinner: 'dots'
       }).start();
       
@@ -343,109 +343,226 @@ attachPathOptions(
         writeFixLog: false
       });
 
-      spinner.stop(); // Останавливаем спиннер перед выводом прогресса
+      spinner.stop(); // Stop spinner before progress output
       await coordinator.run();
-      // Автоматический запуск cpp-format, если в конфиге есть секция cpp
+      
+      // Automatic execution of cpp-format if config has cpp section
       const hasCpp = Array.isArray((config as any).pathsForCheckByType?.cpp) && (config as any).pathsForCheckByType.cpp.length > 0;
       let cppFormatted = 0;
+      let cppFailed = 0;
       let cppBaselineLong = 0;
       let cppRemainingLong = 0;
       const cppRemainingRows: Array<{file: string; line: number; length: number}> = [];
+      
       if (hasCpp && options.fix) {
+        console.log('\n' + chalk.cyan('Running C++ formatting...'));
         try {
-          const ohosDir = process.env['OHOS_DIR'] || config.repoPath;
-          const candidate = path.resolve(ohosDir, 'prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format');
-          const clangFormat = fs.existsSync(candidate) ? candidate : 'clang-format';
-          const cppPaths = (config as any).pathsForCheckByType.cpp as string[];
-          const exts = '{cpp,cc,cxx,c++,hpp,h}';
-          const patterns = cppPaths.map(p => path.join(config.repoPath, p, `**/*.${exts}`));
-          const files = await glob(patterns, { absolute: true, nodir: true });
-          const cppFiles = files.filter(f => /\.(?:cpp|cc|cxx|c\+\+|hpp|h)$/i.test(f));
-          const outputDirForCpp = options.output || path.join('out','fixed');
-          const cppLogPath = path.join(outputDirForCpp, 'cpp-format.log');
-          fs.mkdirSync(outputDirForCpp, { recursive: true });
-          try { fs.writeFileSync(cppLogPath, `clang-format run at ${new Date().toISOString()}\n`); } catch {}
-          for (const file of cppFiles) {
+          // Find clang-format with OHOS_DIR priority
+          let clangFormat: string = '';
+          const ohosDir = process.env['OHOS_DIR'];
+          if (ohosDir) {
+            const candidate = path.resolve(ohosDir, 'prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format');
+            if (fs.existsSync(candidate)) {
+              clangFormat = candidate;
+            }
+          }
+          
+          if (!clangFormat) {
+            const candidate = path.resolve(config.repoPath, 'prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format');
+            if (fs.existsSync(candidate)) {
+              clangFormat = candidate;
+            }
+          }
+          
+          if (!clangFormat) {
             try {
-              const content = fs.readFileSync(file, 'utf-8');
-              // Базовый подсчет длинных строк в исходнике
-              const extLower = path.extname(file).toLowerCase();
-              const isHeader = extLower === '.h' || extLower === '.hpp';
-              if (!isHeader) {
-                content.split('\n').forEach((ln) => {
-                  if (ln.length > lineLengthConfig.maxLineLength) {
-                    cppBaselineLong++;
-                  }
-                });
-              }
-              const res = spawnSync(
-                clangFormat,
-                ['-style=file', `-assume-filename=${file}`],
-                { cwd: config.repoPath, input: content, encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 }
-              );
-              if (res.error) {
-                const details = [
-                  `[FAIL] ${file}`,
-                  `error: ${res.error?.message || res.error}`,
-                  `status: ${res.status}`,
-                  res.stderr ? `stderr: ${String(res.stderr).slice(0, 4000)}` : ''
-                ].filter(Boolean).join('\n') + '\n';
-                try { fs.appendFileSync(cppLogPath, details); } catch {}
-                if (options.verbose) {
-                  console.error(chalk.red(`Failed to format ${file}. See cpp-format.log for details.`));
+              const result = spawnSync('which', ['clang-format'], { encoding: 'utf-8' });
+              if (result.status === 0 && result.stdout.trim()) {
+                clangFormat = result.stdout.trim();
+              } else {
+                const resultWin = spawnSync('where', ['clang-format'], { encoding: 'utf-8' });
+                if (resultWin.status === 0 && resultWin.stdout.trim()) {
+                  clangFormat = resultWin.stdout.trim().split('\n')[0] || 'clang-format';
                 }
-                continue;
               }
-              // Лог stderr даже при успешном выполнении
-              if (res.stderr && res.stderr.length > 0) {
-                const warn = [`[STDERR] ${file}`, String(res.stderr).slice(0, 4000)].join('\n') + '\n';
-                try { fs.appendFileSync(cppLogPath, warn); } catch {}
+            } catch {
+              clangFormat = 'clang-format';
+            }
+          }
+          
+          if (!clangFormat) {
+            clangFormat = 'clang-format';
+          }
+          
+          // Check clang-format availability
+          const testResult = spawnSync(clangFormat, ['--version'], { encoding: 'utf-8' });
+          if (testResult.error || testResult.status !== 0) {
+            console.error(chalk.yellow('⚠ clang-format unavailable, skipping C++ formatting'));
+            if (options.verbose) {
+              console.error(chalk.yellow(`  Path: ${clangFormat}`));
+            }
+          } else {
+            if (options.verbose) {
+              console.log(`Using clang-format: ${clangFormat}`);
+              if (testResult.stdout) {
+                console.log(`Version: ${testResult.stdout.trim()}`);
               }
-              const formatted = res.stdout as string;
-              const rel = path.relative(config.repoPath, file);
-              const outPath = path.join(options.output || path.join('out','fixed'), rel);
-              fs.mkdirSync(path.dirname(outPath), { recursive: true });
-              fs.writeFileSync(outPath, formatted, 'utf-8');
-              cppFormatted++;
-              // Подсчет остатка длинных строк после форматирования
-              const outExtLower = path.extname(outPath).toLowerCase();
-              const outIsHeader = outExtLower === '.h' || outExtLower === '.hpp';
-              if (!outIsHeader) {
-                formatted.split('\n').forEach((ln, idx) => {
-                  if (ln.length > lineLengthConfig.maxLineLength) {
-                    cppRemainingLong++;
-                    cppRemainingRows.push({ file: outPath, line: idx + 1, length: ln.length });
+            }
+            
+            const cppPaths = (config as any).pathsForCheckByType.cpp as string[];
+            const exts = '{cpp,cc,cxx,c++,hpp,h}';
+            const patterns = cppPaths.map(p => {
+              const resolvedPath = path.resolve(config.repoPath, p);
+              const relativeBase = path.relative(config.repoPath, resolvedPath) || '.';
+              if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
+                return path.join(relativeBase, `**/*.${exts}`);
+              }
+              return relativeBase;
+            });
+            
+            const files = await glob(patterns, { absolute: true, nodir: true, cwd: config.repoPath });
+            const cppFiles = files.filter(f => /\.(?:cpp|cc|cxx|c\+\+|hpp|h)$/i.test(f));
+            
+            if (cppFiles.length === 0) {
+              console.log(chalk.yellow('No C++ files found for formatting'));
+            } else {
+              const outputDirForCpp = options.output || path.join('out','fixed');
+              const cppLogPath = path.join(outputDirForCpp, 'cpp-format.log');
+              fs.mkdirSync(outputDirForCpp, { recursive: true });
+              fs.writeFileSync(cppLogPath, `clang-format run at ${new Date().toISOString()}\n`);
+              
+              for (let i = 0; i < cppFiles.length; i++) {
+                const file = cppFiles[i];
+                if (!file) continue;
+                
+                const displayPath = path.relative(config.repoPath, file);
+                const coloredDisplayPath = (() => {
+                  const match = displayPath.match(/^(.*[\\\/])([^\\\/]+)$/);
+                  if (!match) return displayPath;
+                  const [, dir, filename] = match;
+                  return `\x1b[90m${dir}\x1b[0m${filename}`;
+                })();
+                
+                try {
+                  process.stdout.write(`[${i + 1}/${cppFiles.length}] ${coloredDisplayPath} …`);
+                  
+                  const content = fs.readFileSync(file, 'utf-8');
+                  const extLower = path.extname(file).toLowerCase();
+                  const isHeader = extLower === '.h' || extLower === '.hpp';
+                  
+                  if (!isHeader) {
+                    content.split('\n').forEach((ln) => {
+                      if (ln.length > lineLengthConfig.maxLineLength) {
+                        cppBaselineLong++;
+                      }
+                    });
                   }
-                });
+                  
+                  const res = spawnSync(
+                    clangFormat,
+                    ['-style=file', `-assume-filename=${file}`],
+                    { cwd: config.repoPath, input: content, encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 }
+                  );
+                  
+                  if (res.error) {
+                    const errorMsg = res.error?.message || String(res.error);
+                    const shortError = errorMsg.includes('ENOENT') 
+                      ? 'clang-format not found'
+                      : errorMsg.includes('EACCES')
+                      ? 'no access permissions'
+                      : errorMsg.length > 50 
+                      ? errorMsg.substring(0, 47) + '...'
+                      : errorMsg;
+                    
+                    const details = [
+                      `[FAIL] ${file}`,
+                      `error: ${errorMsg}`,
+                      `status: ${res.status}`,
+                      res.stderr ? `stderr: ${String(res.stderr).slice(0, 4000)}` : ''
+                    ].filter(Boolean).join('\n') + '\n';
+                    fs.appendFileSync(cppLogPath, details);
+                    cppFailed++;
+                    process.stdout.write(`\r[${i + 1}/${cppFiles.length}] ${coloredDisplayPath} ${chalk.red(`✗ ${shortError}`)}\n`);
+                    continue;
+                  }
+                  
+                  if (res.stderr && res.stderr.length > 0) {
+                    const warn = [`[STDERR] ${file}`, String(res.stderr).slice(0, 4000)].join('\n') + '\n';
+                    fs.appendFileSync(cppLogPath, warn);
+                  }
+                  
+                  const formatted = res.stdout as string;
+                  const rel = path.relative(config.repoPath, file);
+                  const outPath = path.join(outputDirForCpp, rel);
+                  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+                  fs.writeFileSync(outPath, formatted, 'utf-8');
+                  cppFormatted++;
+                  
+                  const outExtLower = path.extname(outPath).toLowerCase();
+                  const outIsHeader = outExtLower === '.h' || outExtLower === '.hpp';
+                  let remainingInFile = 0;
+                  
+                  if (!outIsHeader) {
+                    formatted.split('\n').forEach((ln, idx) => {
+                      if (ln.length > lineLengthConfig.maxLineLength) {
+                        cppRemainingLong++;
+                        remainingInFile++;
+                        cppRemainingRows.push({ file: outPath, line: idx + 1, length: ln.length });
+                      }
+                    });
+                  }
+                  
+                  fs.appendFileSync(cppLogPath, `[OK] ${file} -> ${outPath}\n`);
+                  
+                  const statusColor = remainingInFile > 0 ? chalk.yellow : chalk.green;
+                  const statusText = remainingInFile > 0 ? `⚠ ${remainingInFile} long` : '✓';
+                  process.stdout.write(`\r[${i + 1}/${cppFiles.length}] ${coloredDisplayPath} ${statusColor(statusText)}\n`);
+                  
+                } catch (err: any) {
+                  const errorMsg = err?.message || String(err);
+                  const shortError = errorMsg.includes('ENOENT')
+                    ? 'file not found'
+                    : errorMsg.includes('EACCES')
+                    ? 'no access permissions'
+                    : errorMsg.includes('parse')
+                    ? 'parsing error'
+                    : errorMsg.length > 50
+                    ? errorMsg.substring(0, 47) + '...'
+                    : errorMsg;
+                  
+                  const details = [
+                    `[FAIL] ${file}`,
+                    err?.message ? `message: ${err.message}` : '',
+                    err?.status !== undefined ? `status: ${err.status}` : '',
+                    err?.signal ? `signal: ${err.signal}` : '',
+                    err?.stderr ? `stderr: ${String(err.stderr).slice(0, 4000)}` : ''
+                  ].filter(Boolean).join('\n') + '\n';
+                  fs.appendFileSync(cppLogPath, details);
+                  cppFailed++;
+                  process.stdout.write(`\r[${i + 1}/${cppFiles.length}] ${coloredDisplayPath} ${chalk.red(`✗ ${shortError}`)}\n`);
+                }
               }
-              try { fs.appendFileSync(cppLogPath, `[OK] ${file} -> ${outPath}\n`); } catch {}
-            } catch (err: any) {
-              const details = [
-                `[FAIL] ${file}`,
-                err?.message ? `message: ${err.message}` : '',
-                err?.status !== undefined ? `status: ${err.status}` : '',
-                err?.signal ? `signal: ${err.signal}` : '',
-                err?.stderr ? `stderr: ${String(err.stderr).slice(0, 4000)}` : ''
-              ].filter(Boolean).join('\n') + '\n';
-              try { fs.appendFileSync(cppLogPath, details); } catch {}
-              if (options.verbose) {
-                console.error(chalk.red(`Failed to format ${file}. See cpp-format.log for details.`));
+              
+              console.log(chalk.green(`\n✓ C++ formatting complete: ${cppFormatted}/${cppFiles.length} files`));
+              if (cppFailed > 0) {
+                console.log(chalk.yellow(`  Errors: ${cppFailed}, see ${cppLogPath}`));
               }
             }
           }
         } catch (err) {
-          if (options.verbose) {
-            console.error(chalk.red('cpp-format auto-run failed:'), err);
+          console.error(chalk.red('Error during C++ formatting:'), err);
+          if (options.verbose && err instanceof Error) {
+            console.error(err.stack);
           }
         }
       }
 
-      // Генерация Markdown-отчёта с метриками до/после
+      // Generate Markdown report with before/after metrics
       const outputDir = options.output || path.join('out','fixed');
       const analysis = coordinator.getAnalysisResults();
       const changes = coordinator.getChangeLog();
 
-      // Пост-скан отформатированных TS/ETS файлов для точного остатка
+      // Post-scan formatted TS/ETS files for accurate remaining count
       let tsRemainingCount = 0;
       let tsBaselineCount = 0;
       let tsFilesWithIssuesBeforeCount = 0;
@@ -459,7 +576,7 @@ attachPathOptions(
         const issues = r.issues.filter(i => i.rule === 'line-length');
         if (issues.length > 0) tsFilesWithIssuesBeforeCount++;
         tsBaselineCount += issues.length;
-        // Просканируем соответствующий выходной файл, если он был записан
+        // Scan corresponding output file if it was written
         if (!r.filePath) { continue; }
         const rel = path.relative(config.repoPath, r.filePath);
         const outPath = path.join(outputDir, rel);
@@ -476,7 +593,7 @@ attachPathOptions(
         }
       }
 
-      // Общее количество обработанных файлов = TS/ETS + C++
+      // Total processed files = TS/ETS + C++
       const filesProcessed = allFiles.length + (hasCpp ? cppFormatted : 0);
 
       const md = generateSummaryMd({
@@ -508,7 +625,8 @@ attachPathOptions(
 )
   .description('Format C/C++ files using clang-format based on config paths')
   .option('-c, --config <path>', 'Path to configuration file')
-  .option('-o, --output <path>', 'Output directory for formatted files (writes in-place if omitted)')
+  .option('-o, --output <path>', 'Output directory for formatted files', './out/fixed')
+  .option('-l, --max-length <number>', 'Maximum line length for statistics (default: 120)')
   .option('--clang-format <path>', 'Path to clang-format binary')
   .option('-v, --verbose', 'Verbose output')
   .action(async (options: any) => {
@@ -533,55 +651,252 @@ attachPathOptions(
 
       const files = await glob(patterns, { absolute: true, nodir: true, cwd: config.repoPath });
       const cppFiles = files.filter(f => /\.(?:cpp|cc|cxx|c\+\+|hpp|h)$/i.test(f));
-      if (options.verbose) {
-      }
+      
+      console.log(`Found C++ files: ${cppFiles.length}`);
+      
       if (cppFiles.length === 0) {
         console.error(chalk.yellow('No C/C++ files matched the provided paths.'));
         return;
       }
 
       // Determine clang-format path
-      let clangFormat = options.clangFormat as string | undefined;
+      let clangFormat: string = options.clangFormat as string | undefined || '';
+      
       if (!clangFormat) {
-        const ohosDir = process.env['OHOS_DIR'] || config.repoPath;
-        const candidate = path.resolve(ohosDir, 'prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format');
-        clangFormat = fs.existsSync(candidate) ? candidate : 'clang-format';
+        // 1. Check OHOS_DIR (if set)
+        const ohosDir = process.env['OHOS_DIR'];
+        if (ohosDir) {
+          const candidate = path.resolve(ohosDir, 'prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format');
+          if (fs.existsSync(candidate)) {
+            clangFormat = candidate;
+          }
+        }
+        
+        // 2. Check in repoPath (standard OHOS SDK location)
+        if (!clangFormat) {
+          const candidate = path.resolve(config.repoPath, 'prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format');
+          if (fs.existsSync(candidate)) {
+            clangFormat = candidate;
+          }
+        }
+        
+        // 3. Check in system PATH
+        if (!clangFormat) {
+          try {
+            const result = spawnSync('which', ['clang-format'], { encoding: 'utf-8' });
+            if (result.status === 0 && result.stdout.trim()) {
+              clangFormat = result.stdout.trim();
+            } else {
+              // Fallback for Windows
+              const resultWin = spawnSync('where', ['clang-format'], { encoding: 'utf-8' });
+              if (resultWin.status === 0 && resultWin.stdout.trim()) {
+                clangFormat = resultWin.stdout.trim().split('\n')[0] || 'clang-format';
+              }
+            }
+          } catch {
+            // If which/where don't work, use command name
+            clangFormat = 'clang-format';
+          }
+        }
+        
+        // 4. If still not found, use command name as fallback
+        if (!clangFormat) {
+          clangFormat = 'clang-format';
+        }
       }
+      
+      const clangFormatFinal = clangFormat;
+      
       if (options.verbose) {
+        console.log(`Using clang-format: ${clangFormatFinal}`);
+      }
+      
+      // Check clang-format availability
+      try {
+        const testResult = spawnSync(clangFormatFinal, ['--version'], { encoding: 'utf-8' });
+        if (testResult.error || testResult.status !== 0) {
+          console.error(chalk.red(`✗ clang-format unavailable: ${clangFormatFinal}`));
+          console.error(chalk.yellow('Install clang-format or specify path via --clang-format'));
+          process.exit(1);
+        }
+        if (options.verbose && testResult.stdout) {
+          console.log(`clang-format version: ${testResult.stdout.trim()}`);
+        }
+      } catch (err: any) {
+        console.error(chalk.red(`✗ Failed to run clang-format: ${clangFormatFinal}`));
+        console.error(chalk.yellow(`Error: ${err.message}`));
+        console.error(chalk.yellow('Install clang-format or specify path via --clang-format'));
+        process.exit(1);
       }
 
-      const outDir = options.output as string | undefined;
-      const writeFormatted = (file: string, formatted: string) => {
-        if (outDir) {
-          const rel = path.relative(config.repoPath, file);
-          const outPath = path.join(outDir, rel);
-          fs.mkdirSync(path.dirname(outPath), { recursive: true });
-          fs.writeFileSync(outPath, formatted, 'utf-8');
-        } else {
-          // Если outDir не указан, по требованиям проекта исходники не должны изменяться
-          // Поэтому по умолчанию пишем рядом во временную структуру under ./out/fixed
-          const rel = path.relative(config.repoPath, file);
-          const outPath = path.join('out', 'fixed', rel);
-          fs.mkdirSync(path.dirname(outPath), { recursive: true });
-          fs.writeFileSync(outPath, formatted, 'utf-8');
-        }
-      };
+      const outputDir: string = options.output || path.join('out', 'fixed');
+      const maxLineLength = parseInt(options.maxLength, 10) || config.formatting?.maxLineLength || 120;
+      
+      // Statistics
+      let cppFormatted = 0;
+      let cppFailed = 0;
+      let cppBaselineLong = 0;
+      let cppRemainingLong = 0;
+      const cppRemainingRows: Array<{file: string; line: number; length: number}> = [];
+      
+      const cppLogPath: string = path.join(outputDir, 'cpp-format.log');
+      fs.mkdirSync(outputDir, { recursive: true });
+      fs.writeFileSync(cppLogPath, `clang-format run at ${new Date().toISOString()}\n`);
 
-      for (const file of cppFiles) {
+      console.log(`Running C++ formatting...`);
+      const startTime = Date.now();
+
+      for (let i = 0; i < cppFiles.length; i++) {
+        const file = cppFiles[i];
+        if (!file) continue;
+        
+        const displayPath = path.relative(config.repoPath, file);
+        const coloredDisplayPath = (() => {
+          const match = displayPath.match(/^(.*[\\\/])([^\\\/]+)$/);
+          if (!match) return displayPath;
+          const [, dir, filename] = match;
+          return `\x1b[90m${dir}\x1b[0m${filename}`;
+        })();
+
         try {
+          process.stdout.write(`[${i + 1}/${cppFiles.length}] ${coloredDisplayPath} …`);
+
           const content = fs.readFileSync(file, 'utf-8');
-          const formatted = execFileSync(
-            clangFormat,
+          
+          // Count long lines in source (only for .cpp/.cc/.cxx/.c++, not for headers)
+          const extLower = path.extname(file).toLowerCase();
+          const isHeader = extLower === '.h' || extLower === '.hpp';
+          if (!isHeader) {
+            content.split('\n').forEach((ln) => {
+              if (ln.length > maxLineLength) {
+                cppBaselineLong++;
+              }
+            });
+          }
+
+          const res = spawnSync(
+            clangFormatFinal,
             ['-style=file', `-assume-filename=${file}`],
-            { cwd: config.repoPath, encoding: 'utf-8', input: content }
+            { cwd: config.repoPath, input: content, encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 }
           );
-          writeFormatted(file, formatted);
-        } catch (err) {
-          console.error(chalk.red(`Failed to format ${file}:`), err);
+
+          if (res.error) {
+            const errorMsg = res.error?.message || String(res.error);
+            const shortError = errorMsg.includes('ENOENT') 
+              ? 'clang-format not found'
+              : errorMsg.includes('EACCES')
+              ? 'no access permissions'
+              : errorMsg.length > 50 
+              ? errorMsg.substring(0, 47) + '...'
+              : errorMsg;
+            
+            const details = [
+              `[FAIL] ${file}`,
+              `error: ${errorMsg}`,
+              `status: ${res.status}`,
+              res.stderr ? `stderr: ${String(res.stderr).slice(0, 4000)}` : ''
+            ].filter(Boolean).join('\n') + '\n';
+            fs.appendFileSync(cppLogPath, details);
+            cppFailed++;
+            process.stdout.write(`\r[${i + 1}/${cppFiles.length}] ${coloredDisplayPath} ${chalk.red(`✗ ${shortError}`)}\n`);
+            continue;
+          }
+
+          // Log stderr even on successful execution
+          if (res.stderr && res.stderr.length > 0) {
+            const warn = [`[STDERR] ${file}`, String(res.stderr).slice(0, 4000)].join('\n') + '\n';
+            fs.appendFileSync(cppLogPath, warn);
+          }
+
+          const formatted = res.stdout as string;
+          const rel = path.relative(config.repoPath, file);
+          const outPath = path.join(outputDir, rel);
+          fs.mkdirSync(path.dirname(outPath), { recursive: true });
+          fs.writeFileSync(outPath, formatted, 'utf-8');
+          cppFormatted++;
+
+          // Count remaining long lines after formatting
+          const outExtLower = path.extname(outPath).toLowerCase();
+          const outIsHeader = outExtLower === '.h' || outExtLower === '.hpp';
+          let remainingInFile = 0;
+          if (!outIsHeader) {
+            formatted.split('\n').forEach((ln, idx) => {
+              if (ln.length > maxLineLength) {
+                cppRemainingLong++;
+                remainingInFile++;
+                cppRemainingRows.push({ file: outPath, line: idx + 1, length: ln.length });
+              }
+            });
+          }
+
+          fs.appendFileSync(cppLogPath, `[OK] ${file} -> ${outPath}\n`);
+          
+          const statusColor = remainingInFile > 0 ? chalk.yellow : chalk.green;
+          const statusText = remainingInFile > 0 ? `⚠ ${remainingInFile} long` : '✓';
+          process.stdout.write(`\r[${i + 1}/${cppFiles.length}] ${coloredDisplayPath} ${statusColor(statusText)}\n`);
+
+        } catch (err: any) {
+          const errorMsg = err?.message || String(err);
+          const shortError = errorMsg.includes('ENOENT')
+            ? 'file not found'
+            : errorMsg.includes('EACCES')
+            ? 'no access permissions'
+            : errorMsg.includes('parse')
+            ? 'parsing error'
+            : errorMsg.length > 50
+            ? errorMsg.substring(0, 47) + '...'
+            : errorMsg;
+          
+          const details = [
+            `[FAIL] ${file}`,
+            err?.message ? `message: ${err.message}` : '',
+            err?.status !== undefined ? `status: ${err.status}` : '',
+            err?.signal ? `signal: ${err.signal}` : '',
+            err?.stderr ? `stderr: ${String(err.stderr).slice(0, 4000)}` : ''
+          ].filter(Boolean).join('\n') + '\n';
+          fs.appendFileSync(cppLogPath, details);
+          cppFailed++;
+          process.stdout.write(`\r[${i + 1}/${cppFiles.length}] ${coloredDisplayPath} ${chalk.red(`✗ ${shortError}`)}\n`);
         }
       }
 
-      outDir || path.join('out', 'fixed');
+      const totalDuration = (Date.now() - startTime) / 1000;
+      const hours = Math.floor(totalDuration / 3600);
+      const minutes = Math.floor((totalDuration % 3600) / 60);
+      const seconds = totalDuration % 60;
+      const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${seconds.toFixed(3).padStart(6, '0')}`;
+
+      console.log('\n' + '═'.repeat(70));
+      console.log(chalk.bold('C++ Formatting Statistics'));
+      console.log('═'.repeat(70));
+      console.log(`Total files: ${cppFiles.length}`);
+      console.log(`Successfully formatted: ${chalk.green(cppFormatted)}`);
+      if (cppFailed > 0) {
+        console.log(`Errors: ${chalk.red(cppFailed)}`);
+      }
+      console.log(`Long lines before: ${cppBaselineLong}`);
+      console.log(`Long lines after: ${cppRemainingLong > 0 ? chalk.yellow(cppRemainingLong) : chalk.green(cppRemainingLong)}`);
+      if (cppBaselineLong > 0) {
+        const fixed = cppBaselineLong - cppRemainingLong;
+        const percent = ((fixed / cppBaselineLong) * 100).toFixed(1);
+        console.log(`Fixed: ${chalk.green(fixed)} (${percent}%)`);
+      }
+      console.log(`Execution time: ${formattedTime}`);
+      console.log(`Output directory: ${outputDir}`);
+      console.log(`Log: ${cppLogPath}`);
+      console.log('═'.repeat(70));
+
+      // Save CSV with remaining long lines
+      if (cppRemainingRows.length > 0) {
+        const csvPath = path.join(outputDir, 'long_lines_cpp_remaining.csv');
+        const csvContent = 'file,line,length\n' + 
+          cppRemainingRows.map(r => `${r.file},${r.line},${r.length}`).join('\n');
+        fs.writeFileSync(csvPath, csvContent);
+        console.log(`\n${chalk.yellow('!')} Remaining long lines saved to: ${csvPath}`);
+      }
+
+      console.log(`\n${chalk.green('✓')} C++ formatting complete`);
+
     } catch (error) {
       console.error(chalk.red('Error during cpp-format:'), error);
       process.exit(1);
@@ -616,7 +931,7 @@ attachPathOptions(
       
       const spinner = ora('Analyzing and fixing files...').start();
       
-      // Создаем временную конфигурацию для line-length, т.к. fix теперь синоним
+      // Create temporary configuration for line-length, as fix is now a synonym
       const lineLengthConfig = {
         maxLineLength: config.formatting.maxLineLength || 120,
         ignoreUrls: false,
@@ -654,25 +969,25 @@ async function loadConfig(configPath?: string, overrides?: CliPathOverrides): Pr
     configData = JSON.parse(configContent);
   }
   
-  // Создаем конфигурацию по умолчанию
+  // Create default configuration
   const defaultAnalysisConfig: AnalysisConfig = {
-    /** правила анализа, сейчас не используется. На выбор правил не влияет. */
+    /** analysis rules, currently not used. Does not affect rule selection. */
     rules: [
       { name: 'syntax_errors', enabled: true, severity: 'error' as any },
       { name: 'type_errors', enabled: true, severity: 'error' as any },
       { name: 'style_violations', enabled: true, severity: 'warning' as any },
       { name: 'best_practices', enabled: true, severity: 'warning' as any }
     ],
-    /** включаем файлы для анализа, сейчас не используется. На выбор файлов не влияет. */
+    /** include files for analysis, currently not used. Does not affect file selection. */
     includePatterns: ['**/*.ts', '**/*.tsx', '**/*.cpp', '**/*.hpp'],
-    /** исключаем директории для анализа
-     * используется в Orchestrator.shouldAnalyzeFile для отбрасывания путей по подстроке;
-     * исключает файлы, чьи пути содержат указанные фрагменты (не glob-матчинг).
+    /** exclude directories for analysis
+     * used in Orchestrator.shouldAnalyzeFile to filter out paths by substring;
+     * excludes files whose paths contain specified fragments (not glob-matching).
      */
     excludePatterns: ['node_modules/**', 'dist/**', 'build/**'],
-    /** 1MB максимальный размер файла для анализа */
+    /** 1MB maximum file size for analysis */
     maxFileSize: 1024 * 1024,
-    /** 30 seconds таймаут для анализа файла, пока не используется/не применяется */
+    /** 30 seconds timeout for file analysis, currently not used/enforced */
     timeout: 30000
   };
   
@@ -744,7 +1059,7 @@ function mapFormattingConfig(userFmt: any | undefined): Partial<FormatterConfig>
   return mapped;
 }
 
-// Обработка ошибок
+// Error handling
 process.on('uncaughtException', (error: Error) => {
   console.error(chalk.red('Uncaught Exception:'), error);
   process.exit(1);
@@ -754,5 +1069,5 @@ process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
   console.error(chalk.red('Unhandled Rejection at:'), promise, chalk.red('reason:'), reason);
   process.exit(1);
 });
-// Точка входа в программу
+// Program entry point
 program.parse();

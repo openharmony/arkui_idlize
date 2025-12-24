@@ -164,40 +164,105 @@ Specialized command for working with long lines.
 
 ### cpp-format - C++ Formatting
 
-Formats C++ files via clang-format.
+Formats C++ files via clang-format with comprehensive progress tracking and statistics.
 
 **Syntax:**
 ```bash
-./run.sh cpp-format --repo /path/to/repo --cpp native/ -c config.json [options]
+./run.sh cpp-format -c config.json [options]
 ```
 
-**Path Options:**
-- `--repo <path>` - repository root path (required or from config)
-- `--cpp <paths...>` - C/C++ paths
-
-**Other Options:**
+**Options:**
 - `-c, --config <path>` - path to configuration (required)
-- `-o, --output <path>` - directory for formatted files
-- `--clang-format <path>` - path to clang-format binary
-- `-v, --verbose` - verbose output
+- `-o, --output <path>` - directory for formatted files (default: `./out/fixed`)
+- `-l, --max-length <number>` - maximum line length for statistics (default: 120)
+- `--clang-format <path>` - explicit path to clang-format binary
+- `-v, --verbose` - verbose output with version info and progress details
+
+**Clang-format Discovery (priority order):**
+1. User-specified via `--clang-format` option
+2. `$OHOS_DIR/prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format`
+3. `<repoPath>/prebuilts/clang/ohos/linux-x86_64/llvm/bin/clang-format`
+4. System PATH (via `which`/`where`)
+5. Fallback to `clang-format` command
 
 **Examples:**
 ```bash
-# Standard run with paths from CLI
-./run.sh cpp-format --repo /abs/repo --cpp native/src/ -c config.json -o ./out/fixed
-
 # Standard run with paths from config
 ./run.sh cpp-format -c config.json -o ./out/fixed
 
-# With custom clang-format
-./run.sh cpp-format --repo /abs/repo --cpp native/ -c config.json --clang-format /path/to/clang-format
+# With verbose output and version info
+./run.sh cpp-format -c config.json -o ./out/fixed --verbose
+
+# Custom line length threshold
+./run.sh cpp-format -c config.json -l 100
+
+# With custom clang-format path
+./run.sh cpp-format -c config.json --clang-format /custom/path/to/clang-format
+
+# Minimal run (uses defaults)
+./run.sh cpp-format -c config.json
 ```
 
-**Result:**
-- Formatted C++ files in `outputDir`
-- Formatting log: `outputDir/cpp-format.log`
+**Progress Display:**
+```
+Найдено C++ файлов: 42
+Используется clang-format: /path/to/clang-format
+Версия clang-format: clang-format version 15.0.0
+Запуск форматирования C++ файлов...
+[1/42] src/core/parser.cpp ✓
+[2/42] src/utils/string_helper.cpp ⚠ 3 длинных
+[3/42] src/api/handler.cpp ✗ ошибка парсинга
+...
+```
 
-**Note:** When running `line-length --fix` with C++ paths in configuration, cpp-format runs automatically.
+**Statistics Output:**
+```
+══════════════════════════════════════════════════════════════════════
+Статистика форматирования C++
+══════════════════════════════════════════════════════════════════════
+Всего файлов: 42
+Успешно отформатировано: 40
+Ошибок: 2
+Длинных строк до: 156
+Длинных строк после: 23
+Исправлено: 133 (85.3%)
+Время выполнения: 00:00:12.345
+Выходная директория: ./out/fixed
+Лог: ./out/fixed/cpp-format.log
+══════════════════════════════════════════════════════════════════════
+
+! Оставшиеся длинные строки сохранены в: ./out/fixed/long_lines_cpp_remaining.csv
+
+✓ Форматирование C++ завершено
+```
+
+**Result Files:**
+- Formatted C++ files in `outputDir` (preserving directory structure)
+- Detailed log: `outputDir/cpp-format.log`
+  - `[OK]` entries for successful formatting
+  - `[FAIL]` entries with detailed error info
+  - `[STDERR]` entries for warnings
+- CSV report: `outputDir/long_lines_cpp_remaining.csv`
+  - Columns: `file,line,length`
+  - Lists all remaining long lines after formatting
+
+**Error Handling:**
+- Validates clang-format availability before processing
+- Categorizes errors: ENOENT, EACCES, parse errors
+- Continues processing remaining files on error
+- Detailed error logging to cpp-format.log
+
+**Features:**
+- ✅ Real-time progress tracking with colored paths
+- ✅ Line length statistics (before/after)
+- ✅ Execution timer (HH:MM:SS.mmm)
+- ✅ CSV report for remaining long lines
+- ✅ Cross-platform support (Linux/macOS/Windows)
+- ✅ Smart clang-format discovery
+- ✅ Version display in verbose mode
+- ✅ Skips headers (.h, .hpp) in line statistics
+
+**Note:** When running `line-length --fix` with C++ paths in configuration, cpp-format runs automatically after TS/ETS processing with the same enhanced features.
 
 ### fix - Comprehensive Fixing
 

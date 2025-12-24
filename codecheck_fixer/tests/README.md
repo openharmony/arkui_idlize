@@ -115,8 +115,89 @@ For integration checks, use the `run.sh` script with repository and path argumen
 **C/C++ formatting:**
 
 ```bash
-./run.sh cpp-format --repo /abs/repo --cpp native/src -c config.json --output out/formatted -v
+./run.sh cpp-format -c config.json --output out/formatted --verbose
+./run.sh cpp-format -c config.json -l 100 --verbose  # Custom line length
 ```
+
+## C++ Testing
+
+### Quick Test with Fixtures
+
+Run C++ formatting test on fixture files:
+
+```bash
+./run_test_single_real_cpp.sh
+```
+
+This script:
+1. Builds the project
+2. Formats C++ files from `tests/fixtures/input/cpp/`
+3. Saves results to `tests/fixtures/output/cpp/`
+4. Analyzes long lines (>120 chars)
+5. Compares with expected results (if available)
+
+### Fix and Update Expected
+
+To format fixtures and update expected results:
+
+```bash
+./run_fix_cpp.sh
+```
+
+This script:
+1. Formats C++ fixtures
+2. Shows differences with input files
+3. Prompts to update `tests/fixtures/expected/cpp/`
+4. Provides git commands for committing
+
+### C++ Test Fixtures
+
+Located in `tests/fixtures/input/cpp/`:
+- `long_lines.cpp` — File with long lines requiring reformatting
+- `bad_formatting.cpp` — File with poor spacing and indentation
+- `complex_template.cpp` — Complex C++ templates and SFINAE
+- `simple_header.hpp` — Header file with include guards
+- `comments_doc.cpp` — Various comment styles and documentation
+
+### Adding New C++ Fixtures
+
+1. Create input file:
+   ```bash
+   # Add your test file
+   cat > tests/fixtures/input/cpp/my_test.cpp << 'EOF'
+   // Your C++ code here
+   EOF
+   ```
+
+2. Run formatting:
+   ```bash
+   ./run_test_single_real_cpp.sh
+   ```
+
+3. Review output:
+   ```bash
+   cat tests/fixtures/output/cpp/my_test.cpp
+   ```
+
+4. Update expected:
+   ```bash
+   ./run_fix_cpp.sh
+   # Answer 'y' to update expected files
+   ```
+
+5. Commit:
+   ```bash
+   git add tests/fixtures/input/cpp/my_test.cpp
+   git add tests/fixtures/expected/cpp/my_test.cpp
+   git commit -s -m "test: add C++ formatting fixture my_test"
+   ```
+
+### C++ Test Configurations
+
+- `tests/test_single_real_cpp.json` — Configuration for fixture tests
+- `tests/test_fix_cpp.json` — Configuration for fix workflow
+
+Both configs point to `tests/fixtures/input/cpp/` directory.
 
 **Important notes:**
 - All commands now require `--repo` to specify the repository root

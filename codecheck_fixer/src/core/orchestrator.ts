@@ -1,5 +1,5 @@
 /**
- * Оркестратор для анализа и форматирования кода
+ * Orchestrator for code analysis and formatting
  */
 
 import * as fs from 'fs';
@@ -56,7 +56,7 @@ export class Orchestrator {
   async analyzeProject(options: CliOptions): Promise<AnalysisResult[]> {
     const allFiles: string[] = [];
     
-    // Собираем все файлы для анализа
+    // Collect all files for analysis
     for (const pattern of options.paths) {
       const files = await glob(pattern, { 
         cwd: this.projectConfig.repoPath,
@@ -65,7 +65,7 @@ export class Orchestrator {
       allFiles.push(...files);
     }
     
-    // Фильтруем файлы по типам
+    // Filter files by type
     const filteredFiles = allFiles.filter(file => 
       this.shouldAnalyzeFile(file)
     );
@@ -89,7 +89,7 @@ export class Orchestrator {
       case '.h':
         return this.analyzeCpp(filePath, content);
       default:
-        // Возвращаем пустой результат для неподдерживаемых файлов вместо ошибки
+        // Return empty result for unsupported files instead of error
         return {
           filePath,
           issues: [],
@@ -163,15 +163,15 @@ export class Orchestrator {
         const content = fs.readFileSync(filePath, 'utf-8');
         const formatted = await this.formatFile(filePath, content);
         
-        // Создаем путь для исправленного файла, сохраняя структуру каталогов
+        // Create path for fixed file, preserving directory structure
         const relativePath = path.relative(process.cwd(), filePath);
         const outputPath = path.join(outputDir, relativePath);
         
-        // Создаем директории если нужно
+        // Create directories if needed
         const outputDirPath = path.dirname(outputPath);
         fs.mkdirSync(outputDirPath, { recursive: true });
         
-        // Записываем исправленный файл
+        // Write fixed file
         fs.writeFileSync(outputPath, formatted);
       } catch (error) {
         console.error(`Error formatting file ${filePath}:`, error);
@@ -194,9 +194,9 @@ export class Orchestrator {
       case '.c++':
       case '.hpp':
       case '.h':
-        return this.formatCpp(content);
+        return this.formatCpp(filePath, content);
       default:
-        // Возвращаем исходный контент для неподдерживаемых файлов
+        // Return original content for unsupported files
         return content;
     }
   }
@@ -211,7 +211,7 @@ export class Orchestrator {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.warn(
-        `[prettier] Не удалось отформатировать ${filePath}. Переключаюсь на ArkTS-форматтер. Причина: ${message}`
+        `[prettier] Failed to format ${filePath}. Switching to ArkTS formatter. Reason: ${message}`
       );
       return this.formatWithArkTsFallback(content, extension);
     }
@@ -268,9 +268,25 @@ export class Orchestrator {
     return formatter.format(content);
   }
 
-  private async formatCpp(content: string): Promise<string> {
-    const formatter = new CppFormatter(this.formatterConfig);
-    return formatter.format(content);
+  private async formatCpp(filePath: string, content: string): Promise<string> {
+    // Try to use clang-format from libs/clang_formatter
+    try {
+      const { formatCppCode } = await import('../../libs/clang_formatter/formatter');
+      return formatCppCode({
+        code: content,
+        filePath: filePath,
+        repoPath: this.projectConfig.repoPath,
+        strictParsing: false,
+        onFormattingError: (error) => {
+          // Silently ignore errors and fallback to basic formatter
+          throw error;
+        }
+      });
+    } catch (error) {
+      // Fallback to basic formatter if clang-format is not available
+      const formatter = new CppFormatter(this.formatterConfig);
+      return formatter.format(content);
+    }
   }
 
   private shouldAnalyzeFile(filePath: string): boolean {
@@ -281,13 +297,13 @@ export class Orchestrator {
       return false;
     }
     
-    // Проверяем размер файла
+    // Check file size
     const stats = fs.statSync(filePath);
     if (stats.size > this.analysisConfig.maxFileSize) {
       return false;
     }
     
-    // Проверяем исключения
+    // Check exclusions
     for (const excludePattern of this.analysisConfig.excludePatterns) {
       if (filePath.includes(excludePattern)) {
         return false;
