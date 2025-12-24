@@ -1016,8 +1016,7 @@ class ConvertorItem {
     constructor(
         public convertor: ArgConvertor,
         public index: number,
-        public type: idl.IDLType,
-        public elemName?: string
+        public type: idl.IDLType
     ) {
     }
 }
@@ -1048,9 +1047,9 @@ export class UnionConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const convertorItems = this.memberConvertors.map((it, index) => new ConvertorItem(it, index, getSourceType(it)))
         if (this.isIndexedDiscriminator(printer))
-            return printer.makeMultiBranchCondition(convertorItems.map(it => this.makeBranch(param, value, printer, it)));
+            return printer.makeMultiBranchCondition(convertorItems.map(it => this.makeBranch(param, value, value, printer, it)));
         // Make arrays type descrimination
-        return this.convertorSerializeMultiBranch(param, value, printer, convertorItems)
+        return this.convertorSerializeMultiBranch(param, value, value, printer, convertorItems)
     }
     makeStoreSelector(param: string, index: number, printer: LanguageWriter): LanguageStatement {
         return printer.makeStatement(
@@ -1060,18 +1059,18 @@ export class UnionConvertor extends BaseArgConvertor {
             )
         )
     }
-    makeBranch(param: string, value: string, printer: LanguageWriter, convertorItem: ConvertorItem): BranchStatement {
+    makeBranch(param: string, value: string, array: string, printer: LanguageWriter, convertorItem: ConvertorItem): BranchStatement {
         const convertor = convertorItem.convertor
         const index = convertorItem.index
         const type = convertorItem.type
-        const discriminator = this.unionChecker.makeDiscriminator(convertorItem.elemName ?? value, index, printer, this.library, type)
+        const discriminator = this.unionChecker.makeDiscriminator(value, index, printer, this.library, type)
         const statements: LanguageStatement[] = []
         statements.push(this.makeStoreSelector(param, index, printer))
         if (!(convertor instanceof UndefinedConvertor)) {
-            const varName = `${value}ForIdx${index}`
+            const varName = `${array}ForIdx${index}`
             statements.push(
                 printer.makeAssign(varName, undefined,
-                    printer.makeUnionVariantCast(convertor.getObjectAccessor(printer.language, value), printer.getNodeName(getSourceType(convertor)), convertor, index), true)
+                    printer.makeUnionVariantCast(convertor.getObjectAccessor(printer.language, array), printer.getNodeName(getSourceType(convertor)), convertor, index), true)
             )
             statements.push(convertor.convertorSerialize(param, varName, printer))
         }
@@ -1079,7 +1078,7 @@ export class UnionConvertor extends BaseArgConvertor {
         const stmt = new BlockStatement(statements, false)
         return { expr: discriminator, stmt }
     }
-    makeArrayBranch(param: string, value: string, printer: LanguageWriter, arrayConvertorItems: ConvertorItem[]): BranchStatement[] {
+    makeArrayBranch(param: string, value: string, array: string, printer: LanguageWriter, arrayConvertorItems: ConvertorItem[]): BranchStatement[] {
         if (arrayConvertorItems.length == 0) return []
 
         const arrayConvertorItem = arrayConvertorItems[0]
@@ -1094,22 +1093,22 @@ export class UnionConvertor extends BaseArgConvertor {
             ], true, false),
             new BlockStatement([
                 printer.makeAssign(elemName, undefined, elemAccess, true, true),
-                this.convertorSerializeMultiBranch(param, value, printer, arrayConvertorItems.map(it =>
-                    new ConvertorItem(it.convertor, it.index, (it.type as idl.IDLContainerType).elementType[0], elemName)))
+                this.convertorSerializeMultiBranch(param, elemName, array, printer, arrayConvertorItems.map(it =>
+                    new ConvertorItem(it.convertor, it.index, (it.type as idl.IDLContainerType).elementType[0])))
             ], true, false)
         )
         const arrayMultiBranch: BranchStatement = {
-            expr: this.unionChecker.makeDiscriminator(value, arrayConvertorItems[0].index, printer, this.library, arrayConvertorItem.type),
+            expr: this.unionChecker.makeDiscriminator(value, arrayConvertorItem.index, printer, this.library, arrayConvertorItem.type),
             stmt: checkZeroArray
         }
         return [arrayMultiBranch]
     }
-    convertorSerializeMultiBranch(param: string, value: string, printer: LanguageWriter, convertors: ConvertorItem[]): LanguageStatement {
+    convertorSerializeMultiBranch(param: string, value: string, array: string, printer: LanguageWriter, convertors: ConvertorItem[]): LanguageStatement {
         return printer.makeMultiBranchCondition([
             ...convertors
                 .filter(it => !this.isSequence(it.type))
-                .map(it => this.makeBranch(param, value, printer, it)),
-            ...this.makeArrayBranch(param, value, printer, convertors.filter(it => this.isSequence(it.type)))
+                .map(it => this.makeBranch(param, value, array, printer, it)),
+            ...this.makeArrayBranch(param, value, array, printer, convertors.filter(it => this.isSequence(it.type)))
         ])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
