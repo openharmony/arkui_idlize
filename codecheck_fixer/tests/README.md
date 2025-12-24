@@ -9,15 +9,43 @@ This directory contains tests and test fixtures for the `codecheck-fixer` projec
 - `line-length-formatter.test.ts` — Line length formatter tests
 - `expression-normalizer-fixtures.test.ts` — Expression normalizer tests  
 - `prettier-based.test.ts` — Prettier formatter tests
+- `format-fixtures.test.ts` — End-to-end formatting tests with fixtures
 
-### Integration Test Fixtures
+### Test Fixtures Structure
 
-- `fixtures/` — Test files for CLI integration testing
+The `fixtures/` directory contains test files organized by type:
+
+```
+fixtures/
+├── input/          # Source files for formatting tests
+│   ├── ts/         # TypeScript test files
+│   ├── ets/        # ArkTS/ETS test files
+│   └── cpp/        # C++ test files
+├── expected/       # Expected formatted output (committed to git)
+│   ├── ts/
+│   ├── ets/
+│   └── cpp/
+└── output/         # Actual test output (generated, not committed)
+    ├── ts/
+    ├── ets/
+    └── cpp/
+```
+
+**Workflow:**
+1. Add new test files to `input/` subdirectories
+2. Run tests: `npm test` — generates `output/` files
+3. Review output files manually
+4. If satisfied, update expected: `./tests/scripts/update-expected.sh`
+5. Commit updated `expected/` files
+
+### Other Test Files
+
 - `test-long-lines.ts` — File with long lines for testing
 
-### Configuration
+### Configuration and Scripts
 
 - `scripts/register.js` — ts-node registration for running TypeScript tests
+- `scripts/update-expected.sh` — Copy output files to expected after review
 - `tsconfig.json` — TypeScript configuration for tests
 - Use root `../config.json` for CLI integration tests
 
@@ -126,9 +154,25 @@ Main assertion methods:
 - `assert.notEqual(actual, expected)` — inequality check  
 - `assert.throws(fn, error?)` — exception testing
 
-## Fixtures
+## Fixtures Details
 
-Fixtures for unit tests are located in:
+### Integration Test Fixtures (this directory)
+
+Located in `tests/fixtures/`:
+- `input/` — Source files for end-to-end formatting tests
+- `expected/` — Expected formatted results (version controlled)
+- `output/` — Generated during test runs (gitignored)
+
+To add new test cases:
+1. Add file to appropriate `input/` subdirectory (ts/ets/cpp)
+2. Run `npm test` to generate initial output
+3. Review the output in `fixtures/output/`
+4. Run `./tests/scripts/update-expected.sh` to copy to expected
+5. Commit the new input and expected files
+
+### Library-specific Fixtures
+
+Other fixtures for unit tests:
 - `../libs/arkts_formatter/tests/fixtures/fixtures/*.json` — JSON fixtures for formatter
 - `../libs/arkts_formatter/tests/expression-normalizer/fixtures/pairs.json` — pairs for normalizer
 - `../libs/prettier_formatter/tests/fixtures/**/*` — fixtures for Prettier
