@@ -1,0 +1,11 @@
+package arkui.component.check.modifiers;
+
+[Component]
+interface CheckModifiersAttribute: Root {
+    attribute number prop;
+};
+
+[Component]
+interface CheckNoModifiersAttribute: Root {
+    attribute number prop;
+};
