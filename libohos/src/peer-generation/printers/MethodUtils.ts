@@ -48,8 +48,8 @@ function isDirectConvertedType(originalType: idl.IDLType|undefined, library: Pee
     let result = type == idl.IDLI8Type || type == idl.IDLU8Type
             || type == idl.IDLI16Type || type == idl.IDLU16Type
             || type == idl.IDLI32Type || type == idl.IDLU32Type
-            || type == idl.IDLF32Type
             || type == idl.IDLI64Type || type == idl.IDLU64Type
+            || type == idl.IDLF32Type || type == idl.IDLF64Type
             || type == idl.IDLPointerType
             || type == idl.IDLBooleanType
             || type == idl.IDLVoidType
