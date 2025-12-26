@@ -642,6 +642,9 @@ typedef struct SwiperControllerPeer* Ark_SwiperController;
 typedef struct Opt_SwiperController Opt_SwiperController;
 typedef struct Ark_SymbolEffect Ark_SymbolEffect;
 typedef struct Opt_SymbolEffect Opt_SymbolEffect;
+typedef struct SymbolGlyphModifierPeer SymbolGlyphModifierPeer;
+typedef struct SymbolGlyphModifierPeer* Ark_SymbolGlyphModifier;
+typedef struct Opt_SymbolGlyphModifier Opt_SymbolGlyphModifier;
 typedef struct Ark_SystemBarStyle Ark_SystemBarStyle;
 typedef struct Opt_SystemBarStyle Opt_SystemBarStyle;
 typedef struct Ark_TabBarSymbol Ark_TabBarSymbol;
@@ -4640,6 +4643,10 @@ typedef struct Opt_SymbolEffect {
     Ark_Tag tag;
     Ark_SymbolEffect value;
 } Opt_SymbolEffect;
+typedef struct Opt_SymbolGlyphModifier {
+    Ark_Tag tag;
+    Ark_SymbolGlyphModifier value;
+} Opt_SymbolGlyphModifier;
 typedef struct Ark_SystemBarStyle {
     /* kind: Interface */
     void *handle;
@@ -15046,6 +15053,13 @@ typedef struct GENERATED_ArkUISwiperControllerAccessor {
                             const Opt_VoidCallback* callback_);
 } GENERATED_ArkUISwiperControllerAccessor;
 
+typedef struct GENERATED_ArkUISymbolGlyphModifierAccessor {
+    void (*destroyPeer)(Ark_SymbolGlyphModifier peer);
+    Ark_SymbolGlyphModifier (*construct)(const Opt_Resource* src);
+    Ark_NativePointer (*getFinalizer)();
+    void (*callHolder)(Ark_SymbolGlyphModifier peer);
+} GENERATED_ArkUISymbolGlyphModifierAccessor;
+
 typedef struct GENERATED_ArkUITabsControllerAccessor {
     void (*destroyPeer)(Ark_TabsController peer);
     Ark_TabsController (*construct)();
@@ -15477,6 +15491,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUISwipeGestureEventAccessor* (*getSwipeGestureEventAccessor)();
     const GENERATED_ArkUISwiperContentTransitionProxyAccessor* (*getSwiperContentTransitionProxyAccessor)();
     const GENERATED_ArkUISwiperControllerAccessor* (*getSwiperControllerAccessor)();
+    const GENERATED_ArkUISymbolGlyphModifierAccessor* (*getSymbolGlyphModifierAccessor)();
     const GENERATED_ArkUITabsControllerAccessor* (*getTabsControllerAccessor)();
     const GENERATED_ArkUITapGestureEventAccessor* (*getTapGestureEventAccessor)();
     const GENERATED_ArkUITextBaseControllerAccessor* (*getTextBaseControllerAccessor)();

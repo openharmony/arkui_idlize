@@ -36,22 +36,24 @@ function collectModifiers(library: PeerLibrary): ModifierInfo[] {
 
     for (const file of library.files) {
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            if (!idl.isInterface(entry) || idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component)) {
+            if (!idl.isInterface(entry) ||
+                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component) ||
+                idl.isHandwritten(entry)) {
                 continue
             }
-            if (!entry.name.endsWith("Modifier") || idl.isHandwritten(entry)) {
-                continue
-            }
-            const componentName = entry.name.substring(0, entry.name.length - "Modifier".length)
-            const peer = peers.find(peer => {
-                return peer.componentName === componentName
-            })
-            if (peer) {
-                modifiers.set(componentName, new ModifierInfo(entry, peer))
-                let parentComponent = getSuperComponent(library, componentName)
-                while (parentComponent) {
-                    parentComponents.add(parentComponent.name)
-                    parentComponent = getSuperComponent(library, parentComponent.name)
+            if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier) ||
+                entry.name.endsWith("Modifier")) {
+                const componentName = entry.name.substring(0, entry.name.length - "Modifier".length)
+                const peer = peers.find(peer => {
+                    return peer.componentName === componentName
+                })
+                if (peer) {
+                    modifiers.set(componentName, new ModifierInfo(entry, peer))
+                    let parentComponent = getSuperComponent(library, componentName)
+                    while (parentComponent) {
+                        parentComponents.add(parentComponent.name)
+                        parentComponent = getSuperComponent(library, parentComponent.name)
+                    }
                 }
             }
         }
