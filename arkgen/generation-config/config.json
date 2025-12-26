@@ -1028,6 +1028,7 @@
         "TestCallIntRecursiveCallback",
         "TestCallIntMemory",
         "arkui.component.idlize.BuilderNodeOps.create",
+        "arkui.component.idlize.LazyForEachOps.NotifyChange",
         "arkui.component.idlize.AnimationExtender.AnimateToImmediatelyImpl",
         "arkui.component.idlize.AnimationExtender.KeyframeAnimationImpl",
         "arkui.component.idlize.AnimationExtender.OpenImplicitAnimationForAnimation",
