@@ -39,6 +39,7 @@ function setup() {
 interface PrepareSdkOptions {
     etsgen: string
     sdkStage: string
+    config: string[]
 }
 
 interface ArkgenOptions extends PrepareSdkOptions {
@@ -51,6 +52,9 @@ interface ArkgenOptions extends PrepareSdkOptions {
 }
 
 function sdk2idl(sdkPath: string, options: PrepareSdkOptions): Ets2IdlResult {
+    if (typeof options.config === 'string') {
+        options.config = [options.config]
+    }
     let configPath: string | undefined = undefined
     let idlPaths = sdkPath
     switch (options.sdkStage) {
@@ -90,6 +94,7 @@ function m3(sdkPath: string, idlFiles: string[], options: ArkgenOptions) {
         language: options.language,
         optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
         idlPaths: [scrapedIDLs, ...idlFiles],
+        configs: options.config
     })
 
     if (formatArkts({
@@ -125,7 +130,8 @@ function complete(sdkPath: string, options: OhosgenOptions) {
         target: options.target,
         language: options.language,
         optionsFile: resolve(options.ohosgenConfig),
-        idlPath: idlPaths
+        idlPath: idlPaths,
+        configs: options.config
     })
 }
 
@@ -159,6 +165,7 @@ function tracker(sdkPathInput: string, idlFiles: string[], options: TrackerOptio
         optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
         idlPaths: [scrapedIDLs, ...idlFiles],
         trackerStatus: options.trackerStatus,
+        configs: [],
     })
     commands.install({sourceDir: peersPath, installPath: options.output})
 }
@@ -212,6 +219,7 @@ function main(argv: string[]) {
         .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
+        .option('--config <...config_paths>', 'configuration path', [])
         .action(m3)
 
     program.command('complete <sdk-path>')
