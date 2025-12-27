@@ -279,8 +279,7 @@ export function maybeReadLangTemplate(name: string, lang: Language): string | un
 }
 
 export function getInteropRootPath() {
-    const interopPackagePath = require.resolve('@koalaui/interop')
-    return path.resolve(interopPackagePath, '..', '..', '..', '..', '..')
+    return path.resolve(__dirname, '..', 'interop-types')
 }
 
 export function copyDir(from: string, to: string, recursive: boolean) {

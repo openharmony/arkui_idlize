@@ -29,6 +29,7 @@
     "compile": "npm run compile --prefix external/incremental/compat && npm run compile --prefix external/incremental/common && npm run compile --prefix external/interop",
     "release": "npm run compile && npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && npm run -c arktscgen compile && npm run -C idlinter compile && node tools/release.mjs",
     "sanity": "npm run -C arkgen sanity && npm run -C linter run",
-    "setup-out": "node tools/setup/setup.mjs"
+    "setup-out": "node tools/setup/setup.mjs",
+    "bundle": "node ./tools/bundle.mjs 2.1.140 bundled --idlizer-only --koalaui-version 1.7.10"
   }
 }

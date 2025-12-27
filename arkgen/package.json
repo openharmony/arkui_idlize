@@ -13,20 +13,19 @@
     "lib/*.js",
     "lib/*.map",
     "stdlib.d.ts",
-    "whitelist.json",
-    "predefined/**/*",
     "generation-config/**/*",
-    "external-subset/**/*"
+    "external-subset/**/*",
+    "interop-types/**/*"
   ],
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/libohos": "2.1.10+devel",
-    "@idlizer/core": "2.1.10+devel",
     "@idlizer/interfaces": "2.1.10+devel",
     "commander": "^10.0.0"
   },
   "devDependencies": {
+    "@idlizer/core": "2.1.10+devel",
+    "@idlizer/libohos": "2.1.10+devel",
     "node-api-headers": "^1.1.0",
     "@koalaui/interop": "1.7.9",
     "@koalaui/fast-arktsc": "1.7.10",
@@ -47,7 +46,6 @@
   "scripts": {
     "--todo": "remove '--types chai' it is used just because tsc cli does not allow specifying empty types array with console flags",
     "NPM": "#----------------------------",
-    "prepack": "node tools/external-subset.mjs",
     "switch:develop": "node tools/devenv.mjs on",
     "switch:release": "node tools/devenv.mjs off",
     "upload": "npm run compile && node tools/publish.mjs --tag next",
