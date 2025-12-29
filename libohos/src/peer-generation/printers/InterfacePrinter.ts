@@ -1358,21 +1358,6 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         readonly peerLibrary: PeerLibrary
     ) { }
 
-    convertCallback(node: idl.IDLCallback): void {
-        if (!idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic))
-            this.writer.print(this.printCallback(node, node.parameters, node.returnType))
-    }
-    convertMethod(node: idl.IDLMethod): void {
-        this.writer.writeMethodDeclaration(node.name, this.writer.makeSignature(node.returnType, node.parameters), node.isFree ? [MethodModifier.FREE] : [])
-    }
-    convertConstant(node: idl.IDLConstant): void {
-    }
-    convertEnum(node: idl.IDLEnum): void {
-        this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true, isDeclare: false }))
-    }
-    protected printTypeParameters(typeParameters: string[] | undefined): string {
-        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
-    }
     convertTypedef(node: idl.IDLTypedef) {
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic)) {
             return
@@ -1380,53 +1365,44 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import)) {
             return
         }
-        const type = this.writer.getNodeName(node.type)
+        const type = this.convertType(node.type)
         const typeParams = this.printTypeParameters(node.typeParameters)
         this.writer.print(`public typealias ${node.name}${typeParams} = ${type}`)
     }
-    convertImport(node: idl.IDLImport): void {
-        console.warn("Imports are not implemented yet")
+
+    convertCallback(node: idl.IDLCallback): void {
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic)) {
+            return
+        }
+        this.writer.writeLines(this.printCallback(node, node.parameters, node.returnType))
     }
-    convertNamespace(node: idl.IDLNamespace): void {
-        throw new Error("Not used!")
-    }
+
     convertInterface(node: idl.IDLInterface): void {
         if (['RuntimeType', 'CallbackResource', 'Materialized', 'VMContext'].includes(node.name)) {
             return
         }
-        if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
+        if (this.isCallback(node)) {
+            const callable = node.callables[0]
+            const result = this.printCallback(node, callable.parameters, callable.returnType)
+            this.writer.writeLines(result)
+        }
+        else if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
             this.makeTuple(this.writer, node)
+        }
+        else if (isMaterialized(node, this.peerLibrary)) {
+            // no need to print separate declarations for materialized classes
+            return
+        }
+        else if (idl.isClassSubkind(node)) {
+            this.makeClass(this.writer, node)
         }
         else {
             this.makeInterface(this.writer, node)
         }
     }
 
-    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
-        parameters: idl.IDLParameter[],
-        returnType: idl.IDLType | undefined
-    ): string {
-        const paramsType = this.printParameters(parameters)
-        const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
-        return `public typealias ${node.name}${this.printTypeParameters(node.typeParameters)} = (${paramsType}) -> ${retType}`
-    }
-    protected printParameters(parameters: idl.IDLParameter[]): string {
-        return parameters
-            ?.map(it => this.printNameWithTypeIDLParameter(it, it.isVariadic, it.isOptional))
-            ?.join(", ") ?? ""
-    }
-    private printNameWithTypeIDLParameter(
-        variable: idl.IDLVariable,
-        isVariadic: boolean = false,
-        isOptional: boolean = false): string {
-        const type = variable.type ? this.convertType(variable.type) : ""
-        return `${this.writer.escapeKeyword(idl.escapeIDLKeyword(variable.name!))}: ${isOptional ? "?" : ""}${type}`
-    }
-    protected convertType(idlType: idl.IDLType): string {
-        return this.writer.getNodeName(idlType)
-    }
     makeUnion(writer: LanguageWriter, type: idl.IDLUnionType): void {
-        const name = this.writer.getNodeName(type)
+        const name = this.convertType(type)
         const members = type.types.map(it => it)
         writer.writeClass(name, () => {
             const intType = idl.IDLI32Type
@@ -1468,24 +1444,99 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         })
     }
 
-    private makeTuple(writer: LanguageWriter, type: idl.IDLInterface): void {
-        const members = type.properties.map(it => idl.maybeOptional(it.type, it.isOptional))
-        const params = members.map((arg, index) => `var value${index}: ${writer.getNodeName(arg)}`).join(', ')
-        writer.print(`data class ${type.name}(${params})`)
+    private convertInheritance(type: idl.IDLReferenceType): string {
+        return ""
+    }
+
+    private printProperty(writer: LanguageWriter, property: idl.IDLProperty): void {
+        const modifiers: FieldModifier[] = []
+        if (property.isReadonly) {
+            modifiers.push(FieldModifier.READONLY)
+        }
+        if (property.isStatic) {
+            modifiers.push(FieldModifier.STATIC)
+        }
+        writer.writeProperty(property.name, idl.maybeOptional(property.type, property.isOptional), modifiers)
+    }
+
+    private makeClass(writer: LanguageWriter, type: idl.IDLInterface): void {
+        const superNames = type.inheritance
+        const generics = type.typeParameters
+        writer.writeClass(type.name, (writer) => {
+            type.properties.forEach(it => this.printProperty(writer, it))
+        }, undefined, superNames ? superNames.map(it => this.convertInheritance(it)) : undefined, generics)
     }
 
     private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
-        const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
         const superNames = type.inheritance
         const generics = type.typeParameters
         writer.writeInterface(type.name, (writer) => {
-            for (const p of type.properties) {
-                const modifiers: FieldModifier[] = []
-                if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
-                if (p.isStatic) modifiers.push(FieldModifier.STATIC)
-                writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
-            }
-        }, superNames ? superNames.map(it => nameConvertor.convert(it)) : undefined, generics)
+            type.properties.forEach(it => this.printProperty(writer, it))
+        }, superNames ? superNames.map(it => this.convertType(it)) : undefined, generics)
+    }
+
+    private printParameters(parameters: idl.IDLParameter[]): string {
+        return parameters
+            ?.map(it => this.printNameWithTypeIDLParameter(it, it.isVariadic, it.isOptional))
+            ?.join(", ") ?? ""
+    }
+
+    private printNameWithTypeIDLParameter(
+        variable: idl.IDLVariable,
+        isVariadic: boolean = false,
+        isOptional: boolean = false
+    ): string {
+        const type = variable.type ? this.convertType(variable.type) : ""
+        return `${this.writer.escapeKeyword(idl.escapeIDLKeyword(variable.name!))}: ${type}${isOptional ? "?" : ""}`
+    }
+
+    private printTypeParameters(typeParameters: string[] | undefined): string {
+        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
+    }
+
+    private convertType(idlType: idl.IDLType): string {
+        return this.writer.getNodeName(idlType)
+    }
+
+    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
+        parameters: idl.IDLParameter[],
+        returnType: idl.IDLType | undefined
+    ): stringOrNone[] {
+        const paramsType = this.printParameters(parameters)
+        const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
+        return [`public typealias ${node.name}${this.printTypeParameters(node.typeParameters)} = (${paramsType}) -> ${retType}`]
+    }
+
+    private isCallback(node: idl.IDLInterface) {
+        return node.callables.length === 1
+            && [node.constants,
+            node.properties,
+            node.methods]
+                .reduce((sum, value) => value.length + sum, 0) === 0
+    }
+
+    private makeTuple(writer: LanguageWriter, type: idl.IDLInterface): void {
+        const members = type.properties.map(it => idl.maybeOptional(it.type, it.isOptional))
+        const params = members.map((arg, index) => `var value${index}: ${this.convertType(arg)}`).join(', ')
+        writer.print(`data class ${type.name}(${params})`)
+    }
+
+    convertMethod(node: idl.IDLMethod): void {
+        this.writer.writeMethodDeclaration(node.name, this.writer.makeSignature(node.returnType, node.parameters), node.isFree ? [MethodModifier.FREE] : [])
+    }
+
+    convertConstant(node: idl.IDLConstant): void {}
+
+    convertEnum(node: idl.IDLEnum): void {
+        this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true, isDeclare: false }))
+    }
+
+    convertImport(node: idl.IDLImport): void {
+        console.warn("Imports are not implemented yet")
+    }
+
+    convertNamespace(node: idl.IDLNamespace): void {
+        throw new Error("Not used!")
     }
 }
 
@@ -1683,6 +1734,7 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
         imports.push({ feature: "NativeBuffer", module: "koalaui.interop" })
         imports.push({ feature: "KStringPtr", module: "koalaui.interop" })
         imports.push({ feature: "Promise", module: "koalaui.interop" })
+        imports.push({ feature: "Instant", module: "kotlin.time" })
     }
     return imports
 }

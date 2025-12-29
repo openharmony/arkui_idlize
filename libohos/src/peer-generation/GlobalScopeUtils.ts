@@ -13,30 +13,40 @@
  * limitations under the License.
  */
 
-import { MaterializedClass, MaterializedMethod, Method, MethodModifier, NamedMethodSignature, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature } from "@idlizer/core";
+import { Language, MaterializedClass, MaterializedMethod, Method, MethodModifier, NamedMethodSignature, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature } from "@idlizer/core";
 import { createInterface, createMethod, getFQName, getNamespacesPathFor, IDLInterface, IDLInterfaceSubkind, IDLMethod, maybeOptional } from "@idlizer/core/idl";
 import { groupOverloadsIDL } from "./printers/OverloadsPrinter";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 
 export const GlobalScopePeerName = 'GlobalScope'
 
-export function mangledGlobalScopeName(method:IDLMethod): string {
-    const overload = PeerMethodSignature.mangleOverloadedName(method)
-    const nsPath = getNamespacesPathFor(method)
-    const nsPrefix = nsPath.length ? nsPath.map(it => it.name).join('_') + '_' : ''
-    return nsPrefix + (overload.alias ?? (method.name + overload.postfix))
+export function mangledGlobalScopeName(method: IDLMethod | string, language?: Language): string {
+    let result: string
+    if (typeof method === "string") {
+        result = method
+    }
+    else {
+        const overload = PeerMethodSignature.mangleOverloadedName(method)
+        const nsPath = getNamespacesPathFor(method)
+        const nsPrefix = nsPath.length ? nsPath.map(it => it.name).join('_') + '_' : ''
+        result = nsPrefix + (overload.alias ?? (method.name + overload.postfix))
+    }
+    if (language === Language.KOTLIN) {
+        return result.replaceAll("$", "_")
+    }
+    return result
 }
 
 export function idlFreeMethodsGroupToLegacy(library: PeerLibrary, methods: IDLMethod[]): PeerMethod[] {
     const groupedMethods = groupOverloadsIDL(methods, library.language)
-    return groupedMethods.filter(it => it.length).flatMap(idlFreeMethodToLegacy)
+    return groupedMethods.filter(it => it.length).flatMap(idlFreeMethodToLegacyWithDollar)
 }
 
-function idlMethodToMaterializedMethod(method: IDLMethod): MaterializedMethod {
+function idlMethodToMaterializedMethod(method: IDLMethod, language?: Language): MaterializedMethod {
     return new MaterializedMethod(
         method,
         new PeerMethodSignature(
-            mangledGlobalScopeName(method),
+            mangledGlobalScopeName(method, language),
             getFQName(method).split('.').join('_'),
             method.parameters.map(it => new PeerMethodArg(it.name, maybeOptional(it.type, it.isOptional))),
             method.returnType,
@@ -47,9 +57,9 @@ function idlMethodToMaterializedMethod(method: IDLMethod): MaterializedMethod {
         GlobalScopePeerName,
         method.returnType,
         false,
-        mangledGlobalScopeName(method),
+        mangledGlobalScopeName(method, language),
         new Method(
-            mangledGlobalScopeName(method),
+            mangledGlobalScopeName(method, language),
             NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: maybeOptional(it.type, it.isOptional) }))),
             [MethodModifier.STATIC],
             method.typeParameters
@@ -57,8 +67,12 @@ function idlMethodToMaterializedMethod(method: IDLMethod): MaterializedMethod {
     )
 }
 
-export function idlFreeMethodToLegacy(methods: IDLMethod[]): MaterializedMethod[] {
-    return methods.map(idlMethodToMaterializedMethod)
+function idlFreeMethodToLegacyWithDollar(methods: IDLMethod[]): MaterializedMethod[] {
+    return methods.map(it => idlMethodToMaterializedMethod(it))
+}
+
+export function idlFreeMethodToLegacy(methods: IDLMethod[], language: Language): MaterializedMethod[] {
+    return methods.map(it => idlMethodToMaterializedMethod(it, language))
 }
 
 const _gbCache = new Map<PeerLibrary, IDLInterface>()
@@ -112,7 +126,7 @@ export function createGlobalScopeLegacy(library:PeerLibrary): MaterializedClass 
         [],
         [],
         undefined,
-        library.globals.flatMap(it => idlFreeMethodToLegacy(it.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))))
+        library.globals.flatMap(it => idlFreeMethodToLegacyWithDollar(it.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))))
             .sort((a, b) => a.sig.name.localeCompare(b.sig.name)),
     )
     clazz.setGlobalScope()

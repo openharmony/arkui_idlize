@@ -371,7 +371,6 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
             "KStringPtr",
             "KPointer",
             "KNativePointer",
-            "pointer",
             "KUint8ArrayPtr",
             "KInt32ArrayPtr",
             "KFloat32ArrayPtr",

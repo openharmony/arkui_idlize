@@ -159,6 +159,7 @@ class DeserializeCallbacksVisitor {
                 "InteropNativeModule", "KPointer", "KNativePointer", "RuntimeType",
                 "KSerializerBuffer", "NativeBuffer", "ThrowsWrapper",
             ], "koalaui.interop")
+            this.imports.addFeature("Instant", "kotlin.time")
             for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
                 collectDeclItself(this.library, callback, this.imports)
                 collectDeclDependencies(this.library, callback, this.imports, { expandTypedefs: true })

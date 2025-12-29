@@ -538,15 +538,9 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
 
                 const applyOptionsFinishSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLStringType], ["traceName"])
                 const applyOptionsFinish = "applyOptionsFinish"
-                if (["CommonMethod", "Root", "RoutedPage"].includes(peer.componentName)) {
-                    // TODO: remove this hack after changes in ComponentBase
-                    writer.writeMethodImplementation(new Method(applyOptionsFinish, applyOptionsFinishSignature, [MethodModifier.OPEN]), () => {})
-                }
-                else {
-                    writer.writeMethodImplementation(new Method(applyOptionsFinish, applyOptionsFinishSignature, modifiers), (writer) => {
-                        writer.writeMethodCall("super", applyOptionsFinish, [applyOptionsFinishSignature.argName(0)])
-                    })
-                }
+                writer.writeMethodImplementation(new Method(applyOptionsFinish, applyOptionsFinishSignature, modifiers), (writer) => {
+                    writer.writeMethodCall("super", applyOptionsFinish, [applyOptionsFinishSignature.argName(0)])
+                })
             }, parentComponentClassName, [componentInterface])
             return { content: printer, imports}
         }

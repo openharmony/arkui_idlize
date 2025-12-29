@@ -71,8 +71,9 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
                 /* global scope export function */
                 LanguageWriter.relativeReferences(true, () => {
-                    writer.writeFunctionImplementation(method.name, signature, w => {
-                        const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0]), method.parameters.map(it => w.makeString(it.name)))
+                    writer.writeFunctionImplementation(mangledGlobalScopeName(method.name, library.language), signature, w => {
+                        const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0], library.language),
+                            method.parameters.map(it => w.makeString(it.name)))
                         const statement = method.returnType !== idl.IDLVoidType
                             ? w.makeReturn(call)
                             : w.makeStatement(call)
@@ -139,7 +140,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                         return groupOverloadsIDL(filteredScopeMethods, library.language)
                     })
                     allGroupedMethods.forEach(methods => {
-                        const peerMethods = idlFreeMethodToLegacy(methods)
+                        const peerMethods = idlFreeMethodToLegacy(methods, library.language)
                         new OverloadsPrinter(library, realizationWriter, library.language, false, library.useMemoM3)
                             .printGroupedComponentOverloads(realizationHolder.name, peerMethods)
 
@@ -212,6 +213,7 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
             "toPeerPtr",
             "Promise",
         ], "koalaui.interop")
+        collector.addFeature("Instant", "kotlin.time")
     }
     collectDeclItself(library, idl.createReferenceType('idlize.internal.CallbackKind'), collector)
     collectDeclItself(library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), collector)

@@ -186,7 +186,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
                 return 'String'
 
             case idl.IDLDate:
-                return 'Date'
+                return 'Instant'
 
             case idl.IDLBufferType:
                 return 'NativeBuffer'

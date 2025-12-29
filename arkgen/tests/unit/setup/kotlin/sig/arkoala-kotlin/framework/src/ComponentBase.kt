@@ -23,6 +23,8 @@ public open class ComponentBase {
     public fun setPeer(peer: PeerNode): Unit {
         this.peer = peer
     }
+    protected open fun applyOptionsFinish(traceName: String): Unit {
+    }
     protected open fun applyAttributesFinish(): Unit {
         ArkUINativeModule._ApplyModifierFinish(peer!!.peer.ptr)
     }
