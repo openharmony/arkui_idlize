@@ -360,15 +360,20 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.printer.print(`${prefix}${open}${valOrVar} ${name}: ${this.getNodeName(idl.maybeOptional(type, optional))}${init}`)
     }
     writeNativeMethodDeclaration(method: Method): void {
-        let name = method.name
-        let signature = method.signature
-        this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
+        const originalName = method.name
+        const methodName = originalName.replaceAll("$", "_")
+        let interopCallName = `kotlin${originalName}`
+        if (originalName.includes("$")) {
+            interopCallName = "`" + interopCallName + "`"
+        }
+        const signature = method.signature
+        this.writeMethodImplementation(new Method(methodName, signature, [MethodModifier.STATIC]), writer => {
             const pins = signature.args.flatMap((type, index) => this.pinArrayArgument(signature.argName(index), type))
             const unpins = signature.args.flatMap((type, index) => this.unpinArrayArgument(signature.argName(index), type))
             pins.filter(it => !!it).forEach(it => this.writeStatement(it!))
             const args = signature.args.map((type, index) => this.convertInteropArgument(signature.argName(index), type))
             this.printForeignApiOptIn()
-            const interopCallExpression = this.makeFunctionCall(`kotlin${name}`, args)
+            const interopCallExpression = this.makeFunctionCall(interopCallName, args)
             if (signature.returnType === idl.IDLVoidType) {
                 this.writeExpressionStatement(interopCallExpression)
                 unpins.filter(it => !!it).forEach(it => this.writeStatement(it!))

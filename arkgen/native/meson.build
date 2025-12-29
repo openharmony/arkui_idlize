@@ -6,15 +6,15 @@ project('NativeBridge', 'c', 'cpp',
 if get_option('source_set') != ''
     source_set = get_option('source_set')
 else
-    source_set = 'ts-peers'
+    source_set = 'ets-ts-peers'
 endif
 use_libace = true
 
-is_node = true
+is_node = (source_set == 'ets-ts-peers' or source_set == 'ts-subset')
 is_arkts = false
 is_cj = (source_set == 'cangjie' or source_set == 'cangjie-subset')
 is_kotlin = (source_set == 'kotlin-peers' or source_set == 'kotlin-subset' or source_set == 'unit-kotlin')
-is_ani = true
+is_ani = (source_set == 'ets-arkts-peers' or source_set == 'arkts-subset' or source_set == 'unit-arkts')
 is_ohos_demo = (source_set == 'ts-ohos-context')
 is_unit = (source_set == 'unit-arkts' or source_set == 'unit-kotlin')
 
@@ -270,20 +270,22 @@ if is_cj
     )
 endif
 
-shared_library(node_library_name,
-    sources + node_sources,
-    override_options: [
-        'b_lundef=false',
-    ],
-    install: true,
-    name_prefix: node_module_prefix,
-    name_suffix: node_module_suffix,
-    include_directories: include_dirs + node_include_dirs,
-    install_dir: meson.current_source_dir(),
-    cpp_args: cflags + node_cflags,
-    link_args: ldflags + node_ldflags,
-    dependencies: []
-)
+if is_node
+    shared_library(node_library_name,
+        sources + node_sources,
+        override_options: [
+            'b_lundef=false',
+        ],
+        install: true,
+        name_prefix: node_module_prefix,
+        name_suffix: node_module_suffix,
+        include_directories: include_dirs + node_include_dirs,
+        install_dir: meson.current_source_dir(),
+        cpp_args: cflags + node_cflags,
+        link_args: ldflags + node_ldflags,
+        dependencies: []
+    )
+endif
 if use_libace
     shared_library(libace_name,
         libace_sources,

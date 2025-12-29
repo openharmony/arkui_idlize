@@ -230,8 +230,12 @@ export class KotlinLayout extends CommonLayoutBase {
         ["resourceFinalizerRegister", "koalaui.interop"],
     ])
     resolve(target: idl.LayoutTargetDescription): string {
-        if (this.KotlinInternalPaths.has(target.node.name))
+        if (this.KotlinInternalPaths.has(target.node.name)) {
             return this.KotlinInternalPaths.get(target.node.name)!
+        }
+        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
+            return HandwrittenModule(this.library.language)
+        }
         if (idl.isSyntheticEntry(target.node)) {
             return getSyntheticTypesFileName()
         }

@@ -31,5 +31,8 @@ interface EventEmulator {
 [Component="Root"]
 interface Root {};
 
+[Component="ComponentRoot"]
+interface ComponentRoot {};
+
 [Component="RoutedPage"]
 interface RoutedPage {};

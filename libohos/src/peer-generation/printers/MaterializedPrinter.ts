@@ -787,6 +787,7 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
             "NativeBuffer",
             "Promise",
         ], "koalaui.interop")
+        this.collector.addFeature("Instant", "kotlin.time")
 
         const hookMethods = peerGeneratorConfiguration().hooks.get(this.clazz.className)
         const handwrittenPackage = this.library.layout.handwrittenPackage()

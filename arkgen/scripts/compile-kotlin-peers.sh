@@ -2,12 +2,11 @@
 set -e
 shopt -s globstar
 
-build_type=$1
+build_type=peers
 external_dir=../external
 out_dir=out/kotlin-$build_type
 
 mkdir -p $out_dir/generated/modules
-touch $out_dir/generated/modules/stub.kt
 
 cinterop -def $out_dir/generated/sig/arkoala-arkts/framework/native/src/generated/interop.def \
     -pkg koalaui.arkoala \
@@ -17,10 +16,13 @@ cinterop -def $out_dir/generated/sig/arkoala-arkts/framework/native/src/generate
 
 konanc \
     tests/kotlin-$build_type/app/*.kt \
+    $out_dir/generated/sig/arkoala-kotlin/external/src/*.kt \
     $out_dir/generated/sig/arkoala-kotlin/framework/src/*.kt \
-    $out_dir/generated/modules/**/*.kt \
+    $out_dir/generated/sig/arkoala-kotlin/framework/src/handwritten/*.kt \
+    $out_dir/generated/modules/global/generated/kotlin/*.kt \
     -l $out_dir/bin/idlize_cinterop.klib \
     -l $external_dir/interop/build/kotlin-interop/interop.klib \
     -l $external_dir/interop/build/kotlin-interop/cinterop.interop_native_module.klib \
     -linker-options "-L./native -lNativeBridgeKotlin" \
-    -p program -entry main -o $out_dir/bin/idlize_test
+    -opt-in=kotlin.time.ExperimentalTime \
+    -p program -entry main -o $out_dir/bin/idlize_test > /home/mihan/work/errors.txt 2>&1

@@ -836,6 +836,9 @@ export class DateConvertor extends BaseArgConvertor {
         if (writer.language === Language.CPP) {
             return param
         }
+        if (writer.language === Language.KOTLIN) {
+            return `${param}.toEpochMilliseconds()`
+        }
         return `${param}.getTime()`
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
@@ -844,6 +847,10 @@ export class DateConvertor extends BaseArgConvertor {
         } else if (writer.language === Language.CJ) {
             return writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, "writeInt64", [
                 writer.makeCast(writer.makeString(`${value}`), idl.IDLI64Type)
+            ]))
+        } else if (writer.language === Language.KOTLIN) {
+            return writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, "writeInt64", [
+                writer.makeString(`${value}.toEpochMilliseconds()`)
             ]))
         } else {
             return writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, "writeInt64", [
@@ -858,6 +865,9 @@ export class DateConvertor extends BaseArgConvertor {
         }
         if (writer.language === Language.CJ) {
             return assigneer(writer.makeString(`DateTime.now()`))
+        }
+        if (writer.language === Language.KOTLIN) {
+            return assigneer(writer.makeString(`Instant.fromEpochMilliseconds(${deserializeTime.asString()})`))
         }
         return assigneer(writer.makeString(`new Date(${deserializeTime.asString()})`))
     }

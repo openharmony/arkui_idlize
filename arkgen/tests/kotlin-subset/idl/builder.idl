@@ -1,0 +1,4 @@
+package arkui.component.builder;
+
+[TypeAnnotations=Builder]
+callback CustomBuilder = void ();

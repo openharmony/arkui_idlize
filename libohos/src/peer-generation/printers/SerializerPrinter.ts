@@ -438,6 +438,7 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             "NativeBuffer",
             "KUint8ArrayPtr",
         ], "koalaui.interop")
+        collector.addFeature("Instant", "kotlin.time")
     }
 }
 
