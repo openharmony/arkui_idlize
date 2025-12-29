@@ -458,7 +458,10 @@ class ModifiersFileVisitor {
                     }
                     const expr = `${this.generateFiledFlag(attribute, index, true)} != ${AttributeUpdaterFlag.INITIAL}`
                     const params: LanguageExpression[] = attribute.args.map((_, index) => {
-                        return writer.makeString(`modifier.${this.generateFiledName(attribute, index.toString())}`)
+                        return writer.makeCast(
+                            writer.makeString(`modifier.${this.generateFiledName(attribute, index.toString())}`),
+                            idl.maybeOptional(attribute.method.method.signature.args[index], attribute.method.method.signature.isArgOptional(index)),
+                        )
                     })
                     const resetParams: LanguageExpression[] = attribute.args.map((_, index) => {
                         return this.castResetType(writer, attribute.method.method.signature, index)
@@ -471,14 +474,16 @@ class ModifiersFileVisitor {
                     switchPrinter.print(`case ${AttributeUpdaterFlag.UPDATE}:`)
                     switchPrinter.print(`case ${AttributeUpdaterFlag.SKIP}: {`)
                     switchPrinter.pushIndent()
-                    if (attribute.isOptional) switchPrinter.print(`${statement.asString()};`)
+                    switchPrinter.print(`${statement.asString()};`)
                     switchPrinter.print(`break;`)
                     switchPrinter.popIndent()
                     switchPrinter.print(`}`)
                     switchPrinter.print(`default: {`)
-                    switchPrinter.pushIndent()
-                    if (attribute.isOptional) switchPrinter.print(`${resetStatement.asString()};`)
-                    switchPrinter.popIndent()
+                    if (attribute.isOptional) {
+                        switchPrinter.pushIndent()
+                        switchPrinter.print(`${resetStatement.asString()};`)
+                        switchPrinter.popIndent()
+                    }
                     switchPrinter.print(`}`)
                     switchPrinter.popIndent()
                     switchPrinter.print(`}`)
