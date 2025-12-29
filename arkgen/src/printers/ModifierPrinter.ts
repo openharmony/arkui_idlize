@@ -18,7 +18,8 @@ import { getSuper, IfStatement, isHeir, Language, LanguageExpression, LanguageSt
     LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
 import { getHookMethod, collectDeclDependencies, collectDeclItself, collectPeers, componentToPeerClass,
     findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector,
-    peerGeneratorConfiguration, PrinterResult, collectComponents, collectModifiersForFile, getSuperComponent } from "@idlizer/libohos";
+    peerGeneratorConfiguration, PrinterResult, collectComponents, collectModifiers, getSuperComponent,
+    ModifierInfo } from "@idlizer/libohos";
 import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter';
 import { getReferenceTo } from '../knownReferences';
 import { HandwrittenModule } from '../ArkoalaLayout'
@@ -80,12 +81,12 @@ interface AttributeType {
 class ModifiersFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
-        private readonly file: idl.IDLFile,
+        private readonly modifiers: ModifierInfo[],
     ) { }
 
     visit(): PrinterResult[] {
         const result: PrinterResult[] = [];
-        collectModifiersForFile(this.library, this.file).forEach(modifierInfo => {
+        this.modifiers.forEach(modifierInfo => {
             result.push(...this.printModifiers(modifierInfo.peer))
         })
         return result;
@@ -546,26 +547,14 @@ class ModifiersFileVisitor {
     }
 }
 
-class ModifiersVisitor {
-    constructor(
-        private readonly peerLibrary: PeerLibrary
-    ) { }
-
-    printModifiers(): PrinterResult[] {
-        const result: PrinterResult[] = []
-        for (const file of this.peerLibrary.files.values()) {
-            if (!collectModifiersForFile(this.peerLibrary, file).length)
-                continue
-            const visitor = new ModifiersFileVisitor(this.peerLibrary, file);
-            result.push(...visitor.visit())
-        }
-        return result;
-    }
-}
-
 export function printModifiers(peerLibrary: PeerLibrary): PrinterResult[] {
     if (peerLibrary.language !== Language.ARKTS) {
         return []
     }
-    return new ModifiersVisitor(peerLibrary).printModifiers()
+    let result: PrinterResult[] = []
+    collectModifiers(peerLibrary).forEach((modifiers, _file) => {
+        const visitor = new ModifiersFileVisitor(peerLibrary, modifiers)
+        result.push(...visitor.visit())
+    })
+    return result
 }

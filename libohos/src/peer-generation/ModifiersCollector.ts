@@ -24,12 +24,7 @@ export class ModifierInfo {
     ) {}
 }
 
-const collectModifiers_cache = new Map<PeerLibrary, ModifierInfo[]>()
-function collectModifiers(library: PeerLibrary): ModifierInfo[] {
-    if (collectModifiers_cache.has(library)) {
-        return collectModifiers_cache.get(library)!
-    }
-
+export function collectModifiers(library: PeerLibrary): Map<idl.IDLFile, ModifierInfo[]> {
     const peers = collectPeers(library)
     let modifiers = new Map<string, ModifierInfo>()
     let parentComponents = new Set<string>
@@ -66,13 +61,14 @@ function collectModifiers(library: PeerLibrary): ModifierInfo[] {
             }
         }
     }
-    const result = [...modifiers.values()]
-    collectModifiers_cache.set(library, result)
+    let result = new Map<idl.IDLFile, ModifierInfo[]>()
+    for (const modifier of modifiers.values()) {
+        const file = modifier.peer.file
+        if (result.has(file)) {
+            result.get(file)!.push(modifier)
+        } else {
+            result.set(file, [modifier])
+        }
+    }
     return result
-}
-
-export function collectModifiersForFile(library: PeerLibrary, file: idl.IDLFile): ModifierInfo[] {
-    return collectModifiers(library).filter(modifierInfo => {
-        return modifierInfo.peer.file === file
-    })
 }
