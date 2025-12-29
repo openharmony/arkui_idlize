@@ -14927,9 +14927,9 @@ declare interface ImageModifier {}
  * @since 12
  */
 // declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').SymbolGlyphModifier;
-// class SymbolGlyphModifier {
-//   constructor(src?: Resource);
-// }
+class SymbolGlyphModifier {
+  constructor(src?: Resource);
+}
 
 /**
  * Defines the preview options.

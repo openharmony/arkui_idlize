@@ -37,12 +37,12 @@ export function collectComponents(library: LibraryInterface): IdlComponentDeclar
     }
     for (const file of library.files) {
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            if (!idl.isInterface(entry) || !idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component))
+            if (!idl.isInterface(entry) ||
+                !idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component) ||
+                idl.isHandwritten(entry))
                 continue
             const componentName = entry.name.replace("Attribute", "")
-            if (peerGeneratorConfiguration().components.ignoreComponents.includes(componentName) || idl.isHandwritten(entry))
-                continue
-            if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation))
+            if (peerGeneratorConfiguration().components.ignoreComponents.includes(componentName))
                 continue
             const fqn = idl.deriveQualifiedNameFrom(`${componentName}Interface`, entry)
             const compInterface = library.resolveTypeReference(idl.createReferenceType(fqn), { unresolvedOk: true })
@@ -101,6 +101,15 @@ export function findComponentByType(library: LibraryInterface, type: idl.IDLType
 
 function isSubclassComponent(library: LibraryInterface, a: IdlComponentDeclaration, b: IdlComponentDeclaration) {
     return isSubclass(library, a.attributeDeclaration, b.attributeDeclaration)
+}
+
+export function getSuperComponent(library: LibraryInterface, componentName :string): IdlComponentDeclaration | undefined {
+    const component = findComponentByName(library, componentName)
+    if (component?.attributeDeclaration.inheritance.length) {
+        const [parentRef] = component.attributeDeclaration.inheritance
+        const parentDecl = library.resolveTypeReference(parentRef) as idl.IDLInterface
+        return findComponentByDeclaration(library, parentDecl)
+    }
 }
 
 function isSubclass(library: LibraryInterface, component: idl.IDLInterface, maybeParent: idl.IDLInterface): boolean {

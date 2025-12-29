@@ -31,6 +31,8 @@ import {
     ArkCheckParentComponent,
     ArkCheckChildPeer,
     ArkCheckChildComponent,
+    CheckModifiersModifier,
+    MenuElement
 } from "./."
 
 import { InteropNativeModule } from "@koalaui/interop"
@@ -174,6 +176,13 @@ function checkHierarchy() {
     checkResult("child hierarchy test", () => childComp.commonMethodBoolean(true),
         `setCommonMethodBoolean(true)`)
 }
+class SomeElement implements MenuElement {
+    modifierProp: CheckModifiersModifier | undefined
+}
+
+function checkModifiers() {
+    const menuElement = new SomeElement()
+}
 
 export function main(): void {
     initNatives()
@@ -184,6 +193,7 @@ export function main(): void {
     checkOptional()
     checkTransformOnSerialize()
     checkHierarchy()
+    checkModifiers()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")

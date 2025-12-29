@@ -14,9 +14,12 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { getSuper, IfStatement, isHeir, isStandalone, Language, LanguageExpression, LanguageStatement, LanguageWriter, LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
-import { getHookMethod, collectDeclDependencies, collectDeclItself, collectPeers, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector, peerGeneratorConfiguration, PrinterResult, collectComponents } from "@idlizer/libohos";
-import { collectPeersForFile } from "@idlizer/libohos";
+import { getSuper, IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter,
+    LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
+import { getHookMethod, collectDeclDependencies, collectDeclItself, collectPeers, componentToPeerClass,
+    findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector,
+    peerGeneratorConfiguration, PrinterResult, collectComponents, collectModifiers, getSuperComponent,
+    ModifierInfo } from "@idlizer/libohos";
 import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter';
 import { getReferenceTo } from '../knownReferences';
 import { HandwrittenModule } from '../ArkoalaLayout'
@@ -78,24 +81,21 @@ interface AttributeType {
 class ModifiersFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
-        private readonly file: idl.IDLFile,
+        private readonly modifiers: ModifierInfo[],
     ) { }
 
     visit(): PrinterResult[] {
         const result: PrinterResult[] = [];
-        collectPeersForFile(this.library, this.file).forEach(peer => {
-            result.push(...this.printModifiers(peer))
+        this.modifiers.forEach(modifierInfo => {
+            result.push(...this.printModifiers(modifierInfo.peer))
         })
         return result;
     }
 
     generateAttributeSetParentName(peer: PeerClass): string | undefined {
-        const component = findComponentByName(this.library, peer.componentName)!
-        if (component.attributeDeclaration.inheritance.length) {
-            const [parentRef] = component.attributeDeclaration.inheritance
-            const parentDecl = this.library.resolveTypeReference(parentRef) as idl.IDLInterface
-            const parentComponent = findComponentByDeclaration(this.library, parentDecl)
-            return this.generateAttributeSetName(parentComponent!.name)
+        const parentComponent = getSuperComponent(this.library, peer.componentName)
+        if (parentComponent) {
+            return this.generateAttributeSetName(parentComponent.name)
         }
     }
 
@@ -547,26 +547,14 @@ class ModifiersFileVisitor {
     }
 }
 
-class ModifiersVisitor {
-    constructor(
-        private readonly peerLibrary: PeerLibrary
-    ) { }
-
-    printModifiers(): PrinterResult[] {
-        const result: PrinterResult[] = []
-        for (const file of this.peerLibrary.files.values()) {
-            if (!collectPeersForFile(this.peerLibrary, file).length)
-                continue
-            const visitor = new ModifiersFileVisitor(this.peerLibrary, file);
-            result.push(...visitor.visit())
-        }
-        return result;
-    }
-}
-
 export function printModifiers(peerLibrary: PeerLibrary): PrinterResult[] {
     if (peerLibrary.language !== Language.ARKTS) {
         return []
     }
-    return new ModifiersVisitor(peerLibrary).printModifiers()
+    let result: PrinterResult[] = []
+    collectModifiers(peerLibrary).forEach((modifiers, _file) => {
+        const visitor = new ModifiersFileVisitor(peerLibrary, modifiers)
+        result.push(...visitor.visit())
+    })
+    return result
 }
