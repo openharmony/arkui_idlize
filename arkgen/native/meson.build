@@ -11,7 +11,7 @@ endif
 use_libace = true
 
 is_node = (source_set == 'ets-ts-peers' or source_set == 'ts-subset')
-is_arkts = false
+is_build_vmloader = false
 is_cj = (source_set == 'cangjie' or source_set == 'cangjie-subset')
 is_kotlin = (source_set == 'kotlin-peers' or source_set == 'kotlin-subset' or source_set == 'unit-kotlin')
 is_ani = (source_set == 'ets-arkts-peers' or source_set == 'arkts-subset' or source_set == 'unit-arkts')
@@ -142,7 +142,6 @@ jni_os = jni_oses.get(jni_os, jni_os)
 is_ohos = os == 'ohos'
 
 if is_ohos
-    is_arkts = false
     use_libace = true
 endif
 
@@ -155,7 +154,6 @@ if use_libace
 endif
 
 node_library_name = 'NativeBridgeNapi'
-arkts_library_name = 'ArkoalaNative_ark'
 ani_library_name = 'ArkoalaNative_ani'
 jni_library_name = 'NativeBridgeJni'
 cj_library_name = 'NativeBridgeCJ'
@@ -207,15 +205,6 @@ endif
 
 node_module_prefix = ''
 node_module_suffix = 'node'
-
-arkts_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + arkts_library_name]
-arkts_include_dirs = [
-    external_interop_dir / 'ets',
-]
-arkts_sources = [
-    external_interop_dir / 'ets/convertors-ets.cpp',
-    external_interop_dir / 'types/signatures.cpp',
-]
 
 ani_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + ani_library_name]
 ani_include_dirs = [
@@ -296,21 +285,6 @@ if use_libace
         include_directories: include_dirs,
         install_dir: meson.current_source_dir(),
         cpp_args: cflags,
-        link_args: ldflags,
-        dependencies: []
-    )
-endif
-
-if is_arkts
-    shared_library(arkts_library_name,
-        sources + arkts_sources,
-        override_options: [
-            'b_lundef=false',
-        ],
-        install: true,
-        include_directories: include_dirs + arkts_include_dirs,
-        install_dir: meson.current_source_dir(),
-        cpp_args: cflags + arkts_cflags,
         link_args: ldflags,
         dependencies: []
     )
@@ -426,14 +400,10 @@ if (os != 'windows') and (is_ohos_demo == false) and (is_unit == false)
 endif
 
 
-if is_arkts
+if is_build_vmloader
     loader_include_dirs = include_dirs
     loader_cflags = cflags + [ '-DKOALA_DYNAMIC_LOADER' ]
     loader_ldflags = []
-    if is_arkts
-        loader_include_dirs += arkts_include_dirs
-        loader_cflags += arkts_cflags
-    endif
     if is_ani
         loader_include_dirs += ani_include_dirs
         loader_cflags += ani_cflags
