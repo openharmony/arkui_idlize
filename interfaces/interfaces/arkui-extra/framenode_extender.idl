@@ -59,6 +59,7 @@ interface FrameNodeExtender {
   static void layout(FrameNode peer, Vector2 position);
   static void setNeedsLayout(FrameNode peer);
   static Vector2 getPositionToScreen(FrameNode peer);
+  static Vector2 getGlobalPositionOnDisplay(FrameNode peer);
   static Vector2 getPositionToWindowWithTransform(FrameNode peer);
   static Vector2 getPositionToParentWithTransform(FrameNode peer);
   static Vector2 getPositionToScreenWithTransform(FrameNode peer);
