@@ -1032,7 +1032,8 @@
         "arkui.component.idlize.AnimationExtender.AnimateToImmediatelyImpl",
         "arkui.component.idlize.AnimationExtender.KeyframeAnimationImpl",
         "arkui.component.idlize.AnimationExtender.OpenImplicitAnimationForAnimation",
-        "arkui.component.idlize.AnimationExtender.CloseImplicitAnimationForAnimation"
+        "arkui.component.idlize.AnimationExtender.CloseImplicitAnimationForAnimation",
+        "idlize.internal.interop.Node.ApplyModifierFinish"
     ],
     "moduleName": "arkui",
     "modules": {
