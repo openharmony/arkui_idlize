@@ -14,4 +14,5 @@ interface IUIContext {
     static void unbindTabsFromScrollable(TabsController tabsController, Scroller scroller);
     static void bindTabsToNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller scrollerchildScroller);
     static void unbindTabsFromNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
+    static void setCustomKeyboardContinueFeature(CustomKeyboardContinueFeature feature);
 };
