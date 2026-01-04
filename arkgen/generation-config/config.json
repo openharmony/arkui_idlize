@@ -1040,7 +1040,17 @@
         "arkui.component.idlize.AnimationExtender.KeyframeAnimationImpl",
         "arkui.component.idlize.AnimationExtender.OpenImplicitAnimationForAnimation",
         "arkui.component.idlize.AnimationExtender.CloseImplicitAnimationForAnimation",
-        "idlize.internal.interop.Node.ApplyModifierFinish"
+        "idlize.internal.interop.Node.ApplyModifierFinish",
+        "arkui.component.idlize.RouterExtender.back",
+        "arkui.component.idlize.RouterExtender.push",
+        "arkui.component.idlize.RouterExtender.replace",
+        "arkui.component.idlize.RouterExtender.runPage",
+        "arkui.component.navigation.NavigationAttribute.title",
+        "arkui.component.navigation.NavigationAttribute.menus",
+        "arkui.component.navigation.NavigationAttribute.toolbarConfiguration",
+        "arkui.component.navDestination.NavDestinationAttribute.title",
+        "arkui.component.navDestination.NavDestinationAttribute.menus",
+        "arkui.component.navDestination.NavDestinationAttribute.toolbarConfiguration"
     ],
     "moduleName": "arkui",
     "modules": {
