@@ -764,6 +764,10 @@
             "contentModifier": {
                 "hookName": "hookGaugeContentModifier",
                 "replaceImplementation": true
+            },
+            "indicator": {
+                "hookName": "hookGaugeIndicator",
+                "replaceImplementation": true
             }
         },
         "ImageAttribute": {
