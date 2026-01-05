@@ -445,6 +445,10 @@
         "CustomSpan": [
             "onMeasure",
             "onDraw"
+        ],
+        "LeadingMarginSpan": [
+            "onDraw",
+            "getLeadingMargin"
         ]
     },
     "forceResource": [

@@ -20,6 +20,10 @@
         "CustomSpan": [
             "onMeasure",
             "onDraw"
+        ],
+        "LeadingMarginSpan": [
+            "onDraw",
+            "getLeadingMargin"
         ]
     },
     "boundProperties": {},
