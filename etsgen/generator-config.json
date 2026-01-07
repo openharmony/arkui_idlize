@@ -110,7 +110,9 @@
         "DrawModifier.drawContent": "ExtraMethod",
         "DrawModifier.drawFront": "ExtraMethod",
         "CustomSpan.onMeasure": "ExtraMethod",
-        "CustomSpan.onDraw": "ExtraMethod"
+        "CustomSpan.onDraw": "ExtraMethod",
+ 	    "LeadingMarginSpan.onDraw": "ExtraMethod",
+ 	    "LeadingMarginSpan.getLeadingMargin": "ExtraMethod"
     },
     "NameReplacements": {
         "common.d.ts": [
