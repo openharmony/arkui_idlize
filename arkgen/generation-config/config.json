@@ -787,6 +787,22 @@
                 "replaceImplementation": false
             }
         },
+        "ListAttribute": {
+            "childrenMainSize": {
+                "hookName": "hookListChildrenMainSizeImpl",
+                "replaceImplementation": false
+            }
+        },
+        "ListItemGroupAttribute": {
+            "childrenMainSize": {
+                "hookName": "hookListItemGroupChildrenMainSizeImpl",
+                "replaceImplementation": false
+            },
+            "setListItemGroupOptions": {
+                "hookName": "hookListItemGroupOptionsImpl",
+                "replaceImplementation": false
+            }
+        },
         "LoadingProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookLoadingProgressContentModifier",
