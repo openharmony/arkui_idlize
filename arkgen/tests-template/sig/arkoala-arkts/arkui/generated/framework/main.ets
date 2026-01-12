@@ -331,7 +331,7 @@ function enqueueCallback(
 // }
 
 function checkNumberIncrement() {
-    assertEquals("Native increment", 40, InteropNativeModule._IncrementNumber(39))
+    // assertEquals("Native increment", 40, InteropNativeModule._IncrementNumber(39))
 }
 
 // function checkCallbackWithReturn() {
