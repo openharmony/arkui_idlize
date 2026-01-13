@@ -14,11 +14,12 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { throwError, LWType, LWExpression, E, T, FunctionDeclaration, LWDeclaration } from "@idlizer/libohos"
+import { LWType, LWExpression, E, T, FunctionDeclaration, LWDeclaration } from "@idlizer/ost"
 import { ProducerContext, ProducerResult, SeedType, Seed, Producer, makeSeed } from "../../../engine"
 import { EssentialsGenerators, ProduceOptions, InteropGenerator, MakeApiOptions, PeerFunctionPlacementResult } from "./generator"
 import { GenerationLibrary, Convertor } from "./common"
 import { GeneratorSeedIDL, GeneratorSeedType, GeneratorSeed, ApiSeedType } from "./seed"
+import { terminate } from "../../../cli/error"
 
 export class SelectResult<T> {
     private constructor(
@@ -37,7 +38,7 @@ export class SelectResult<T> {
         return this.hasValue
     }
     get(): T {
-        return this.value ?? throwError("NO VALUE!")
+        return this.value ?? terminate("NO VALUE!")
     }
 }
 

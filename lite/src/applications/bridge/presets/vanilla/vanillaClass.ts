@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { D, DD, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWType, Md, S, std, T, Ts, Vs } from "@idlizer/libohos";
+import { D, DD, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWType, Md, S, std, T, Ts, Vs } from "@idlizer/ost";
 import { InteropProducerTypeDescription, SelectResult } from "../../generator/builder";
 import { getFQName, IDLInterface, IDLMethod, isInterface, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";

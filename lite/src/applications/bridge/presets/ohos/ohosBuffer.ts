@@ -16,7 +16,7 @@
 import { InteropProducerTypeDescription, makeSingletonProducer, SelectResult } from "../../generator/builder";
 import { IDLBufferType, IDLPrimitiveType, IDLType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
-import { D, E, S, T } from "@idlizer/libohos";
+import { D, E, S, T } from "@idlizer/ost";
 import { KOALAUI_INTEROP_BUFFER } from "../../generator/names";
 
 const [ohosBufferProducer, ohosBufferSeed] = makeSingletonProducer('capi.OH_Buffer', (name) => D.type(name, T.c(KOALAUI_INTEROP_BUFFER)))

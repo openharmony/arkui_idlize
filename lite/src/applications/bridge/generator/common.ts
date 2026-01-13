@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { lw, LWExpression, LWStatement, LWType } from "@idlizer/libohos"
+import { lw, LWExpression, LWStatement, LWType } from "@idlizer/ost"
 import { TypeSpecSelector } from "../generator/generator"
 import { InputLibrary } from "../library"
 import { getFileFor, IDLNode, IDLReferenceType, IDLType, toIDLString } from "@idlizer/core/idl"

@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { capitalize } from "@idlizer/core"
-import { LWExpression, LWStatement, FunctionDeclaration, LWDeclaration, D, std, Ts, S, E } from "@idlizer/libohos"
+import { LWExpression, LWStatement, FunctionDeclaration, LWDeclaration, D, std, Ts, S, E } from "@idlizer/ost"
 import { Config, ConfigBundle } from "../config"
 import { ProducerContext, ProducerResult, GeneratorMemory, makeGeneratorMemory, continueWith, Producer, GenerateOptions } from "../../../engine"
 import { InputLibrary } from "../library"

@@ -12,7 +12,7 @@
   ],
   "main": "build/lib/bridge-gen.js",
   "scripts": {
-    "compile": "npm run -C ../libohos compile && npm run compile:self",
+    "compile": "npm run -C ../ost compile && npm run -C ../core compile && npm run compile:self",
     "compile:self": "rollup -c",
     "clean": "rimraf build",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@idlizer/core": "2.1.10+devel",
-    "@idlizer/libohos": "2.1.10+devel",
+    "@idlizer/ost": "2.1.10+devel",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-replace": "^5.0.7",

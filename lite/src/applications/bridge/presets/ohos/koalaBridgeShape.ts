@@ -15,7 +15,7 @@
 
 import { capitalize } from "@idlizer/core";
 import { IDLType, IDLParameter, IDLMethod, getFQName, IDLInterface, isInterface, createReferenceType, IDLVoidType } from "@idlizer/core/idl";
-import { D, DD, E, FunctionDeclaration, Hs, lw, LWDeclaration, LWExpression, LWKind, LWStatement, Modifier, S, std, T, Ts, Vs } from "@idlizer/libohos";
+import { D, DD, E, FunctionDeclaration, Hs, lw, LWDeclaration, LWExpression, LWKind, LWStatement, Modifier, S, std, T, Ts, Vs } from "@idlizer/ost";
 import { TypeSpecSelector } from "../../generator/generator";
 import { KOALAUI_SERIALIZER_BASE, KOALAUI_DESERIALIZER_BASE, KOALAUI_KRETURN_BUFFER, KOALAUI_KINT32, KOALAUI_KPOINTER, KOALAUI_KUINT8 } from "../../generator/names";
 import { GeneratedNativeModule } from "../../generator/nativeModuleProducer";

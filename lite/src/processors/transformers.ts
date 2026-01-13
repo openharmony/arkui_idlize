@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { FunctionDeclaration, IdentityTransformer, LWExpression, VariableExpression, Vs } from "@idlizer/libohos";
+import { FunctionDeclaration, IdentityTransformer, LWExpression, VariableExpression, Vs } from "@idlizer/ost";
 
 class Replacer extends IdentityTransformer {
     private substitution: Map<string, LWExpression> = new Map()

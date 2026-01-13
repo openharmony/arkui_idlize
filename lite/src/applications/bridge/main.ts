@@ -16,7 +16,9 @@
 import { createAlgotithmicReferenceResolver, createEmptyReferenceResolver, IndentedPrinter, Language, NativeModuleType, parseIDLFile, PeerLibrary, TSLanguageWriter, TSTypeNameConvertor } from "@idlizer/core"
 import { basename, dirname, join, relative, resolve } from "node:path"
 import * as idl from "@idlizer/core/idl"
-import { lowLevelLike, LWDeclaration, LWKind, moduleLike, processNPrintArkTS, processNPrintCXX, processNPrintTS } from "@idlizer/libohos"
+import { LWDeclaration, LWKind, processNPrintArkTS, processNPrintCXX, processNPrintTS } from "@idlizer/ost"
+import * as lowLevelLike from "../../processors/lowLevelLike"
+import * as moduleLike from "../../processors/moduleLike"
 import * as toml from "toml"
 
 import { topSortDeclarations } from "../../processors/sorts"

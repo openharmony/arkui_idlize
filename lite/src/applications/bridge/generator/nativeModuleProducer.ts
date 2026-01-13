@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import * as idl from "@idlizer/core/idl"
-import { DD, E, Hs, lw, Md, Modifier, S } from "@idlizer/libohos"
+import { DD, E, Hs, lw, Md, Modifier, S } from "@idlizer/ost"
 import { GenerationLibrary } from "./common"
 import { TwinFunctionCallSeedType } from "./seed"
 import { Producer } from "../../../engine"

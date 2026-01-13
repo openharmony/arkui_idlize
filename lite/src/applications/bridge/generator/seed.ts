@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import * as idl from "@idlizer/core/idl"
-import { LWType, Ts, lw, LWExpression } from "@idlizer/libohos"
+import { LWType, Ts, lw, LWExpression } from "@idlizer/ost"
 import { makeSeed, Seed } from "../../../engine"
 import { showErrorForIDLNode, showErrorFile } from "./common"
 

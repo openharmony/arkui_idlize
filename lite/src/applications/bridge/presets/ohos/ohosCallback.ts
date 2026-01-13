@@ -16,7 +16,7 @@
 import { InteropProducerTypeDescription, makeSingletonProducer, SelectResult } from "../../generator/builder";
 import { getFQName, IDLCallback, IDLI32Type, IDLType, isCallback, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
-import { Builders, D, E, EnumDeclaration, Hs, LWType, S, T, Ts, Vs } from "@idlizer/libohos";
+import { Builders, D, E, EnumDeclaration, Hs, LWType, S, T, Ts, Vs } from "@idlizer/ost";
 import { throwDeclarationWasNotFound } from "../../generator/common";
 import { Ask } from "../../generator/seed";
 import { KOALAUI_DESERIALIZER_BASE, KOALAUI_RESOURCE_HOLDER, KOALAUI_INTEROP_CALLBACK_RESOURCE, KOALAUI_INTEROP_VMCONTEXT, KOALAUI_KPOINTER } from "../../generator/names";

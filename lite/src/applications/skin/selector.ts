@@ -14,7 +14,7 @@
  */
 
 import { IDLType, IDLReferenceType, isReferenceType, IDLEntry, DebugUtils } from "@idlizer/core/idl"
-import { LWExpression, LWStatement, LWType } from "@idlizer/libohos"
+import { LWExpression, LWStatement, LWType } from "@idlizer/ost"
 import { terminate } from "../../cli/error"
 import { ProducerResult } from "../../engine"
 import { IDLLibrary } from "./library"

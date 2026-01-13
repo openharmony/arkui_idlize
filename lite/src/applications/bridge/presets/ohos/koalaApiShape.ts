@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { E, Hs, DD, Md, Ts, D, T } from "@idlizer/libohos"
+import { E, Hs, DD, Md, Ts, D, T } from "@idlizer/ost"
 import { makeSeed, ProducerResult } from "../../../../engine"
 import { isInterface } from "@idlizer/core/idl"
 import { ApiSeedType } from "../../generator/seed"

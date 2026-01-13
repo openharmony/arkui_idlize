@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Builders, D, DD, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWType, Md, S, std, T, Ts, Vs } from "@idlizer/libohos";
+import { Builders, D, DD, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWType, Md, S, std, T, Ts, Vs } from "@idlizer/ost";
 import { createMethod, getFQName, IDLInterface, IDLMethod, IDLPointerType, isClassSubkind, isInterface, isInterfaceSubkind, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
 import { makeSeed } from "../../../../engine";

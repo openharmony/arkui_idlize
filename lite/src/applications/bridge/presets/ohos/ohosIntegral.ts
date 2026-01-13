@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { D, E, LWType, S, T, Ts } from "@idlizer/libohos"
+import { D, E, LWType, S, T, Ts } from "@idlizer/ost"
 import { IDLBooleanType, IDLI32Type, IDLPointerType, IDLPrimitiveType, IDLU64Type, IDLU8Type, isPrimitiveType } from "@idlizer/core/idl"
 import { InteropProducerTypeDescription, SelectResult } from "../../generator/builder"
 import { InputLibrary } from "../../library"

@@ -70,6 +70,7 @@ export * from "./transformers/OnSerializeTransformer"
 export * from "./transformers/IdlTransformer"
 export * from "./transformers/transformUtils"
 
+export * from "./ImportCollector"
 export * from "./LanguageWriters"
 export * from "./peer-generation/ReferenceResolver"
 export * from "./peer-generation/idl/common"

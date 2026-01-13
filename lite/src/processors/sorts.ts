@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IdentityTransformer, lw, std } from "@idlizer/libohos";
+import { IdentityTransformer, lw, std } from "@idlizer/ost";
 
 class DepHunter extends IdentityTransformer {
 

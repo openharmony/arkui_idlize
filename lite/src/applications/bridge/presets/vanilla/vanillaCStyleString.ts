@@ -17,7 +17,7 @@ import { IDLPrimitiveType, IDLStringType} from "@idlizer/core/idl"
 import { InputLibrary } from "../../library"
 import { InteropProducerTypeDescription } from "../../generator/builder"
 import { addTrivialProducers } from "../common"
-import { Ts } from "@idlizer/libohos"
+import { Ts } from "@idlizer/ost"
 
 export const createCStyleStringProducer = (_: InputLibrary): InteropProducerTypeDescription<IDLPrimitiveType> => {
     return addTrivialProducers([

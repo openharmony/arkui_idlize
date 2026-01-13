@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { LWDeclaration, moduleLike, processNPrintArkTS } from "@idlizer/libohos"
+import { LWDeclaration, processNPrintArkTS } from "@idlizer/ost"
+import * as moduleLike from "../../processors/moduleLike"
 import { getIO } from "../../cli/application"
 import { join } from "node:path"
 import { createLanguageWriter } from "./legacy"

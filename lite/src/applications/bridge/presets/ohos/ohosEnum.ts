@@ -16,7 +16,7 @@
 import { InteropProducerTypeDescription, SelectResult } from "../../generator/builder";
 import { getFQName, IDLEnum, IDLType, isEnum, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
-import { D, E, S, T } from "@idlizer/libohos";
+import { D, E, S, T } from "@idlizer/ost";
 import { throwDeclarationWasNotFound } from "../../generator/common";
 
 export const createOhosEnum = (library: ColoredLibrary): InteropProducerTypeDescription<IDLEnum> => {

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { E, Hs, DD, Md, S, Ts } from "@idlizer/libohos"
+import { E, Hs, DD, Md, S, Ts } from "@idlizer/ost"
 import { ProducerContext, ProducerResult } from "../../../../engine"
 import { isInterface } from "@idlizer/core/idl"
 import { GenerationLibrary } from "../../generator/common"

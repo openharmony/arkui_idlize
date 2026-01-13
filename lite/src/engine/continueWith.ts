@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType } from "@idlizer/libohos"
+import { IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType } from "@idlizer/ost"
 import { Seed, SeedTypeDiscriminator, showHistory, withProcessingSeed } from "./seed"
 
 export class ContinueWithGenerationError extends Error {

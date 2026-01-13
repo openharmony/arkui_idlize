@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { E, HoleExpression, HoleType, T } from "@idlizer/libohos"
+import { E, HoleExpression, HoleType, T } from "@idlizer/ost"
 
 ///
 

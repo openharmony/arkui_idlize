@@ -14,7 +14,7 @@
  */
 
 import { createConstructor, createParameter, createReferenceType, hasExtAttribute, IDLBooleanType, IDLConstructor, IDLEnum, IDLExtendedAttributes, IDLF32Type, IDLI32Type, IDLInterface, IDLPointerType, IDLType, IDLVoidType, isEnum, isInterface, isReferenceType } from "@idlizer/core/idl"
-import { E, LWExpression, LWStatement, LWType, S, Ts } from "@idlizer/libohos"
+import { E, LWExpression, LWStatement, LWType, S, Ts } from "@idlizer/ost"
 import { terminate } from "../../cli/error"
 import { IDLLibrary } from "./library"
 import { GO } from "./generator"

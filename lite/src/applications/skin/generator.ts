@@ -14,7 +14,7 @@
  */
 
 import { IDLType, isReferenceType, isPrimitiveType, isOptionalType, isContainerType, DebugUtils, IDLMethod, isInterface, IDLInterface, getFQName, IDLEnum, IDLPrimitiveType, IDLPointerType, IDLBooleanType, IDLI32Type, IDLU32Type, IDLF32Type, IDLBufferType, IDLStringType, IDLVoidType, IDLContainerType, IDLContainerUtils, IDLOptionalType, isNamespace, isEnum, isCallback, IDLKind, IDLReferenceType, IDLEntry, createReferenceType, IDLThisType, IDLObjectType, IDLCallback, createMethod, createParameter, IDLProperty, linkParentBack, isMethod, hasExtAttribute, IDLExtendedAttributes, getExtAttribute, forEachChild, isUnionType, toIDLString, printType, isType, isTypedef, IDLTypedef, getPackageClause, getNamespaceName, getNamespacesPathFor } from "@idlizer/core/idl"
-import { LWType, FunctionDeclaration, Modifier, Md, E, T, Vs, DD, S, D, Ts, LWExpression, LWStatement, std, LWKind } from "@idlizer/libohos"
+import { LWType, FunctionDeclaration, Modifier, Md, E, T, Vs, DD, S, D, Ts, LWExpression, LWStatement, std, LWKind } from "@idlizer/ost"
 import { terminate } from "../../cli/error"
 import { makeSeed, ProducerResult, ProducerContext } from "../../engine"
 import { IDLLibrary } from "./library"

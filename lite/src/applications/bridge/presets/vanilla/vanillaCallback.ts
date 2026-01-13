@@ -17,7 +17,7 @@ import { getFQName, IDLCallback, isCallback, isReferenceType } from "@idlizer/co
 import { ColoredLibrary } from "../../library";
 import { InteropProducerTypeDescription, makeDeclarationProducer, SelectResult } from "../../generator/builder";
 import { terminate } from "../../../../cli/error";
-import { DD, D, E, Hs, S, T, Ts, Md, LWStatement, LWExpression, LWType } from "@idlizer/libohos";
+import { DD, D, E, Hs, S, T, Ts, Md, LWStatement, LWExpression, LWType } from "@idlizer/ost";
 import { makeSeed } from "../../../../engine";
 import { IDLIZER_RAW_MEMORY, IDLIZER_SERIALIZER_BASE, IDLIZER_RESOURCE_MANAGER, IDLIZER_DESERIALIZER_BASE } from "../../generator/names";
 import { Ask } from "../../generator/seed";

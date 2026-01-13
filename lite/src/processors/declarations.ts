@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ClassDeclaration, FunctionDeclaration, IdentityTransformer, LWDeclaration, LWType, Md, std, ValueType } from "@idlizer/libohos";
+import { ClassDeclaration, FunctionDeclaration, IdentityTransformer, LWDeclaration, LWType, Md, std, ValueType } from "@idlizer/ost";
 
 class DeclarationMaker extends IdentityTransformer {
     goClassDeclaration(decl: ClassDeclaration): ClassDeclaration {
