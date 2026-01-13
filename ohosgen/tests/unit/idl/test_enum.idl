@@ -56,18 +56,18 @@ dictionary IntEnumNegative {
     number E15 = -15;
 };
 
-dictionary IntEnumNegative126 {
-    number E1 = -126;
-    number E126 = 126;
-};
-
-
 dictionary IntEnumNegative127 {
-    number E1 = 1;
-    number E127 = -127;
+    number E1 = -128;
+    number E127 = 127;
 };
+
 
 dictionary IntEnumNegative128 {
-    number E1 = 1;
-    number E128 = -128;
+    number E1 = -1;
+    number E127 = 128;
+};
+
+dictionary IntEnumNegative129 {
+    number E1 = -1;
+    number E128 = -129;
 };

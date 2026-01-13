@@ -596,7 +596,7 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
 function enumBaseType(decl: idl.IDLEnum | idl.IDLEnumMember): string {
     if (!idl.isEnum(decl)) return ""
     const { low, high } = idl.extremumOfOrdinals(decl)
-    if (low >=0 && high < 256) return ": InteropUInt8"
-    if (low >=-127 && high < 127) return ": InteropInt8"
+    if (low >=0 && high <= 255) return ": InteropUInt8"
+    if (low >=-128 && high <= 127) return ": InteropInt8"
     return ""
 }
