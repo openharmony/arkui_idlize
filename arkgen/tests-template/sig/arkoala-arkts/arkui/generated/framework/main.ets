@@ -330,10 +330,6 @@ function enqueueCallback(
 //     assertEquals("Sync Callback 1 read&called immediately", "CALLED, value=194", callResult1)
 // }
 
-function checkNumberIncrement() {
-    // assertEquals("Native increment", 40, InteropNativeModule._IncrementNumber(39))
-}
-
 // function checkCallbackWithReturn() {
 //     wrapSystemCallback(1, (buff:KSerializerBuffer, len:int) => { deserializeAndCallCallback(new DeserializerBase(buff, len)); return 0 })
 // 
@@ -496,7 +492,6 @@ export function main(): void {
     registerNativeModuleLibraryName("ArkUINativeModule", "ArkoalaNative_ani")
     registerNativeModuleLibraryName("ArkUIGeneratedNativeModule", "ArkoalaNative_ani")
 
-    checkNumberIncrement()
     // checkCallbackWithReturn()
     // checkTwoSidesCallbackSync()
 
