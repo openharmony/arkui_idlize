@@ -145,33 +145,36 @@ namespace OHOS::Ace::NG::GeneratedModifier {
     }
     } // EventEmulatorAccessor
     namespace ScreenshotServiceAccessor {
-        Ark_Boolean RequestScreenshotImpl(const Ark_String* target, const Ark_String* name)
+        void ProvideSettingsImpl(const Ark_String* goldenPath, const Ark_String* outputPath,
+                                 Ark_Boolean generateGoldenFiles, Ark_Float64 similarityThreshold) {}
+        
+        Ark_Boolean MakeScreenshotImpl(Ark_NativePointer data, Ark_Int64 length, Ark_Int32 width,
+                                   Ark_Int32 height, Ark_Int64 timeStamp)
         {
-            bool xxx = strcmp(name->chars, "XXX") == 0;
-            bool yyy = strcmp(name->chars, "YYY") == 0;
-            if (xxx || yyy) {
-                if (!needGroupedLog(1)) {
-                    return strcmp(name->chars, "XXX") == 0;
-                }
-                std::string out("requestScreenshot() \n");
-                out.append("[return true] \n");
-                appendGroupedLog(1, out);
+            return true;
+        }
+
+        Ark_Boolean CompareImpl(const Ark_String* test, const Ark_String* name, Ark_Int64 requestID)
+        {
+            std::string out("compare() \n");
+            out.append("[return true] \n");
+            appendGroupedLog(1, out);
+            bool envTest = strcmp(test->chars, "__ENVTEST__") == 0;
+            if (envTest) {
                 return strcmp(name->chars, "XXX") == 0;
             }
+
             // golden image comparison
+            auto testName = std::string(test->chars, test->length);
+            auto image = (strcmp(name->chars, "state-change-fail") == 0) ? "snapshot-fail" : "snapshot-success";
             TGAInfo infoGolden;
-            ReadImageTGA(baseGoldenPath + std::string("golden-base"), infoGolden);
-            if (strcmp(name->chars, "golden-compare") == 0) {
-                return CompareTwoTGA(std::string("golden-base"), infoGolden, infoGolden);
-            }
-            if (strcmp(name->chars, "golden-diff") == 0) {
-                TGAInfo infoTarget;
-                CopyTGAHeaders(infoGolden, infoTarget);
-                StubTGA(baseBuildPath + std::string("golden-base-snapshot"), infoTarget);
-                return CompareTwoTGA(std::string("golden-base"), infoGolden, infoTarget);
-            }
-            return false;
+            TGAInfo infoTarget;
+            ReadImageTGA(GoldenPath + image, infoGolden);
+            ReadImageTGA(OutPath + image, infoTarget);
+            return CompareTwoTGA(testName, image, infoGolden, infoTarget);
         }
+
+        void RequestFrameImpl(Ark_Int64 requestID) {}
     } // ScreenshotServiceAccessor
     namespace RenderServiceNodeAccessor {
         Ark_Int32 GetNodeIdImpl(const Ark_String* nodeId)
