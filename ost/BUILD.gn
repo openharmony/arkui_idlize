@@ -14,10 +14,6 @@
 import("../gn/import/npm.gni")
 
 npm_cmd("compile") {
-    deps = [
-        "../core:compile"
-        "../ost:compile",
-    ]
     project_path = rebase_path(".")
     run_tasks = [ "compile:self" ]
 }
