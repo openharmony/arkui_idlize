@@ -919,6 +919,7 @@
     },
     "patchMaterialized": {},
     "forceContext": [
+        "idlize.internal.interop.NativeModuleNode.RemoveChild",
         "idlize.internal.interop.NativeModuleNode.LoadUserView",
         "idlize.internal.interop.NativeModuleNode.MeasureLayoutAndDraw",
         "idlize.internal.interop.NativeModuleNode.MeasureNode",
