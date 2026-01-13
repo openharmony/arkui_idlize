@@ -25,4 +25,5 @@ konanc \
     -l $external_dir/interop/build/kotlin-interop/cinterop.interop_native_module.klib \
     -linker-options "-L./native -lNativeBridgeKotlin" \
     -opt-in=kotlin.time.ExperimentalTime \
+    -Xnested-type-aliases \
     -p program -entry main -o $out_dir/bin/idlize_test > /home/mihan/work/errors.txt 2>&1
