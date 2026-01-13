@@ -13,188 +13,216 @@
  * limitations under the License.
  */
 
-import { convertType, DiagnosticMessageGroup, isDefined, parseIDLFile, stringOrNone, TypeConvertor } from "@idlizer/core"
+import { convertType, createAlgotithmicReferenceResolver, DiagnosticMessageGroup, isDefined, parseIDLFile, stringOrNone, TypeConvertor } from "@idlizer/core"
 import * as idl from "@idlizer/core/idl"
 
-const errors = new DiagnosticMessageGroup("error", "Compat", "Incompatible API change")
-const typedefs = new Map<string, idl.IDLType>()
+class Reporter {
+    readonly errors = new DiagnosticMessageGroup("error", "Compat", "Incompatible API change")
 
-function isCompatibleType(base?: idl.IDLType, commit?: idl.IDLType): boolean {
-    if (!base || !commit)
-        return base === commit
-    else if (idl.isPrimitiveType(base) && idl.isPrimitiveType(commit))
-        return base === commit
-    else if (idl.isContainerType(base) && idl.isContainerType(commit))
-        return base.containerKind === commit.containerKind &&
-            base.elementType.length === commit.elementType.length &&
-            base.elementType.every((it, index) => isCompatibleType(it, commit.elementType[index]))
-    else if (idl.isOptionalType(base) && idl.isOptionalType(commit))
-        return isCompatibleType(base.type, commit.type)
-    else if (idl.isUnionType(base) && idl.isUnionType(commit))
-        return base.types.length === commit.types.length &&
-            base.types.every(type => isDefined(commit.types.find(it => isCompatibleType(it, type))))
-    else if (idl.isTypeParameterType(base) && idl.isTypeParameterType(commit))
-        return true
-    return idl.isReferenceType(base) && idl.isReferenceType(commit) && base.name === commit.name
-        || idl.isReferenceType(commit) && isCompatibleType(base, typedefs.get(commit.name))
-        || idl.isReferenceType(base) && isCompatibleType(typedefs.get(base.name), commit)
-}
-
-function checkType(message: string, node: idl.IDLEntry, base?: idl.IDLType, commit?: idl.IDLType) {
-    if (!isCompatibleType(base, commit))
-        report(message, node)
-}
-
-function checkFunction(base: idl.IDLFunction | idl.IDLMethod | idl.IDLConstructor, commit?: idl.IDLFunction | idl.IDLMethod | idl.IDLConstructor) {
-    if (!commit)
-        report('Missing function', base)
-    else {
-        checkType('Return type mismatch', commit, base.returnType, commit.returnType)
-        if (idl.isMethod(base) && idl.isMethod(commit)) {
-            if (base.isOptional !== commit.isOptional)
-                report('Optional attribute changed', commit)
-            if (base.isStatic !== commit.isStatic)
-                report('Static attribute changed', commit)
+    readonly typeNameConvertor = new (class implements TypeConvertor<string> {
+        convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+            return type.name
         }
-    }
-}
-
-function checkProperty(base: idl.IDLProperty | idl.IDLConstant | idl.IDLEnumMember, commit?: idl.IDLProperty | idl.IDLConstant | idl.IDLEnumMember) {
-    if (!commit)
-        report('Missing property', base)
-    else {
-        checkType('Property type mismatch', commit, base.type, commit.type)
-        if (idl.hasExtAttribute(base, idl.IDLExtendedAttributes.Optional) !== idl.hasExtAttribute(commit, idl.IDLExtendedAttributes.Optional))
-            report('Optional attribute changed', commit)
-    }
-}
-
-function checkEnum(base: idl.IDLEnum, commit?: idl.IDLEnum) {
-    if (!commit)
-        report('Missing enum', base)
-    else {
-        base.elements.forEach(elem => checkProperty(elem, commit.elements.find(it => it.name === elem.name)))
-    }
-}
-
-function checkInterface(base: idl.IDLInterface, commit?: idl.IDLInterface) {
-    if (!commit)
-        report('Missing interface', base)
-    else {
-        base.inheritance.forEach(type => checkType('Inheritance mismatch', commit, type, commit.inheritance.find(it => it.name === type.name)))
-        base.properties.forEach(prop => checkProperty(prop, commit.properties.find(it => isSameProperty(prop, it))))
-        base.methods.forEach(method => checkFunction(method, commit.methods.find(it => isSameOverload(method, it))))
-        base.constructors.forEach(ctor => checkFunction(ctor, commit.constructors.find(it => isSameOverload(ctor, it))))
-    }
-}
-
-function checkNamespace(base: idl.IDLNamespace, commit?: idl.IDLNamespace) {
-    if (!commit)
-        report('Missing namespace', base)
-    else
-        checkEntries(base.members, commit.members)
-}
-
-function checkEntries(base: idl.IDLEntry[], commit: idl.IDLEntry[]) {
-    base.forEach(e => {
-        if (idl.isEnum(e))
-            checkEnum(e, findEntry(commit, e, idl.isEnum))
-        else if (idl.isInterface(e))
-            checkInterface(e, findEntry(commit, e, x => idl.isInterface(x) && x.subkind === e.subkind))
-        else if (idl.isConstant(e))
-            checkProperty(e, findEntry(commit, e, idl.isConstant))
-        else if (idl.isMethod(e))
-            checkFunction(e, findEntry(commit, e, x => idl.isMethod(x) && isSameOverload(e, x)))
-        else if (idl.isNamespace(e))
-            checkNamespace(e, findEntry(commit, e, idl.isNamespace))
+        convertTypeReference(type: idl.IDLReferenceType): string {
+            return type.name
+        }
+        convertTypeReferenceAsImport(type: idl.IDLReferenceType): string {
+            return type.name
+        }
+        convertTypeParameter(type: idl.IDLTypeParameterType): string {
+            return type.name
+        }
+        convertImport(type: idl.IDLImport): string {
+            return type.name
+        }
+        convertOptional(type: idl.IDLOptionalType): string {
+            return `optional ${convertType(this, type.type)}`
+        }
+        convertUnion(type: idl.IDLUnionType): string {
+            return type.types.map(ty => convertType(this, ty)).join(' or ')
+        }
+        convertContainer(type: idl.IDLContainerType): string {
+            return `${type.containerKind}<${type.elementType.map(ty => convertType(this, ty)).join(', ')}>`
+        }
     })
+    typeName(type: idl.IDLType): string {
+        return convertType(this.typeNameConvertor, type)
+    }
+
+    makeDecorator(node?: idl.IDLNode): stringOrNone {
+        if (!node)
+            return undefined
+        if (idl.isProperty(node)) {
+            const accessor = idl.getExtAttribute(node, idl.IDLExtendedAttributes.Accessor)
+            return `: ${this.typeName(node.type)}${accessor ? ` [${accessor}]` : ''}`
+        }
+        if (idl.isMethod(node) || idl.isConstructor(node)) {
+            return `(${node.parameters.map(p => this.typeName(p.type)).join(', ')})`
+        }
+        return ''
+    }
+
+    report(message: string, node?: idl.IDLNode) {
+        const decorator = this.makeDecorator(node)
+        const crumbs: string[] = []
+        for (; node && !idl.isFile(node); node = node.parent) {
+            if (idl.isConstructor(node))
+                crumbs.unshift('constructor')
+            else if (idl.isNamedNode(node))
+                crumbs.unshift(node.name)
+        }
+        if (node && idl.isFile(node))
+            crumbs.unshift(...node.packageClause)
+        const locations = node?.nodeLocation ? [node.nodeLocation] : []
+        this.errors.reportDiagnosticMessage(locations, `${message}: ${crumbs.join('.')}${decorator ?? ''}`)
+    }
 }
 
-function findEntry<T extends idl.IDLEntry>(entries: idl.IDLEntry[], entry: T, predicate: (e: idl.IDLEntry) => boolean): T | undefined {
-    const candidates = entries.filter(it => predicate(it) && it.name === entry.name) as T[]
-    if (candidates.length > 1) {
-        if (entry.parent && idl.isFile(entry.parent)) {
-            const pkg = entry.parent.packageClause.join('.')
-            return candidates.find(it => it.parent && idl.isFile(it.parent) && it.parent.packageClause.join('.') === pkg)
+class Checker {
+    constructor(
+        private baseFiles: idl.IDLFile[],
+        private commitFiles: idl.IDLFile[]
+    ) {}
+    readonly typedefs = new Map<string, idl.IDLType>()
+    readonly baseResolver = createAlgotithmicReferenceResolver(this.baseFiles)
+    readonly commitResolver = createAlgotithmicReferenceResolver(this.commitFiles)
+    readonly reporter = new Reporter()
+
+    isCompatibleType(base?: idl.IDLType, commit?: idl.IDLType): boolean {
+        if (!base || !commit)
+            return base === commit
+        else if (idl.isPrimitiveType(base) && idl.isPrimitiveType(commit))
+            return base === commit
+        else if (idl.isContainerType(base) && idl.isContainerType(commit))
+            return base.containerKind === commit.containerKind &&
+                base.elementType.length === commit.elementType.length &&
+                base.elementType.every((it, index) => this.isCompatibleType(it, commit.elementType[index]))
+        else if (idl.isOptionalType(base) && idl.isOptionalType(commit))
+            return this.isCompatibleType(base.type, commit.type)
+        else if (idl.isUnionType(base) && idl.isUnionType(commit))
+            return base.types.length === commit.types.length &&
+                base.types.every(type => isDefined(commit.types.find(it => this.isCompatibleType(it, type))))
+        else if (idl.isTypeParameterType(base) && idl.isTypeParameterType(commit))
+            return true
+        else if (idl.isReferenceType(base) && idl.isReferenceType(commit)) {
+            if (base.name === commit.name)
+                return true
+            const baseDecl = this.baseResolver.resolveTypeReference(base)
+            const commitDecl = this.commitResolver.resolveTypeReference(commit)
+            if (baseDecl && commitDecl && idl.isCallback(baseDecl) && idl.isCallback(commitDecl))
+                return this.isCompatibleCallback(baseDecl, commitDecl)
+        }
+        return idl.isReferenceType(commit) && this.isCompatibleType(base, this.typedefs.get(commit.name)) ||
+               idl.isReferenceType(base) && this.isCompatibleType(this.typedefs.get(base.name), commit)
+    }
+
+    isCompatibleCallback(base: idl.IDLCallback, commit: idl.IDLCallback): boolean {
+        return this.isCompatibleType(base.returnType, commit.returnType) &&
+            base.parameters.length === commit.parameters.length &&
+            base.parameters.every((p, i) => this.isCompatibleType(p.type, commit.parameters[i].type))
+    }
+
+    checkType(message: string, node: idl.IDLEntry, base?: idl.IDLType, commit?: idl.IDLType) {
+        if (!this.isCompatibleType(base, commit))
+            this.reporter.report(message, node)
+    }
+
+    checkFunction(base: idl.IDLFunction | idl.IDLMethod | idl.IDLConstructor, commit?: idl.IDLFunction | idl.IDLMethod | idl.IDLConstructor) {
+        if (!commit)
+            this.reporter.report('Missing function', base)
+        else {
+            this.checkType('Return type mismatch', commit, base.returnType, commit.returnType)
+            if (idl.isMethod(base) && idl.isMethod(commit)) {
+                if (base.isOptional !== commit.isOptional)
+                    this.reporter.report('Optional attribute changed', commit)
+                if (base.isStatic !== commit.isStatic)
+                    this.reporter.report('Static attribute changed', commit)
+            }
         }
     }
-    return candidates[0]
-}
 
-function isSameProperty(base: idl.IDLProperty, commit: idl.IDLProperty) {
-    return base.name === commit.name &&
-        idl.getExtAttribute(base, idl.IDLExtendedAttributes.Accessor) === idl.getExtAttribute(commit, idl.IDLExtendedAttributes.Accessor) &&
-        isCompatibleType(base.type, commit.type)
-}
+    checkProperty(base: idl.IDLProperty | idl.IDLConstant | idl.IDLEnumMember, commit?: idl.IDLProperty | idl.IDLConstant | idl.IDLEnumMember) {
+        if (!commit)
+            this.reporter.report('Missing property', base)
+        else {
+            this.checkType('Property type mismatch', commit, base.type, commit.type)
+            if (idl.hasExtAttribute(base, idl.IDLExtendedAttributes.Optional) !== idl.hasExtAttribute(commit, idl.IDLExtendedAttributes.Optional))
+                this.reporter.report('Optional attribute changed', commit)
+        }
+    }
 
-function isSameOverload(base: idl.IDLFunction | idl.IDLMethod | idl.IDLConstructor, commit: idl.IDLFunction | idl.IDLMethod | idl.IDLConstructor) {
-    return base.name === commit.name &&
-        base.parameters.length === commit.parameters.length &&
-        base.parameters.every((it, index) => isCompatibleType(it.type, commit.parameters[index].type))
-}
+    checkEnum(base: idl.IDLEnum, commit?: idl.IDLEnum) {
+        if (!commit)
+            this.reporter.report('Missing enum', base)
+        else {
+            base.elements.forEach(elem => this.checkProperty(elem, commit.elements.find(it => it.name === elem.name)))
+        }
+    }
 
-function report(message: string, node?: idl.IDLNode) {
-    const decorator = makeDecorator(node)
-    const crumbs: string[] = []
-    for (; node && !idl.isFile(node); node = node.parent)
-        if (idl.isNamedNode(node))
-            crumbs.unshift(node.name)
-    if (node && idl.isFile(node))
-        crumbs.unshift(...node.packageClause)
-    const locations = node?.nodeLocation ? [node.nodeLocation] : []
-    errors.reportDiagnosticMessage(locations, `${message}: ${crumbs.join('.')}${decorator ?? ''}`)
-}
+    checkInterface(base: idl.IDLInterface, commit?: idl.IDLInterface) {
+        if (!commit)
+            this.reporter.report('Missing interface', base)
+        else {
+            base.inheritance.forEach(type => this.checkType('Inheritance mismatch', commit, type, commit.inheritance.find(it => it.name === type.name)))
+            base.properties.forEach(prop => this.checkProperty(prop, commit.properties.find(it => this.isSameProperty(prop, it))))
+            base.methods.forEach(method => this.checkFunction(method, commit.methods.find(it => this.isSameOverload(method, it))))
+            base.constructors.forEach(ctor => this.checkFunction(ctor, commit.constructors.find(it => this.isSameOverload(ctor, it))))
+        }
+    }
 
-function makeDecorator(node?: idl.IDLNode): stringOrNone {
-    if (!node)
-        return undefined
-    if (idl.isProperty(node)) {
-        const accessor = idl.getExtAttribute(node, idl.IDLExtendedAttributes.Accessor)
-        return `: ${typeName(node.type)}${accessor ? ` [${accessor}]` : ''}`
+    checkNamespace(base: idl.IDLNamespace, commit?: idl.IDLNamespace) {
+        if (!commit)
+            this.reporter.report('Missing namespace', base)
+        else
+            this.checkEntries(base.members, commit.members)
     }
-    if (idl.isMethod(node)) {
-        return `(${node.parameters.map(p => typeName(p.type)).join(', ')})`
-    }
-    return ''
-}
 
-class TypeNameConvertor implements TypeConvertor<string> {
-    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        return type.name
+    checkEntries(base: idl.IDLEntry[], commit: idl.IDLEntry[]) {
+        base.forEach(e => {
+            if (idl.isEnum(e))
+                this.checkEnum(e, this.findEntry(commit, e, idl.isEnum))
+            else if (idl.isInterface(e))
+                this.checkInterface(e, this.findEntry(commit, e, x => idl.isInterface(x) && x.subkind === e.subkind))
+            else if (idl.isConstant(e))
+                this.checkProperty(e, this.findEntry(commit, e, idl.isConstant))
+            else if (idl.isMethod(e))
+                this.checkFunction(e, this.findEntry(commit, e, x => idl.isMethod(x) && this.isSameOverload(e, x)))
+            else if (idl.isNamespace(e))
+                this.checkNamespace(e, this.findEntry(commit, e, idl.isNamespace))
+        })
     }
-    convertTypeReference(type: idl.IDLReferenceType): string {
-        return type.name
-    }
-    convertTypeReferenceAsImport(type: idl.IDLReferenceType): string {
-        return type.name
-    }
-    convertTypeParameter(type: idl.IDLTypeParameterType): string {
-        return type.name
-    }
-    convertImport(type: idl.IDLImport): string {
-        return type.name
-    }
-    convertOptional(type: idl.IDLOptionalType): string {
-        return `optional ${convertType(this, type.type)}`
-    }
-    convertUnion(type: idl.IDLUnionType): string {
-        return type.types.map(ty => convertType(this, ty)).join(' or ')
-    }
-    convertContainer(type: idl.IDLContainerType): string {
-        return `${type.containerKind}<${type.elementType.map(ty => convertType(this, ty)).join(', ')}>`
-    }
-}
 
-const typeNameConvertor = new TypeNameConvertor()
+    findEntry<T extends idl.IDLEntry>(entries: idl.IDLEntry[], entry: T, predicate: (e: idl.IDLEntry) => boolean): T | undefined {
+        const candidates = entries.filter(it => predicate(it) && it.name === entry.name) as T[]
+        if (candidates.length > 1) {
+            if (entry.parent && idl.isFile(entry.parent)) {
+                const pkg = entry.parent.packageClause.join('.')
+                return candidates.find(it => it.parent && idl.isFile(it.parent) && it.parent.packageClause.join('.') === pkg)
+            }
+        }
+        return candidates[0]
+    }
 
-function typeName(type: idl.IDLType): string {
-    return convertType(typeNameConvertor, type)
+    isSameProperty(base: idl.IDLProperty, commit: idl.IDLProperty) {
+        return base.name === commit.name &&
+            idl.getExtAttribute(base, idl.IDLExtendedAttributes.Accessor) === idl.getExtAttribute(commit, idl.IDLExtendedAttributes.Accessor) &&
+            this.isCompatibleType(base.type, commit.type)
+    }
+
+    isSameOverload(base: idl.IDLFunction | idl.IDLMethod | idl.IDLConstructor, commit: idl.IDLFunction | idl.IDLMethod | idl.IDLConstructor) {
+        return base.name === commit.name &&
+            base.parameters.length === commit.parameters.length &&
+            base.parameters.every((it, index) => this.isCompatibleType(it.type, commit.parameters[index].type))
+    }
 }
 
 export function checkCompat(baseFiles: Set<string>, commitFiles: Set<string>, loadFiles: Set<string>) {
-    const read = (files: Set<string>) => Array.from(files).flatMap(f => parseIDLFile(f).entries)
-    const [base, commit, load] = [baseFiles, commitFiles, loadFiles].map(read)
-    for (const e of [...base, ...commit, ...load].filter(idl.isTypedef))
-        typedefs.set(e.name, e.type)
-    checkEntries(base, commit)
+    const parse = (files: Set<string>) => Array.from(files).map(f => parseIDLFile(f))
+    const [base, commit, load] = [baseFiles, commitFiles, loadFiles].map(parse)
+    const checker = new Checker(base, commit)
+    const getAllEntries = (files: idl.IDLFile[]) => files.flatMap(f => f.entries)
+    const [baseEntries, commitEntries, loadEntries] = [base, commit, load].map(getAllEntries)
+    for (const e of [...baseEntries, ...commitEntries, ...loadEntries].filter(idl.isTypedef))
+        checker.typedefs.set(e.name, e.type)
+    checker.checkEntries(baseEntries, commitEntries)
 }
