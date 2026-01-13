@@ -17,7 +17,7 @@ import { DiagnosticResults, MessageSeverityList, DiagnosticMessage, Range } from
 
 type Logger = (...msg:string[]) => void
 
-let logger: Logger = (...msg) => logger(...msg)
+let logger: Logger = (...msg) => console.log(...msg)
 
 export function setFormatterLogger(log:Logger) {
     logger = log
