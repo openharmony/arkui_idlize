@@ -9,6 +9,7 @@ dictionary IntEnum {
     number E3 = 33;
     number E5 = 55;
 };
+
 dictionary DuplicateIntEnum {
     number FIRST = 0;
     [OriginalEnumMemberName=first]
@@ -34,3 +35,18 @@ IntEnum checkIntEnums(IntEnum value1, IntEnum value2);
 DuplicateIntEnum checkDuplicateIntEnums(DuplicateIntEnum value1, DuplicateIntEnum value2);
 StringEnum checkStringEnums(StringEnum value1, StringEnum value2);
 StringEnum checkStringEnumOrdinal(StringEnum value, i32 expectedOrdinal);
+
+dictionary IntEnum255 {
+    number E1 = 1;
+    number E255 = 255;
+};
+
+dictionary IntEnum256 {
+    number E1 = 1;
+    number E256 = 256;
+};
+
+dictionary IntEnum257 {
+    number E1 = 1;
+    number E257 = 257;
+};
