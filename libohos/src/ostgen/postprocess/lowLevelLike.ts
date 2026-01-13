@@ -21,11 +21,11 @@ import { bridgeName, cApiName, implName } from "../producers/common";
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
     decls = mergeStructs(decls)
     decls = mergeEnums(decls)
-    // decls = introduceOptionalTypes(decls)
-    // decls = introduceCallbackCaller(decls)
-    // decls = monomorphizeGenerics(decls)
-    // decls = monomorphizeAlgebraicTypes(decls)
-    // decls = makeApis(decls)
+    decls = introduceOptionalTypes(decls)
+    decls = introduceCallbackCaller(decls)
+    decls = monomorphizeGenerics(decls)
+    decls = monomorphizeAlgebraicTypes(decls)
+    decls = makeApis(decls)
     decls = makeForwardDeclarations(decls)
     return aliasTypes(decls)
 }

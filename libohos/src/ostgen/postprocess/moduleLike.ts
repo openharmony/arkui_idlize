@@ -25,9 +25,9 @@ import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     decls = mergeNamespaces(decls)
     decls = mergeStructs(decls)
-    // decls = introduceCallbackCaller(decls)
-    // decls = introduceTypeChecker(decls)
-    // decls = loadNativeModule(decls)
+    decls = introduceCallbackCaller(decls)
+    decls = introduceTypeChecker(decls)
+    decls = loadNativeModule(decls)
     return decls
 }
 
@@ -322,12 +322,12 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
 
 function defaultImports(): ImportsCollector {
     const imports = new ImportsCollector()
-    // imports.addFeatures([
-    //     'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
-    //     'SerializerBase', 'DeserializerBase', 'MaterializedBase',
-    //     'Finalizable', 'toPeerPtr',
-    //     'RuntimeType', 'ResourceHolder',
-    //     'loadNativeModuleLibrary', 'registerApiEventHandler',
-    // ], '@koalaui/interop')
+    imports.addFeatures([
+        'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
+        'SerializerBase', 'DeserializerBase', 'MaterializedBase',
+        'Finalizable', 'toPeerPtr',
+        'RuntimeType', 'ResourceHolder',
+        'loadNativeModuleLibrary', 'registerApiEventHandler',
+    ], '@koalaui/interop')
     return imports
 }
