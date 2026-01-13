@@ -359,7 +359,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const valOrVar = modifiers?.includes(FieldModifier.READONLY) ? "val" : "var"
         this.printer.print(`${prefix}${open}${valOrVar} ${name}: ${this.getNodeName(idl.maybeOptional(type, optional))}${init}`)
     }
-    writeNativeMethodDeclaration(method: Method): void {
+    writeNativeMethodDeclaration(method: Method, isStub?: boolean): void {
         const originalName = method.name
         const methodName = originalName.replaceAll("$", "_")
         let interopCallName = `kotlin${originalName}`
@@ -368,6 +368,11 @@ export class KotlinLanguageWriter extends LanguageWriter {
         }
         const signature = method.signature
         this.writeMethodImplementation(new Method(methodName, signature, [MethodModifier.STATIC]), writer => {
+            if (isStub) {
+                this.writeStatement(this.makeThrowError("Object deserialization is not implemented."))
+                return
+            }
+
             const pins = signature.args.flatMap((type, index) => this.pinArrayArgument(signature.argName(index), type))
             const unpins = signature.args.flatMap((type, index) => this.unpinArrayArgument(signature.argName(index), type))
             pins.filter(it => !!it).forEach(it => this.writeStatement(it!))
