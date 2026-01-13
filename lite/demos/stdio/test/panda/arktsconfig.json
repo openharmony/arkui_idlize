@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "outDir": "build/abc",
+        "baseUrl": "src",
+        "paths": {
+            "stdio": ["../../../bundled/panda/api/stdio"]
+        }
+    },
+    "include": [
+        "src/**/*.ets"
+    ]
+}

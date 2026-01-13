@@ -20,6 +20,7 @@ export enum LWKind {
   NamespaceDeclaration,
   TypedefDeclaration,
   FunctionDeclaration,
+  TopLevelExpression,
 
   DeclarationStatement,
   CompoundStatement,
@@ -40,9 +41,12 @@ export enum LWKind {
   ConstructorExpression,
   CheckCastExpression,
   LambdaExpression,
+  TypeExpression,
+  HoleExpression,
 
   ValueType,
   FunctionalType,
+  HoleType,
 }
 
 ////////////////////////////////////////////////////////
@@ -83,7 +87,7 @@ export interface MacroInvocation {
   args: (string | LWExpression | LWType)[]
 }
 export type Annotation =
-    SimpleAnnotation
+  SimpleAnnotation
   | MacroInvocation
 
 ////////////////////////////////////////////////////////
@@ -145,12 +149,19 @@ export interface FunctionDeclaration {
   modifiers: Modifier[]
   annotations: Annotation[]
   name: string
+  implicitThisType?: LWType
   parameters: {
     name: string
     type: LWType
   }[]
   returnType: LWType
   body?: LWStatement
+}
+export interface TopLevelExpression {
+  kind: LWKind.TopLevelExpression
+  name: string
+  generics: GenericDescriptor[]
+  expression: LWExpression
 }
 export type LWDeclaration =
   | EnumDeclaration
@@ -159,6 +170,7 @@ export type LWDeclaration =
   | NamespaceDeclaration
   | TypedefDeclaration
   | FunctionDeclaration
+  | TopLevelExpression
 
 export interface DeclarationStatement {
   kind: LWKind.DeclarationStatement
@@ -203,7 +215,7 @@ export interface NoneStatement {
   kind: LWKind.NoneStatement
 }
 export type LWStatement =
-    DeclarationStatement
+  DeclarationStatement
   | CompoundStatement
   | ExpressionStatement
   | ReturnStatement
@@ -255,9 +267,13 @@ export interface AccessorExpression {
 }
 export interface ConstructorExpression {
   kind: LWKind.ConstructorExpression
-  name: string
+  data: {
+    name: string
+    typeArgs?: LWType[]
+  } | {
+    type: LWType
+  }
   args: LWExpression[]
-  typeArgs?: LWType[]
   hints: Hint[]
 }
 export interface CheckCastExpression {
@@ -277,8 +293,18 @@ export interface LambdaExpression {
   closure?: string[]
   hints: Hint[]
 }
+export interface TypeExpression {
+  kind: LWKind.TypeExpression
+  type: LWType
+  hints: Hint[]
+}
+export interface HoleExpression {
+  kind: LWKind.HoleExpression
+  readonly data: unknown
+  hints: Hint[]
+}
 export type LWExpression =
-    VariableExpression
+  VariableExpression
   | ConstantExpression
   | StringExpression
   | UnaryExpression
@@ -288,6 +314,8 @@ export type LWExpression =
   | ConstructorExpression
   | CheckCastExpression
   | LambdaExpression
+  | TypeExpression
+  | HoleExpression
 
 export interface ValueType {
   kind: LWKind.ValueType
@@ -302,10 +330,15 @@ export interface FunctionalType {
   }[]
   returnType: LWType
 }
+export interface HoleType {
+  kind: LWKind.HoleType
+  readonly data: unknown
+}
 
 export type LWType =
-    ValueType
+  ValueType
   | FunctionalType
+  | HoleType
 
 export interface LWProgramChunk {
   package: string

@@ -14,9 +14,10 @@
  */
 
 import { hashCodeFromString } from "@idlizer/core";
-import { D, lw, std } from "../../ost";
+import { D, DD, lw, std } from "../../ost";
 import { Builders } from "../../ost/builders";
 import { C_API_PREFIX } from "../producers/common";
+import { EnumDeclaration, Modifier } from "../../ost/lws";
 
 export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     const index = new Map<string, (lw.ClassDeclaration | lw.StructureDeclaration)[]>()
@@ -44,6 +45,7 @@ export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
             merged.push(records[0])
             return
         }
+        const modifiers: Modifier[] = []
         const fields: lw.StructureDeclaration['members'] = []
         const methods: lw.FunctionDeclaration[] = []
         const implementations: lw.LWType[] = []
@@ -51,6 +53,11 @@ export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
         const kind = 'class'
         records.forEach(rec => {
             if (rec.kind === lw.LWKind.ClassDeclaration) {
+                rec.modifiers.forEach(mod => {
+                    if (!modifiers.find(m => m.name === mod.name)) {
+                        modifiers.push(mod)
+                    }
+                })
                 fields.push(...rec.fields)
                 methods.push(...rec.methods)
                 implementations.push(...rec.oop?.implementations ?? [])
@@ -61,14 +68,56 @@ export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
             }
         })
         merged.push(methods.length
-            ? D.class(name, fields, methods, { base, implementations, kind })
+            ? DD({ modifiers: modifiers.slice() }).class(name, fields, methods, { base, implementations, kind })
             : D.struct(name, fields))
+    })
+    return [...merged, ...others]
+}
+export function mergeEnums(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
+    const index = new Map<string, lw.EnumDeclaration[]>()
+    const others: lw.LWDeclaration[] = []
+    decls.forEach(decl => {
+        if (decl.kind !== lw.LWKind.EnumDeclaration) {
+            others.push(decl)
+            return
+        }
+        if (!index.has(decl.name)) {
+            index.set(decl.name, [])
+        }
+        index.get(decl.name)?.push(decl)
+    })
+    const merged: lw.LWDeclaration[] = []
+    index.forEach((decls, name) => {
+        if (decls.length === 1) {
+            merged.push(decls[0])
+            return
+        }
+        const members: EnumDeclaration['members'] = []
+        const modifiers: Modifier[] = []
+        decls.forEach(decl => {
+            members.push(...decl.members)
+            decl.modifiers.forEach(mod => {
+                if (!modifiers.find(x => x.name === mod.name && x.kind === mod.kind)) {
+                    modifiers.push(mod)
+                }
+            })
+        })
+        merged.push({
+            kind: lw.LWKind.EnumDeclaration,
+            generics: decls[0].generics,
+            members,
+            modifiers,
+            name
+        })
     })
     return [...merged, ...others]
 }
 
 export function monoName(type: lw.LWType, prefix: string = C_API_PREFIX): string {
     prefix += '.synthetic.mono.instance.'
+    if (type.kind === lw.LWKind.HoleType) {
+        throw new Error("WAS NOT PROCESSED PROPERLY")
+    }
     if (type.kind === lw.LWKind.FunctionalType)
         return [
             prefix + 'Callback',
@@ -98,5 +147,6 @@ export function callbackKindDeclaration(callers: string[], nameFunc: (base: stri
     return Builders.enum(nameFunc('CallbackKind'))
         .members(callers.map(it => {
             const name = 'KIND_' + it.toUpperCase();
-            return {name, value: hashCodeFromString(name)}})).$()
+            return { name, value: hashCodeFromString(name) }
+        })).$()
 }

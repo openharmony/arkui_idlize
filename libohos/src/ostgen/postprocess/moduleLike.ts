@@ -25,9 +25,9 @@ import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     decls = mergeNamespaces(decls)
     decls = mergeStructs(decls)
-    decls = introduceCallbackCaller(decls)
-    decls = introduceTypeChecker(decls)
-    decls = loadNativeModule(decls)
+    // decls = introduceCallbackCaller(decls)
+    // decls = introduceTypeChecker(decls)
+    // decls = loadNativeModule(decls)
     return decls
 }
 
@@ -108,13 +108,18 @@ interface ResultFile {
     body: lw.LWDeclaration[]
 }
 
+export type OnUnknownImport = (name:string) => { name: string, source: string } | undefined
+
 class RefSearcher extends IdentityTransformer {
     private seenNames: Map<string, string[]>
+    private localNames: Set<string>[] = []
     constructor(
         private decls: lw.LWDeclaration[],
         private fileName: string,
         private registry: Map<string, string>,
-        private imports: ImportsCollector
+        private imports: ImportsCollector,
+        private knownImports?: Map<string, string>,
+        private onUnknownImport?: OnUnknownImport,
     ) {
         super()
         this.seenNames = new Map(decls.map(it => [it.name, ['.']]))
@@ -138,8 +143,21 @@ class RefSearcher extends IdentityTransformer {
     private getBase(name:string) {
         return name.split('.').at(0)!
     }
+    private mapToPackage(name:string): string {
+        if (!this.knownImports) {
+            return name
+        }
+        if (this.knownImports.has(name)) {
+            return this.knownImports.get(name)!
+        }
+        return name
+    }
 
-    private goTypeName(name: string): string {
+    private isLocalName(name:string) {
+        return !!this.localNames.find(s => s.has(name))
+    }
+
+    private goName(name: string): string {
         if (name.startsWith('@'))
             return name
         const record = this.registry.get(name)
@@ -154,7 +172,7 @@ class RefSearcher extends IdentityTransformer {
             if (record === this.fileName)
                 return this.trimNs(val)
             const baseName = this.getBase(val);
-            const source = mapFileName(record)
+            const source = this.mapToPackage(mapFileName(record))
             const conflictingNames = this.seenNames.get(baseName)
             if (conflictingNames) {
                 const alias = source + '_' + baseName
@@ -168,24 +186,56 @@ class RefSearcher extends IdentityTransformer {
                 this.imports.addFeature(baseName, source)
                 return this.trimNs(val)
             }
+        } else {
+            const mapped = this.onUnknownImport?.(name)
+            if (mapped) {
+                this.imports.addFeature(mapped.name, mapped.source)
+                return this.trimNs(mapped.name)
+            }
         }
         return this.trimNs(name)
     }
     override goValueType(type: lw.ValueType): lw.LWType {
         return type.name.startsWith('@')
             ? super.goValueType(type)
-            : T.c(this.goTypeName(type.name), ...type.args.map(t => this.goType(t)))
+            : T.c(this.goName(type.name), ...type.args.map(t => this.goType(t)))
     }
     override goConstructorExpression(expr: lw.ConstructorExpression): lw.ConstructorExpression {
         expr = super.goConstructorExpression(expr)
-        expr.name = this.goTypeName(expr.name)
+        if ('name' in expr.data) {
+            expr.data.name = this.goName(expr.data.name)
+        }
         return expr
     }
     override goVariableExpression(expr: lw.VariableExpression): lw.VariableExpression {
         expr = super.goVariableExpression(expr) as lw.VariableExpression
         if (utils.hasHint(expr, std.names.hints.isType))
-            expr.name = this.goTypeName(expr.name)
+            expr.name = this.goName(expr.name)
+        if (!this.isLocalName(expr.name))
+            expr.name = this.goName(expr.name)
         return expr
+    }
+    override goFunctionDeclaration(decl: lw.FunctionDeclaration): lw.FunctionDeclaration {
+        const store = new Set<string>()
+        decl.parameters.forEach(param => {
+            store.add(param.name)
+        })
+        store.add(decl.name.split('.').at(-1)!)
+        this.localNames.push(store)
+        const r = super.goFunctionDeclaration(decl)
+        this.localNames.pop()
+        return r
+    }
+    override goCompoundStatement(stmt: lw.CompoundStatement): lw.CompoundStatement {
+        const store = new Set<string>()
+        this.localNames.push(store)
+        const r = super.goCompoundStatement(stmt)
+        this.localNames.pop()
+        return r
+    }
+    override goDeclarationStatement(stmt: lw.DeclarationStatement): lw.DeclarationStatement {
+        this.localNames.at(-1)?.add(stmt.varName)
+        return super.goDeclarationStatement(stmt)
     }
     go(): lw.LWDeclaration[] {
         return this.decls.map(it => this.goDeclaration(it))
@@ -216,11 +266,22 @@ function putToNs(declarations:lw.LWDeclaration[]): lw.LWDeclaration[] {
     return result
 }
 
-export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclaration[]): Map<string, ResultFile> {
+interface FormFilesOptions {
+    knownReference:Map<string, string>
+    knownImports: Map<string, string>
+    onUnknownImport?: OnUnknownImport
+}
+
+export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclaration[], options?:FormFilesOptions): Map<string, ResultFile> {
 
     // form files
     const files = new Map<string, lw.LWDeclaration[]>()
     const refIndex = new Map<string, string>()
+    if (options?.knownReference) {
+        options.knownReference.forEach((val, key) => {
+            refIndex.set(key, val)
+        })
+    }
     declarations.forEach(decl => {
         const chunks = decl.name.split('.')
         const clause: string[] = []
@@ -249,7 +310,7 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
     const nsFiles = new Map<string, ResultFile>()
     files.forEach((decls, fileName) => {
         const imports = defaultImports()
-        const nsDecls = new RefSearcher(putToNs(decls), fileName, refIndex, imports).go()
+        const nsDecls = new RefSearcher(putToNs(decls), fileName, refIndex, imports, options?.knownImports, options?.onUnknownImport).go()
         nsFiles.set(fileName, {
             moduleLikeImports: imports,
             body: nsDecls
@@ -261,12 +322,12 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
 
 function defaultImports(): ImportsCollector {
     const imports = new ImportsCollector()
-    imports.addFeatures([
-        'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
-        'SerializerBase', 'DeserializerBase', 'MaterializedBase',
-        'Finalizable', 'toPeerPtr',
-        'RuntimeType', 'ResourceHolder',
-        'loadNativeModuleLibrary', 'registerApiEventHandler',
-    ], '@koalaui/interop')
+    // imports.addFeatures([
+    //     'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
+    //     'SerializerBase', 'DeserializerBase', 'MaterializedBase',
+    //     'Finalizable', 'toPeerPtr',
+    //     'RuntimeType', 'ResourceHolder',
+    //     'loadNativeModuleLibrary', 'registerApiEventHandler',
+    // ], '@koalaui/interop')
     return imports
 }

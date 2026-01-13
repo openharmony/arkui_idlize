@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as fs from "fs"
-import * as path from "path"
+import * as fs from "node:fs"
+import * as path from "node:path"
 import { IDLFile } from "../idl"
 import { parseIDLFile } from "./deserialize";
 import { zip } from "../util";

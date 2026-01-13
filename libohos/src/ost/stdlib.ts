@@ -23,7 +23,9 @@ const knownHints = {
     named: 'named',
     staticMethod: 'staticMethod',
     stackInstance: 'stackInstance',
+    arrayInstance: 'arrayInstance',
     excl: 'excl',
+    macroCall: 'macroCall',
 }
 
 const knownModifiers = {
@@ -34,11 +36,14 @@ const knownModifiers = {
     private: 'private',
     readonly: 'readonly',
     static: 'static',
+    declare: 'declare',
+    externC: 'externC',
 }
 
 const specialMemberNames = {
     ctor: '@constructor',
     deCtor: '@destructor',
+    staticCtor: '@static_ctor'
 }
 const specialVariables = {
     self: '@self',
@@ -59,6 +64,7 @@ const specialTypeNames = {
     union: '@UNION',
     intersection: '@INTERSECTION',
     array: '@ARRAY',
+    vector: '@VECTOR',
     map: '@MAP',
     optional: '@OPTIONAL',
 
@@ -72,6 +78,8 @@ const specialTypeNames = {
     i8: '@LW.Int8',
     i32: '@LW.Int32',
     i64: '@LW.Int64',
+    i16: '@LW.I16',
+    u16: '@LW.U16',
     object: '@LW.Object',
     nativePointer: '@LW.NativePointer',
     number: '@LW.Number',
@@ -82,6 +90,8 @@ const specialTypeNames = {
     u64: '@LW.U64',
     undefined: '@LW.Undefined',
     void: '@LW.Void',
+
+    self: '@LW.Self',
 
     interopNumber: '@LW.InteropNumber',
     interopString: '@LW.InteropString',
@@ -105,7 +115,9 @@ export const Hs = {
     named: (name:string): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.named, value: name }),
     staticMethod: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.staticMethod }),
     stackInstance: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.stackInstance }),
+    arrayInstance: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.arrayInstance }),
     excl: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.excl }),
+    macroCall: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.macroCall }),
 }
 
 export const Md = {
@@ -116,6 +128,9 @@ export const Md = {
     private: (): Modifier => ({ kind: DecoratorKind.Modifier, name: knownModifiers.private }),
     readonly: (): Modifier => ({ kind: DecoratorKind.Modifier, name: knownModifiers.readonly }),
     static: (): Modifier => ({ kind: DecoratorKind.Modifier, name: knownModifiers.static }),
+    declare: (): Modifier => ({ kind: DecoratorKind.Modifier, name: knownModifiers.declare }),
+    externC: (): Modifier => ({ kind: DecoratorKind.Modifier, name: knownModifiers.externC }),
+    custom: (name:string): Modifier => ({ kind: DecoratorKind.Modifier, name })
 }
 
 export const Vs = {
@@ -176,6 +191,7 @@ const primitiveTypes = {
     u64: T.c(specialTypeNames.u64),
     undefined: T.c(specialTypeNames.undefined),
     void: T.c(specialTypeNames.void),
+    self: T.c(specialTypeNames.self),
 
     interopNumber: T.c(specialTypeNames.interopNumber),
     interopString: T.c(specialTypeNames.interopString),
@@ -194,5 +210,6 @@ export const Ts = {
     intersection: (types: LWType[]) => T.c(specialTypeNames.intersection, ...types),
     optional: (type: LWType) => T.c(specialTypeNames.optional, type),
     array: (elemType: LWType) => T.c(specialTypeNames.array, elemType),
+    vector: (elemType: LWType) => T.c(specialTypeNames.vector, elemType),
     map: (keyType: LWType, valueType: LWType) => T.c(specialTypeNames.map, keyType, valueType),
 }

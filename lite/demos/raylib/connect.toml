@@ -1,0 +1,33 @@
+name = "raylib"
+version = "0.0.0"
+
+[declaration]
+root = "./declarations"
+
+[library]
+no_api_receiver = true
+name = "raylib"
+path = "./library"
+# header = "raylib.h"
+# include_directory = ["./include"]
+
+[[bundle]]
+target = "node"
+output_directory = "./bundled/npm"
+
+[bundle.runtime]
+node = "../runtime/packages/npm"
+headers = "../runtime/native/include"
+native = "../runtime/native/bin"
+
+[[bundle]]
+target = "panda"
+output_directory = "./bundled/panda"
+
+[bundle.runtime.panda]
+api = "../runtime/native/bundled/panda/api/idlizer.runtime.native.d.ets"
+binary = "../runtime/native/bundled/panda/idlizer.runtime.native.abc"
+
+[bundle.runtime]
+headers = "../runtime/native/include"
+native = "../runtime/native/bin"

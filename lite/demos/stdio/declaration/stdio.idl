@@ -1,0 +1,13 @@
+package stdio;
+
+pointer fopen(String name, String modes);
+u64 fread(pointer where, u64 size, u64 count, pointer file);
+i32 fclose(pointer file);
+
+pointer malloc(u64 size);
+pointer free(pointer ptr);
+
+String str(pointer ptr);
+void setb(pointer ptr, u64 idx, u8 b);
+
+String getCWD();

@@ -55,6 +55,10 @@ export class CXXPrinter {
   }
   printAbstractType(type: lw.LWType) {
     switch (type.kind) {
+      case lw.LWKind.HoleType: {
+        this.p.put('/*', ' ', 'TYPE HOLE', ' ', '*/')
+        break
+      }
       case lw.LWKind.ValueType: {
         // stdlib specification
         switch (type.name) {
@@ -130,9 +134,9 @@ export class CXXPrinter {
       case lw.LWKind.UnaryExpression: {
         if (!expression.op.startsWith('_')) {
           const op =
-              expression.op === Op.ref ? "&"
-            : expression.op === Op.deref ? "*"
-            : expression.op
+            expression.op === Op.ref ? "&"
+              : expression.op === Op.deref ? "*"
+                : expression.op
           this.p.put(op)
         }
         this.printExpression(expression.expression)
@@ -150,7 +154,7 @@ export class CXXPrinter {
       case lw.LWKind.AccessorExpression: {
         this.printExpression(expression.base)
         if (typeof expression.accessor === 'string') {
-          if (utils.hasHint(expression, std.names.hints.staticMethod)) {
+          if (utils.hasHint(expression, std.names.hints.staticMethod) || utils.hasHint(expression.base, std.names.hints.isType) || expression.base.kind === lw.LWKind.TypeExpression) {
             this.p.put('::')
           } else if (utils.hasHint(expression.base, std.names.hints.ptrVal)) {
             this.p.put('->')
@@ -179,6 +183,21 @@ export class CXXPrinter {
           return
         }
         this.printExpression(expression.callee)
+        if (utils.hasHint(expression, std.names.hints.macroCall)) {
+          this.p.put('(')
+          expression.args.forEach((arg, i) => {
+            if (i > 0) {
+              this.p.put(',', ' ')
+            }
+            this.printExpression(arg)
+          })
+          expression.typeArgs?.forEach(type => {
+            this.p.put(',', ' ')
+            this.printAbstractType(type)
+          })
+          this.p.put(')')
+          return
+        }
         if (expression.typeArgs && expression.typeArgs.length > 0) {
           this.p.put('<')
           expression.typeArgs.forEach((type, i) => {
@@ -201,7 +220,13 @@ export class CXXPrinter {
       }
       case lw.LWKind.ConstructorExpression: {
         if (utils.hasHint(expression, std.names.hints.asStruct)) {
-          this.p.put('(', expression.name, ')')
+          if ('name' in expression.data) {
+            this.p.put('(', expression.data.name, ')')
+          } else {
+            this.p.put('(')
+            this.printAbstractType(expression.data.type)
+            this.p.put(')')
+          }
           this.p.put('{')
           expression.args.forEach((arg, i) => {
             if (i > 0) {
@@ -212,16 +237,21 @@ export class CXXPrinter {
           this.p.put('}')
           return
         }
-        this.p.put('new', ' ', expression.name)
-        if (expression.typeArgs && expression.typeArgs.length > 0) {
-          this.p.put('<')
-          expression.typeArgs.forEach((type, i) => {
-            if (i > 0) {
-              this.p.put(',', ' ')
-            }
-            this.printAbstractType(type)
-          })
-          this.p.put('>')
+        this.p.put('new', ' ',)
+        if ('name' in expression.data) {
+          this.p.put(expression.data.name)
+          if (expression.data.typeArgs && expression.data.typeArgs.length > 0) {
+            this.p.put('<')
+            expression.data.typeArgs.forEach((type, i) => {
+              if (i > 0) {
+                this.p.put(',', ' ')
+              }
+              this.printAbstractType(type)
+            })
+            this.p.put('>')
+          }
+        } else {
+          this.printAbstractType(expression.data.type)
         }
         this.p.put('(')
         expression.args.forEach((arg, i) => {
@@ -238,12 +268,12 @@ export class CXXPrinter {
           ? 'static_cast' : 'reinterpret_cast'
         this.p.put(cast, '<')
         this.printAbstractType(expression.type)
-        this.p.put('>', '(', )
+        this.p.put('>', '(',)
         this.printExpression(expression.expression)
         this.p.put(')')
         break
       }
-      case lw.LWKind.LambdaExpression:
+      case lw.LWKind.LambdaExpression: {
         if (expression.closure) {
           this.p.put('[')
           expression.closure.forEach((name, i) => {
@@ -266,6 +296,12 @@ export class CXXPrinter {
           ? expression.body
           : S.block([expression.body])
         this.printStatement(body)
+        break
+      }
+      case lw.LWKind.TypeExpression: {
+        this.printAbstractType(expression.type)
+        break
+      }
     }
   }
   printStatement(statement: lw.LWStatement) {
@@ -316,6 +352,9 @@ export class CXXPrinter {
               this.printAbstractType(statement.varType)
               this.p.put('(')
               closer = ')'
+            } else if (utils.hasHint(statement.expression, std.names.hints.arrayInstance)) {
+              this.p.put('[')
+              closer = ']'
             }
             if (closer) {
               statement.expression.args.forEach((arg, i) => {
@@ -489,7 +528,9 @@ export class CXXPrinter {
         this.maybePrintGenerics(declaration.generics)
         declaration.modifiers.forEach(mod => {
           switch (mod.name) {
+            case 'externC': { this.p.put('extern', ' ', '"', 'C', '"'); break }
             case 'static': { this.p.put('static'); break }
+            default: { this.p.put(mod.name); break }
           }
           this.p.put(' ')
         })
@@ -508,7 +549,7 @@ export class CXXPrinter {
           this.printDirectType(param.type, param.name)
         })
         this.p.put(')')
-        if (declaration.body) {
+        if (declaration.body && declaration.body.kind !== lw.LWKind.NoneStatement) {
           this.p.put(' ')
           this.printStatement(declaration.body)
         } else {
@@ -524,7 +565,7 @@ export class CXXPrinter {
               }
               if (typeof arg === 'string')
                 this.p.put(arg)
-              else if (arg.kind === lw.LWKind.ValueType || arg.kind === lw.LWKind.FunctionalType)
+              else if (arg.kind === lw.LWKind.ValueType || arg.kind === lw.LWKind.FunctionalType || arg.kind === lw.LWKind.HoleType)
                 this.printAbstractType(arg)
               else
                 this.printExpression(arg)
@@ -532,6 +573,10 @@ export class CXXPrinter {
             this.p.put(')')
           }
         })
+        break
+      }
+      case lw.LWKind.TopLevelExpression: {
+        this.printExpression(declaration.expression)
         break
       }
     }
@@ -552,5 +597,5 @@ export function processNPrintCXX(decls: lw.LWDeclaration[]) {
     printer.printDeclaration(it)
     return printer.render()
   })
-  .join('\n\n')
+    .join('\n')
 }

@@ -1,0 +1,10 @@
+{
+    "name": "event_test",
+    "private": true,
+    "main": "run.cjs",
+    "type": "commonjs",
+    "dependencies": {
+        "event": "file:../bundled/npm",
+        "@idlizer/runtime": "file:../../runtime/packages/npm"
+    }
+}

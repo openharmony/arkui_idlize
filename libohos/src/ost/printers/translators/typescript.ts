@@ -18,8 +18,6 @@ import * as lw from "../../lws"
 import { std } from "../../stdlib";
 import { IdentityTransformer } from "../../visitors/identity";
 import { T, utils } from "../../builder";
-import { peerGeneratorConfiguration } from "../../../DefaultConfiguration";
-import { stat } from "fs";
 
 const varMapping = new Map([
   [std.names.vars.base, 'super'],
@@ -36,8 +34,8 @@ export class ConvertTSTypes extends IdentityTransformer {
     private readonly localPackage: string,
     private readonly packages: Set<string>
   ) {
-      super()
-      this.nameStack = [localPackage]
+    super()
+    this.nameStack = [localPackage]
   }
 
   override goValueType(type: lw.ValueType): lw.ValueType {
@@ -45,30 +43,33 @@ export class ConvertTSTypes extends IdentityTransformer {
       case std.names.types.bigint: return T.c('bigint')
       case std.names.types.boolean: return T.c('boolean')
       case std.names.types.buffer: return T.c('ArrayBuffer')
-      case std.names.types.f32: return T.c('float')
+      case std.names.types.pointer: return T.c('bigint')
+      case std.names.types.f32: return T.c('number')
       case std.names.types.f64: return T.c('double')
       case std.names.types.i8: return T.c('byte')
-      case std.names.types.i32: return T.c('int')
+      case std.names.types.i32: return T.c('number')
       case std.names.types.i64: return T.c('long')
       case std.names.types.object: return T.c('object')
-      case std.names.types.nativePointer: return T.c('KPointer')
+      case std.names.types.nativePointer: return T.c('bigint')
       case std.names.types.number:
       case std.names.types.interopNumber: return T.c('number')
       case std.names.types.interopReturnBuffer: return T.c('KInteropReturnBuffer')
       case std.names.types.serializerBuffer: return T.c('KSerializerBuffer')
       case std.names.types.string:
       case std.names.types.interopString: return T.c('string')
-      case std.names.types.u8: return T.c('byte')
-      case std.names.types.u32: return T.c('int')
-      case std.names.types.u64: return T.c('long')
+      case std.names.types.u8: return T.c('number')
+      case std.names.types.u32: return T.c('number')
+      case std.names.types.u64: return T.c('bigint')
       case std.names.types.undefined: return T.c('undefined')
       case std.names.types.void: return T.c('void')
+      case std.names.types.self: return T.c('this')
     }
     if (type.args.length > 0) {
       type = super.goValueType(type) as lw.ValueType
       switch (type.name) {
         case std.names.types.array:
         case std.names.types.map:
+        case std.names.types.vector:
           return T.c(this.convertSpecialName(type.name), ...type.args)
       }
     }
@@ -80,7 +81,9 @@ export class ConvertTSTypes extends IdentityTransformer {
   }
   override goConstructorExpression(expr: lw.ConstructorExpression): lw.ConstructorExpression {
     const ret = super.goConstructorExpression(expr)
-    ret.name = this.convertSpecialName(ret.name)
+    if ("name" in ret.data) {
+      ret.data.name = this.convertSpecialName(ret.data.name)
+    }
     return ret
   }
   override goNamespaceDeclaration(decl: lw.NamespaceDeclaration): lw.NamespaceDeclaration {
@@ -91,12 +94,27 @@ export class ConvertTSTypes extends IdentityTransformer {
   }
   private convertSpecialName(name: string): string {
     switch (name) {
+      case std.names.types.vector: return 'Array'
       case std.names.types.array: return 'Array'
       case std.names.types.map: return 'Map'
     }
     return name
   }
 }
+
+const knownBinOperators: string[][] = [
+  ['='],
+  ['||'],
+  ['&&'],
+  ['|'],
+  ['^'],
+  ['&'],
+  ['=='],
+  ['<', '<=', '>', '>='],
+  ['>>', '<<'],
+  ['+','-'],
+  ['*', '/'],
+]
 
 export class TSPrinter {
   protected readonly p = new IndentPrinter()
@@ -124,6 +142,11 @@ export class TSPrinter {
           case std.names.types.pointer: { this.printType(type.args[0]); return }
           case std.names.types.reference: { this.printType(type.args[0]); return }
           case std.names.types.constant: { this.printType(type.args[0]); return }
+          case std.names.types.optional: {
+            this.printType(type.args[0])
+            this.p.put(' ', '|', ' ', 'undefined')
+            return
+          }
           case std.names.types.intersection:
             this.p.put('[')
             type.args.forEach((arg, i) => {
@@ -156,6 +179,16 @@ export class TSPrinter {
     }
   }
 
+  private maybeUseParen(cond:boolean, op:() => void) {
+    if (cond) {
+      this.p.put('(')
+    }
+    op()
+    if (cond) {
+      this.p.put(')')
+    }
+  }
+
   printExpression(expression: lw.LWExpression) {
     switch (expression.kind) {
       case lw.LWKind.ConstantExpression: {
@@ -177,20 +210,35 @@ export class TSPrinter {
       }
       case lw.LWKind.UnaryExpression: {
         if (!expression.op.startsWith('_'))
-            this.p.put(expression.op)
-        this.printExpression(expression.expression)
+          this.p.put(expression.op)
+        this.maybeUseParen(
+          [lw.LWKind.BinaryExpression, lw.LWKind.UnaryExpression].includes(expression.expression.kind),
+          () => this.printExpression(expression.expression)
+        )
         if (expression.op.startsWith('_'))
           this.p.put(expression.op.substring(1))
-      break
+        break
+      }
+      case lw.LWKind.TypeExpression: {
+        this.printType(expression.type)
+        break
       }
       case lw.LWKind.BinaryExpression: {
-        this.printExpression(expression.left)
+        this.maybeUseParen(
+          expression.left.kind === lw.LWKind.BinaryExpression
+            && knownBinOperators.findIndex(lvl => lvl.includes((expression.left as lw.BinaryExpression).op)) < knownBinOperators.findIndex(lvl => lvl.includes(expression.op)),
+          () => this.printExpression(expression.left)
+        )
         this.p.put(' ', expression.op, ' ')
-        this.printExpression(expression.right)
+        this.maybeUseParen(
+          expression.right.kind === lw.LWKind.BinaryExpression
+            && knownBinOperators.findIndex(lvl => lvl.includes((expression.right as lw.BinaryExpression).op)) < knownBinOperators.findIndex(lvl => lvl.includes(expression.op)),
+          () => this.printExpression(expression.right)
+        )
         break
       }
       case lw.LWKind.AccessorExpression: {
-        this.printExpression(expression.base)
+        this.maybeUseParen([lw.LWKind.BinaryExpression, lw.LWKind.UnaryExpression].includes(expression.base.kind), () => this.printExpression(expression.base))
         if (typeof expression.accessor === 'string') {
           this.p.put('.', expression.accessor)
         } else {
@@ -204,7 +252,7 @@ export class TSPrinter {
         break
       }
       case lw.LWKind.CallExpression: {
-        this.printExpression(expression.callee)
+        this.maybeUseParen([lw.LWKind.BinaryExpression, lw.LWKind.UnaryExpression].includes(expression.callee.kind), () => this.printExpression(expression.callee))
         if (expression.typeArgs && expression.typeArgs.length > 0) {
           this.p.put('<')
           expression.typeArgs.forEach((type, i) => {
@@ -242,16 +290,21 @@ export class TSPrinter {
           this.p.put('}')
           return
         }
-        this.p.put('new', ' ', expression.name)
-        if (expression.typeArgs && expression.typeArgs.length > 0) {
-          this.p.put('<')
-          expression.typeArgs.forEach((type, i) => {
-            if (i > 0) {
-              this.p.put(',', ' ')
-            }
-            this.printType(type)
-          })
-          this.p.put('>')
+        this.p.put('new', ' ',)
+        if ('name' in expression.data) {
+          this.p.put(expression.data.name)
+          if (expression.data.typeArgs && expression.data.typeArgs.length > 0) {
+            this.p.put('<')
+            expression.data.typeArgs.forEach((type, i) => {
+              if (i > 0) {
+                this.p.put(',', ' ')
+              }
+              this.printType(type)
+            })
+            this.p.put('>')
+          }
+        } else {
+          this.printType(expression.data.type)
         }
         this.p.put('(')
         expression.args.forEach((arg, i) => {
@@ -272,7 +325,7 @@ export class TSPrinter {
         this.p.put(')')
         break
       }
-      case lw.LWKind.LambdaExpression:
+      case lw.LWKind.LambdaExpression: {
         this.p.put('(')
         expression.parameters.forEach((param, i) => {
           if (i > 0) {
@@ -282,6 +335,12 @@ export class TSPrinter {
         })
         this.p.put(')', ' ', '=>', ' ')
         this.printStatement(expression.body)
+        break
+      }
+      case lw.LWKind.HoleExpression: {
+        this.p.put('/*', ' HOLE ', '*/')
+        break
+      }
     }
   }
   printStatement(statement: lw.LWStatement) {
@@ -323,7 +382,7 @@ export class TSPrinter {
         if (statement.expression) {
           this.p.put(' ', '=', ' ')
           if (statement.expression.kind === lw.LWKind.ConstructorExpression &&
-              utils.hasHint(statement.expression, std.names.hints.asStruct)
+            utils.hasHint(statement.expression, std.names.hints.asStruct)
           ) {
             this.p.put('{')
             statement.expression.args.forEach((arg, i) => {
@@ -354,7 +413,7 @@ export class TSPrinter {
         this.p.put('switch', ' ', '(')
         this.printExpression(statement.selector)
         this.p.put(')', ' ', '{').inc().newline()
-        statement.cases.forEach(({value, body}) => {
+        statement.cases.forEach(({ value, body }) => {
           this.p.put('case', ' ')
           this.printExpression(value)
           this.p.put(':').inc().newline()
@@ -448,7 +507,11 @@ export class TSPrinter {
         const specifier = declaration.oop?.kind === 'interface'
           ? 'interface'
           : 'class'
-        this.p.put('export', ' ', specifier, ' ', declaration.name)
+        this.p.put('export', ' ')
+        if (declaration.modifiers.find(m => m.name === std.names.modifiers.declare)) {
+          this.p.put('declare', ' ')
+        }
+        this.p.put(specifier, ' ', declaration.name)
         this.printGenerics(declaration.generics)
         this.p.put(' ')
         if (declaration.oop !== undefined) {
@@ -471,8 +534,7 @@ export class TSPrinter {
         this.p.inc()
         declaration.fields.forEach((field, i) => {
           this.p.newline()
-          const value = peerGeneratorConfiguration().constants.get(`${declaration.name}.${field.name}`)
-          this.printField(field.name, field.type, field.modifiers, value)
+          this.printField(field.name, field.type, field.modifiers)
         })
         declaration.methods.forEach((method, i) => {
           this.p.newline()
@@ -509,10 +571,13 @@ export class TSPrinter {
             this.p.newline()
           }
         })
-        declaration.modifiers.forEach(mod => this.p.put(mod.name, ' '))
         if (declaration.name) {
           if (this.scope.at(-1) !== 'member') {
-            this.p.put('export', ' ', 'function', ' ')
+            this.p.put('export', ' ')
+          }
+          declaration.modifiers.forEach(mod => this.p.put(mod.name, ' '))
+          if (this.scope.at(-1) !== 'member') {
+            this.p.put('function', ' ')
           }
           const isCtor = std.names.members.ctor === declaration.name
           if (isCtor) {

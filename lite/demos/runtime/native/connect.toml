@@ -1,0 +1,22 @@
+name = "@idlizer/runtime-native"
+version = "0.0.0"
+
+[declaration]
+root = "./declaration"
+
+[library]
+name = "runtime"
+path = "./bin"
+header = "idlizer/runtime.h"
+include_directory = ["./include"]
+
+[[bundle]]
+target = "node"
+output_directory = "./bundled/npm"
+flavours = ["VanillaInstances"]
+
+[[bundle]]
+name = "idlizer.runtime.native"
+target = "panda"
+output_directory = "./bundled/panda"
+flavours = ["VanillaInstances"]

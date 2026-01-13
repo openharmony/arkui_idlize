@@ -1,0 +1,20 @@
+name = "simple"
+version = "0.0.0"
+
+[declaration]
+root = "./decl"
+
+[library]
+no_api_receiver = true
+name = "demo"
+path = "./bin"
+
+[[bundle]]
+target = "node"
+output_directory = "./bundled/npm"
+flavours = ["VanillaInstances"]
+
+[bundle.runtime]
+node = "../runtime/packages/npm"
+headers = "../runtime/native/include"
+native = "../runtime/native/bin"

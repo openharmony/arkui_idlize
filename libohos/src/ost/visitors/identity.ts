@@ -14,7 +14,7 @@
  */
 import * as lw from '../lws'
 
-function over<T, U>(x:T|undefined, f:(x:T) => U): U|undefined {
+function over<T, U>(x: T | undefined, f: (x: T) => U): U | undefined {
   if (x === undefined) {
     return undefined
   }
@@ -34,7 +34,7 @@ export class IdentityTransformer {
       })),
     }
   }
-  goStructureDeclaration(decl:lw.StructureDeclaration): lw.StructureDeclaration {
+  goStructureDeclaration(decl: lw.StructureDeclaration): lw.StructureDeclaration {
     return {
       kind: decl.kind,
       generics: decl.generics,
@@ -47,7 +47,7 @@ export class IdentityTransformer {
       })),
     }
   }
-  goClassDeclaration(decl:lw.ClassDeclaration): lw.ClassDeclaration {
+  goClassDeclaration(decl: lw.ClassDeclaration): lw.ClassDeclaration {
     return {
       kind: decl.kind,
       generics: decl.generics,
@@ -66,14 +66,14 @@ export class IdentityTransformer {
       }))
     }
   }
-  goNamespaceDeclaration(decl:lw.NamespaceDeclaration): lw.NamespaceDeclaration {
+  goNamespaceDeclaration(decl: lw.NamespaceDeclaration): lw.NamespaceDeclaration {
     return {
       kind: decl.kind,
       name: decl.name,
       members: decl.members.map(m => this.goDeclaration(m))
     }
   }
-  goTypedefDeclaration(decl:lw.TypedefDeclaration): lw.TypedefDeclaration {
+  goTypedefDeclaration(decl: lw.TypedefDeclaration): lw.TypedefDeclaration {
     return {
       kind: decl.kind,
       generics: decl.generics,
@@ -82,13 +82,14 @@ export class IdentityTransformer {
       type: this.goType(decl.type)
     }
   }
-  goFunctionDeclaration(decl:lw.FunctionDeclaration): lw.FunctionDeclaration {
+  goFunctionDeclaration(decl: lw.FunctionDeclaration): lw.FunctionDeclaration {
     return {
       kind: decl.kind,
       generics: decl.generics,
       modifiers: decl.modifiers,
       annotations: decl.annotations.map(ann => this.goAnnotation(ann)),
       name: decl.name,
+      implicitThisType: decl.implicitThisType ? this.goType(decl.implicitThisType) : undefined,
       parameters: decl.parameters.map(p => ({
         name: p.name,
         type: this.goType(p.type)
@@ -97,7 +98,15 @@ export class IdentityTransformer {
       body: decl.body ? this.goStatement(decl.body) : undefined
     }
   }
-  goDeclaration(decl:lw.LWDeclaration): lw.LWDeclaration {
+  goTopLevelExpression(decl: lw.TopLevelExpression): lw.TopLevelExpression {
+    return {
+      kind: lw.LWKind.TopLevelExpression,
+      name: decl.name,
+      generics: decl.generics.slice(),
+      expression: this.goExpression(decl.expression)
+    }
+  }
+  goDeclaration(decl: lw.LWDeclaration): lw.LWDeclaration {
     switch (decl.kind) {
       case lw.LWKind.EnumDeclaration: return this.goEnumDeclaration(decl)
       case lw.LWKind.StructureDeclaration: return this.goStructureDeclaration(decl)
@@ -105,10 +114,11 @@ export class IdentityTransformer {
       case lw.LWKind.NamespaceDeclaration: return this.goNamespaceDeclaration(decl)
       case lw.LWKind.TypedefDeclaration: return this.goTypedefDeclaration(decl)
       case lw.LWKind.FunctionDeclaration: return this.goFunctionDeclaration(decl)
+      case lw.LWKind.TopLevelExpression: return this.goTopLevelExpression(decl)
     }
   }
 
-  goDeclarationStatement(stmt:lw.DeclarationStatement): lw.DeclarationStatement {
+  goDeclarationStatement(stmt: lw.DeclarationStatement): lw.DeclarationStatement {
     return {
       kind: stmt.kind,
       mutable: stmt.mutable,
@@ -118,25 +128,25 @@ export class IdentityTransformer {
       expression: over(stmt.expression, e => this.goExpression(e))
     }
   }
-  goCompoundStatement(stmt:lw.CompoundStatement): lw.CompoundStatement {
+  goCompoundStatement(stmt: lw.CompoundStatement): lw.CompoundStatement {
     return {
       kind: stmt.kind,
       statements: stmt.statements.map(s => this.goStatement(s))
     }
   }
-  goExpressionStatement(stmt:lw.ExpressionStatement): lw.ExpressionStatement {
+  goExpressionStatement(stmt: lw.ExpressionStatement): lw.ExpressionStatement {
     return {
       kind: stmt.kind,
       expression: over(stmt.expression, e => this.goExpression(e))
     }
   }
-  goReturnStatement(stmt:lw.ReturnStatement): lw.ReturnStatement {
+  goReturnStatement(stmt: lw.ReturnStatement): lw.ReturnStatement {
     return {
       kind: stmt.kind,
       expression: over(stmt.expression, e => this.goExpression(e))
     }
   }
-  goLoopStatement(stmt:lw.LoopStatement): lw.LoopStatement {
+  goLoopStatement(stmt: lw.LoopStatement): lw.LoopStatement {
     return {
       kind: stmt.kind,
       init: over(stmt.init, i => this.goStatement(i)),
@@ -145,7 +155,7 @@ export class IdentityTransformer {
       body: this.goStatement(stmt.body)
     }
   }
-  goIfStatement(stmt:lw.IfStatement): lw.IfStatement {
+  goIfStatement(stmt: lw.IfStatement): lw.IfStatement {
     return {
       kind: stmt.kind,
       condition: this.goExpression(stmt.condition),
@@ -164,12 +174,12 @@ export class IdentityTransformer {
       default: stmt.default.map(s => this.goStatement(s))
     }
   }
-  goNoneStatement(stmt:lw.NoneStatement): lw.NoneStatement {
+  goNoneStatement(stmt: lw.NoneStatement): lw.NoneStatement {
     return {
       kind: stmt.kind,
     }
   }
-  goStatement(stmt:lw.LWStatement): lw.LWStatement {
+  goStatement(stmt: lw.LWStatement): lw.LWStatement {
     switch (stmt.kind) {
       case lw.LWKind.DeclarationStatement: return this.goDeclarationStatement(stmt)
       case lw.LWKind.CompoundStatement: return this.goCompoundStatement(stmt)
@@ -182,28 +192,28 @@ export class IdentityTransformer {
     }
   }
 
-  goVariableExpression(expr:lw.VariableExpression): lw.LWExpression {
+  goVariableExpression(expr: lw.VariableExpression): lw.LWExpression {
     return {
       kind: expr.kind,
       name: expr.name,
       hints: expr.hints,
     }
   }
-  goConstantExpression(expr:lw.ConstantExpression): lw.ConstantExpression {
+  goConstantExpression(expr: lw.ConstantExpression): lw.ConstantExpression {
     return {
       kind: expr.kind,
       value: expr.value,
       hints: expr.hints,
     }
   }
-  goStringExpression(expr:lw.StringExpression): lw.StringExpression {
+  goStringExpression(expr: lw.StringExpression): lw.StringExpression {
     return {
       kind: expr.kind,
       value: expr.value,
       hints: expr.hints,
     }
   }
-  goUnaryExpression(expr:lw.UnaryExpression): lw.UnaryExpression {
+  goUnaryExpression(expr: lw.UnaryExpression): lw.UnaryExpression {
     return {
       kind: expr.kind,
       op: expr.op,
@@ -211,7 +221,7 @@ export class IdentityTransformer {
       hints: expr.hints,
     }
   }
-  goBinaryExpression(expr:lw.BinaryExpression): lw.BinaryExpression {
+  goBinaryExpression(expr: lw.BinaryExpression): lw.BinaryExpression {
     return {
       kind: expr.kind,
       op: expr.op,
@@ -220,7 +230,7 @@ export class IdentityTransformer {
       hints: expr.hints,
     }
   }
-  goCallExpression(expr:lw.CallExpression): lw.CallExpression {
+  goCallExpression(expr: lw.CallExpression): lw.CallExpression {
     return {
       kind: expr.kind,
       callee: this.goExpression(expr.callee),
@@ -229,7 +239,7 @@ export class IdentityTransformer {
       hints: expr.hints,
     }
   }
-  goAccessorExpression(expr:lw.AccessorExpression): lw.AccessorExpression {
+  goAccessorExpression(expr: lw.AccessorExpression): lw.AccessorExpression {
     return {
       kind: expr.kind,
       accessor: typeof expr.accessor === 'string' ? expr.accessor : this.goExpression(expr.accessor),
@@ -237,16 +247,20 @@ export class IdentityTransformer {
       hints: expr.hints,
     }
   }
-  goConstructorExpression(expr:lw.ConstructorExpression): lw.ConstructorExpression {
+  goConstructorExpression(expr: lw.ConstructorExpression): lw.ConstructorExpression {
     return {
       kind: expr.kind,
-      name: expr.name,
+      data: "name" in expr.data ? {
+        name: expr.data.name,
+        typeArgs: expr.data.typeArgs?.map(t => this.goType(t)),
+      } : {
+        type: this.goType(expr.data.type)
+      },
       args: expr.args.map(a => this.goExpression(a)),
-      typeArgs: expr.typeArgs?.map(t => this.goType(t)),
       hints: expr.hints,
     }
   }
-  goCastExpression(expr:lw.CheckCastExpression): lw.CheckCastExpression {
+  goCastExpression(expr: lw.CheckCastExpression): lw.CheckCastExpression {
     return {
       kind: expr.kind,
       op: expr.op,
@@ -258,7 +272,7 @@ export class IdentityTransformer {
   goLambdaExpression(expr: lw.LambdaExpression): lw.LambdaExpression {
     return {
       kind: expr.kind,
-      parameters: expr.parameters.map(({name, type}) => ({
+      parameters: expr.parameters.map(({ name, type }) => ({
         name,
         type: this.goType(type)
       })),
@@ -267,7 +281,21 @@ export class IdentityTransformer {
       hints: expr.hints
     }
   }
-  goExpression(expr:lw.LWExpression): lw.LWExpression {
+  goTypeExpression(expr: lw.TypeExpression): lw.TypeExpression {
+    return {
+      kind: expr.kind,
+      type: this.goType(expr.type),
+      hints: expr.hints.slice()
+    }
+  }
+  goHoleExpression(expr: lw.HoleExpression): lw.LWExpression {
+    return {
+      kind: expr.kind,
+      data: expr.data,
+      hints: expr.hints
+    }
+  }
+  goExpression(expr: lw.LWExpression): lw.LWExpression {
     switch (expr.kind) {
       case lw.LWKind.VariableExpression: return this.goVariableExpression(expr)
       case lw.LWKind.ConstantExpression: return this.goConstantExpression(expr)
@@ -279,17 +307,19 @@ export class IdentityTransformer {
       case lw.LWKind.ConstructorExpression: return this.goConstructorExpression(expr)
       case lw.LWKind.CheckCastExpression: return this.goCastExpression(expr)
       case lw.LWKind.LambdaExpression: return this.goLambdaExpression(expr)
+      case lw.LWKind.TypeExpression: return this.goTypeExpression(expr)
+      case lw.LWKind.HoleExpression: return this.goHoleExpression(expr)
     }
   }
 
-  goValueType(type:lw.ValueType): lw.LWType {
+  goValueType(type: lw.ValueType): lw.LWType {
     return {
       kind: type.kind,
       name: type.name,
       args: type.args.map(t => this.goType(t)),
     }
   }
-  goFunctionalType(type:lw.FunctionalType): lw.LWType {
+  goFunctionalType(type: lw.FunctionalType): lw.LWType {
     return {
       kind: type.kind,
       params: type.params.map(p => ({
@@ -299,13 +329,20 @@ export class IdentityTransformer {
       returnType: this.goType(type.returnType)
     }
   }
-  goType(type:lw.LWType): lw.LWType {
+  goHoleType(type: lw.HoleType): lw.LWType {
+    return {
+      kind: type.kind,
+      data: type.data,
+    }
+  }
+  goType(type: lw.LWType): lw.LWType {
     switch (type.kind) {
       case lw.LWKind.ValueType: return this.goValueType(type)
       case lw.LWKind.FunctionalType: return this.goFunctionalType(type)
+      case lw.LWKind.HoleType: return this.goHoleType(type)
     }
   }
-  goAnnotation(annotation:lw.Annotation): lw.Annotation {
+  goAnnotation(annotation: lw.Annotation): lw.Annotation {
     switch (annotation.kind) {
       case lw.DecoratorKind.SimpleAnnotation: return this.goSimpleAnnotation(annotation)
       case lw.DecoratorKind.MacroInvocation: return this.goMacroInvocation(annotation)
@@ -320,14 +357,14 @@ export class IdentityTransformer {
       name: annotation.name,
       args: annotation.args.map(arg =>
         typeof arg === 'string' ? arg
-        : arg.kind === lw.LWKind.ValueType || arg.kind === lw.LWKind.FunctionalType ? this.goType(arg)
-        : this.goExpression(arg))
+          : arg.kind === lw.LWKind.ValueType || arg.kind === lw.LWKind.FunctionalType || arg.kind === lw.LWKind.HoleType ? this.goType(arg)
+            : this.goExpression(arg))
     }
   }
 }
 
 export function transformer(...trans: IdentityTransformer[]) {
-  return (input:lw.LWDeclaration[]) => {
+  return (input: lw.LWDeclaration[]) => {
     for (let tr of trans) {
       input = input.map(x => tr.goDeclaration(x))
     }

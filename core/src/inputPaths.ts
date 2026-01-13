@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as fs from "fs"
-import * as path from "path"
+import * as fs from "node:fs"
+import * as path from "node:path"
 
 function processInputOption(option: string | string[] | undefined): string[] {
     if (typeof option === 'undefined') {

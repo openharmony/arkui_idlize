@@ -18,7 +18,8 @@
     "runner",
     "idlinter",
     "interfaces",
-    "scraper"
+    "scraper",
+    "lite"
   ],
   "license": "Apache-2.0",
   "keywords": [],

@@ -13,22 +13,57 @@
  * limitations under the License.
  */
 
-import { IndentPrinter } from "../indent";
 import * as lw from "../../lws"
-import { Md, std } from "../../stdlib";
-import { T, utils } from "../../builder";
+import { std } from "../../stdlib";
+import { T } from "../../builder";
 import { ConvertTSTypes, TSPrinter } from "./typescript";
 
 export class ConvertArkTSTypes extends ConvertTSTypes {
   override goValueType(type: lw.ValueType): lw.ValueType {
     switch (type.name) {
+      case std.names.types.u8: return T.c('byte')
+      case std.names.types.i32: return T.c('int')
+      case std.names.types.f32: return T.c('float')
+      case std.names.types.u8: return T.c('byte')
+      case std.names.types.u64: return T.c('long')
       case std.names.types.bigint: return T.c('long')
+      case std.names.types.pointer: return T.c('long')
+      case std.names.types.nativePointer: return T.c('long')
+      case std.names.types.string: return T.c('String')
+      case std.names.types.vector: return T.c('FixedArray', ...type.args.map(e => this.goType(e)))
     }
     return super.goValueType(type)
   }
 }
 
 export class ArkTSPrinter extends TSPrinter {
+  printDeclaration(declaration: lw.LWDeclaration): void {
+    if (declaration.kind === lw.LWKind.FunctionDeclaration && declaration.name === std.names.members.staticCtor) {
+      this.p.put('static', ' ')
+      if (declaration.body) {
+        this.printStatement(declaration.body)
+      }
+      return
+    }
+    return super.printDeclaration(declaration)
+  }
+  printExpression(expression: lw.LWExpression): void {
+    if (expression.kind === lw.LWKind.ConstructorExpression) {
+      if ("type" in expression.data) {
+        if (expression.data.type.kind === lw.LWKind.ValueType) {
+          if (expression.data.type.name === 'FixedArray') {
+            this.p.put('new', ' ')
+            this.printType(expression.data.type.args[0])
+            this.p.put('[')
+            this.printExpression(expression.args[0])
+            this.p.put(']')
+            return
+          }
+        }
+      }
+    }
+    return super.printExpression(expression)
+  }
 }
 
 export function processNPrintArkTS(tree: lw.LWDeclaration, localPackage: string, packages: Set<string>) {

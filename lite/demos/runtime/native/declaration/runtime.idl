@@ -1,0 +1,37 @@
+package idlizer.runtime.native;
+
+interface RawMemory {
+    static RawMemory allocate();
+    i32 getLength();
+    void free();
+};
+interface SerializerBase {
+    void writeUInt8(u8 val);
+    void writeInt32(i32 val);
+    void writeString(String val);
+    void writePointer(pointer val);
+
+    DeserializerBase swap();
+
+    static SerializerBase use(RawMemory mem);
+};
+interface DeserializerBase {
+    u8 readUInt8();
+    i32 readInt32();
+    String readString();
+    pointer readPointer();
+
+    SerializerBase swap();
+
+    static DeserializerBase use(RawMemory mem);
+};
+
+///////////////////////////////////////////////////////
+
+interface Event {
+    attribute i32 eventKind;
+    attribute i32 resourceId;
+    attribute RawMemory memory;
+};
+
+Event poll();

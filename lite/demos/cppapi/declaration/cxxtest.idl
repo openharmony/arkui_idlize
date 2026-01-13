@@ -1,0 +1,13 @@
+
+interface Point {
+    i32 x();
+    i32 y();
+
+    static Point create(i32 x, i32 y);
+};
+
+interface Printer {
+    void print(String log);
+
+    static Printer createPrinter();
+};

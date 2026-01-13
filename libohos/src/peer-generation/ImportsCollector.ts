@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { posix as path } from "path"
+import { posix as path } from "node:path"
 import { getOrPut, Language, LayoutNodeRole } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core";
 
@@ -23,7 +23,9 @@ class FeatureInfo {
 }
 
 export class ImportsCollector {
-    private readonly moduleToFeatures: Map<string, Map<string, FeatureInfo>> = new Map()
+    constructor(
+        private readonly moduleToFeatures: Map<string, Map<string, FeatureInfo>> = new Map()
+    ) {}
 
     /**
      * @param feature Feature to be imported from @module
@@ -82,6 +84,22 @@ export class ImportsCollector {
             })
         })
         return [importedFeatures, aliases]
+    }
+
+    censor(removePredicate:(feature:{ name:string, module:string }) => boolean): ImportsCollector {
+        const newModules = new Map<string, Map<string, FeatureInfo>>()
+        this.moduleToFeatures.forEach((features, module) => {
+            const newFeatures = new Map<string, FeatureInfo>()
+            features.forEach((info, feature) => {
+                if (!removePredicate({ name: feature, module: module })) {
+                    newFeatures.set(feature, info)
+                }
+            })
+            if (newFeatures.size) {
+                newModules.set(module, newFeatures)
+            }
+        })
+        return new ImportsCollector(newModules)
     }
 
     print(printer: LanguageWriter, currentModule: string, basePath?: string) {

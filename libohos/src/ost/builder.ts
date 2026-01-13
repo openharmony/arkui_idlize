@@ -60,10 +60,44 @@ export const E = {
   instance: (name: string, args: lw.LWExpression[], typeArgs?: lw.LWType[], hints: lw.Hint[] = []): lw.ConstructorExpression => ({
     kind: lw.LWKind.ConstructorExpression,
     args,
-    name,
-    typeArgs,
+    data: {
+      name,
+      typeArgs
+    },
     hints,
   }),
+  instance2: (type: lw.LWType, args: lw.LWExpression[], hints: lw.Hint[] = []): lw.ConstructorExpression => ({
+    kind: lw.LWKind.ConstructorExpression,
+    args,
+    data: {
+      type
+    },
+    hints,
+  }),
+  cast: (expression: lw.LWExpression, type: lw.LWType, hints: lw.Hint[] = []): lw.CheckCastExpression => ({
+    kind: lw.LWKind.CheckCastExpression,
+    expression,
+    op: 'cast',
+    type,
+    hints,
+  }),
+  lambda: (parameters: lw.LambdaExpression['parameters'], body:lw.LWStatement, closure:string[] | undefined = undefined, hints: lw.Hint[] = []): lw.LambdaExpression => ({
+    kind: lw.LWKind.LambdaExpression,
+    parameters,
+    body,
+    closure,
+    hints,
+  }),
+  type: (type: lw.LWType, hints: lw.Hint[] = []): lw.TypeExpression => ({
+    kind: lw.LWKind.TypeExpression,
+    type,
+    hints,
+  }),
+  hole: (data: unknown): lw.HoleExpression => ({
+    kind: lw.LWKind.HoleExpression,
+    data,
+    hints: [],
+  })
 }
 
 export const S = {
@@ -106,7 +140,7 @@ export const S = {
 }
 
 export const T = {
-  c: (name: string, ...args:lw.LWType[]): lw.ValueType => ({
+  c: (name: string, ...args: lw.LWType[]): lw.ValueType => ({
     kind: lw.LWKind.ValueType,
     name,
     args,
@@ -116,11 +150,15 @@ export const T = {
     params: params.map(([name, type]) => ({ name, type })),
     returnType
   }),
+  hole: (data: unknown): lw.HoleType => ({
+    kind: lw.LWKind.HoleType,
+    data,
+  })
 }
 
 interface DDOptions {
   generics?: lw.GenericDescriptor[]
-  modifiers?:lw.Modifier[]
+  modifiers?: lw.Modifier[]
 }
 
 export const DD = ({ generics = [], modifiers = [] }: DDOptions) => ({
@@ -159,15 +197,25 @@ export const DD = ({ generics = [], modifiers = [] }: DDOptions) => ({
     name,
     type,
   }),
-  func: (name: string, parameters: lw.FunctionDeclaration['parameters'], returnType: lw.LWType, body?: lw.LWStatement, annotations: lw.Annotation[] = []): lw.FunctionDeclaration => ({
-    kind: lw.LWKind.FunctionDeclaration,
-    generics,
-    modifiers,
-    annotations,
-    name,
-    parameters,
-    returnType,
-    body,
+  func: (name: string, inputParameters: lw.FunctionDeclaration['parameters'] | { implicitThisType?: lw.LWType, parameters: lw.FunctionDeclaration['parameters'] }, returnType: lw.LWType, body?: lw.LWStatement, annotations: lw.Annotation[] = []): lw.FunctionDeclaration => {
+    const { implicitThisType, parameters } = 'parameters' in inputParameters ? inputParameters : { parameters: inputParameters, implicitThisType: undefined }
+    return {
+      kind: lw.LWKind.FunctionDeclaration,
+      generics,
+      modifiers,
+      annotations,
+      name,
+      implicitThisType,
+      parameters,
+      returnType,
+      body,
+    }
+  },
+  expr: (expression: lw.LWExpression): lw.TopLevelExpression => ({
+    kind: lw.LWKind.TopLevelExpression,
+    name: '$$TOP$$LEVEL$$EXPRESSION' + Date.now().toFixed(0) + (Math.random() * 1000000).toFixed(0),
+    generics: [],
+    expression,
   })
 })
 export const D = DD({})

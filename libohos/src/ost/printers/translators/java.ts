@@ -136,16 +136,21 @@ export class JavaPrinter {
         break
       }
       case lw.LWKind.ConstructorExpression: {
-        this.p.put('new', ' ', expression.name)
-        if (expression.typeArgs && expression.typeArgs.length > 0) {
-          this.p.put('<')
-          expression.typeArgs.forEach((type, i) => {
-            if (i > 0) {
-              this.p.put(',', ' ')
-            }
-            this.printType(type)
-          })
-          this.p.put('>')
+        this.p.put('new', ' ')
+        if ('name' in expression.data) {
+          this.p.put(expression.data.name)
+          if (expression.data.typeArgs && expression.data.typeArgs.length > 0) {
+            this.p.put('<')
+            expression.data.typeArgs.forEach((type, i) => {
+              if (i > 0) {
+                this.p.put(',', ' ')
+              }
+              this.printType(type)
+            })
+            this.p.put('>')
+          }
+        } else {
+          this.printType(expression.data.type)
         }
         this.p.put('(')
         expression.args.forEach((arg, i) => {
