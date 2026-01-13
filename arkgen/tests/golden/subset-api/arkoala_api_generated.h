@@ -1986,7 +1986,7 @@ typedef Ark_Object Ark_UserDataSpan;
 typedef Opt_Object Opt_UserDataSpan;
 typedef Ark_Object Ark_ImageData;
 typedef Opt_Object Opt_ImageData;
-typedef enum Ark_AccessibilityHoverType {
+typedef enum Ark_AccessibilityHoverType: InteropUInt8 {
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_ENTER = 0,
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_MOVE = 1,
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_EXIT = 2,
@@ -1996,7 +1996,7 @@ typedef struct Opt_AccessibilityHoverType {
     Ark_Tag tag;
     Ark_AccessibilityHoverType value;
 } Opt_AccessibilityHoverType;
-typedef enum Ark_AdaptiveColor {
+typedef enum Ark_AdaptiveColor: InteropUInt8 {
     ARK_ADAPTIVE_COLOR_DEFAULT = 0,
     ARK_ADAPTIVE_COLOR_AVERAGE = 1,
 } Ark_AdaptiveColor;
@@ -2004,7 +2004,7 @@ typedef struct Opt_AdaptiveColor {
     Ark_Tag tag;
     Ark_AdaptiveColor value;
 } Opt_AdaptiveColor;
-typedef enum Ark_Alignment {
+typedef enum Ark_Alignment: InteropUInt8 {
     ARK_ALIGNMENT_TOP_START = 0,
     ARK_ALIGNMENT_TOP = 1,
     ARK_ALIGNMENT_TOP_END = 2,
@@ -2019,7 +2019,7 @@ typedef struct Opt_Alignment {
     Ark_Tag tag;
     Ark_Alignment value;
 } Opt_Alignment;
-typedef enum Ark_AnimationStatus {
+typedef enum Ark_AnimationStatus: InteropUInt8 {
     ARK_ANIMATION_STATUS_INITIAL = 0,
     ARK_ANIMATION_STATUS_RUNNING = 1,
     ARK_ANIMATION_STATUS_PAUSED = 2,
@@ -2029,7 +2029,7 @@ typedef struct Opt_AnimationStatus {
     Ark_Tag tag;
     Ark_AnimationStatus value;
 } Opt_AnimationStatus;
-typedef enum Ark_AppRotation {
+typedef enum Ark_AppRotation: InteropUInt8 {
     ARK_APP_ROTATION_ROTATION_0 = 0,
     ARK_APP_ROTATION_ROTATION_90 = 1,
     ARK_APP_ROTATION_ROTATION_180 = 2,
@@ -2039,7 +2039,7 @@ typedef struct Opt_AppRotation {
     Ark_Tag tag;
     Ark_AppRotation value;
 } Opt_AppRotation;
-typedef enum Ark_ArrowPointPosition {
+typedef enum Ark_ArrowPointPosition: InteropUInt8 {
     ARK_ARROW_POINT_POSITION_START,
     ARK_ARROW_POINT_POSITION_CENTER,
     ARK_ARROW_POINT_POSITION_END,
@@ -2048,7 +2048,7 @@ typedef struct Opt_ArrowPointPosition {
     Ark_Tag tag;
     Ark_ArrowPointPosition value;
 } Opt_ArrowPointPosition;
-typedef enum Ark_AttributeUpdaterFlag {
+typedef enum Ark_AttributeUpdaterFlag: InteropUInt8 {
     ARK_ATTRIBUTE_UPDATER_FLAG_INITIAL = 0,
     ARK_ATTRIBUTE_UPDATER_FLAG_UPDATE = 1,
     ARK_ATTRIBUTE_UPDATER_FLAG_SKIP = 2,
@@ -2058,7 +2058,7 @@ typedef struct Opt_AttributeUpdaterFlag {
     Ark_Tag tag;
     Ark_AttributeUpdaterFlag value;
 } Opt_AttributeUpdaterFlag;
-typedef enum Ark_Axis {
+typedef enum Ark_Axis: InteropUInt8 {
     ARK_AXIS_VERTICAL = 0,
     ARK_AXIS_HORIZONTAL = 1,
 } Ark_Axis;
@@ -2066,7 +2066,7 @@ typedef struct Opt_Axis {
     Ark_Tag tag;
     Ark_Axis value;
 } Opt_Axis;
-typedef enum Ark_BarMode {
+typedef enum Ark_BarMode: InteropUInt8 {
     ARK_BAR_MODE_SCROLLABLE = 0,
     ARK_BAR_MODE_FIXED = 1,
 } Ark_BarMode;
@@ -2074,7 +2074,7 @@ typedef struct Opt_BarMode {
     Ark_Tag tag;
     Ark_BarMode value;
 } Opt_BarMode;
-typedef enum Ark_BarPosition {
+typedef enum Ark_BarPosition: InteropUInt8 {
     ARK_BAR_POSITION_START = 0,
     ARK_BAR_POSITION_END = 1,
 } Ark_BarPosition;
@@ -2082,7 +2082,7 @@ typedef struct Opt_BarPosition {
     Ark_Tag tag;
     Ark_BarPosition value;
 } Opt_BarPosition;
-typedef enum Ark_BarState {
+typedef enum Ark_BarState: InteropUInt8 {
     ARK_BAR_STATE_OFF = 0,
     ARK_BAR_STATE_AUTO = 1,
     ARK_BAR_STATE_ON = 2,
@@ -2091,7 +2091,7 @@ typedef struct Opt_BarState {
     Ark_Tag tag;
     Ark_BarState value;
 } Opt_BarState;
-typedef enum Ark_BarStyle {
+typedef enum Ark_BarStyle: InteropUInt8 {
     ARK_BAR_STYLE_STANDARD = 0,
     ARK_BAR_STYLE_STACK = 1,
 } Ark_BarStyle;
@@ -2099,7 +2099,7 @@ typedef struct Opt_BarStyle {
     Ark_Tag tag;
     Ark_BarStyle value;
 } Opt_BarStyle;
-typedef enum Ark_BlendApplyType {
+typedef enum Ark_BlendApplyType: InteropUInt8 {
     ARK_BLEND_APPLY_TYPE_FAST = 0,
     ARK_BLEND_APPLY_TYPE_OFFSCREEN = 1,
 } Ark_BlendApplyType;
@@ -2107,7 +2107,7 @@ typedef struct Opt_BlendApplyType {
     Ark_Tag tag;
     Ark_BlendApplyType value;
 } Opt_BlendApplyType;
-typedef enum Ark_BlendMode {
+typedef enum Ark_BlendMode: InteropUInt8 {
     ARK_BLEND_MODE_NONE = 0,
     ARK_BLEND_MODE_CLEAR = 1,
     ARK_BLEND_MODE_SRC = 2,
@@ -2143,7 +2143,7 @@ typedef struct Opt_BlendMode {
     Ark_Tag tag;
     Ark_BlendMode value;
 } Opt_BlendMode;
-typedef enum Ark_BlurStyle {
+typedef enum Ark_BlurStyle: InteropUInt8 {
     ARK_BLUR_STYLE_THIN = 0,
     ARK_BLUR_STYLE_REGULAR = 1,
     ARK_BLUR_STYLE_THICK = 2,
@@ -2162,7 +2162,7 @@ typedef struct Opt_BlurStyle {
     Ark_Tag tag;
     Ark_BlurStyle value;
 } Opt_BlurStyle;
-typedef enum Ark_BlurStyleActivePolicy {
+typedef enum Ark_BlurStyleActivePolicy: InteropUInt8 {
     ARK_BLUR_STYLE_ACTIVE_POLICY_FOLLOWS_WINDOW_ACTIVE_STATE = 0,
     ARK_BLUR_STYLE_ACTIVE_POLICY_ALWAYS_ACTIVE = 1,
     ARK_BLUR_STYLE_ACTIVE_POLICY_ALWAYS_INACTIVE = 2,
@@ -2171,7 +2171,7 @@ typedef struct Opt_BlurStyleActivePolicy {
     Ark_Tag tag;
     Ark_BlurStyleActivePolicy value;
 } Opt_BlurStyleActivePolicy;
-typedef enum Ark_BorderStyle {
+typedef enum Ark_BorderStyle: InteropUInt8 {
     ARK_BORDER_STYLE_DOTTED = 0,
     ARK_BORDER_STYLE_DASHED = 1,
     ARK_BORDER_STYLE_SOLID = 2,
@@ -2180,7 +2180,7 @@ typedef struct Opt_BorderStyle {
     Ark_Tag tag;
     Ark_BorderStyle value;
 } Opt_BorderStyle;
-typedef enum Ark_ButtonRole {
+typedef enum Ark_ButtonRole: InteropUInt8 {
     ARK_BUTTON_ROLE_NORMAL = 0,
     ARK_BUTTON_ROLE_ERROR = 1,
 } Ark_ButtonRole;
@@ -2188,7 +2188,7 @@ typedef struct Opt_ButtonRole {
     Ark_Tag tag;
     Ark_ButtonRole value;
 } Opt_ButtonRole;
-typedef enum Ark_ButtonStyleMode {
+typedef enum Ark_ButtonStyleMode: InteropUInt8 {
     ARK_BUTTON_STYLE_MODE_NORMAL = 0,
     ARK_BUTTON_STYLE_MODE_EMPHASIZED = 1,
     ARK_BUTTON_STYLE_MODE_TEXTUAL = 2,
@@ -2197,7 +2197,7 @@ typedef struct Opt_ButtonStyleMode {
     Ark_Tag tag;
     Ark_ButtonStyleMode value;
 } Opt_ButtonStyleMode;
-typedef enum Ark_ButtonType {
+typedef enum Ark_ButtonType: InteropUInt8 {
     ARK_BUTTON_TYPE_CAPSULE = 0,
     ARK_BUTTON_TYPE_CIRCLE = 1,
     ARK_BUTTON_TYPE_NORMAL = 2,
@@ -2207,7 +2207,7 @@ typedef struct Opt_ButtonType {
     Ark_Tag tag;
     Ark_ButtonType value;
 } Opt_ButtonType;
-typedef enum Ark_CalendarAlign {
+typedef enum Ark_CalendarAlign: InteropUInt8 {
     ARK_CALENDAR_ALIGN_START = 0,
     ARK_CALENDAR_ALIGN_CENTER = 1,
     ARK_CALENDAR_ALIGN_END = 2,
@@ -2216,7 +2216,7 @@ typedef struct Opt_CalendarAlign {
     Ark_Tag tag;
     Ark_CalendarAlign value;
 } Opt_CalendarAlign;
-typedef enum Ark_CancelButtonStyle {
+typedef enum Ark_CancelButtonStyle: InteropUInt8 {
     ARK_CANCEL_BUTTON_STYLE_CONSTANT = 0,
     ARK_CANCEL_BUTTON_STYLE_INVISIBLE = 1,
     ARK_CANCEL_BUTTON_STYLE_INPUT = 2,
@@ -2225,7 +2225,7 @@ typedef struct Opt_CancelButtonStyle {
     Ark_Tag tag;
     Ark_CancelButtonStyle value;
 } Opt_CancelButtonStyle;
-typedef enum Ark_ChainEdgeEffect {
+typedef enum Ark_ChainEdgeEffect: InteropUInt8 {
     ARK_CHAIN_EDGE_EFFECT_DEFAULT = 0,
     ARK_CHAIN_EDGE_EFFECT_STRETCH = 1,
 } Ark_ChainEdgeEffect;
@@ -2233,7 +2233,7 @@ typedef struct Opt_ChainEdgeEffect {
     Ark_Tag tag;
     Ark_ChainEdgeEffect value;
 } Opt_ChainEdgeEffect;
-typedef enum Ark_ChainStyle {
+typedef enum Ark_ChainStyle: InteropUInt8 {
     ARK_CHAIN_STYLE_SPREAD = 0,
     ARK_CHAIN_STYLE_SPREAD_INSIDE = 1,
     ARK_CHAIN_STYLE_PACKED = 2,
@@ -2242,7 +2242,7 @@ typedef struct Opt_ChainStyle {
     Ark_Tag tag;
     Ark_ChainStyle value;
 } Opt_ChainStyle;
-typedef enum Ark_CheckBoxShape {
+typedef enum Ark_CheckBoxShape: InteropUInt8 {
     ARK_CHECK_BOX_SHAPE_CIRCLE = 0,
     ARK_CHECK_BOX_SHAPE_ROUNDED_SQUARE = 1,
 } Ark_CheckBoxShape;
@@ -2250,7 +2250,7 @@ typedef struct Opt_CheckBoxShape {
     Ark_Tag tag;
     Ark_CheckBoxShape value;
 } Opt_CheckBoxShape;
-typedef enum Ark_ClickEffectLevel {
+typedef enum Ark_ClickEffectLevel: InteropUInt8 {
     ARK_CLICK_EFFECT_LEVEL_LIGHT = 0,
     ARK_CLICK_EFFECT_LEVEL_MIDDLE = 1,
     ARK_CLICK_EFFECT_LEVEL_HEAVY = 2,
@@ -2259,7 +2259,7 @@ typedef struct Opt_ClickEffectLevel {
     Ark_Tag tag;
     Ark_ClickEffectLevel value;
 } Opt_ClickEffectLevel;
-typedef enum Ark_Color {
+typedef enum Ark_Color: InteropUInt8 {
     ARK_COLOR_WHITE = 0,
     ARK_COLOR_BLACK = 1,
     ARK_COLOR_BLUE = 2,
@@ -2277,7 +2277,7 @@ typedef struct Opt_Color {
     Ark_Tag tag;
     Ark_Color value;
 } Opt_Color;
-typedef enum Ark_ColoringStrategy {
+typedef enum Ark_ColoringStrategy: InteropUInt8 {
     ARK_COLORING_STRATEGY_INVERT,
     ARK_COLORING_STRATEGY_AVERAGE,
     ARK_COLORING_STRATEGY_PRIMARY,
@@ -2286,7 +2286,7 @@ typedef struct Opt_ColoringStrategy {
     Ark_Tag tag;
     Ark_ColoringStrategy value;
 } Opt_ColoringStrategy;
-typedef enum Ark_ColorMode {
+typedef enum Ark_ColorMode: InteropUInt8 {
     ARK_COLOR_MODE_LIGHT = 0,
     ARK_COLOR_MODE_DARK = 1,
 } Ark_ColorMode;
@@ -2294,7 +2294,7 @@ typedef struct Opt_ColorMode {
     Ark_Tag tag;
     Ark_ColorMode value;
 } Opt_ColorMode;
-typedef enum Ark_ContentClipMode {
+typedef enum Ark_ContentClipMode: InteropUInt8 {
     ARK_CONTENT_CLIP_MODE_CONTENT_ONLY = 0,
     ARK_CONTENT_CLIP_MODE_BOUNDARY = 1,
     ARK_CONTENT_CLIP_MODE_SAFE_AREA = 2,
@@ -2303,7 +2303,7 @@ typedef struct Opt_ContentClipMode {
     Ark_Tag tag;
     Ark_ContentClipMode value;
 } Opt_ContentClipMode;
-typedef enum Ark_ContentType {
+typedef enum Ark_ContentType: InteropUInt8 {
     ARK_CONTENT_TYPE_USER_NAME = 0,
     ARK_CONTENT_TYPE_PASSWORD = 1,
     ARK_CONTENT_TYPE_NEW_PASSWORD = 2,
@@ -2330,7 +2330,7 @@ typedef struct Opt_ContentType {
     Ark_Tag tag;
     Ark_ContentType value;
 } Opt_ContentType;
-typedef enum Ark_ControlSize {
+typedef enum Ark_ControlSize: InteropUInt8 {
     ARK_CONTROL_SIZE_SMALL,
     ARK_CONTROL_SIZE_NORMAL,
 } Ark_ControlSize;
@@ -2338,7 +2338,7 @@ typedef struct Opt_ControlSize {
     Ark_Tag tag;
     Ark_ControlSize value;
 } Opt_ControlSize;
-typedef enum Ark_CopyOptions {
+typedef enum Ark_CopyOptions: InteropUInt8 {
     ARK_COPY_OPTIONS_NONE = 0,
     ARK_COPY_OPTIONS_IN_APP = 1,
     ARK_COPY_OPTIONS_LOCAL_DEVICE = 2,
@@ -2348,7 +2348,7 @@ typedef struct Opt_CopyOptions {
     Ark_Tag tag;
     Ark_CopyOptions value;
 } Opt_CopyOptions;
-typedef enum Ark_Curve {
+typedef enum Ark_Curve: InteropUInt8 {
     ARK_CURVE_LINEAR = 0,
     ARK_CURVE_EASE = 1,
     ARK_CURVE_EASE_IN = 2,
@@ -2367,7 +2367,7 @@ typedef struct Opt_Curve {
     Ark_Tag tag;
     Ark_Curve value;
 } Opt_Curve;
-typedef enum Ark_DialogAlignment {
+typedef enum Ark_DialogAlignment: InteropUInt8 {
     ARK_DIALOG_ALIGNMENT_TOP = 0,
     ARK_DIALOG_ALIGNMENT_CENTER = 1,
     ARK_DIALOG_ALIGNMENT_BOTTOM = 2,
@@ -2383,7 +2383,7 @@ typedef struct Opt_DialogAlignment {
     Ark_Tag tag;
     Ark_DialogAlignment value;
 } Opt_DialogAlignment;
-typedef enum Ark_DialogButtonDirection {
+typedef enum Ark_DialogButtonDirection: InteropUInt8 {
     ARK_DIALOG_BUTTON_DIRECTION_AUTO = 0,
     ARK_DIALOG_BUTTON_DIRECTION_HORIZONTAL = 1,
     ARK_DIALOG_BUTTON_DIRECTION_VERTICAL = 2,
@@ -2392,7 +2392,7 @@ typedef struct Opt_DialogButtonDirection {
     Ark_Tag tag;
     Ark_DialogButtonDirection value;
 } Opt_DialogButtonDirection;
-typedef enum Ark_DialogButtonStyle {
+typedef enum Ark_DialogButtonStyle: InteropUInt8 {
     ARK_DIALOG_BUTTON_STYLE_DEFAULT = 0,
     ARK_DIALOG_BUTTON_STYLE_HIGHLIGHT = 1,
 } Ark_DialogButtonStyle;
@@ -2400,7 +2400,7 @@ typedef struct Opt_DialogButtonStyle {
     Ark_Tag tag;
     Ark_DialogButtonStyle value;
 } Opt_DialogButtonStyle;
-typedef enum Ark_Direction {
+typedef enum Ark_Direction: InteropUInt8 {
     ARK_DIRECTION_LTR = 0,
     ARK_DIRECTION_RTL = 1,
     ARK_DIRECTION_AUTO = 2,
@@ -2409,7 +2409,7 @@ typedef struct Opt_Direction {
     Ark_Tag tag;
     Ark_Direction value;
 } Opt_Direction;
-typedef enum Ark_DismissReason {
+typedef enum Ark_DismissReason: InteropUInt8 {
     ARK_DISMISS_REASON_PRESS_BACK = 0,
     ARK_DISMISS_REASON_TOUCH_OUTSIDE = 1,
     ARK_DISMISS_REASON_CLOSE_BUTTON = 2,
@@ -2419,7 +2419,7 @@ typedef struct Opt_DismissReason {
     Ark_Tag tag;
     Ark_DismissReason value;
 } Opt_DismissReason;
-typedef enum Ark_DpiFollowStrategy {
+typedef enum Ark_DpiFollowStrategy: InteropUInt8 {
     ARK_DPI_FOLLOW_STRATEGY_FOLLOW_HOST_DPI = 0,
     ARK_DPI_FOLLOW_STRATEGY_FOLLOW_UI_EXTENSION_ABILITY_DPI = 1,
 } Ark_DpiFollowStrategy;
@@ -2427,7 +2427,7 @@ typedef struct Opt_DpiFollowStrategy {
     Ark_Tag tag;
     Ark_DpiFollowStrategy value;
 } Opt_DpiFollowStrategy;
-typedef enum Ark_DragBehavior {
+typedef enum Ark_DragBehavior: InteropUInt8 {
     ARK_DRAG_BEHAVIOR_COPY = 0,
     ARK_DRAG_BEHAVIOR_MOVE = 1,
 } Ark_DragBehavior;
@@ -2435,7 +2435,7 @@ typedef struct Opt_DragBehavior {
     Ark_Tag tag;
     Ark_DragBehavior value;
 } Opt_DragBehavior;
-typedef enum Ark_DragPreviewMode {
+typedef enum Ark_DragPreviewMode: InteropUInt8 {
     ARK_DRAG_PREVIEW_MODE_AUTO = 1,
     ARK_DRAG_PREVIEW_MODE_DISABLE_SCALE = 2,
     ARK_DRAG_PREVIEW_MODE_ENABLE_DEFAULT_SHADOW = 3,
@@ -2445,7 +2445,7 @@ typedef struct Opt_DragPreviewMode {
     Ark_Tag tag;
     Ark_DragPreviewMode value;
 } Opt_DragPreviewMode;
-typedef enum Ark_DragResult {
+typedef enum Ark_DragResult: InteropUInt8 {
     ARK_DRAG_RESULT_DRAG_SUCCESSFUL = 0,
     ARK_DRAG_RESULT_DRAG_FAILED = 1,
     ARK_DRAG_RESULT_DRAG_CANCELED = 2,
@@ -2456,7 +2456,7 @@ typedef struct Opt_DragResult {
     Ark_Tag tag;
     Ark_DragResult value;
 } Opt_DragResult;
-typedef enum Ark_DynamicRangeMode {
+typedef enum Ark_DynamicRangeMode: InteropUInt8 {
     ARK_DYNAMIC_RANGE_MODE_HIGH = 0,
     ARK_DYNAMIC_RANGE_MODE_CONSTRAINT = 1,
     ARK_DYNAMIC_RANGE_MODE_STANDARD = 2,
@@ -2465,7 +2465,7 @@ typedef struct Opt_DynamicRangeMode {
     Ark_Tag tag;
     Ark_DynamicRangeMode value;
 } Opt_DynamicRangeMode;
-typedef enum Ark_Edge {
+typedef enum Ark_Edge: InteropUInt8 {
     ARK_EDGE_TOP = 0,
     ARK_EDGE_CENTER = 1,
     ARK_EDGE_BOTTOM = 2,
@@ -2478,7 +2478,7 @@ typedef struct Opt_Edge {
     Ark_Tag tag;
     Ark_Edge value;
 } Opt_Edge;
-typedef enum Ark_EdgeEffect {
+typedef enum Ark_EdgeEffect: InteropUInt8 {
     ARK_EDGE_EFFECT_SPRING = 0,
     ARK_EDGE_EFFECT_FADE = 1,
     ARK_EDGE_EFFECT_NONE = 2,
@@ -2487,7 +2487,7 @@ typedef struct Opt_EdgeEffect {
     Ark_Tag tag;
     Ark_EdgeEffect value;
 } Opt_EdgeEffect;
-typedef enum Ark_EditMode {
+typedef enum Ark_EditMode: InteropUInt8 {
     ARK_EDIT_MODE_NONE = 0,
     ARK_EDIT_MODE_DELETABLE = 1,
     ARK_EDIT_MODE_MOVABLE = 2,
@@ -2496,7 +2496,7 @@ typedef struct Opt_EditMode {
     Ark_Tag tag;
     Ark_EditMode value;
 } Opt_EditMode;
-typedef enum Ark_EffectDirection {
+typedef enum Ark_EffectDirection: InteropUInt8 {
     ARK_EFFECT_DIRECTION_DOWN = 0,
     ARK_EFFECT_DIRECTION_UP = 1,
 } Ark_EffectDirection;
@@ -2504,7 +2504,7 @@ typedef struct Opt_EffectDirection {
     Ark_Tag tag;
     Ark_EffectDirection value;
 } Opt_EffectDirection;
-typedef enum Ark_EffectFillStyle {
+typedef enum Ark_EffectFillStyle: InteropUInt8 {
     ARK_EFFECT_FILL_STYLE_CUMULATIVE = 0,
     ARK_EFFECT_FILL_STYLE_ITERATIVE = 1,
 } Ark_EffectFillStyle;
@@ -2512,7 +2512,7 @@ typedef struct Opt_EffectFillStyle {
     Ark_Tag tag;
     Ark_EffectFillStyle value;
 } Opt_EffectFillStyle;
-typedef enum Ark_EffectScope {
+typedef enum Ark_EffectScope: InteropUInt8 {
     ARK_EFFECT_SCOPE_LAYER = 0,
     ARK_EFFECT_SCOPE_WHOLE = 1,
 } Ark_EffectScope;
@@ -2520,7 +2520,7 @@ typedef struct Opt_EffectScope {
     Ark_Tag tag;
     Ark_EffectScope value;
 } Opt_EffectScope;
-typedef enum Ark_EffectType {
+typedef enum Ark_EffectType: InteropUInt8 {
     ARK_EFFECT_TYPE_DEFAULT = 0,
     ARK_EFFECT_TYPE_WINDOW_EFFECT = 1,
 } Ark_EffectType;
@@ -2528,7 +2528,7 @@ typedef struct Opt_EffectType {
     Ark_Tag tag;
     Ark_EffectType value;
 } Opt_EffectType;
-typedef enum Ark_EllipsisMode {
+typedef enum Ark_EllipsisMode: InteropUInt8 {
     ARK_ELLIPSIS_MODE_START = 0,
     ARK_ELLIPSIS_MODE_CENTER = 1,
     ARK_ELLIPSIS_MODE_END = 2,
@@ -2537,14 +2537,14 @@ typedef struct Opt_EllipsisMode {
     Ark_Tag tag;
     Ark_EllipsisMode value;
 } Opt_EllipsisMode;
-typedef enum Ark_EmbeddedType {
+typedef enum Ark_EmbeddedType: InteropUInt8 {
     ARK_EMBEDDED_TYPE_EMBEDDED_UI_EXTENSION = 0,
 } Ark_EmbeddedType;
 typedef struct Opt_EmbeddedType {
     Ark_Tag tag;
     Ark_EmbeddedType value;
 } Opt_EmbeddedType;
-typedef enum Ark_EnterKeyType {
+typedef enum Ark_EnterKeyType: InteropUInt8 {
     ARK_ENTER_KEY_TYPE_GO = 2,
     ARK_ENTER_KEY_TYPE_SEARCH = 3,
     ARK_ENTER_KEY_TYPE_SEND = 4,
@@ -2557,7 +2557,7 @@ typedef struct Opt_EnterKeyType {
     Ark_Tag tag;
     Ark_EnterKeyType value;
 } Opt_EnterKeyType;
-typedef enum Ark_EnumDTS {
+typedef enum Ark_EnumDTS: InteropUInt8 {
     ARK_ENUM_DTS_ELEM_0 = 0,
     ARK_ENUM_DTS_ELEM_1 = 1,
     ARK_ENUM_DTS_ELEM_2 = 2,
@@ -2566,7 +2566,7 @@ typedef struct Opt_EnumDTS {
     Ark_Tag tag;
     Ark_EnumDTS value;
 } Opt_EnumDTS;
-typedef enum Ark_FillMode {
+typedef enum Ark_FillMode: InteropUInt8 {
     ARK_FILL_MODE_NONE = 0,
     ARK_FILL_MODE_FORWARDS = 1,
     ARK_FILL_MODE_BACKWARDS = 2,
@@ -2576,7 +2576,7 @@ typedef struct Opt_FillMode {
     Ark_Tag tag;
     Ark_FillMode value;
 } Opt_FillMode;
-typedef enum Ark_FinishCallbackType {
+typedef enum Ark_FinishCallbackType: InteropUInt8 {
     ARK_FINISH_CALLBACK_TYPE_REMOVED = 0,
     ARK_FINISH_CALLBACK_TYPE_LOGICALLY = 1,
 } Ark_FinishCallbackType;
@@ -2584,7 +2584,7 @@ typedef struct Opt_FinishCallbackType {
     Ark_Tag tag;
     Ark_FinishCallbackType value;
 } Opt_FinishCallbackType;
-typedef enum Ark_FlexAlign {
+typedef enum Ark_FlexAlign: InteropUInt8 {
     ARK_FLEX_ALIGN_START = 0,
     ARK_FLEX_ALIGN_CENTER = 1,
     ARK_FLEX_ALIGN_END = 2,
@@ -2596,7 +2596,7 @@ typedef struct Opt_FlexAlign {
     Ark_Tag tag;
     Ark_FlexAlign value;
 } Opt_FlexAlign;
-typedef enum Ark_FlexDirection {
+typedef enum Ark_FlexDirection: InteropUInt8 {
     ARK_FLEX_DIRECTION_ROW = 0,
     ARK_FLEX_DIRECTION_COLUMN = 1,
     ARK_FLEX_DIRECTION_ROW_REVERSE = 2,
@@ -2606,7 +2606,7 @@ typedef struct Opt_FlexDirection {
     Ark_Tag tag;
     Ark_FlexDirection value;
 } Opt_FlexDirection;
-typedef enum Ark_FlexWrap {
+typedef enum Ark_FlexWrap: InteropUInt8 {
     ARK_FLEX_WRAP_NO_WRAP = 0,
     ARK_FLEX_WRAP_WRAP = 1,
     ARK_FLEX_WRAP_WRAP_REVERSE = 2,
@@ -2624,7 +2624,7 @@ typedef struct Opt_FocusPriority {
     Ark_Tag tag;
     Ark_FocusPriority value;
 } Opt_FocusPriority;
-typedef enum Ark_FoldStatus {
+typedef enum Ark_FoldStatus: InteropUInt8 {
     ARK_FOLD_STATUS_FOLD_STATUS_UNKNOWN = 0,
     ARK_FOLD_STATUS_FOLD_STATUS_EXPANDED = 1,
     ARK_FOLD_STATUS_FOLD_STATUS_FOLDED = 2,
@@ -2634,7 +2634,7 @@ typedef struct Opt_FoldStatus {
     Ark_Tag tag;
     Ark_FoldStatus value;
 } Opt_FoldStatus;
-typedef enum Ark_FontStyle {
+typedef enum Ark_FontStyle: InteropUInt8 {
     ARK_FONT_STYLE_NORMAL = 0,
     ARK_FONT_STYLE_ITALIC = 1,
 } Ark_FontStyle;
@@ -2642,7 +2642,7 @@ typedef struct Opt_FontStyle {
     Ark_Tag tag;
     Ark_FontStyle value;
 } Opt_FontStyle;
-typedef enum Ark_FontWeight {
+typedef enum Ark_FontWeight: InteropUInt8 {
     ARK_FONT_WEIGHT_LIGHTER = 0,
     ARK_FONT_WEIGHT_NORMAL = 1,
     ARK_FONT_WEIGHT_REGULAR = 2,
@@ -2654,7 +2654,7 @@ typedef struct Opt_FontWeight {
     Ark_Tag tag;
     Ark_FontWeight value;
 } Opt_FontWeight;
-typedef enum Ark_FunctionKey {
+typedef enum Ark_FunctionKey: InteropUInt8 {
     ARK_FUNCTION_KEY_ESC = 0,
     ARK_FUNCTION_KEY_F1 = 1,
     ARK_FUNCTION_KEY_F2 = 2,
@@ -2678,7 +2678,7 @@ typedef struct Opt_FunctionKey {
     Ark_Tag tag;
     Ark_FunctionKey value;
 } Opt_FunctionKey;
-typedef enum Ark_GestureControl_GestureType {
+typedef enum Ark_GestureControl_GestureType: InteropUInt8 {
     ARK_GESTURE_CONTROL_GESTURE_TYPE_TAP_GESTURE = 0,
     ARK_GESTURE_CONTROL_GESTURE_TYPE_LONG_PRESS_GESTURE = 1,
     ARK_GESTURE_CONTROL_GESTURE_TYPE_PAN_GESTURE = 2,
@@ -2692,7 +2692,7 @@ typedef struct Opt_GestureControl_GestureType {
     Ark_Tag tag;
     Ark_GestureControl_GestureType value;
 } Opt_GestureControl_GestureType;
-typedef enum Ark_GestureJudgeResult {
+typedef enum Ark_GestureJudgeResult: InteropUInt8 {
     ARK_GESTURE_JUDGE_RESULT_CONTINUE = 0,
     ARK_GESTURE_JUDGE_RESULT_REJECT = 1,
 } Ark_GestureJudgeResult;
@@ -2700,7 +2700,7 @@ typedef struct Opt_GestureJudgeResult {
     Ark_Tag tag;
     Ark_GestureJudgeResult value;
 } Opt_GestureJudgeResult;
-typedef enum Ark_GestureMask {
+typedef enum Ark_GestureMask: InteropUInt8 {
     ARK_GESTURE_MASK_NORMAL = 0,
     ARK_GESTURE_MASK_IGNORE_INTERNAL = 1,
 } Ark_GestureMask;
@@ -2708,7 +2708,7 @@ typedef struct Opt_GestureMask {
     Ark_Tag tag;
     Ark_GestureMask value;
 } Opt_GestureMask;
-typedef enum Ark_GestureMode {
+typedef enum Ark_GestureMode: InteropUInt8 {
     ARK_GESTURE_MODE_SEQUENCE = 0,
     ARK_GESTURE_MODE_PARALLEL = 1,
     ARK_GESTURE_MODE_EXCLUSIVE = 2,
@@ -2717,7 +2717,7 @@ typedef struct Opt_GestureMode {
     Ark_Tag tag;
     Ark_GestureMode value;
 } Opt_GestureMode;
-typedef enum Ark_GesturePriority {
+typedef enum Ark_GesturePriority: InteropUInt8 {
     ARK_GESTURE_PRIORITY_NORMAL = 0,
     ARK_GESTURE_PRIORITY_PRIORITY = 1,
 } Ark_GesturePriority;
@@ -2725,7 +2725,7 @@ typedef struct Opt_GesturePriority {
     Ark_Tag tag;
     Ark_GesturePriority value;
 } Opt_GesturePriority;
-typedef enum Ark_GestureRecognizerState {
+typedef enum Ark_GestureRecognizerState: InteropUInt8 {
     ARK_GESTURE_RECOGNIZER_STATE_READY = 0,
     ARK_GESTURE_RECOGNIZER_STATE_DETECTING = 1,
     ARK_GESTURE_RECOGNIZER_STATE_PENDING = 2,
@@ -2737,7 +2737,7 @@ typedef struct Opt_GestureRecognizerState {
     Ark_Tag tag;
     Ark_GestureRecognizerState value;
 } Opt_GestureRecognizerState;
-typedef enum Ark_GradientDirection {
+typedef enum Ark_GradientDirection: InteropUInt8 {
     ARK_GRADIENT_DIRECTION_LEFT = 0,
     ARK_GRADIENT_DIRECTION_TOP = 1,
     ARK_GRADIENT_DIRECTION_RIGHT = 2,
@@ -2752,7 +2752,7 @@ typedef struct Opt_GradientDirection {
     Ark_Tag tag;
     Ark_GradientDirection value;
 } Opt_GradientDirection;
-typedef enum Ark_HeightBreakpoint {
+typedef enum Ark_HeightBreakpoint: InteropUInt8 {
     ARK_HEIGHT_BREAKPOINT_HEIGHT_SM = 0,
     ARK_HEIGHT_BREAKPOINT_HEIGHT_MD = 1,
     ARK_HEIGHT_BREAKPOINT_HEIGHT_LG = 2,
@@ -2761,7 +2761,7 @@ typedef struct Opt_HeightBreakpoint {
     Ark_Tag tag;
     Ark_HeightBreakpoint value;
 } Opt_HeightBreakpoint;
-typedef enum Ark_HitTestMode {
+typedef enum Ark_HitTestMode: InteropUInt8 {
     ARK_HIT_TEST_MODE_DEFAULT = 0,
     ARK_HIT_TEST_MODE_BLOCK = 1,
     ARK_HIT_TEST_MODE_TRANSPARENT = 2,
@@ -2771,7 +2771,7 @@ typedef struct Opt_HitTestMode {
     Ark_Tag tag;
     Ark_HitTestMode value;
 } Opt_HitTestMode;
-typedef enum Ark_HorizontalAlign {
+typedef enum Ark_HorizontalAlign: InteropUInt8 {
     ARK_HORIZONTAL_ALIGN_START = 0,
     ARK_HORIZONTAL_ALIGN_CENTER = 1,
     ARK_HORIZONTAL_ALIGN_END = 2,
@@ -2780,7 +2780,7 @@ typedef struct Opt_HorizontalAlign {
     Ark_Tag tag;
     Ark_HorizontalAlign value;
 } Opt_HorizontalAlign;
-typedef enum Ark_HoverEffect {
+typedef enum Ark_HoverEffect: InteropUInt8 {
     ARK_HOVER_EFFECT_AUTO = 0,
     ARK_HOVER_EFFECT_SCALE = 1,
     ARK_HOVER_EFFECT_HIGHLIGHT = 2,
@@ -2790,7 +2790,7 @@ typedef struct Opt_HoverEffect {
     Ark_Tag tag;
     Ark_HoverEffect value;
 } Opt_HoverEffect;
-typedef enum Ark_HoverModeAreaType {
+typedef enum Ark_HoverModeAreaType: InteropUInt8 {
     ARK_HOVER_MODE_AREA_TYPE_TOP_SCREEN = 0,
     ARK_HOVER_MODE_AREA_TYPE_BOTTOM_SCREEN = 1,
 } Ark_HoverModeAreaType;
@@ -2798,7 +2798,7 @@ typedef struct Opt_HoverModeAreaType {
     Ark_Tag tag;
     Ark_HoverModeAreaType value;
 } Opt_HoverModeAreaType;
-typedef enum Ark_IlluminatedType {
+typedef enum Ark_IlluminatedType: InteropUInt8 {
     ARK_ILLUMINATED_TYPE_NONE = 0,
     ARK_ILLUMINATED_TYPE_BORDER = 1,
     ARK_ILLUMINATED_TYPE_CONTENT = 2,
@@ -2810,7 +2810,7 @@ typedef struct Opt_IlluminatedType {
     Ark_Tag tag;
     Ark_IlluminatedType value;
 } Opt_IlluminatedType;
-typedef enum Ark_ImageAnalyzerType {
+typedef enum Ark_ImageAnalyzerType: InteropUInt8 {
     ARK_IMAGE_ANALYZER_TYPE_SUBJECT = 0,
     ARK_IMAGE_ANALYZER_TYPE_TEXT = 1,
     ARK_IMAGE_ANALYZER_TYPE_OBJECT_LOOKUP = 2,
@@ -2819,14 +2819,14 @@ typedef struct Opt_ImageAnalyzerType {
     Ark_Tag tag;
     Ark_ImageAnalyzerType value;
 } Opt_ImageAnalyzerType;
-typedef enum Ark_ImageContent {
+typedef enum Ark_ImageContent: InteropUInt8 {
     ARK_IMAGE_CONTENT_EMPTY = 0,
 } Ark_ImageContent;
 typedef struct Opt_ImageContent {
     Ark_Tag tag;
     Ark_ImageContent value;
 } Opt_ImageContent;
-typedef enum Ark_ImageFit {
+typedef enum Ark_ImageFit: InteropUInt8 {
     ARK_IMAGE_FIT_CONTAIN = 0,
     ARK_IMAGE_FIT_COVER = 1,
     ARK_IMAGE_FIT_AUTO = 2,
@@ -2847,7 +2847,7 @@ typedef struct Opt_ImageFit {
     Ark_Tag tag;
     Ark_ImageFit value;
 } Opt_ImageFit;
-typedef enum Ark_ImageInterpolation {
+typedef enum Ark_ImageInterpolation: InteropUInt8 {
     ARK_IMAGE_INTERPOLATION_NONE = 0,
     ARK_IMAGE_INTERPOLATION_LOW = 1,
     ARK_IMAGE_INTERPOLATION_MEDIUM = 2,
@@ -2857,7 +2857,7 @@ typedef struct Opt_ImageInterpolation {
     Ark_Tag tag;
     Ark_ImageInterpolation value;
 } Opt_ImageInterpolation;
-typedef enum Ark_ImageRenderMode {
+typedef enum Ark_ImageRenderMode: InteropUInt8 {
     ARK_IMAGE_RENDER_MODE_ORIGINAL = 0,
     ARK_IMAGE_RENDER_MODE_TEMPLATE = 1,
 } Ark_ImageRenderMode;
@@ -2865,7 +2865,7 @@ typedef struct Opt_ImageRenderMode {
     Ark_Tag tag;
     Ark_ImageRenderMode value;
 } Opt_ImageRenderMode;
-typedef enum Ark_ImageRepeat {
+typedef enum Ark_ImageRepeat: InteropUInt8 {
     ARK_IMAGE_REPEAT_NO_REPEAT = 0,
     ARK_IMAGE_REPEAT_X = 1,
     ARK_IMAGE_REPEAT_Y = 2,
@@ -2875,7 +2875,7 @@ typedef struct Opt_ImageRepeat {
     Ark_Tag tag;
     Ark_ImageRepeat value;
 } Opt_ImageRepeat;
-typedef enum Ark_ImageRotateOrientation {
+typedef enum Ark_ImageRotateOrientation: InteropUInt8 {
     ARK_IMAGE_ROTATE_ORIENTATION_AUTO = 0,
     ARK_IMAGE_ROTATE_ORIENTATION_UP = 1,
     ARK_IMAGE_ROTATE_ORIENTATION_RIGHT = 2,
@@ -2886,7 +2886,7 @@ typedef struct Opt_ImageRotateOrientation {
     Ark_Tag tag;
     Ark_ImageRotateOrientation value;
 } Opt_ImageRotateOrientation;
-typedef enum Ark_ImageSize {
+typedef enum Ark_ImageSize: InteropUInt8 {
     ARK_IMAGE_SIZE_AUTO = 0,
     ARK_IMAGE_SIZE_COVER = 1,
     ARK_IMAGE_SIZE_CONTAIN = 2,
@@ -2896,7 +2896,7 @@ typedef struct Opt_ImageSize {
     Ark_Tag tag;
     Ark_ImageSize value;
 } Opt_ImageSize;
-typedef enum Ark_ImageSpanAlignment {
+typedef enum Ark_ImageSpanAlignment: InteropUInt8 {
     ARK_IMAGE_SPAN_ALIGNMENT_BASELINE = 0,
     ARK_IMAGE_SPAN_ALIGNMENT_BOTTOM = 1,
     ARK_IMAGE_SPAN_ALIGNMENT_CENTER = 2,
@@ -2906,7 +2906,7 @@ typedef struct Opt_ImageSpanAlignment {
     Ark_Tag tag;
     Ark_ImageSpanAlignment value;
 } Opt_ImageSpanAlignment;
-typedef enum Ark_InputType {
+typedef enum Ark_InputType: InteropUInt8 {
     ARK_INPUT_TYPE_NORMAL = 0,
     ARK_INPUT_TYPE_RENAMED_NUMBER = 1,
     ARK_INPUT_TYPE_PHONE_NUMBER = 2,
@@ -2923,7 +2923,7 @@ typedef struct Opt_InputType {
     Ark_Tag tag;
     Ark_InputType value;
 } Opt_InputType;
-typedef enum Ark_ItemAlign {
+typedef enum Ark_ItemAlign: InteropUInt8 {
     ARK_ITEM_ALIGN_AUTO = 0,
     ARK_ITEM_ALIGN_START = 1,
     ARK_ITEM_ALIGN_CENTER = 2,
@@ -2935,7 +2935,7 @@ typedef struct Opt_ItemAlign {
     Ark_Tag tag;
     Ark_ItemAlign value;
 } Opt_ItemAlign;
-typedef enum Ark_KeyboardAvoidMode {
+typedef enum Ark_KeyboardAvoidMode: InteropUInt8 {
     ARK_KEYBOARD_AVOID_MODE_DEFAULT = 0,
     ARK_KEYBOARD_AVOID_MODE_NONE = 1,
 } Ark_KeyboardAvoidMode;
@@ -2943,7 +2943,7 @@ typedef struct Opt_KeyboardAvoidMode {
     Ark_Tag tag;
     Ark_KeyboardAvoidMode value;
 } Opt_KeyboardAvoidMode;
-typedef enum Ark_KeySource {
+typedef enum Ark_KeySource: InteropUInt8 {
     ARK_KEY_SOURCE_UNKNOWN = 0,
     ARK_KEY_SOURCE_KEYBOARD = 1,
 } Ark_KeySource;
@@ -2951,7 +2951,7 @@ typedef struct Opt_KeySource {
     Ark_Tag tag;
     Ark_KeySource value;
 } Opt_KeySource;
-typedef enum Ark_KeyType {
+typedef enum Ark_KeyType: InteropUInt8 {
     ARK_KEY_TYPE_DOWN = 0,
     ARK_KEY_TYPE_UP = 1,
 } Ark_KeyType;
@@ -2959,7 +2959,7 @@ typedef struct Opt_KeyType {
     Ark_Tag tag;
     Ark_KeyType value;
 } Opt_KeyType;
-typedef enum Ark_LaunchMode {
+typedef enum Ark_LaunchMode: InteropUInt8 {
     ARK_LAUNCH_MODE_STANDARD = 0,
     ARK_LAUNCH_MODE_MOVE_TO_TOP_SINGLETON = 1,
     ARK_LAUNCH_MODE_POP_TO_SINGLETON = 2,
@@ -2969,7 +2969,7 @@ typedef struct Opt_LaunchMode {
     Ark_Tag tag;
     Ark_LaunchMode value;
 } Opt_LaunchMode;
-typedef enum Ark_LayoutDirection {
+typedef enum Ark_LayoutDirection: InteropUInt8 {
     ARK_LAYOUT_DIRECTION_LTR = 0,
     ARK_LAYOUT_DIRECTION_RTL = 1,
     ARK_LAYOUT_DIRECTION_AUTO = 2,
@@ -2978,7 +2978,7 @@ typedef struct Opt_LayoutDirection {
     Ark_Tag tag;
     Ark_LayoutDirection value;
 } Opt_LayoutDirection;
-typedef enum Ark_LayoutMode {
+typedef enum Ark_LayoutMode: InteropUInt8 {
     ARK_LAYOUT_MODE_AUTO = 0,
     ARK_LAYOUT_MODE_VERTICAL = 1,
     ARK_LAYOUT_MODE_HORIZONTAL = 2,
@@ -2987,7 +2987,7 @@ typedef struct Opt_LayoutMode {
     Ark_Tag tag;
     Ark_LayoutMode value;
 } Opt_LayoutMode;
-typedef enum Ark_LayoutSafeAreaEdge {
+typedef enum Ark_LayoutSafeAreaEdge: InteropUInt8 {
     ARK_LAYOUT_SAFE_AREA_EDGE_TOP = 0,
     ARK_LAYOUT_SAFE_AREA_EDGE_BOTTOM = 1,
 } Ark_LayoutSafeAreaEdge;
@@ -2995,21 +2995,21 @@ typedef struct Opt_LayoutSafeAreaEdge {
     Ark_Tag tag;
     Ark_LayoutSafeAreaEdge value;
 } Opt_LayoutSafeAreaEdge;
-typedef enum Ark_LayoutSafeAreaType {
+typedef enum Ark_LayoutSafeAreaType: InteropUInt8 {
     ARK_LAYOUT_SAFE_AREA_TYPE_SYSTEM = 0,
 } Ark_LayoutSafeAreaType;
 typedef struct Opt_LayoutSafeAreaType {
     Ark_Tag tag;
     Ark_LayoutSafeAreaType value;
 } Opt_LayoutSafeAreaType;
-typedef enum Ark_LengthMetricsUnit {
+typedef enum Ark_LengthMetricsUnit: InteropUInt8 {
     ARK_LENGTH_METRICS_UNIT_NONE = 0,
 } Ark_LengthMetricsUnit;
 typedef struct Opt_LengthMetricsUnit {
     Ark_Tag tag;
     Ark_LengthMetricsUnit value;
 } Opt_LengthMetricsUnit;
-typedef enum Ark_LineBreakStrategy {
+typedef enum Ark_LineBreakStrategy: InteropUInt8 {
     ARK_LINE_BREAK_STRATEGY_GREEDY = 0,
     ARK_LINE_BREAK_STRATEGY_HIGH_QUALITY = 1,
     ARK_LINE_BREAK_STRATEGY_BALANCED = 2,
@@ -3018,7 +3018,7 @@ typedef struct Opt_LineBreakStrategy {
     Ark_Tag tag;
     Ark_LineBreakStrategy value;
 } Opt_LineBreakStrategy;
-typedef enum Ark_LineCapStyle {
+typedef enum Ark_LineCapStyle: InteropUInt8 {
     ARK_LINE_CAP_STYLE_BUTT = 0,
     ARK_LINE_CAP_STYLE_ROUND = 1,
     ARK_LINE_CAP_STYLE_SQUARE = 2,
@@ -3027,7 +3027,7 @@ typedef struct Opt_LineCapStyle {
     Ark_Tag tag;
     Ark_LineCapStyle value;
 } Opt_LineCapStyle;
-typedef enum Ark_LineJoinStyle {
+typedef enum Ark_LineJoinStyle: InteropUInt8 {
     ARK_LINE_JOIN_STYLE_MITER = 0,
     ARK_LINE_JOIN_STYLE_ROUND = 1,
     ARK_LINE_JOIN_STYLE_BEVEL = 2,
@@ -3036,7 +3036,7 @@ typedef struct Opt_LineJoinStyle {
     Ark_Tag tag;
     Ark_LineJoinStyle value;
 } Opt_LineJoinStyle;
-typedef enum Ark_ListItemAlign {
+typedef enum Ark_ListItemAlign: InteropUInt8 {
     ARK_LIST_ITEM_ALIGN_START = 0,
     ARK_LIST_ITEM_ALIGN_CENTER = 1,
     ARK_LIST_ITEM_ALIGN_END = 2,
@@ -3045,7 +3045,7 @@ typedef struct Opt_ListItemAlign {
     Ark_Tag tag;
     Ark_ListItemAlign value;
 } Opt_ListItemAlign;
-typedef enum Ark_ListItemGroupArea {
+typedef enum Ark_ListItemGroupArea: InteropUInt8 {
     ARK_LIST_ITEM_GROUP_AREA_NONE = 0,
     ARK_LIST_ITEM_GROUP_AREA_IN_LIST_ITEM_AREA = 1,
     ARK_LIST_ITEM_GROUP_AREA_IN_HEADER_AREA = 2,
@@ -3055,7 +3055,7 @@ typedef struct Opt_ListItemGroupArea {
     Ark_Tag tag;
     Ark_ListItemGroupArea value;
 } Opt_ListItemGroupArea;
-typedef enum Ark_ListItemStyle {
+typedef enum Ark_ListItemStyle: InteropUInt8 {
     ARK_LIST_ITEM_STYLE_NONE = 0,
     ARK_LIST_ITEM_STYLE_CARD = 1,
 } Ark_ListItemStyle;
@@ -3063,7 +3063,7 @@ typedef struct Opt_ListItemStyle {
     Ark_Tag tag;
     Ark_ListItemStyle value;
 } Opt_ListItemStyle;
-typedef enum Ark_MarqueeUpdateStrategy {
+typedef enum Ark_MarqueeUpdateStrategy: InteropUInt8 {
     ARK_MARQUEE_UPDATE_STRATEGY_DEFAULT = 0,
     ARK_MARQUEE_UPDATE_STRATEGY_PRESERVE_POSITION = 1,
 } Ark_MarqueeUpdateStrategy;
@@ -3071,7 +3071,7 @@ typedef struct Opt_MarqueeUpdateStrategy {
     Ark_Tag tag;
     Ark_MarqueeUpdateStrategy value;
 } Opt_MarqueeUpdateStrategy;
-typedef enum Ark_MenuPolicy {
+typedef enum Ark_MenuPolicy: InteropUInt8 {
     ARK_MENU_POLICY_DEFAULT = 0,
     ARK_MENU_POLICY_HIDE = 1,
     ARK_MENU_POLICY_SHOW = 2,
@@ -3080,7 +3080,7 @@ typedef struct Opt_MenuPolicy {
     Ark_Tag tag;
     Ark_MenuPolicy value;
 } Opt_MenuPolicy;
-typedef enum Ark_MenuPreviewMode {
+typedef enum Ark_MenuPreviewMode: InteropUInt8 {
     ARK_MENU_PREVIEW_MODE_NONE = 0,
     ARK_MENU_PREVIEW_MODE_IMAGE = 1,
 } Ark_MenuPreviewMode;
@@ -3088,7 +3088,7 @@ typedef struct Opt_MenuPreviewMode {
     Ark_Tag tag;
     Ark_MenuPreviewMode value;
 } Opt_MenuPreviewMode;
-typedef enum Ark_MenuType {
+typedef enum Ark_MenuType: InteropUInt8 {
     ARK_MENU_TYPE_SELECTION_MENU = 0,
     ARK_MENU_TYPE_PREVIEW_MENU = 1,
 } Ark_MenuType;
@@ -3096,7 +3096,7 @@ typedef struct Opt_MenuType {
     Ark_Tag tag;
     Ark_MenuType value;
 } Opt_MenuType;
-typedef enum Ark_ModalTransition {
+typedef enum Ark_ModalTransition: InteropUInt8 {
     ARK_MODAL_TRANSITION_DEFAULT = 0,
     ARK_MODAL_TRANSITION_NONE = 1,
     ARK_MODAL_TRANSITION_ALPHA = 2,
@@ -3105,7 +3105,7 @@ typedef struct Opt_ModalTransition {
     Ark_Tag tag;
     Ark_ModalTransition value;
 } Opt_ModalTransition;
-typedef enum Ark_ModifierKey {
+typedef enum Ark_ModifierKey: InteropUInt8 {
     ARK_MODIFIER_KEY_CTRL = 0,
     ARK_MODIFIER_KEY_SHIFT = 1,
     ARK_MODIFIER_KEY_ALT = 2,
@@ -3114,7 +3114,7 @@ typedef struct Opt_ModifierKey {
     Ark_Tag tag;
     Ark_ModifierKey value;
 } Opt_ModifierKey;
-typedef enum Ark_MouseAction {
+typedef enum Ark_MouseAction: InteropUInt8 {
     ARK_MOUSE_ACTION_PRESS = 0,
     ARK_MOUSE_ACTION_RELEASE = 1,
     ARK_MOUSE_ACTION_MOVE = 2,
@@ -3124,7 +3124,7 @@ typedef struct Opt_MouseAction {
     Ark_Tag tag;
     Ark_MouseAction value;
 } Opt_MouseAction;
-typedef enum Ark_MouseButton {
+typedef enum Ark_MouseButton: InteropUInt8 {
     ARK_MOUSE_BUTTON_LEFT = 0,
     ARK_MOUSE_BUTTON_RIGHT = 1,
     ARK_MOUSE_BUTTON_MIDDLE = 2,
@@ -3136,7 +3136,7 @@ typedef struct Opt_MouseButton {
     Ark_Tag tag;
     Ark_MouseButton value;
 } Opt_MouseButton;
-typedef enum Ark_NavBarPosition {
+typedef enum Ark_NavBarPosition: InteropUInt8 {
     ARK_NAV_BAR_POSITION_START = 0,
     ARK_NAV_BAR_POSITION_END = 1,
 } Ark_NavBarPosition;
@@ -3144,7 +3144,7 @@ typedef struct Opt_NavBarPosition {
     Ark_Tag tag;
     Ark_NavBarPosition value;
 } Opt_NavBarPosition;
-typedef enum Ark_NavDestinationMode {
+typedef enum Ark_NavDestinationMode: InteropUInt8 {
     ARK_NAV_DESTINATION_MODE_STANDARD = 0,
     ARK_NAV_DESTINATION_MODE_DIALOG = 1,
 } Ark_NavDestinationMode;
@@ -3152,7 +3152,7 @@ typedef struct Opt_NavDestinationMode {
     Ark_Tag tag;
     Ark_NavDestinationMode value;
 } Opt_NavDestinationMode;
-typedef enum Ark_NavigationMode {
+typedef enum Ark_NavigationMode: InteropUInt8 {
     ARK_NAVIGATION_MODE_STACK = 0,
     ARK_NAVIGATION_MODE_SPLIT = 1,
     ARK_NAVIGATION_MODE_AUTO = 2,
@@ -3161,7 +3161,7 @@ typedef struct Opt_NavigationMode {
     Ark_Tag tag;
     Ark_NavigationMode value;
 } Opt_NavigationMode;
-typedef enum Ark_NavigationOperation {
+typedef enum Ark_NavigationOperation: InteropUInt8 {
     ARK_NAVIGATION_OPERATION_PUSH = 1,
     ARK_NAVIGATION_OPERATION_POP = 2,
     ARK_NAVIGATION_OPERATION_REPLACE = 3,
@@ -3170,7 +3170,7 @@ typedef struct Opt_NavigationOperation {
     Ark_Tag tag;
     Ark_NavigationOperation value;
 } Opt_NavigationOperation;
-typedef enum Ark_NavigationTitleMode {
+typedef enum Ark_NavigationTitleMode: InteropUInt8 {
     ARK_NAVIGATION_TITLE_MODE_FREE = 0,
     ARK_NAVIGATION_TITLE_MODE_FULL = 1,
     ARK_NAVIGATION_TITLE_MODE_MINI = 2,
@@ -3179,7 +3179,7 @@ typedef struct Opt_NavigationTitleMode {
     Ark_Tag tag;
     Ark_NavigationTitleMode value;
 } Opt_NavigationTitleMode;
-typedef enum Ark_NavigationType {
+typedef enum Ark_NavigationType: InteropUInt8 {
     ARK_NAVIGATION_TYPE_PUSH = 0,
     ARK_NAVIGATION_TYPE_BACK = 1,
     ARK_NAVIGATION_TYPE_REPLACE = 2,
@@ -3188,7 +3188,7 @@ typedef struct Opt_NavigationType {
     Ark_Tag tag;
     Ark_NavigationType value;
 } Opt_NavigationType;
-typedef enum Ark_NestedScrollMode {
+typedef enum Ark_NestedScrollMode: InteropUInt8 {
     ARK_NESTED_SCROLL_MODE_SELF_ONLY = 0,
     ARK_NESTED_SCROLL_MODE_SELF_FIRST = 1,
     ARK_NESTED_SCROLL_MODE_PARENT_FIRST = 2,
@@ -3198,14 +3198,14 @@ typedef struct Opt_NestedScrollMode {
     Ark_Tag tag;
     Ark_NestedScrollMode value;
 } Opt_NestedScrollMode;
-typedef enum Ark_ObscuredReasons {
+typedef enum Ark_ObscuredReasons: InteropUInt8 {
     ARK_OBSCURED_REASONS_PLACEHOLDER = 0,
 } Ark_ObscuredReasons;
 typedef struct Opt_ObscuredReasons {
     Ark_Tag tag;
     Ark_ObscuredReasons value;
 } Opt_ObscuredReasons;
-typedef enum Ark_OptionWidthMode {
+typedef enum Ark_OptionWidthMode: InteropUInt8 {
     ARK_OPTION_WIDTH_MODE_FIT_CONTENT,
     ARK_OPTION_WIDTH_MODE_FIT_TRIGGER,
 } Ark_OptionWidthMode;
@@ -3213,7 +3213,7 @@ typedef struct Opt_OptionWidthMode {
     Ark_Tag tag;
     Ark_OptionWidthMode value;
 } Opt_OptionWidthMode;
-typedef enum Ark_OutlineStyle {
+typedef enum Ark_OutlineStyle: InteropUInt8 {
     ARK_OUTLINE_STYLE_SOLID = 0,
     ARK_OUTLINE_STYLE_DASHED = 1,
     ARK_OUTLINE_STYLE_DOTTED = 2,
@@ -3222,7 +3222,7 @@ typedef struct Opt_OutlineStyle {
     Ark_Tag tag;
     Ark_OutlineStyle value;
 } Opt_OutlineStyle;
-typedef enum Ark_PageTransitionType {
+typedef enum Ark_PageTransitionType: InteropUInt8 {
     ARK_PAGE_TRANSITION_TYPE_ENTER = 0,
     ARK_PAGE_TRANSITION_TYPE_EXIT = 1,
 } Ark_PageTransitionType;
@@ -3230,7 +3230,7 @@ typedef struct Opt_PageTransitionType {
     Ark_Tag tag;
     Ark_PageTransitionType value;
 } Opt_PageTransitionType;
-typedef enum Ark_PanDirection {
+typedef enum Ark_PanDirection: InteropUInt8 {
     ARK_PAN_DIRECTION_NONE = 0,
     ARK_PAN_DIRECTION_HORIZONTAL = 1,
     ARK_PAN_DIRECTION_LEFT = 2,
@@ -3244,7 +3244,7 @@ typedef struct Opt_PanDirection {
     Ark_Tag tag;
     Ark_PanDirection value;
 } Opt_PanDirection;
-typedef enum Ark_PixelRoundCalcPolicy {
+typedef enum Ark_PixelRoundCalcPolicy: InteropUInt8 {
     ARK_PIXEL_ROUND_CALC_POLICY_NO_FORCE_ROUND = 0,
     ARK_PIXEL_ROUND_CALC_POLICY_FORCE_CEIL = 1,
     ARK_PIXEL_ROUND_CALC_POLICY_FORCE_FLOOR = 2,
@@ -3253,7 +3253,7 @@ typedef struct Opt_PixelRoundCalcPolicy {
     Ark_Tag tag;
     Ark_PixelRoundCalcPolicy value;
 } Opt_PixelRoundCalcPolicy;
-typedef enum Ark_Placement {
+typedef enum Ark_Placement: InteropUInt8 {
     ARK_PLACEMENT_LEFT = 0,
     ARK_PLACEMENT_RIGHT = 1,
     ARK_PLACEMENT_TOP = 2,
@@ -3271,7 +3271,7 @@ typedef struct Opt_Placement {
     Ark_Tag tag;
     Ark_Placement value;
 } Opt_Placement;
-typedef enum Ark_PlayMode {
+typedef enum Ark_PlayMode: InteropUInt8 {
     ARK_PLAY_MODE_NORMAL = 0,
     ARK_PLAY_MODE_REVERSE = 1,
     ARK_PLAY_MODE_ALTERNATE = 2,
@@ -3281,7 +3281,7 @@ typedef struct Opt_PlayMode {
     Ark_Tag tag;
     Ark_PlayMode value;
 } Opt_PlayMode;
-typedef enum Ark_PreDragStatus {
+typedef enum Ark_PreDragStatus: InteropUInt8 {
     ARK_PRE_DRAG_STATUS_ACTION_DETECTING_STATUS = 0,
     ARK_PRE_DRAG_STATUS_READY_TO_TRIGGER_DRAG_ACTION = 1,
     ARK_PRE_DRAG_STATUS_PREVIEW_LIFT_STARTED = 2,
@@ -3294,7 +3294,7 @@ typedef struct Opt_PreDragStatus {
     Ark_Tag tag;
     Ark_PreDragStatus value;
 } Opt_PreDragStatus;
-typedef enum Ark_RelateType {
+typedef enum Ark_RelateType: InteropUInt8 {
     ARK_RELATE_TYPE_FILL = 0,
     ARK_RELATE_TYPE_FIT = 1,
 } Ark_RelateType;
@@ -3302,7 +3302,7 @@ typedef struct Opt_RelateType {
     Ark_Tag tag;
     Ark_RelateType value;
 } Opt_RelateType;
-typedef enum Ark_RenderExitReason {
+typedef enum Ark_RenderExitReason: InteropUInt8 {
     ARK_RENDER_EXIT_REASON_PROCESS_ABNORMAL_TERMINATION = 0,
     ARK_RENDER_EXIT_REASON_PROCESS_WAS_KILLED = 1,
     ARK_RENDER_EXIT_REASON_PROCESS_CRASHED = 2,
@@ -3313,7 +3313,7 @@ typedef struct Opt_RenderExitReason {
     Ark_Tag tag;
     Ark_RenderExitReason value;
 } Opt_RenderExitReason;
-typedef enum Ark_RenderFit {
+typedef enum Ark_RenderFit: InteropUInt8 {
     ARK_RENDER_FIT_CENTER = 0,
     ARK_RENDER_FIT_TOP = 1,
     ARK_RENDER_FIT_BOTTOM = 2,
@@ -3335,7 +3335,7 @@ typedef struct Opt_RenderFit {
     Ark_Tag tag;
     Ark_RenderFit value;
 } Opt_RenderFit;
-typedef enum Ark_RepeatMode {
+typedef enum Ark_RepeatMode: InteropUInt8 {
     ARK_REPEAT_MODE_REPEAT = 0,
     ARK_REPEAT_MODE_STRETCH = 1,
     ARK_REPEAT_MODE_ROUND = 2,
@@ -3345,7 +3345,7 @@ typedef struct Opt_RepeatMode {
     Ark_Tag tag;
     Ark_RepeatMode value;
 } Opt_RepeatMode;
-typedef enum Ark_ResponseType {
+typedef enum Ark_ResponseType: InteropUInt8 {
     ARK_RESPONSE_TYPE_RIGHT_CLICK = 0,
     ARK_RESPONSE_TYPE_LONG_PRESS = 1,
 } Ark_ResponseType;
@@ -3353,7 +3353,7 @@ typedef struct Opt_ResponseType {
     Ark_Tag tag;
     Ark_ResponseType value;
 } Opt_ResponseType;
-typedef enum Ark_RichEditorDeleteDirection {
+typedef enum Ark_RichEditorDeleteDirection: InteropUInt8 {
     ARK_RICH_EDITOR_DELETE_DIRECTION_BACKWARD = 0,
     ARK_RICH_EDITOR_DELETE_DIRECTION_FORWARD = 1,
 } Ark_RichEditorDeleteDirection;
@@ -3361,7 +3361,7 @@ typedef struct Opt_RichEditorDeleteDirection {
     Ark_Tag tag;
     Ark_RichEditorDeleteDirection value;
 } Opt_RichEditorDeleteDirection;
-typedef enum Ark_RichEditorResponseType {
+typedef enum Ark_RichEditorResponseType: InteropUInt8 {
     ARK_RICH_EDITOR_RESPONSE_TYPE_RIGHT_CLICK = 0,
     ARK_RICH_EDITOR_RESPONSE_TYPE_LONG_PRESS = 1,
     ARK_RICH_EDITOR_RESPONSE_TYPE_SELECT = 2,
@@ -3370,7 +3370,7 @@ typedef struct Opt_RichEditorResponseType {
     Ark_Tag tag;
     Ark_RichEditorResponseType value;
 } Opt_RichEditorResponseType;
-typedef enum Ark_RichEditorSpanType {
+typedef enum Ark_RichEditorSpanType: InteropUInt8 {
     ARK_RICH_EDITOR_SPAN_TYPE_TEXT = 0,
     ARK_RICH_EDITOR_SPAN_TYPE_IMAGE = 1,
     ARK_RICH_EDITOR_SPAN_TYPE_MIXED = 2,
@@ -3380,7 +3380,7 @@ typedef struct Opt_RichEditorSpanType {
     Ark_Tag tag;
     Ark_RichEditorSpanType value;
 } Opt_RichEditorSpanType;
-typedef enum Ark_RouteType {
+typedef enum Ark_RouteType: InteropUInt8 {
     ARK_ROUTE_TYPE_NONE = 0,
     ARK_ROUTE_TYPE_PUSH = 1,
     ARK_ROUTE_TYPE_POP = 2,
@@ -3389,7 +3389,7 @@ typedef struct Opt_RouteType {
     Ark_Tag tag;
     Ark_RouteType value;
 } Opt_RouteType;
-typedef enum Ark_SafeAreaEdge {
+typedef enum Ark_SafeAreaEdge: InteropUInt8 {
     ARK_SAFE_AREA_EDGE_TOP = 0,
     ARK_SAFE_AREA_EDGE_BOTTOM = 1,
     ARK_SAFE_AREA_EDGE_START = 2,
@@ -3399,7 +3399,7 @@ typedef struct Opt_SafeAreaEdge {
     Ark_Tag tag;
     Ark_SafeAreaEdge value;
 } Opt_SafeAreaEdge;
-typedef enum Ark_SafeAreaType {
+typedef enum Ark_SafeAreaType: InteropUInt8 {
     ARK_SAFE_AREA_TYPE_SYSTEM = 0,
     ARK_SAFE_AREA_TYPE_CUTOUT = 1,
     ARK_SAFE_AREA_TYPE_KEYBOARD = 2,
@@ -3408,7 +3408,7 @@ typedef struct Opt_SafeAreaType {
     Ark_Tag tag;
     Ark_SafeAreaType value;
 } Opt_SafeAreaType;
-typedef enum Ark_ScrollAlign {
+typedef enum Ark_ScrollAlign: InteropUInt8 {
     ARK_SCROLL_ALIGN_START = 0,
     ARK_SCROLL_ALIGN_CENTER = 1,
     ARK_SCROLL_ALIGN_END = 2,
@@ -3418,7 +3418,7 @@ typedef struct Opt_ScrollAlign {
     Ark_Tag tag;
     Ark_ScrollAlign value;
 } Opt_ScrollAlign;
-typedef enum Ark_ScrollDirection {
+typedef enum Ark_ScrollDirection: InteropUInt8 {
     ARK_SCROLL_DIRECTION_VERTICAL = 0,
     ARK_SCROLL_DIRECTION_HORIZONTAL = 1,
     ARK_SCROLL_DIRECTION_FREE = 2,
@@ -3428,7 +3428,7 @@ typedef struct Opt_ScrollDirection {
     Ark_Tag tag;
     Ark_ScrollDirection value;
 } Opt_ScrollDirection;
-typedef enum Ark_ScrollSizeMode {
+typedef enum Ark_ScrollSizeMode: InteropUInt8 {
     ARK_SCROLL_SIZE_MODE_FOLLOW_DETENT = 0,
     ARK_SCROLL_SIZE_MODE_CONTINUOUS = 1,
 } Ark_ScrollSizeMode;
@@ -3436,7 +3436,7 @@ typedef struct Opt_ScrollSizeMode {
     Ark_Tag tag;
     Ark_ScrollSizeMode value;
 } Opt_ScrollSizeMode;
-typedef enum Ark_ScrollSnapAlign {
+typedef enum Ark_ScrollSnapAlign: InteropUInt8 {
     ARK_SCROLL_SNAP_ALIGN_NONE = 0,
     ARK_SCROLL_SNAP_ALIGN_START = 1,
     ARK_SCROLL_SNAP_ALIGN_CENTER = 2,
@@ -3446,7 +3446,7 @@ typedef struct Opt_ScrollSnapAlign {
     Ark_Tag tag;
     Ark_ScrollSnapAlign value;
 } Opt_ScrollSnapAlign;
-typedef enum Ark_ScrollSource {
+typedef enum Ark_ScrollSource: InteropUInt8 {
     ARK_SCROLL_SOURCE_DRAG = 0,
     ARK_SCROLL_SOURCE_FLING = 1,
     ARK_SCROLL_SOURCE_EDGE_EFFECT = 2,
@@ -3460,7 +3460,7 @@ typedef struct Opt_ScrollSource {
     Ark_Tag tag;
     Ark_ScrollSource value;
 } Opt_ScrollSource;
-typedef enum Ark_ScrollState {
+typedef enum Ark_ScrollState: InteropUInt8 {
     ARK_SCROLL_STATE_IDLE = 0,
     ARK_SCROLL_STATE_SCROLL = 1,
     ARK_SCROLL_STATE_FLING = 2,
@@ -3469,7 +3469,7 @@ typedef struct Opt_ScrollState {
     Ark_Tag tag;
     Ark_ScrollState value;
 } Opt_ScrollState;
-typedef enum Ark_SearchType {
+typedef enum Ark_SearchType: InteropUInt8 {
     ARK_SEARCH_TYPE_NORMAL = 0,
     ARK_SEARCH_TYPE_NUMBER = 2,
     ARK_SEARCH_TYPE_PHONE_NUMBER = 3,
@@ -3481,7 +3481,7 @@ typedef struct Opt_SearchType {
     Ark_Tag tag;
     Ark_SearchType value;
 } Opt_SearchType;
-typedef enum Ark_SelectedMode {
+typedef enum Ark_SelectedMode: InteropUInt8 {
     ARK_SELECTED_MODE_INDICATOR = 0,
     ARK_SELECTED_MODE_BOARD = 1,
 } Ark_SelectedMode;
@@ -3489,7 +3489,7 @@ typedef struct Opt_SelectedMode {
     Ark_Tag tag;
     Ark_SelectedMode value;
 } Opt_SelectedMode;
-typedef enum Ark_ShadowStyle {
+typedef enum Ark_ShadowStyle: InteropUInt8 {
     ARK_SHADOW_STYLE_OUTER_DEFAULT_XS = 0,
     ARK_SHADOW_STYLE_OUTER_DEFAULT_SM = 1,
     ARK_SHADOW_STYLE_OUTER_DEFAULT_MD = 2,
@@ -3501,7 +3501,7 @@ typedef struct Opt_ShadowStyle {
     Ark_Tag tag;
     Ark_ShadowStyle value;
 } Opt_ShadowStyle;
-typedef enum Ark_ShadowType {
+typedef enum Ark_ShadowType: InteropUInt8 {
     ARK_SHADOW_TYPE_COLOR = 0,
     ARK_SHADOW_TYPE_BLUR = 1,
 } Ark_ShadowType;
@@ -3509,7 +3509,7 @@ typedef struct Opt_ShadowType {
     Ark_Tag tag;
     Ark_ShadowType value;
 } Opt_ShadowType;
-typedef enum Ark_SharedTransitionEffectType {
+typedef enum Ark_SharedTransitionEffectType: InteropUInt8 {
     ARK_SHARED_TRANSITION_EFFECT_TYPE_STATIC = 0,
     ARK_SHARED_TRANSITION_EFFECT_TYPE_EXCHANGE = 1,
 } Ark_SharedTransitionEffectType;
@@ -3517,7 +3517,7 @@ typedef struct Opt_SharedTransitionEffectType {
     Ark_Tag tag;
     Ark_SharedTransitionEffectType value;
 } Opt_SharedTransitionEffectType;
-typedef enum Ark_SheetKeyboardAvoidMode {
+typedef enum Ark_SheetKeyboardAvoidMode: InteropUInt8 {
     ARK_SHEET_KEYBOARD_AVOID_MODE_NONE = 0,
     ARK_SHEET_KEYBOARD_AVOID_MODE_TRANSLATE_AND_RESIZE = 1,
     ARK_SHEET_KEYBOARD_AVOID_MODE_RESIZE_ONLY = 2,
@@ -3527,7 +3527,7 @@ typedef struct Opt_SheetKeyboardAvoidMode {
     Ark_Tag tag;
     Ark_SheetKeyboardAvoidMode value;
 } Opt_SheetKeyboardAvoidMode;
-typedef enum Ark_SheetMode {
+typedef enum Ark_SheetMode: InteropUInt8 {
     ARK_SHEET_MODE_OVERLAY = 0,
     ARK_SHEET_MODE_EMBEDDED = 1,
 } Ark_SheetMode;
@@ -3535,7 +3535,7 @@ typedef struct Opt_SheetMode {
     Ark_Tag tag;
     Ark_SheetMode value;
 } Opt_SheetMode;
-typedef enum Ark_SheetSize {
+typedef enum Ark_SheetSize: InteropUInt8 {
     ARK_SHEET_SIZE_MEDIUM = 0,
     ARK_SHEET_SIZE_LARGE = 1,
     ARK_SHEET_SIZE_FIT_CONTENT = 2,
@@ -3544,7 +3544,7 @@ typedef struct Opt_SheetSize {
     Ark_Tag tag;
     Ark_SheetSize value;
 } Opt_SheetSize;
-typedef enum Ark_SheetType {
+typedef enum Ark_SheetType: InteropUInt8 {
     ARK_SHEET_TYPE_BOTTOM = 0,
     ARK_SHEET_TYPE_CENTER = 1,
     ARK_SHEET_TYPE_POPUP = 2,
@@ -3553,7 +3553,7 @@ typedef struct Opt_SheetType {
     Ark_Tag tag;
     Ark_SheetType value;
 } Opt_SheetType;
-typedef enum Ark_SizeType {
+typedef enum Ark_SizeType: InteropUInt8 {
     ARK_SIZE_TYPE_AUTO = 0,
     ARK_SIZE_TYPE_XS = 1,
     ARK_SIZE_TYPE_SM = 2,
@@ -3564,7 +3564,7 @@ typedef struct Opt_SizeType {
     Ark_Tag tag;
     Ark_SizeType value;
 } Opt_SizeType;
-typedef enum Ark_SourceTool {
+typedef enum Ark_SourceTool: InteropUInt8 {
     ARK_SOURCE_TOOL_UNKNOWN = 0,
     ARK_SOURCE_TOOL_FINGER = 1,
     ARK_SOURCE_TOOL_PEN = 2,
@@ -3576,7 +3576,7 @@ typedef struct Opt_SourceTool {
     Ark_Tag tag;
     Ark_SourceTool value;
 } Opt_SourceTool;
-typedef enum Ark_SourceType {
+typedef enum Ark_SourceType: InteropUInt8 {
     ARK_SOURCE_TYPE_UNKNOWN = 0,
     ARK_SOURCE_TYPE_MOUSE = 1,
     ARK_SOURCE_TYPE_TOUCH_SCREEN = 2,
@@ -3585,7 +3585,7 @@ typedef struct Opt_SourceType {
     Ark_Tag tag;
     Ark_SourceType value;
 } Opt_SourceType;
-typedef enum Ark_Sticky {
+typedef enum Ark_Sticky: InteropUInt8 {
     ARK_STICKY_NONE = 0,
     ARK_STICKY_NORMAL = 1,
     ARK_STICKY_OPACITY = 2,
@@ -3594,7 +3594,7 @@ typedef struct Opt_Sticky {
     Ark_Tag tag;
     Ark_Sticky value;
 } Opt_Sticky;
-typedef enum Ark_StickyStyle {
+typedef enum Ark_StickyStyle: InteropUInt8 {
     ARK_STICKY_STYLE_NONE = 0,
     ARK_STICKY_STYLE_HEADER = 1,
     ARK_STICKY_STYLE_FOOTER = 2,
@@ -3622,7 +3622,7 @@ typedef struct Opt_StyledStringKey {
     Ark_Tag tag;
     Ark_StyledStringKey value;
 } Opt_StyledStringKey;
-typedef enum Ark_SwipeActionState {
+typedef enum Ark_SwipeActionState: InteropUInt8 {
     ARK_SWIPE_ACTION_STATE_COLLAPSED = 0,
     ARK_SWIPE_ACTION_STATE_EXPANDED = 1,
     ARK_SWIPE_ACTION_STATE_ACTIONING = 2,
@@ -3631,7 +3631,7 @@ typedef struct Opt_SwipeActionState {
     Ark_Tag tag;
     Ark_SwipeActionState value;
 } Opt_SwipeActionState;
-typedef enum Ark_SwipeDirection {
+typedef enum Ark_SwipeDirection: InteropUInt8 {
     ARK_SWIPE_DIRECTION_NONE = 0,
     ARK_SWIPE_DIRECTION_HORIZONTAL = 1,
     ARK_SWIPE_DIRECTION_VERTICAL = 2,
@@ -3641,7 +3641,7 @@ typedef struct Opt_SwipeDirection {
     Ark_Tag tag;
     Ark_SwipeDirection value;
 } Opt_SwipeDirection;
-typedef enum Ark_SwipeEdgeEffect {
+typedef enum Ark_SwipeEdgeEffect: InteropUInt8 {
     ARK_SWIPE_EDGE_EFFECT_SPRING = 0,
     ARK_SWIPE_EDGE_EFFECT_NONE = 1,
 } Ark_SwipeEdgeEffect;
@@ -3649,7 +3649,7 @@ typedef struct Opt_SwipeEdgeEffect {
     Ark_Tag tag;
     Ark_SwipeEdgeEffect value;
 } Opt_SwipeEdgeEffect;
-typedef enum Ark_SwiperDisplayMode {
+typedef enum Ark_SwiperDisplayMode: InteropUInt8 {
     ARK_SWIPER_DISPLAY_MODE_LEGACY_STRETCH = 0,
     ARK_SWIPER_DISPLAY_MODE_LEGACY_AUTO_LINEAR = 1,
     ARK_SWIPER_DISPLAY_MODE_STRETCH = 2,
@@ -3659,7 +3659,7 @@ typedef struct Opt_SwiperDisplayMode {
     Ark_Tag tag;
     Ark_SwiperDisplayMode value;
 } Opt_SwiperDisplayMode;
-typedef enum Ark_SwiperNestedScrollMode {
+typedef enum Ark_SwiperNestedScrollMode: InteropUInt8 {
     ARK_SWIPER_NESTED_SCROLL_MODE_SELF_ONLY = 0,
     ARK_SWIPER_NESTED_SCROLL_MODE_SELF_FIRST = 1,
 } Ark_SwiperNestedScrollMode;
@@ -3667,7 +3667,7 @@ typedef struct Opt_SwiperNestedScrollMode {
     Ark_Tag tag;
     Ark_SwiperNestedScrollMode value;
 } Opt_SwiperNestedScrollMode;
-typedef enum Ark_SymbolEffectStrategy {
+typedef enum Ark_SymbolEffectStrategy: InteropUInt8 {
     ARK_SYMBOL_EFFECT_STRATEGY_NONE = 0,
     ARK_SYMBOL_EFFECT_STRATEGY_SCALE = 1,
     ARK_SYMBOL_EFFECT_STRATEGY_HIERARCHICAL = 2,
@@ -3676,7 +3676,7 @@ typedef struct Opt_SymbolEffectStrategy {
     Ark_Tag tag;
     Ark_SymbolEffectStrategy value;
 } Opt_SymbolEffectStrategy;
-typedef enum Ark_SymbolRenderingStrategy {
+typedef enum Ark_SymbolRenderingStrategy: InteropUInt8 {
     ARK_SYMBOL_RENDERING_STRATEGY_SINGLE = 0,
     ARK_SYMBOL_RENDERING_STRATEGY_MULTIPLE_COLOR = 1,
     ARK_SYMBOL_RENDERING_STRATEGY_MULTIPLE_OPACITY = 2,
@@ -3685,7 +3685,7 @@ typedef struct Opt_SymbolRenderingStrategy {
     Ark_Tag tag;
     Ark_SymbolRenderingStrategy value;
 } Opt_SymbolRenderingStrategy;
-typedef enum Ark_TextAlign {
+typedef enum Ark_TextAlign: InteropUInt8 {
     ARK_TEXT_ALIGN_CENTER = 0,
     ARK_TEXT_ALIGN_START = 1,
     ARK_TEXT_ALIGN_END = 2,
@@ -3695,7 +3695,7 @@ typedef struct Opt_TextAlign {
     Ark_Tag tag;
     Ark_TextAlign value;
 } Opt_TextAlign;
-typedef enum Ark_TextCase {
+typedef enum Ark_TextCase: InteropUInt8 {
     ARK_TEXT_CASE_NORMAL = 0,
     ARK_TEXT_CASE_LOWER_CASE = 1,
     ARK_TEXT_CASE_UPPER_CASE = 2,
@@ -3704,7 +3704,7 @@ typedef struct Opt_TextCase {
     Ark_Tag tag;
     Ark_TextCase value;
 } Opt_TextCase;
-typedef enum Ark_TextContentStyle {
+typedef enum Ark_TextContentStyle: InteropUInt8 {
     ARK_TEXT_CONTENT_STYLE_DEFAULT = 0,
     ARK_TEXT_CONTENT_STYLE_INLINE = 1,
 } Ark_TextContentStyle;
@@ -3712,7 +3712,7 @@ typedef struct Opt_TextContentStyle {
     Ark_Tag tag;
     Ark_TextContentStyle value;
 } Opt_TextContentStyle;
-typedef enum Ark_TextDataDetectorType {
+typedef enum Ark_TextDataDetectorType: InteropUInt8 {
     ARK_TEXT_DATA_DETECTOR_TYPE_PHONE_NUMBER = 0,
     ARK_TEXT_DATA_DETECTOR_TYPE_URL = 1,
     ARK_TEXT_DATA_DETECTOR_TYPE_EMAIL = 2,
@@ -3723,7 +3723,7 @@ typedef struct Opt_TextDataDetectorType {
     Ark_Tag tag;
     Ark_TextDataDetectorType value;
 } Opt_TextDataDetectorType;
-typedef enum Ark_TextDecorationStyle {
+typedef enum Ark_TextDecorationStyle: InteropUInt8 {
     ARK_TEXT_DECORATION_STYLE_SOLID = 0,
     ARK_TEXT_DECORATION_STYLE_DOUBLE = 1,
     ARK_TEXT_DECORATION_STYLE_DOTTED = 2,
@@ -3734,7 +3734,7 @@ typedef struct Opt_TextDecorationStyle {
     Ark_Tag tag;
     Ark_TextDecorationStyle value;
 } Opt_TextDecorationStyle;
-typedef enum Ark_TextDecorationType {
+typedef enum Ark_TextDecorationType: InteropUInt8 {
     ARK_TEXT_DECORATION_TYPE_NONE = 0,
     ARK_TEXT_DECORATION_TYPE_UNDERLINE = 1,
     ARK_TEXT_DECORATION_TYPE_OVERLINE = 2,
@@ -3744,7 +3744,7 @@ typedef struct Opt_TextDecorationType {
     Ark_Tag tag;
     Ark_TextDecorationType value;
 } Opt_TextDecorationType;
-typedef enum Ark_TextDeleteDirection {
+typedef enum Ark_TextDeleteDirection: InteropUInt8 {
     ARK_TEXT_DELETE_DIRECTION_BACKWARD = 0,
     ARK_TEXT_DELETE_DIRECTION_FORWARD = 1,
 } Ark_TextDeleteDirection;
@@ -3752,7 +3752,7 @@ typedef struct Opt_TextDeleteDirection {
     Ark_Tag tag;
     Ark_TextDeleteDirection value;
 } Opt_TextDeleteDirection;
-typedef enum Ark_TextHeightAdaptivePolicy {
+typedef enum Ark_TextHeightAdaptivePolicy: InteropUInt8 {
     ARK_TEXT_HEIGHT_ADAPTIVE_POLICY_MAX_LINES_FIRST = 0,
     ARK_TEXT_HEIGHT_ADAPTIVE_POLICY_MIN_FONT_SIZE_FIRST = 1,
     ARK_TEXT_HEIGHT_ADAPTIVE_POLICY_LAYOUT_CONSTRAINT_FIRST = 2,
@@ -3761,7 +3761,7 @@ typedef struct Opt_TextHeightAdaptivePolicy {
     Ark_Tag tag;
     Ark_TextHeightAdaptivePolicy value;
 } Opt_TextHeightAdaptivePolicy;
-typedef enum Ark_TextInputStyle {
+typedef enum Ark_TextInputStyle: InteropUInt8 {
     ARK_TEXT_INPUT_STYLE_DEFAULT = 0,
     ARK_TEXT_INPUT_STYLE_INLINE = 1,
 } Ark_TextInputStyle;
@@ -3769,7 +3769,7 @@ typedef struct Opt_TextInputStyle {
     Ark_Tag tag;
     Ark_TextInputStyle value;
 } Opt_TextInputStyle;
-typedef enum Ark_TextOverflow {
+typedef enum Ark_TextOverflow: InteropUInt8 {
     ARK_TEXT_OVERFLOW_NONE = 0,
     ARK_TEXT_OVERFLOW_CLIP = 1,
     ARK_TEXT_OVERFLOW_ELLIPSIS = 2,
@@ -3779,7 +3779,7 @@ typedef struct Opt_TextOverflow {
     Ark_Tag tag;
     Ark_TextOverflow value;
 } Opt_TextOverflow;
-typedef enum Ark_TextSelectableMode {
+typedef enum Ark_TextSelectableMode: InteropUInt8 {
     ARK_TEXT_SELECTABLE_MODE_SELECTABLE_UNFOCUSABLE = 0,
     ARK_TEXT_SELECTABLE_MODE_SELECTABLE_FOCUSABLE = 1,
     ARK_TEXT_SELECTABLE_MODE_UNSELECTABLE = 2,
@@ -3788,7 +3788,7 @@ typedef struct Opt_TextSelectableMode {
     Ark_Tag tag;
     Ark_TextSelectableMode value;
 } Opt_TextSelectableMode;
-typedef enum Ark_ThemeColorMode {
+typedef enum Ark_ThemeColorMode: InteropUInt8 {
     ARK_THEME_COLOR_MODE_SYSTEM = 0,
     ARK_THEME_COLOR_MODE_LIGHT = 1,
     ARK_THEME_COLOR_MODE_DARK = 2,
@@ -3797,7 +3797,7 @@ typedef struct Opt_ThemeColorMode {
     Ark_Tag tag;
     Ark_ThemeColorMode value;
 } Opt_ThemeColorMode;
-typedef enum Ark_TitleHeight {
+typedef enum Ark_TitleHeight: InteropUInt8 {
     ARK_TITLE_HEIGHT_MAIN_ONLY = 0,
     ARK_TITLE_HEIGHT_MAIN_WITH_SUB = 1,
 } Ark_TitleHeight;
@@ -3805,7 +3805,7 @@ typedef struct Opt_TitleHeight {
     Ark_Tag tag;
     Ark_TitleHeight value;
 } Opt_TitleHeight;
-typedef enum Ark_ToggleType {
+typedef enum Ark_ToggleType: InteropUInt8 {
     ARK_TOGGLE_TYPE_CHECKBOX = 0,
     ARK_TOGGLE_TYPE_SWITCH = 1,
     ARK_TOGGLE_TYPE_BUTTON = 2,
@@ -3814,7 +3814,7 @@ typedef struct Opt_ToggleType {
     Ark_Tag tag;
     Ark_ToggleType value;
 } Opt_ToggleType;
-typedef enum Ark_ToolbarItemStatus {
+typedef enum Ark_ToolbarItemStatus: InteropUInt8 {
     ARK_TOOLBAR_ITEM_STATUS_NORMAL = 0,
     ARK_TOOLBAR_ITEM_STATUS_DISABLED = 1,
     ARK_TOOLBAR_ITEM_STATUS_ACTIVE = 2,
@@ -3823,7 +3823,7 @@ typedef struct Opt_ToolbarItemStatus {
     Ark_Tag tag;
     Ark_ToolbarItemStatus value;
 } Opt_ToolbarItemStatus;
-typedef enum Ark_TouchTestStrategy {
+typedef enum Ark_TouchTestStrategy: InteropUInt8 {
     ARK_TOUCH_TEST_STRATEGY_DEFAULT = 0,
     ARK_TOUCH_TEST_STRATEGY_FORWARD_COMPETITION = 1,
     ARK_TOUCH_TEST_STRATEGY_FORWARD = 2,
@@ -3832,7 +3832,7 @@ typedef struct Opt_TouchTestStrategy {
     Ark_Tag tag;
     Ark_TouchTestStrategy value;
 } Opt_TouchTestStrategy;
-typedef enum Ark_TouchType {
+typedef enum Ark_TouchType: InteropUInt8 {
     ARK_TOUCH_TYPE_DOWN = 0,
     ARK_TOUCH_TYPE_UP = 1,
     ARK_TOUCH_TYPE_MOVE = 2,
@@ -3842,7 +3842,7 @@ typedef struct Opt_TouchType {
     Ark_Tag tag;
     Ark_TouchType value;
 } Opt_TouchType;
-typedef enum Ark_TransitionEdge {
+typedef enum Ark_TransitionEdge: InteropUInt8 {
     ARK_TRANSITION_EDGE_TOP = 0,
     ARK_TRANSITION_EDGE_BOTTOM = 1,
     ARK_TRANSITION_EDGE_START = 2,
@@ -3852,7 +3852,7 @@ typedef struct Opt_TransitionEdge {
     Ark_Tag tag;
     Ark_TransitionEdge value;
 } Opt_TransitionEdge;
-typedef enum Ark_TransitionHierarchyStrategy {
+typedef enum Ark_TransitionHierarchyStrategy: InteropUInt8 {
     ARK_TRANSITION_HIERARCHY_STRATEGY_NONE = 0,
     ARK_TRANSITION_HIERARCHY_STRATEGY_ADAPTIVE = 1,
 } Ark_TransitionHierarchyStrategy;
@@ -3860,7 +3860,7 @@ typedef struct Opt_TransitionHierarchyStrategy {
     Ark_Tag tag;
     Ark_TransitionHierarchyStrategy value;
 } Opt_TransitionHierarchyStrategy;
-typedef enum Ark_TransitionType {
+typedef enum Ark_TransitionType: InteropUInt8 {
     ARK_TRANSITION_TYPE_ALL = 0,
     ARK_TRANSITION_TYPE_INSERT = 1,
     ARK_TRANSITION_TYPE_DELETE = 2,
@@ -3869,7 +3869,7 @@ typedef struct Opt_TransitionType {
     Ark_Tag tag;
     Ark_TransitionType value;
 } Opt_TransitionType;
-typedef enum Ark_VerticalAlign {
+typedef enum Ark_VerticalAlign: InteropUInt8 {
     ARK_VERTICAL_ALIGN_TOP = 0,
     ARK_VERTICAL_ALIGN_CENTER = 1,
     ARK_VERTICAL_ALIGN_BOTTOM = 2,
@@ -3878,7 +3878,7 @@ typedef struct Opt_VerticalAlign {
     Ark_Tag tag;
     Ark_VerticalAlign value;
 } Opt_VerticalAlign;
-typedef enum Ark_Visibility {
+typedef enum Ark_Visibility: InteropUInt8 {
     ARK_VISIBILITY_VISIBLE = 0,
     ARK_VISIBILITY_HIDDEN = 1,
     ARK_VISIBILITY_NONE = 2,
@@ -3887,7 +3887,7 @@ typedef struct Opt_Visibility {
     Ark_Tag tag;
     Ark_Visibility value;
 } Opt_Visibility;
-typedef enum Ark_Week {
+typedef enum Ark_Week: InteropUInt8 {
     ARK_WEEK_MON = 0,
     ARK_WEEK_TUE = 1,
     ARK_WEEK_WED = 2,
@@ -3900,7 +3900,7 @@ typedef struct Opt_Week {
     Ark_Tag tag;
     Ark_Week value;
 } Opt_Week;
-typedef enum Ark_WidthBreakpoint {
+typedef enum Ark_WidthBreakpoint: InteropUInt8 {
     ARK_WIDTH_BREAKPOINT_WIDTH_XS = 0,
     ARK_WIDTH_BREAKPOINT_WIDTH_SM = 1,
     ARK_WIDTH_BREAKPOINT_WIDTH_MD = 2,
@@ -3911,7 +3911,7 @@ typedef struct Opt_WidthBreakpoint {
     Ark_Tag tag;
     Ark_WidthBreakpoint value;
 } Opt_WidthBreakpoint;
-typedef enum Ark_WordBreak {
+typedef enum Ark_WordBreak: InteropUInt8 {
     ARK_WORD_BREAK_NORMAL = 0,
     ARK_WORD_BREAK_BREAK_ALL = 1,
     ARK_WORD_BREAK_BREAK_WORD = 2,
@@ -3920,7 +3920,7 @@ typedef struct Opt_WordBreak {
     Ark_Tag tag;
     Ark_WordBreak value;
 } Opt_WordBreak;
-typedef enum Ark_XComponentType {
+typedef enum Ark_XComponentType: InteropUInt8 {
     ARK_XCOMPONENT_TYPE_SURFACE = 0,
     ARK_XCOMPONENT_TYPE_COMPONENT = 1,
     ARK_XCOMPONENT_TYPE_TEXTURE = 2,

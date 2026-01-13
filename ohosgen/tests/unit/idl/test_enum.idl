@@ -50,3 +50,24 @@ dictionary IntEnum257 {
     number E1 = 1;
     number E257 = 257;
 };
+
+dictionary IntEnumNegative {
+    number E1 = -1;
+    number E15 = -15;
+};
+
+dictionary IntEnumNegative126 {
+    number E1 = -126;
+    number E126 = 126;
+};
+
+
+dictionary IntEnumNegative127 {
+    number E1 = 1;
+    number E127 = -127;
+};
+
+dictionary IntEnumNegative128 {
+    number E1 = 1;
+    number E128 = -128;
+};
