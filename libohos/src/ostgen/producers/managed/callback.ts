@@ -16,7 +16,7 @@
 import { E, T } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
 import { createSpecialProducer, managedName, roles } from "../common";
-import { Builders } from "../../../ost/builders";
+import { Builders } from "../../../ost";
 import { argConvertor } from "../components/argConvertor";
 
 export const callbackProducer = createSpecialProducer(

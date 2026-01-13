@@ -19,7 +19,8 @@
     "idlinter",
     "interfaces",
     "scraper",
-    "lite"
+    "lite",
+    "ost"
   ],
   "license": "Apache-2.0",
   "keywords": [],

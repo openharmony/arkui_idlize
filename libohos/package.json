@@ -22,6 +22,7 @@
   "keywords": [],
   "dependencies": {
     "@idlizer/core": "2.1.10+devel",
+    "@idlizer/ost": "2.1.10+devel",
     "@koalaui/interop": "1.7.14"
   },
   "devDependencies": {
@@ -30,6 +31,6 @@
   "scripts": {
     "clean": "rimraf -g build",
     "compile:self": "tsc -b .",
-    "compile": "npm run -C ../core compile && npm run compile:self"
+    "compile": "npm run -C ../core compile && npm run -C ../ost compile && npm run compile:self"
   }
 }

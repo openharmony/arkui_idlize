@@ -15,13 +15,13 @@
 
 import * as idl from "@idlizer/core/idl"
 import { createSpecialProducer, bridgeName, roles, isDirectInteropType } from "../common"
-import { E, T } from "../../../ost/builder"
-import { Builders } from "../../../ost/builders"
+import { E, T } from "../../../ost"
+import { Builders } from "../../../ost"
 import { argConvertor } from "../components/argConvertor"
 import { generatorConfiguration } from "@idlizer/core"
-import { Op, Ts } from "../../../ost/stdlib"
+import { Op, Ts } from "../../../ost"
 import { fqName, modifierClassName, moduleName } from "../../engine"
-import { LWExpression, LWStatement, LWType, VariableExpression } from "../../../ost/lws"
+import { LWExpression, LWStatement, LWType, VariableExpression } from "../../../ost"
 
 export const functionBridgeProducer = createSpecialProducer(
   { is: idl.isMethod, role: roles.bridge },

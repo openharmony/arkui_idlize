@@ -15,9 +15,8 @@
 
 import { hashCodeFromString } from "@idlizer/core";
 import { D, DD, lw, std } from "../../ost";
-import { Builders } from "../../ost/builders";
 import { C_API_PREFIX } from "../producers/common";
-import { EnumDeclaration, Modifier } from "../../ost/lws";
+import { Builders, EnumDeclaration, Modifier } from "../../ost";
 
 export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     const index = new Map<string, (lw.ClassDeclaration | lw.StructureDeclaration)[]>()

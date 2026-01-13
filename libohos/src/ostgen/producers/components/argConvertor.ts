@@ -16,9 +16,8 @@
 import * as idl from "@idlizer/core/idl";
 import { Hs, E, lw, Op, S, std, Ts, T, Vs } from "../../../ost";
 import { AdvancedGeneratorContext, cApiName, managedName, typeNameExpr } from "../common";
-import { Builders } from "../../../ost/builders";
 import { isMaterialized } from "@idlizer/core";
-import { LWExpression, LWStatement, LWType } from "../../../ost/lws";
+import { Builders, LWExpression, LWStatement, LWType } from "../../../ost";
 import { monoName } from "../../postprocess/postprocess";
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {

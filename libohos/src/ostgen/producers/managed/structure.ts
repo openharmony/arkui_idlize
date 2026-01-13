@@ -15,11 +15,11 @@
 
 import { Hs, D, E, Md, T, Ts, S } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import * as lw from "../../../ost/lws";
+import * as lw from "../../../ost";
 import { AdvancedGeneratorContext, createSpecialProducer, managedName, roles } from "../common";
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core";
 import { fqName, ProducerDescription } from "../../engine";
-import { Builders } from "../../../ost/builders";
+import { Builders } from "../../../ost";
 import { argConvertor } from "../components/argConvertor";
 
 export const structureProducer = createSpecialProducer(

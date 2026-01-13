@@ -15,11 +15,11 @@
 
 import * as idl from "@idlizer/core/idl";
 import { AdvancedGeneratorContext, cApiName, createSpecialProducer, implName, roles } from "../common";
-import { E } from "../../../ost/builder";
-import { Builders } from "../../../ost/builders";
+import { E } from "../../../ost";
+import { Builders } from "../../../ost";
 import { fqName, modifierClassName } from "../../engine";
-import { Ts } from "../../../ost/stdlib";
-import { LWType } from "../../../ost/lws";
+import { Ts } from "../../../ost";
+import { LWType } from "../../../ost";
 import { argConvertor } from "../components/argConvertor";
 
 export const functionProducer = createSpecialProducer(

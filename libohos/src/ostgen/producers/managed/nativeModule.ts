@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl";
 import { Hs, E, Ts } from "../../../ost";
 import { createSpecialProducer, isDirectInteropType, roles } from "../common";
 import { fqName, nativeModuleName } from "../../engine";
-import { Builders } from "../../../ost/builders";
+import { Builders } from "../../../ost";
 import { argConvertor } from "../components/argConvertor";
 
 export const nativeModuleMaterializedProducer = createSpecialProducer(

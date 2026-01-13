@@ -15,10 +15,10 @@
 
 import * as idl from "@idlizer/core/idl";
 import { createSpecialProducer, managedName, roles } from "../common";
-import { E, S, T } from "../../../ost/builder";
-import { Builders } from "../../../ost/builders";
+import { E, S, T } from "../../../ost";
+import { Builders } from "../../../ost";
 import { argConvertor } from "../components/argConvertor";
-import { Md } from "../../../ost/stdlib";
+import { Md } from "../../../ost";
 
 export const functionProducer = createSpecialProducer(
   { is: idl.isMethod, role: roles.managed },

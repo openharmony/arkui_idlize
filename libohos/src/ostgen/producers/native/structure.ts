@@ -17,7 +17,7 @@ import { D, Md, T, Ts } from "../../../ost"
 import * as idl from "@idlizer/core/idl"
 import { AdvancedGeneratorContext, cApiName, createSpecialProducer, implName, roles } from "../common"
 import { isMaterialized } from "@idlizer/core"
-import { Builders } from "../../../ost/builders"
+import { Builders } from "@idlizer/ost"
 import { fqName, modifierClassName } from "../../engine"
 
 export const structureProducer = createSpecialProducer(

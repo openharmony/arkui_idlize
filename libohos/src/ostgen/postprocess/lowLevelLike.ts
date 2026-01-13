@@ -16,7 +16,7 @@
 import { Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts, utils } from "../../ost";
 import { generatorConfiguration, zipStrip } from "@idlizer/core";
 import { callbackKindDeclaration, mergeEnums, mergeStructs, monoName } from "./postprocess";
-import { Builders } from "../../ost/builders";
+import { Builders } from "../../ost";
 import { bridgeName, cApiName, implName } from "../producers/common";
 
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
