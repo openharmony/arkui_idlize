@@ -16,6 +16,5 @@
 import { createTarget } from "./rollup/common.config.mjs";
 
 export default [
-    createTarget("./src/applications/bridge/main.ts", "./build/lib/bridge-gen.js", ["commander", "typescript", "toml"], true),
-    createTarget("./src/applications/skin/main.ts", "./build/lib/sk-gen.js", ["commander", "typescript", "toml"], true),
+    createTarget("./src/main.ts", "./build/lib/sk-gen.js", ["commander", "typescript", "toml"], true),
 ]

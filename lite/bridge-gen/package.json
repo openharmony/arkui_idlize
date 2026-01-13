@@ -1,10 +1,9 @@
 {
-  "name": "@idlizer/lite",
+  "name": "@idlizer/bridge-gen",
   "version": "0.2.0",
   "private": true,
   "bin": {
-    "sk-gen": "build/lib/sk-gen.js",
-    "lite-gen": "build/lib/bridge-gen.js"
+    "bridge-gen": "build/lib/bridge-gen.js"
   },
   "files": [
     "build/lib/**/*.js",

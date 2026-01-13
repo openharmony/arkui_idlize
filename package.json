@@ -19,7 +19,8 @@
     "idlinter",
     "interfaces",
     "scraper",
-    "lite",
+    "lite/sk-gen",
+    "lite/bridge-gen",
     "ost",
     "kit"
   ],
