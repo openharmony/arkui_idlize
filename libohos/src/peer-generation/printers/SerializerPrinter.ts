@@ -206,15 +206,13 @@ class SerializerPrinter {
                 }, writer))
             })
             if (writer.language !== Language.CPP) {
-                let meaninglessProperties: idl.IDLProperty[] = []
-                if (writer.language === Language.ARKTS) {
-                    meaninglessProperties = collectMeaninglessProperties(target, this.library)
-                }
+                const meaninglessProperties = collectMeaninglessProperties(target, this.library)
                 const propsAssignees = properties.map(it => {
                     return `${it.name}: ${it.name}TmpResult`
-                }).concat(meaninglessProperties.map(it => {
-                    return `${it.name}: undefined`
-                }))
+                })
+                if (writer.language === Language.ARKTS) {
+                    propsAssignees.push(...meaninglessProperties.map(it => `${it.name}: undefined`))
+                }
                 if (writer.language == Language.CJ) {
                     let parentProperties: idl.IDLProperty[] = []
                     const superNames = target.inheritance
@@ -227,7 +225,10 @@ class SerializerPrinter {
                     writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`${writer.getNodeName(valueType)}(${ownProperties.concat(parentProperties).map(it => it.name.concat('TmpResult')).join(', ')})`), true, false))
                 } else if (writer.language == Language.KOTLIN) {
                     const type = `${writer.getNodeName(valueType)}${idl.isClassSubkind(target) ? "()" : ""}`
-                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`object: ${type} { ${properties.map(it => `override var ${it.name} = ${it.name}TmpResult`).join('; ') }}`), true, false))
+                    const overrides = properties.map(it => `override var ${it.name} = ${it.name}TmpResult`)
+                        .concat(meaninglessProperties.map(it => `override var ${it.name} = Unit`))
+                        .join('; ')
+                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`object: ${type} { ${overrides} }`), true, false))
                 }
                 else {
                     writer.writeStatement(writer.makeAssign("value", valueType, writer.makeCast(writer.makeString(`{${propsAssignees.join(', ')}}`), type), true, false))
