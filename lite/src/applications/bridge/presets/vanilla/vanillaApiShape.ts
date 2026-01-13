@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { E, Hs, DD, Md, S, Ts } from "@idlizer/ost"
-import { ProducerContext, ProducerResult } from "../../../../engine"
+import { ProducerContext, ProducerResult } from "@idlizer/kit"
 import { isInterface } from "@idlizer/core/idl"
 import { GenerationLibrary } from "../../generator/common"
 import { MakeApiOptions } from "../../generator/generator"

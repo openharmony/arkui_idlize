@@ -14,7 +14,7 @@
  */
 import * as idl from "@idlizer/core/idl"
 import { LWType, Ts, lw, LWExpression } from "@idlizer/ost"
-import { makeSeed, Seed } from "../../../engine"
+import { makeSeed, Seed } from "@idlizer/kit"
 import { showErrorForIDLNode, showErrorFile } from "./common"
 
 export interface InteropGenerationSeedType {

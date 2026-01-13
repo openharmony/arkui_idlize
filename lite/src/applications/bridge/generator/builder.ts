@@ -15,11 +15,10 @@
 
 import * as idl from "@idlizer/core/idl"
 import { LWType, LWExpression, E, T, FunctionDeclaration, LWDeclaration } from "@idlizer/ost"
-import { ProducerContext, ProducerResult, SeedType, Seed, Producer, makeSeed } from "../../../engine"
+import { ProducerContext, ProducerResult, SeedType, Seed, Producer, makeSeed, terminate } from "@idlizer/kit"
 import { EssentialsGenerators, ProduceOptions, InteropGenerator, MakeApiOptions, PeerFunctionPlacementResult } from "./generator"
 import { GenerationLibrary, Convertor } from "./common"
 import { GeneratorSeedIDL, GeneratorSeedType, GeneratorSeed, ApiSeedType } from "./seed"
-import { terminate } from "../../../cli/error"
 
 export class SelectResult<T> {
     private constructor(

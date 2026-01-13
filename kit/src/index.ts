@@ -12,18 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { join, resolve } from "node:path";
-import { getIO } from "@idlizer/kit";
 
-const TEMPLATE_PATH = resolve(__dirname, '..', '..', 'resources')
-const io = getIO()
+export * from './cli/application'
+export * from './cli/logger'
+export * from './cli/error'
+export * from './cli/utils'
 
-export async function installTemplate(name:string, destination:string, variables:Map<string, string>) {
-    let template = await io.readFile(join(TEMPLATE_PATH, name))
-    variables.forEach((val, key) => {
-        template = template.replaceAll(`%${key}%`, val)
-    })
-    await io.writeFile(destination, template)
-}
+///
 
+export * from './engine'
 
+///
+
+export * from './processors/declarations'
+export * as lowLevelLike from './processors/lowLevelLike'
+export * as moduleLike from './processors/moduleLike'
+export * from './processors/sorts'
+export * from './processors/transformers'

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { DiagnosticMessage, DiagnosticMessageGroup, DiagnosticResults, forEachChild, Location} from "@idlizer/core";
-import { hasExtAttribute, IDLExtendedAttributes, IDLF32Type, IDLFile, IDLI32Type, IDLImport, IDLNode, IDLNumberType, IDLReferenceType, isImport, isInterface, isMethod, isReferenceType } from "@idlizer/core/idl"
+import { DiagnosticMessageGroup, DiagnosticResults, forEachChild, Location} from "@idlizer/core";
+import { hasExtAttribute, IDLExtendedAttributes, IDLFile, IDLNode, IDLNumberType, IDLReferenceType, isInterface, isMethod, isReferenceType } from "@idlizer/core/idl"
 import { IDLLibrary } from "./library";
 
 const InputFatal = new DiagnosticMessageGroup("error", "InputFatal", "Input error")

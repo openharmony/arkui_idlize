@@ -17,7 +17,7 @@ import { D, DD, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWType,
 import { InteropProducerTypeDescription, SelectResult } from "../../generator/builder";
 import { getFQName, IDLInterface, IDLMethod, isInterface, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
-import { functionToMethod } from "../../../../processors/transformers";
+import { functionToMethod } from "@idlizer/kit";
 import { throwDeclarationWasNotFound } from "../../generator/common";
 import { Ask } from "../../generator/seed";
 import { PeerFunctionPlacementResult } from "../../generator/generator";

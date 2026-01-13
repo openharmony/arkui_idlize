@@ -17,7 +17,7 @@ import { D, DD, E, Hs, LWExpression, LWStatement, Md, S, T, Ts } from "@idlizer/
 import { InteropProducerTypeDescription, makeDeclarationProducer, SelectResult } from "../../generator/builder";
 import { getFQName, IDLInterface, IDLType, isInterface, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
-import { makeSeed } from "../../../../engine";
+import { makeSeed } from "@idlizer/kit";
 import { NotTransferrableType, showErrorFile, throwDeclarationWasNotFound } from "../../generator/common";
 import { IDLIZER_SERIALIZER_BASE, IDLIZER_DESERIALIZER_BASE } from "../../generator/names";
 import { Ask } from "../../generator/seed";

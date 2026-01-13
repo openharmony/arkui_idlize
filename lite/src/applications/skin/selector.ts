@@ -15,8 +15,7 @@
 
 import { IDLType, IDLReferenceType, isReferenceType, IDLEntry, DebugUtils } from "@idlizer/core/idl"
 import { LWExpression, LWStatement, LWType } from "@idlizer/ost"
-import { terminate } from "../../cli/error"
-import { ProducerResult } from "../../engine"
+import { terminate, ProducerResult } from "@idlizer/kit"
 import { IDLLibrary } from "./library"
 
 export function selectEQ<T>(x: T): (x: IDLType) => T | undefined {

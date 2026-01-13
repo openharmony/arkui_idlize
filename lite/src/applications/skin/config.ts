@@ -14,8 +14,7 @@
  */
 
 import { D as Conf, ConfigTypeInfer } from "@idlizer/core"
-import { getIO } from "../../cli/application"
-import { terminate } from "../../cli/error"
+import { getIO, terminate } from "@idlizer/kit"
 import { join, resolve } from "node:path"
 
 const io = getIO()

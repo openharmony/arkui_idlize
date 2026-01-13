@@ -15,7 +15,7 @@
 import * as idl from "@idlizer/core/idl"
 import { capitalize } from "@idlizer/core"
 import { FunctionDeclaration, Modifier, lw, LWExpression, DD, Ts, S, E, LWStatement, T, Hs, D, Vs, std, LWType, Md } from "@idlizer/ost"
-import { terminate } from "../../../../cli/error"
+import { terminate } from "@idlizer/kit"
 import { TypeSpecSelector } from "../../generator/generator"
 import { IDLIZER_RAW_MEMORY, IDLIZER_SERIALIZER_BASE, IDLIZER_DESERIALIZER_BASE } from "../../generator/names"
 import { GeneratedNativeModule } from "../../generator/nativeModuleProducer"

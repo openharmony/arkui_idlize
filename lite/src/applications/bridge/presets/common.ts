@@ -16,7 +16,7 @@
 import { E, LWType, S } from "@idlizer/ost"
 import { IDLPrimitiveType, isPrimitiveType } from "@idlizer/core"
 import { InteropProducerTypeDescription, SelectResult } from "../generator/builder"
-import { terminate } from "../../../cli/error"
+import { terminate } from "@idlizer/kit"
 
 export function addTrivialProducers(
     types: [IDLPrimitiveType, LWType, string][]

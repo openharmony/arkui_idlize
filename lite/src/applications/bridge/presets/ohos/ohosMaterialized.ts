@@ -16,8 +16,7 @@
 import { Builders, D, DD, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWType, Md, S, std, T, Ts, Vs } from "@idlizer/ost";
 import { createMethod, getFQName, IDLInterface, IDLMethod, IDLPointerType, isClassSubkind, isInterface, isInterfaceSubkind, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
-import { makeSeed } from "../../../../engine";
-import { functionToMethod } from "../../../../processors/transformers";
+import { makeSeed, functionToMethod } from "@idlizer/kit";
 import { makeDeclarationProducer, InteropProducerTypeDescription, SelectResult } from "../../generator/builder";
 import { showErrorForIDLNode, throwDeclarationWasNotFound } from "../../generator/common";
 import { KOALAUI_FINALIZABLE, KOALAUI_INTEROP_NATIVE_POINTER, KOALAUI_KPOINTER, KOALAUI_MATERIALIZED_BASE, KOALAUI_TO_PEER_PTR } from "../../generator/names";

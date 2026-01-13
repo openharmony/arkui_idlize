@@ -15,7 +15,7 @@
 
 import { createAlgotithmicReferenceResolver } from "@idlizer/core"
 import { createReferenceType, forEachChild, getFQName, IDLEntry, IDLFile, IDLReferenceType, IDLType, isEnum, isImport, isInterface, isReferenceType, isType, isTypedef, linearizeNamespaceMembers } from "@idlizer/core/idl"
-import { terminate } from "../../cli/error"
+import { terminate } from "@idlizer/kit"
 import { ProjectConfig } from "./config"
 import { Tracker } from "./tracker"
 

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { getFQName, IDLEntry, IDLKind, isCallback, isEnum, isInterface, toIDLString } from "@idlizer/core/idl";
+import { getFQName, IDLEntry, IDLKind, isEnum, isInterface, toIDLString } from "@idlizer/core/idl";
 
 class Block {
     constructor(

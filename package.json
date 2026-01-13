@@ -20,7 +20,8 @@
     "interfaces",
     "scraper",
     "lite",
-    "ost"
+    "ost",
+    "kit"
   ],
   "license": "Apache-2.0",
   "keywords": [],

@@ -1,5 +1,5 @@
 {
-  "name": "@idlizer/ost",
+  "name": "@idlizer/kit",
   "version": "2.1.10+devel",
   "description": "",
   "main": "build/lib/src/index.js",
@@ -13,6 +13,10 @@
     "node": ">= 18"
   },
   "keywords": [],
+  "dependencies": {
+    "@idlizer/core": "2.1.10+devel",
+    "@idlizer/ost": "2.1.10+devel"
+  },
   "devDependencies": {
     "typescript": "4.9.5",
     "@types/node": "^18.19.127",
@@ -21,6 +25,6 @@
   "scripts": {
     "clean": "rimraf -g build",
     "compile:self": "tsc -b .",
-    "compile": "npm run compile:self"
+    "compile": "npm run -C ../ost compile && npm run -C ../core compile && npm run compile:self"
   }
 }

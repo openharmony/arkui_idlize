@@ -14,14 +14,11 @@
  */
 
 import { outputDiagnosticResultsFormatted, parseIDLFile, setFormatterLogger } from "@idlizer/core"
-import { getIO, forkWith } from "../../cli/application"
-import { continueWith } from "../../engine"
+import { getIO, forkWith, continueWith, CURRENT_LOG_LEVEL, logger, TerminateError } from "@idlizer/kit"
 import { buildSelectors, GeneratorSeed, roll } from "./generator"
 import { createLibrary } from "./library"
 import { install } from "./install"
 import { readConfig } from "./config"
-import { CURRENT_LOG_LEVEL, logger } from "../../cli/logger"
-import { TerminateError } from "../../cli/error"
 import { join } from "node:path"
 import { doInputDiagnostics } from "./diagnostics"
 

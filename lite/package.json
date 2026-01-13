@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/lite",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "bin": {
     "sk-gen": "build/lib/sk-gen.js",
@@ -24,6 +24,7 @@
     "toml": "^3.0.0"
   },
   "devDependencies": {
+    "@idlizer/kit": "2.1.10+devel",
     "@idlizer/core": "2.1.10+devel",
     "@idlizer/ost": "2.1.10+devel",
     "@rollup/plugin-commonjs": "^26.0.1",

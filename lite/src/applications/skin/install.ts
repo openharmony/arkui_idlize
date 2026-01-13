@@ -14,12 +14,10 @@
  */
 
 import { LWDeclaration, processNPrintArkTS } from "@idlizer/ost"
-import * as moduleLike from "../../processors/moduleLike"
-import { getIO } from "../../cli/application"
+import { getIO, logger, moduleLike } from "@idlizer/kit"
 import { join } from "node:path"
 import { createLanguageWriter } from "./legacy"
 import { Language } from "@idlizer/core"
-import { logger } from "../../cli/logger"
 import { makeKnownImports, makeKnownReferences } from "./shared"
 import { getClaim } from "./text"
 

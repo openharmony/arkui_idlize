@@ -17,7 +17,7 @@ import { IDLPrimitiveType, IDLStringType } from "@idlizer/core/idl"
 import { InputLibrary } from "../../library"
 import { InteropProducerTypeDescription, makeDeclarationProducer, SelectResult } from "../../generator/builder"
 import { D, E, Hs, S, T, Ts } from "@idlizer/ost"
-import { makeSeed } from "../../../../engine"
+import { makeSeed } from "@idlizer/kit"
 import { KOALAUI_INTEROP_STRING } from "../../generator/names"
 
 export const [ohStringProducer, OHStringSeed] = makeDeclarationProducer(
