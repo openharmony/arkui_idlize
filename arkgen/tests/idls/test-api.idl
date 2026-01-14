@@ -15,10 +15,7 @@ interface RenderServiceNode {
 
 [Entity=Class]
 interface ScreenshotService {
-  static void provideSettings(String goldenPath, String outputPath, boolean generateGoldenFiles, f64 similarityThreshold);
-  static boolean makeScreenshot(pointer data, i64 length, i32 width, i32 height, i64 timeStamp);
-  static boolean compare(String test, String expected, i64 requestID);
-  static void requestFrame(i64 requestID);
+  static boolean requestScreenshot(String target, String name);
 };
 
 [TypeParameters="T"]
