@@ -29,10 +29,12 @@ export {
 export {
     OrdinaryEnum,
     IntEnum,
+    HexEnum,
     DuplicateIntEnum,
     StringEnum,
     checkOrdinaryEnums,
     checkIntEnums,
+    checkHexEnums,
     checkDuplicateIntEnums,
     checkStringEnums,
     checkStringEnumOrdinal,

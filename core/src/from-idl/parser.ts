@@ -1009,6 +1009,11 @@ interface ExtractedLiteral {
 
 const extractedUndefined: ExtractedLiteral = {type: "undefined", extractedString: "undefined", extractedValue: "undefined"}
 
+function extractNumber(value: string): number {
+    if (value.startsWith("0x")) return parseInt(value)
+    return parseFloat(value)
+}
+
 function extractLiteral(token: Token): ExtractedLiteral {
     if (token.kind == TokenKind.Words) {
         if (!literalTypes.has(token.value)) {
@@ -1017,7 +1022,7 @@ function extractLiteral(token: Token): ExtractedLiteral {
         }
         const type = literalTypes.get(token.value)!
         const extractedString = token.value
-        const extractedValue = type == "number" ? parseFloat(extractedString) : extractedString
+        const extractedValue = type == "number" ? extractNumber(extractedString) : extractedString
         return {type, extractedString, extractedValue}
     }
     if (token.kind != TokenKind.Literal) {
@@ -1034,7 +1039,7 @@ function extractLiteral(token: Token): ExtractedLiteral {
             return extractedUndefined
         }
     }
-    const extractedValue = parseFloat(token.value)
+    const extractedValue = extractNumber(token.value)
     if (Number.isNaN(extractedValue)) {
         // Real NaNs are handled before that, so report an error
         IncorrectLiteral.reportDiagnosticMessage([token.location])

@@ -10,6 +10,14 @@ dictionary IntEnum {
     number E5 = 55;
 };
 
+dictionary HexEnum {
+    number E0 = 0x0;
+    number E1 = 0x1;
+    number E4 = 0x4;
+    number EAB = 0xAB;
+    number ECD = 0xCD;
+};
+
 dictionary DuplicateIntEnum {
     number FIRST = 0;
     [OriginalEnumMemberName=first]
@@ -32,6 +40,7 @@ dictionary StringEnum {
 };
 OrdinaryEnum checkOrdinaryEnums(OrdinaryEnum value1, OrdinaryEnum value2);
 IntEnum checkIntEnums(IntEnum value1, IntEnum value2);
+HexEnum checkHexEnums(HexEnum value1, HexEnum value2);
 DuplicateIntEnum checkDuplicateIntEnums(DuplicateIntEnum value1, DuplicateIntEnum value2);
 StringEnum checkStringEnums(StringEnum value1, StringEnum value2);
 StringEnum checkStringEnumOrdinal(StringEnum value, i32 expectedOrdinal);
