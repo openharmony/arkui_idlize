@@ -765,6 +765,10 @@
             "contentModifier": {
                 "hookName": "hookDataPanelContentModifier",
                 "replaceImplementation": true
+            },
+            "trackShadow": {
+                "hookName": "hookDataPanelTrackShadow",
+                "replaceImplementation": true
             }
         },
         "GaugeAttribute": {
@@ -774,6 +778,14 @@
             },
             "indicator": {
                 "hookName": "hookGaugeIndicator",
+                "replaceImplementation": true
+            },
+            "trackShadow": {
+                "hookName": "hookGaugeTrackShadow",
+                "replaceImplementation": true
+            },
+            "description": {
+                "hookName": "hookGaugeDescription",
                 "replaceImplementation": true
             }
         },

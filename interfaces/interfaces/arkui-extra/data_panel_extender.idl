@@ -1,5 +1,5 @@
 /*
-  * Copyright (c) 2025 Huawei Device Co., Ltd.
+  * Copyright (c) 2026 Huawei Device Co., Ltd.
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
   * You may obtain a copy of the License at
@@ -15,11 +15,7 @@
 package arkui.component.idlize;
  	 
 [Entity=Class]
-interface GaugeExtender {
-    static void setIndicator(pointer node, optional GaugeIndicatorOptions options);
-    static void nullIndicator(pointer node);
-    static void setTrackShadow(pointer node, optional GaugeShadowOptions options);
+interface DataPanelExtender {
+    static void setTrackShadow(pointer node, optional DataPanelShadowOptions options);
     static void nullTrackShadow(pointer node);
-    static void setDescription(pointer node, optional CustomBuilder builder);
-    static void nullDescription(pointer node);
 };
