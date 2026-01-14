@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getSuper, LibraryInterface, maybeRestoreGenerics } from "@idlizer/core"
+import { getSuperType, LibraryInterface, maybeRestoreGenerics } from "@idlizer/core"
 import * as idl from "@idlizer/core/idl"
 
-function superPropsWithTypeArgs(decl: idl.IDLInterface, superDecl: idl.IDLInterface, props: idl.IDLProperty[]) {
+function superPropsWithTypeArgs(superRef: idl.IDLReferenceType, superDecl: idl.IDLInterface, props: idl.IDLProperty[]) {
     if (superDecl.typeParameters == undefined || superDecl.typeParameters.length == 0) return props
-    const superTypeArgs = decl.inheritance[0].typeArguments
+    const superTypeArgs = superRef.typeArguments
     if (superTypeArgs == undefined || superTypeArgs.length == 0) return props
     const superTypeArg = superTypeArgs[0]
     return props.map(prop => {
@@ -34,10 +34,26 @@ function superPropsWithTypeArgs(decl: idl.IDLInterface, superDecl: idl.IDLInterf
     })
 }
 
+function getAllSuperProps(
+    decl: idl.IDLInterface,
+    library: LibraryInterface,
+    propCollector: (ref: idl.IDLReferenceType, decl: idl.IDLInterface) => idl.IDLProperty[],
+) {
+    const superTypes = idl.isClassSubkind(decl)
+        ? [getSuperType(decl, library)].flatMap(it => it ? [it] : [])
+        : decl.inheritance
+    return superTypes.flatMap(superRef => {
+        const superDecl = library.resolveTypeReference(superRef)
+        if (!superDecl || !idl.isInterface(superDecl)) {
+            throw new Error(`Unexpected resolve result for reference ${superRef.name}: ${superDecl}`)
+        }
+        return propCollector(superRef, superDecl)
+    })
+}
+
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    const superDecl = getSuper(decl, library)
-    const superProps = (superDecl && idl.isInterface(superDecl))
-        ? superPropsWithTypeArgs(decl, superDecl, collectProperties(superDecl, library)) : []
+    const superProps = getAllSuperProps(decl, library,
+        (superRef, superDecl) => superPropsWithTypeArgs(superRef, superDecl, collectProperties(superDecl, library)))
     return [
         ...superProps,
         ...decl.properties,
@@ -45,9 +61,9 @@ export function collectProperties(decl: idl.IDLInterface, library: LibraryInterf
 }
 
 export function collectMeaninglessProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    const superDecl = getSuper(decl, library)
-    const superMeaninglessProps = (superDecl && idl.isInterface(superDecl))
-        ? collectMeaninglessProperties(superDecl, library) : []
+    const superMeaninglessProps = getAllSuperProps(decl, library,
+        (_, superDecl) => collectMeaninglessProperties(superDecl, library)
+    )
     const meaningfulProperties = collectProperties(decl, library)
     const originalReference = maybeRestoreGenerics(decl, library)
     let original: idl.IDLInterface | undefined
