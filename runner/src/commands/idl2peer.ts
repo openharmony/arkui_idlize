@@ -25,7 +25,6 @@ export interface Idl2PeerConfig {
     idlPaths: string[]
     optionsFiles?: string[]
     trackerStatus?: string
-    configs: string[]
 }
 
 export interface Idl2PeerArkuiConfig extends Idl2PeerConfig {
@@ -38,7 +37,6 @@ export interface Idl2PeerOhosConfig {
     idlPath: string
     optionsFile?: string
     trackerStatus?: string
-    configs: string[]
     ohosgen: string
 }
 
@@ -53,7 +51,6 @@ export function idl2peer({
     idlPaths,
     optionsFiles,
     trackerStatus,
-    configs,
 }: Idl2PeerArkuiConfig): Idl2PeerResult {
     const idlFiles = idlPaths.flatMap(scan)
 
@@ -81,8 +78,8 @@ export function idl2peer({
         '--no-component-named-overloads',
         '--no-implicit-predefined',
         ['--arkts-extension', '.ets'],
-        '--ignore-default-config',
-        optionsFiles ? [`--options-file`, optionsFiles, ...configs] : ['--options-file', ...configs],
+        optionsFiles ? [`--options-file`, optionsFiles] : [],
+        optionsFiles ? ['--ignore-default-config'] : [],
         over(trackerStatus, st => ['--tracker-status', st]),
     ]))
     return {
