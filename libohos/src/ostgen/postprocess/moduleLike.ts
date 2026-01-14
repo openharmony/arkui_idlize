@@ -68,7 +68,7 @@ function loadNativeModule(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     const name = nativeModuleName();
     const nativeModule = decls.find(it => it.name == name) as lw.ClassDeclaration
     nativeModule.methods.unshift(
-        Builders.func('').static().block()
+        Builders.func(std.names.members.staticCtor).static().block()
             .call('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$())
     return decls
 }
