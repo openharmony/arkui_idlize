@@ -70,7 +70,6 @@ dictionary IntEnumNegative127 {
     number E127 = 127;
 };
 
-
 dictionary IntEnumNegative128 {
     number E1 = -1;
     number E127 = 128;
