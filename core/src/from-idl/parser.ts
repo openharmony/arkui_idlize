@@ -1010,7 +1010,7 @@ interface ExtractedLiteral {
 const extractedUndefined: ExtractedLiteral = {type: "undefined", extractedString: "undefined", extractedValue: "undefined"}
 
 function extractNumber(value: string): number {
-    if (value.startsWith("0x")) return parseInt(value)
+    if (value.startsWith("0x") || value.startsWith("0X")) return parseInt(value)
     return parseFloat(value)
 }
 
