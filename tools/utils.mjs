@@ -77,6 +77,7 @@ export const all_packages = [
     new Package(path.join(IDLIZE_HOME, "arktscgen")),
     new Package(path.join(IDLIZE_HOME, "core")),
     new Package(path.join(IDLIZE_HOME, "ost")),
+    new Package(path.join(IDLIZE_HOME, "kit")),
     new Package(path.join(IDLIZE_HOME, "libohos")),
     new Package(path.join(IDLIZE_HOME, "linter")),
     new Package(path.join(IDLIZE_HOME, "idlinter")),
