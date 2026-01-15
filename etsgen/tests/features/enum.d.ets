@@ -12,6 +12,20 @@ export enum NumberEnum {
     Value6 = 13,
 }
 
+export enum BinaryEnum {
+    Value0 = 0b0,
+    Value1 = 0B1,
+    Value101 = 0b101,
+    Value1001 = 0B1001,
+}
+
+export enum HexEnum {
+    Value0 = 0x0,
+    Value1 = 0X1,
+    ValueAB = 0xAB,
+    ValueCD = 0XCD,
+}
+
 export enum StringEnum {
     Value1 = "one",
     Value2 = "two",

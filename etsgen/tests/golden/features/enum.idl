@@ -19,6 +19,26 @@ dictionary NumberEnum {
     [OriginalEnumMemberName=Value6]
     number VALUE_6 = 13;
 };
+dictionary BinaryEnum {
+    [OriginalEnumMemberName=Value0]
+    number VALUE_0 = 0;
+    [OriginalEnumMemberName=Value1]
+    number VALUE_1 = 1;
+    [OriginalEnumMemberName=Value101]
+    number VALUE_101 = 5;
+    [OriginalEnumMemberName=Value1001]
+    number VALUE_1001 = 9;
+};
+dictionary HexEnum {
+    [OriginalEnumMemberName=Value0]
+    number VALUE_0 = 0;
+    [OriginalEnumMemberName=Value1]
+    number VALUE_1 = 1;
+    [OriginalEnumMemberName=ValueAB]
+    number VALUE_AB = 171;
+    [OriginalEnumMemberName=ValueCD]
+    number VALUE_CD = 205;
+};
 dictionary StringEnum {
     [OriginalEnumMemberName=Value1]
     String VALUE_1 = "one";

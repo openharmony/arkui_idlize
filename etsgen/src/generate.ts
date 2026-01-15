@@ -693,6 +693,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return node
     }
 
+    parseNumber(value: string): number {
+        if (value.startsWith("0b") || value.startsWith("0B")) return parseInt(value.substring(2), 2)
+        return parseInt(value)
+    }
+
     convertEnumInitializer(expression: arkts.Expression | undefined): [idl.IDLPrimitiveType, string | number | undefined] {
         let initializer: string | number | undefined
         let type = idl.IDLNumberType
@@ -700,7 +705,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             return [type, initializer]
         }
         if (arkts.isNumberLiteral(expression) && expression.str !== "") {
-            initializer = parseInt(expression.str)
+            initializer = this.parseNumber(expression.str)
             if (Number.isNaN(initializer)) {
                 throw new Error("Initializator is not number!")
             }
