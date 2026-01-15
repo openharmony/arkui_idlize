@@ -15,7 +15,7 @@
     "keywords": [],
     "dependencies": {
         "@idlizer/core": "2.1.11+devel",
-        "@idlizer/ost": "2.1.10+devel"
+        "@idlizer/ost": "2.1.11+devel"
     },
     "devDependencies": {
         "typescript": "4.9.5",

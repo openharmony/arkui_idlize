@@ -14,12 +14,12 @@
     "keywords": [],
     "dependencies": {
         "@idlizer/core": "2.1.11+devel",
-        "@idlizer/interfaces": "2.1.10+devel",
+        "@idlizer/interfaces": "2.1.11+devel",
         "commander": "^10.0.0"
     },
     "devDependencies": {
-        "@idlizer/arkgen": "2.1.10+devel",
-        "@idlizer/etsgen": "2.1.10+devel",
+        "@idlizer/arkgen": "2.1.11+devel",
+        "@idlizer/etsgen": "2.1.11+devel",
         "typescript": "^4.9.5",
         "@types/node": "^18.19.127",
         "@rollup/plugin-commonjs": "^26.0.1",
