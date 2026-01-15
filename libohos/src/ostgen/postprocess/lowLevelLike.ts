@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts, utils } from "../../ost";
+import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts, utils } from "../../ost";
 import { generatorConfiguration, zipStrip } from "@idlizer/core";
-import { callbackKindDeclaration, mergeStructs, monoName } from "./postprocess";
-import { Builders } from "../../ost/builders";
+import { callbackKindDeclaration, mergeEnums, mergeStructs, monoName } from "./postprocess";
 import { bridgeName, cApiName, implName } from "../producers/common";
 
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
     decls = mergeStructs(decls)
+    decls = mergeEnums(decls)
     decls = introduceOptionalTypes(decls)
     decls = introduceCallbackCaller(decls)
     decls = monomorphizeGenerics(decls)
@@ -280,7 +280,7 @@ class TypeAliasing extends IdentityTransformer {
             case std.names.types.object: return p('Object')
             case std.names.types.serializerBuffer: return 'KSerializerBuffer'
             case std.names.types.string: return p('String')
-            case std.names.types.u8: return p('Int8')
+            case std.names.types.u8: return p('UInt8')
             case std.names.types.u32: return p('UInt32')
             case std.names.types.u64: return p('UInt64')
             case std.names.types.tag: return p('Tag')

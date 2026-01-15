@@ -16,7 +16,10 @@
 import * as path from "path"
 import { scanInputDirs } from "@idlizer/core"
 
-const PREDEFINED_PATH = path.resolve(require.resolve('@idlizer/libohos'), '..', '..', '..', '..', 'predefined')
+let PREDEFINED_PATH: string | undefined = undefined
 export function libohosPredefinedFiles(): string[] {
+    if (PREDEFINED_PATH === undefined) {
+        PREDEFINED_PATH = path.resolve(require.resolve('@idlizer/libohos'), '..', '..', '..', '..', 'predefined')
+    }
     return scanInputDirs([PREDEFINED_PATH, path.join(PREDEFINED_PATH, 'interop')])
 }

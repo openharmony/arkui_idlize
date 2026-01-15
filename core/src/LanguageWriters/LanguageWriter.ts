@@ -18,7 +18,7 @@ import { IndentedPrinter } from "../IndentedPrinter"
 
 import * as idl from "../idl"
 import { stringOrNone } from "../util";
-import * as fs from "fs"
+import * as fs from "node:fs"
 import { NativeModuleType, RuntimeType } from "./common"
 import { ArgConvertor } from "./ArgConvertors";
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver";

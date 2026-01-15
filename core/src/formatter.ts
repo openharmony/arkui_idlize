@@ -15,6 +15,14 @@
 
 import { DiagnosticResults, MessageSeverityList, DiagnosticMessage, Range } from "./diagnostictypes"
 
+type Logger = (...msg:string[]) => void
+
+let logger: Logger = (...msg) => console.log(...msg)
+
+export function setFormatterLogger(log:Logger) {
+    logger = log
+}
+
 export function outputDiagnosticResultsFormatted(result: DiagnosticResults): void {
     for (let message of result.entries) {
         outputDiagnosticMessageFormatted(message)
@@ -27,7 +35,7 @@ function outputReadableTotals(result: DiagnosticResults): void {
     for (let k of MessageSeverityList) {
         totals.push(`${k}: ${result.totals[k]}`)
     }
-    console.log(totals.join(", "))
+    logger(totals.join(", "))
 }
 
 function lineDigitCount(message: DiagnosticMessage): number {
@@ -74,7 +82,7 @@ export function outputDiagnosticMessageFormatted(message: DiagnosticMessage): vo
     if (message.parts.length == 0) {
         return
     }
-    console.log(`${message.severity}[${message.code}]: ${message.codeDescription}`)
+    logger(`${message.severity}[${message.code}]: ${message.codeDescription}`)
     let digits = lineDigitCount(message)
     let indent = " ".repeat(digits)
     let first: boolean = true
@@ -84,24 +92,24 @@ export function outputDiagnosticMessageFormatted(message: DiagnosticMessage): vo
         if (location.range != null && location.lines != null) {
             let range = location.range
             let lines = location.lines
-            console.log(`${indent}${lastPath != part.location.documentPath ? "-->" : ":::"} ${part.location.documentPath}:${range.start.line}:${range.start.character}`)
-            console.log(`${indent} |`)
+            logger(`${indent}${lastPath != part.location.documentPath ? "-->" : ":::"} ${part.location.documentPath}:${range.start.line}:${range.start.character}`)
+            logger(`${indent} |`)
             const last = Math.min(range.end.line + 1, lines.length - 1)
             for (let i = Math.max(range.start.line - 1, 1); i <= last; ++i) {
-                console.log(formatLine(digits, lines, i))
+                logger(formatLine(digits, lines, i))
                 if (i >= range.start.line && i <= range.end.line) {
-                    console.log(formatUnderline(indent, lines, i, range, "^", first ? "-" : "~", part.message))
+                    logger(formatUnderline(indent, lines, i, range, "^", first ? "-" : "~", part.message))
                 }
             }
         } else {
-            console.log(`${indent}--> ${part.location.documentPath}`)
+            logger(`${indent}--> ${part.location.documentPath}`)
             if (message.parts.length > 1) {
-                console.log(`${indent} # ${part.message}`)
+                logger(`${indent} # ${part.message}`)
             }
         }
         first = false
         lastPath = part.location.documentPath
     }
-    console.log(`${indent} = ${message.parts[0].message}`)
-    console.log()
+    logger(`${indent} = ${message.parts[0].message}`)
+    logger()
 }

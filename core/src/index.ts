@@ -1,5 +1,3 @@
-import { fromIDL } from "./from-idl/common"
-
 /*
  * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,6 +70,7 @@ export * from "./transformers/OnSerializeTransformer"
 export * from "./transformers/IdlTransformer"
 export * from "./transformers/transformUtils"
 
+export * from "./ImportCollector"
 export * from "./LanguageWriters"
 export * from "./peer-generation/ReferenceResolver"
 export * from "./peer-generation/idl/common"

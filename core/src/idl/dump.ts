@@ -16,7 +16,7 @@
 import { IndentedPrinter } from "../IndentedPrinter"
 import { stringOrNone } from "../util"
 import { IDLNullTypeName, IDLStringType, IDLUndefinedType } from "./builders"
-import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute } from "./discriminators"
+import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute, isFile } from "./discriminators"
 import { IDLKeywords } from "./keywords"
 import { IDLType, IDLInterface, IDLExtendedAttributes, IDLKind, IDLParameter, IDLConstructor, IDLVariable, IDLConstant, IDLProperty, IDLNode, IDLSignature, IDLTypedef, IDLReferenceType, IDLExtendedAttribute, IDLFunction, IDLMethod, IDLFile, IDLImport, IDLNamespace, IDLCallback, IDLEntry, IDLEnumMember, IDLEnum } from "./node"
 
@@ -346,6 +346,7 @@ export class IDLWriter {
         if (idl.kind == IDLKind.Namespace) return this.printNamespace(idl as IDLNamespace)
         if (idl.kind == IDLKind.Method) return this.printMethod(idl as IDLMethod)
         if (idl.kind == IDLKind.Const) return this.printConstant(idl as IDLConstant)
+        if (idl.kind == IDLKind.Property) return this.printProperty(idl as IDLProperty)
 
         if (options?.allowUnknownKinds) {
             return this.print(`${IDLKind[idl.kind]} ${"name" in idl ? (idl as any).name : ""}`)
@@ -359,15 +360,20 @@ export interface IDLPrintOptions {
     verifyIdl: boolean
     disableEnumInitializers: boolean
     allowUnknownKinds: boolean
+    oneLine: boolean
 }
 
-export function toIDLString(file: IDLFile, options: Partial<IDLPrintOptions>): string {
+export function toIDLString(node: IDLNode, options: Partial<IDLPrintOptions>): string {
     const writer = new IDLWriter(new IndentedPrinter())
 
-    writer.printPackage(file)
-    file.entries.forEach(it => writer.printIDL(it, options))
+    if (isFile(node)) {
+        writer.printPackage(node)
+        node.entries.forEach(it => writer.printIDL(it, options))
+    } else {
+        writer.printIDL(node, options)
+    }
 
-    return writer.getOutput().join("\n")
+    return writer.getOutput().join(options.oneLine ? " " : "\n")
 }
 
 export const DebugUtils = {

@@ -17,8 +17,8 @@ import { AdvancedGeneratorContext, managedName, bridgeName } from "../common";
 import { ProducerDescription } from "../../engine/context";
 import { Hs, E, T, Ts } from "../../../ost";
 import { argConvertor } from "./argConvertor";
-import { Builders } from "../../../ost/builders";
-import { LWType } from "../../../ost/lws";
+import { Builders } from "../../../ost";
+import { LWType } from "../../../ost";
 
 function makeSerializerName(node: idl.IDLInterface, native: boolean) {
   const name = idl.getFQName(node) + 'Serializer'

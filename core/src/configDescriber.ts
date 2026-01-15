@@ -56,7 +56,7 @@ export interface JsonSchema {
 }
 
 type UnwrapConfigDescriberLeaf<T> = T extends ConfigDescriberLeaf<infer K> ? K : never
-type ObjectDescriptionToType<T extends {}> = { readonly [x in keyof T]: UnwrapConfigDescriberLeaf<T[x]> }
+type ObjectDescriptionToType<T extends {}> = { [x in keyof T]: UnwrapConfigDescriberLeaf<T[x]> }
 type TraverseTuple<Ts extends any[]> = Ts extends []
     ? []
     : Ts extends [infer Head, ...infer Rest]

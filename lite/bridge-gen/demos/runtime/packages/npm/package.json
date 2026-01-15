@@ -1,0 +1,12 @@
+{
+    "name": "@idlizer/runtime",
+    "version": "0.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "dependencies": {
+        "@idlizer/runtime-native": "file:../../native/bundled/npm"
+    },
+    "devDependencies": {
+        "typescript": "^5.9.3"
+    }
+}

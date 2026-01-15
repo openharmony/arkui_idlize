@@ -1,0 +1,14 @@
+package broken;
+
+interface A {
+    attribute i16 failing;
+};
+interface B {
+    attribute A a;
+};
+interface C {
+    attribute B b;
+};
+
+void run(i32 x);
+void go(C c);

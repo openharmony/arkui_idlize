@@ -1,0 +1,17 @@
+package demo.event;
+
+interface EventType {
+    attribute i32 kind;
+    attribute String name;
+};
+
+callback OnEvent = void (EventType event);
+callback OnExit = void (i32 code);
+
+interface EventEmitter {
+    static EventEmitter getOne();
+    void setHandler(OnEvent onEvent);
+    void setOnExitHandler(OnExit onExit);
+
+    void emit();
+};

@@ -1,0 +1,47 @@
+
+####################################################################################################
+## GENERAL CONFIGURATION
+
+name = "@ohos/xml" # project name
+version = "0.0.0"  # project version
+
+####################################################################################################
+## DECLARATION CONFIGURATION
+
+[declaration]
+root = "./declaration" # .idl declaration root directory
+
+####################################################################################################
+## NATIVE LIBRARY CONFIGURATION
+
+[library]
+name = "ohosxml"                  # library name -> lib%NAME%.so
+path = "./build"                  # library binary path
+include_directory = [
+    "./include",
+    "../../../external/interop/src/cpp",
+    "../../../external/interop/src/cpp/napi",
+    "../../../external/interop/src/cpp/types",
+]
+
+####################################################################################################
+## LIST OF GENERATION TARGETS
+
+[[bundle]]
+target = "node" # bundle target: node | arkts | ...
+output_directory = "./bundled/npm" # bundle output directory
+flavours = [
+    "KoalaInteropBridge",
+    "OHMaterialized",
+    "OHString",
+    "OHBuffer",
+    "OHCallback",
+    "OHEnum",
+    "OHStructure",
+    "OHIntegrals",
+]
+
+[bundle.runtime]
+node = "../runtime/packages/npm"
+headers = "../runtime/native/include"
+native = "../runtime/native/bin"

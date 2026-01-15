@@ -16,7 +16,7 @@
 
 import * as fs from "node:fs"
 import { indentedBy, stringOrNone } from "./util"
-import path from "node:path"
+import * as path from "node:path"
 
 export class IndentedPrinter {
     constructor (private output: string[] = [], private indent: number = 0) {}

@@ -59,6 +59,7 @@ export enum IDLExtendedAttributes {
     Component = "Component",
     ComponentInterface = "ComponentInterface",
     ComponentModifier = "ComponentModifier",
+    DataClass = "DataClass",
     Deprecated = "Deprecated",
     Documentation = "Documentation",
     DtsName = "DtsName",

@@ -1,0 +1,29 @@
+
+####################################################################################################
+## GENERAL CONFIGURATION
+
+name = "%PROJECT_NAME%" # project name
+version = "0.0.0"       # project version
+
+####################################################################################################
+## DECLARATION CONFIGURATION
+
+[declaration]
+root = "./declaration" # .idl declaration root directory
+
+####################################################################################################
+## NATIVE LIBRARY CONFIGURATION
+
+[library]
+name = "%PROJECT_NAME%"                # library name -> lib%NAME%.so
+path = "./build"                      # library binary path
+header = "./include/%PROJECT_NAME%.h" # library headers if any
+include_directory = "./include"       # directory with headers to be included
+
+####################################################################################################
+## LIST OF GENERATION TARGETS
+
+[[bundle]]
+target = "node"                    # bundle target: node | arkts | ...
+output_directory = "./bundled/npm" # bundle output directory
+flavours = []                      # list of generator extensions

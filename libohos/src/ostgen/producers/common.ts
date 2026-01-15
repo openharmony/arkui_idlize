@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Hs, Ts } from "../../ost/stdlib"
+import { Hs, Ts } from "../../ost"
 import { E, lw } from "../../ost"
 import { createProducer, GeneratorContext, MakeSelectorPattern, MakeSelectorQuery, ProducerBox, ProducerDescription } from "../engine/context"
 

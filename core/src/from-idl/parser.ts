@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as fs from "fs"
+import * as fs from "node:fs"
 import * as idl from "../idl"
 import { DiagnosticException, DiagnosticMessage, Location, MessageSeverityList, Position } from "../diagnostictypes"
 import { DiagnosticMessageGroup, LoadingFatal, InternalFatal } from "../diagnosticmessages"
@@ -770,7 +770,7 @@ export class Parser {
         const spread = this.seeAndSkip("...")
         const name = this.parseSingleIdentifier()
         // Note absense of `extendedAttributes`, they are only forwarded to `type`, as it was in the old parsing code
-        return idl.createParameter(name.value, type, optional, spread, {nodeLocation: sloc(), nameLocation: name.location})
+        return idl.createParameter(name.value, type, optional, spread, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location})
     }
 
     parseOperation(): idl.IDLCallable | idl.IDLMethod {

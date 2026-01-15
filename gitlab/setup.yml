@@ -28,6 +28,7 @@ build idlize:
         - arkgen/lib
         - arktscgen/lib
         - core/build
+        - ost/build
         - dtsgen/build
         - dtsgen/lib
         - etsgen/build

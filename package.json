@@ -18,7 +18,11 @@
     "runner",
     "idlinter",
     "interfaces",
-    "scraper"
+    "scraper",
+    "lite/sk-gen",
+    "lite/bridge-gen",
+    "ost",
+    "kit"
   ],
   "license": "Apache-2.0",
   "keywords": [],

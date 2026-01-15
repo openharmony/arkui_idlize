@@ -1,0 +1,28 @@
+package demo.test.methods;
+
+interface Vec2 {
+    attribute i32 x;
+    attribute i32 y;
+};
+
+interface Vec3 {
+    attribute i32 x;
+    attribute i32 y;
+    attribute i32 z;
+};
+
+interface NamedDot {
+    attribute Vec3 position;
+    attribute String name;
+};
+
+interface NameDotSpace {
+    [Name="name_dot_space_push"]
+    void push(NamedDot dot);
+    [Name="name_dot_space_print"]
+    void print();
+    [Name="name_dot_space_gen_new_position"]
+    static Vec3 genNewPosition(i32 seed);
+    [Name="name_dot_space_add3"]
+    static Vec3 add3(Vec3 a, Vec3 b);
+};

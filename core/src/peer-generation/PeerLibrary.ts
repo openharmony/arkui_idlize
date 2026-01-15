@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { warn } from 'console'
 import * as idl from '../idl'
 import { Language } from '../Language'
 import { LanguageWriter } from '../LanguageWriters/LanguageWriter'
@@ -377,7 +376,7 @@ export function cleanPrefix(name: string, prefix: string): string {
 export function forceTypedefAsResource(resolver: ReferenceResolver, type: idl.IDLType, decl: idl.IDLTypedef): boolean {
     if (generatorConfiguration().forceResource.includes(idl.getFQName(decl))) return true
     if (isCyclicTypeDef(resolver, decl)) {
-        warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
+        console.warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
         return true
     }
     return false
@@ -421,7 +420,7 @@ export function toDeclaration(type: idl.IDLType | idl.IDLEntry, resolver: Refere
         }
         const decl = resolver.resolveTypeReference(type)
         if (!decl) {
-            warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
+            console.warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
         }
         if (decl && idl.isTypedef(decl) && forceTypedefAsResource(resolver, type, decl)) {
             return idl.IDLObjectType

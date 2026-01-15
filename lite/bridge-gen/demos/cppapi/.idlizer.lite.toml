@@ -1,0 +1,36 @@
+
+####################################################################################################
+## GENERAL CONFIGURATION
+
+name = "capi"     # project name
+version = "0.0.0" # project version
+
+####################################################################################################
+## DECLARATION CONFIGURATION
+
+[declaration]
+root = "./declaration" # .idl declaration root directory
+
+####################################################################################################
+## NATIVE LIBRARY CONFIGURATION
+
+[library]
+name = "cxxtest"                  # library name -> lib%NAME%.so
+path = "./build"                  # library binary path
+include_directory = ["./include"] # directory with headers to be included
+header = "cxxapi.h"
+no_api_receiver = true
+
+####################################################################################################
+## LIST OF GENERATION TARGETS
+
+
+[[bundle]]
+target = "node"                                      # bundle target: node | arkts | ...
+output_directory = "./bundled/npm"                   # bundle output directory
+flavours = ["VanillaInstances", "VanillaCXXClasses"]
+
+[bundle.runtime]
+node = "../runtime/packages/npm"
+headers = "../runtime/native/include"
+native = "../runtime/native/bin"

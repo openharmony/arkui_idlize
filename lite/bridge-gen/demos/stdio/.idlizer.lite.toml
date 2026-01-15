@@ -1,0 +1,43 @@
+
+####################################################################################################
+## GENERAL CONFIGURATION
+
+name = "stdio"    # project name
+version = "0.0.0" # project version
+
+####################################################################################################
+## DECLARATION CONFIGURATION
+
+[declaration]
+root = "./declaration" # .idl declaration root directory
+
+####################################################################################################
+## NATIVE LIBRARY CONFIGURATION
+
+[library]
+name = "iozhik"                   # library name -> lib%NAME%.so
+path = "./build"                  # library binary path
+include_directory = ["./include"] # directory with headers to be included
+no_api_receiver = true
+
+####################################################################################################
+## LIST OF GENERATION TARGETS
+
+[[bundle]]
+target = "panda"                     # bundle target: node | arkts | ...
+output_directory = "./bundled/panda" # bundle output directory
+
+[bundle.runtime]
+node = "../runtime/packages/npm"
+headers = "../runtime/native/include"
+native = "../runtime/native/bin"
+
+
+[[bundle]]
+target = "node"                    # bundle target: node | arkts | ...
+output_directory = "./bundled/npm" # bundle output directory
+
+[bundle.runtime]
+node = "../runtime/packages/npm"
+headers = "../runtime/native/include"
+native = "../runtime/native/bin"
