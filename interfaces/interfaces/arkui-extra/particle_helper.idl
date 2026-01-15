@@ -29,6 +29,10 @@ interface PositionLengthMetricsInner {
     attribute LengthMetrics x;
     attribute LengthMetrics y;
 };
+interface Vector2F64 {
+    attribute f64 x;
+    attribute f64 y;
+};
 [Entity=Tuple, Synthetic]
 interface Tuple_ResourceColor_ResourceColor {
     attribute ResourceColor value0;
@@ -153,10 +157,42 @@ interface DisturbanceFieldOptionsInner {
     [Optional]
     attribute f64 noiseAmplitude;
 };
+interface FieldRegionInner {
+  [Optional]
+  attribute DisturbanceFieldShape shape;
+  [Optional]
+  attribute PositionF64Inner position;
+  [Optional]
+  attribute SizeF64Inner size;
+};
+
+interface RippleFieldOptionsInner {
+  [Optional]
+  attribute f64 amplitude;
+  [Optional]
+  attribute f64 wavelength;
+  [Optional]
+  attribute f64 waveSpeed;
+  [Optional]
+  attribute f64 attenuation;
+  [Optional]
+  attribute PositionF64Inner center;
+  [Optional]
+  attribute FieldRegionInner region;
+};
+
+interface VelocityFieldOptionsInner {
+  [Optional]
+  attribute Vector2F64 velocity;
+  [Optional]
+  attribute FieldRegionInner region;
+};
 [Entity=Class]
 interface ParticleHelper {
     static void SetDisturbanceFields(pointer node, (sequence<DisturbanceFieldOptionsInner> or undefined) disturbanceFields);
     static void SetEmitterProperty(pointer node, (sequence<EmitterPropertyInner> or undefined) emitter);
     static pointer ParticleConstruct(i32 id, i32 flags);
     static void SetParticleOptions(pointer node, ParticlesInner particles);
+    static void SetRippleFields(pointer node, (sequence<RippleFieldOptionsInner> or undefined) rippleFields);
+    static void SetVelocityFields(pointer node, (sequence<VelocityFieldOptionsInner> or undefined) velocityFields);
 };
