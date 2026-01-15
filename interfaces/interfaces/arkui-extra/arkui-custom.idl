@@ -55,7 +55,7 @@ interface SystemOps {
 
 [Entity=Class]
 interface GestureOps {
-    static pointer createTapGesture(number fingers, number count, number distanceThreshold, boolean isFingerCountLimited);
+    static pointer createTapGesture(number fingers, number count, f64 distanceThreshold, boolean isFingerCountLimited);
     static pointer createLongPressGesture(number fingers, boolean repeat, number duration, boolean isFingerCountLimited);
     static pointer createPanGesture(number fingers, PanDirection direction, number distance, boolean isFingerCountLimited);
     static pointer createPanGestureWithPanGestureOptions(pointer panGestureOptions);
