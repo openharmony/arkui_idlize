@@ -79,6 +79,7 @@ export { ExternalType, hookns } from "./handwritten/external_lib"
 
 export { DTSCheckExternalLib, InternalType } from "../../generated/ts"
 export { PromiseTester } from "../../generated/ts"
+export { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "../../generated/ts"
 
 export {
     TransformSrcI,

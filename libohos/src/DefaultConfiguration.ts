@@ -77,6 +77,7 @@ export const PeerGeneratorConfigurationSchema = D.combine(
             new Map<string, string>()
         ),
         transformOnSerialize: D.array(TransformOnSerializeSchema),
+        handwrittenDeserializers: T.stringArray(),
     })
 )
 

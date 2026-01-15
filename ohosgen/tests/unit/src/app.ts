@@ -587,6 +587,12 @@ function checkTransformOnSerialize() {
   // assertEQ(false, resultTransformSrcCallbackC.flag)
 }
 
+function checkHandwrittenDeserializer() {
+  const gesture = BaseGesture.createGesture2()
+  assertEQ(gesture.getType(), GestureType.Second)
+  assertEQ(gesture instanceof DerivedGesture2, true)
+}
+
 export function run() {
   console.log("Run common unit tests")
 

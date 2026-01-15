@@ -1,4 +1,5 @@
 {
+    "$schema": "../../../generation-config/schema.json",
     "moduleName": "unit",
     "modules": {
         "ohos.base": {
@@ -182,5 +183,8 @@
         "DataClass.propObject": "[false, 0, '']",
         "IDLDataClass.propString": "''",
         "IDLDataClass.propObject": "[false, 0, '']"
-    }
+    },
+    "handwrittenDeserializers": [
+        "test_inheritance.BaseGesture"
+    ]
 }
