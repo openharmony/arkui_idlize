@@ -169,6 +169,18 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             auto image = (strcmp(name->chars, "state-change-fail") == 0) ? "snapshot-fail" : "snapshot-success";
             TGAInfo infoGolden;
             TGAInfo infoTarget;
+            if (image == std::string("state-change-fail")) {
+                StubTGA(OutPath + "snapshot-fail", infoTarget);
+            } else {
+                if (!(std::filesystem::exists(OutPath) && std::filesystem::is_directory(OutPath))) {
+                    std::filesystem::create_directory(OutPath);
+                }
+                std::filesystem::copy(
+                    GoldenPath + std::string("snapshot-success.tga"),
+                    OutPath + std::string("snapshot-success.tga"),
+                    std::filesystem::copy_options::overwrite_existing
+                );
+            }
             ReadImageTGA(GoldenPath + image, infoGolden);
             ReadImageTGA(OutPath + image, infoTarget);
             return CompareTwoTGA(testName, image, infoGolden, infoTarget);
