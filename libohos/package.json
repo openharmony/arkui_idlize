@@ -1,36 +1,36 @@
 {
-  "name": "@idlizer/libohos",
-  "version": "2.1.10+devel",
-  "description": "",
-  "types": "build/lib/src/index.d.ts",
-  "exports": {
-    ".": [
-      "./build/lib/src/index.js"
-    ]
-  },
-  "files": [
-    "build/lib/**/*.js",
-    "build/lib/**/*.d.ts",
-    "predefined/**/*",
-    "templates/**/*"
-  ],
-  "type": "module",
-  "engines": {
-    "npm": ">= 8",
-    "node": ">= 18"
-  },
-  "keywords": [],
-  "dependencies": {
-    "@idlizer/core": "2.1.10+devel",
-    "@idlizer/ost": "2.1.10+devel",
-    "@koalaui/interop": "1.7.14"
-  },
-  "devDependencies": {
-    "@types/node": "^18.19.127"
-  },
-  "scripts": {
-    "clean": "rimraf -g build",
-    "compile:self": "tsc -b .",
-    "compile": "npm run -C ../core compile && npm run -C ../ost compile && npm run compile:self"
-  }
+    "name": "@idlizer/libohos",
+    "version": "2.1.11+devel",
+    "description": "",
+    "types": "build/lib/src/index.d.ts",
+    "exports": {
+        ".": [
+            "./build/lib/src/index.js"
+        ]
+    },
+    "files": [
+        "build/lib/**/*.js",
+        "build/lib/**/*.d.ts",
+        "predefined/**/*",
+        "templates/**/*"
+    ],
+    "type": "module",
+    "engines": {
+        "npm": ">= 8",
+        "node": ">= 18"
+    },
+    "keywords": [],
+    "dependencies": {
+        "@idlizer/core": "2.1.11+devel",
+        "@idlizer/ost": "2.1.10+devel",
+        "@koalaui/interop": "1.7.14"
+    },
+    "devDependencies": {
+        "@types/node": "^18.19.127"
+    },
+    "scripts": {
+        "clean": "rimraf -g build",
+        "compile:self": "tsc -b .",
+        "compile": "npm run -C ../core compile && npm run -C ../ost compile && npm run compile:self"
+    }
 }

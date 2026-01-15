@@ -1,38 +1,38 @@
 {
-  "name": "@idlizer/dtsgen",
-  "version": "2.1.10+devel",
-  "description": "",
-  "main": "lib/index.js",
-  "bin": "lib/index.js",
-  "files": [
-    "lib/*.js",
-    "generation-config/**/*"
-  ],
-  "license": "Apache-2.0",
-  "keywords": [],
-  "dependencies": {
-    "@idlizer/core": "2.1.10+devel",
-    "@types/node": "^18.19.127",
-    "commander": "^10.0.0",
-    "comment-parser": "^1.4.1",
-    "typescript": "4.9.5",
-    "@rollup/plugin-commonjs": "^26.0.1",
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6"
-  },
-  "scripts": {
-    "clean": "rimraf -g build lib .rollup.cache",
-    "compile:self": "tsc -b . && rollup -c",
-    "compile": "npm run -C ../core compile && npm run compile:self",
-    "common:idl": "npm run compile && node . --dts2idl --output-dir ./out/idl --base-dir ../sdk-patched/api --input-dir  ../sdk-patched/api/@internal/component/ets/,../sdk-patched/api/global --verify-idl --docs=none",
-    "common:dts": "npm run compile && node . --idl2dts --output-dir ./out/dts --input-dir ./out/idl",
-    "create:closed:subset": "npm run compile && node . --dts2idl --base-dir ../sdk-patched/api --input-dir ../sdk-patched/api/@internal/component/ets --output-dir out/ --options-file ./generation-config/arkui-config.json && cp stdlib.idl out/stdlib.idl && node . --lint --input-dir out/",
-    "test": "npm run compile && npm run test:golden:features",
-    "test-gen": "npm run compile && npm run test:golden:features-gen",
-    "test:golden": "rimraf ./out/test-$TEST_CASE  && node . --dts2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE",
-    "test:golden-gen": "rimraf ./out/test-$TEST_CASE  && node . --dts2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE --gen",
-    "test:golden:features": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden",
-    "test:golden:features-gen": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden-gen"
-  }
+    "name": "@idlizer/dtsgen",
+    "version": "2.1.11+devel",
+    "description": "",
+    "main": "lib/index.js",
+    "bin": "lib/index.js",
+    "files": [
+        "lib/*.js",
+        "generation-config/**/*"
+    ],
+    "license": "Apache-2.0",
+    "keywords": [],
+    "dependencies": {
+        "@idlizer/core": "2.1.11+devel",
+        "@types/node": "^18.19.127",
+        "commander": "^10.0.0",
+        "comment-parser": "^1.4.1",
+        "typescript": "4.9.5",
+        "@rollup/plugin-commonjs": "^26.0.1",
+        "@rollup/plugin-node-resolve": "^15.3.0",
+        "@rollup/plugin-terser": "^0.4.4",
+        "@rollup/plugin-typescript": "^11.1.6"
+    },
+    "scripts": {
+        "clean": "rimraf -g build lib .rollup.cache",
+        "compile:self": "tsc -b . && rollup -c",
+        "compile": "npm run -C ../core compile && npm run compile:self",
+        "common:idl": "npm run compile && node . --dts2idl --output-dir ./out/idl --base-dir ../sdk-patched/api --input-dir  ../sdk-patched/api/@internal/component/ets/,../sdk-patched/api/global --verify-idl --docs=none",
+        "common:dts": "npm run compile && node . --idl2dts --output-dir ./out/dts --input-dir ./out/idl",
+        "create:closed:subset": "npm run compile && node . --dts2idl --base-dir ../sdk-patched/api --input-dir ../sdk-patched/api/@internal/component/ets --output-dir out/ --options-file ./generation-config/arkui-config.json && cp stdlib.idl out/stdlib.idl && node . --lint --input-dir out/",
+        "test": "npm run compile && npm run test:golden:features",
+        "test-gen": "npm run compile && npm run test:golden:features-gen",
+        "test:golden": "rimraf ./out/test-$TEST_CASE  && node . --dts2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE",
+        "test:golden-gen": "rimraf ./out/test-$TEST_CASE  && node . --dts2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE --gen",
+        "test:golden:features": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden",
+        "test:golden:features-gen": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden-gen"
+    }
 }

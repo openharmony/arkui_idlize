@@ -1,26 +1,26 @@
 {
-  "name": "@idlizer/ost",
-  "version": "2.1.10+devel",
-  "description": "",
-  "main": "build/lib/src/index.js",
-  "types": "build/lib/src/index.d.ts",
-  "files": [
-    "build/lib/**/*.js",
-    "build/lib/**/*.d.ts"
-  ],
-  "engines": {
-    "npm": ">= 8",
-    "node": ">= 18"
-  },
-  "keywords": [],
-  "devDependencies": {
-    "typescript": "4.9.5",
-    "@types/node": "^18.19.127",
-    "rimraf": "^6.0.1"
-  },
-  "scripts": {
-    "clean": "rimraf -g build",
-    "compile:self": "tsc -b .",
-    "compile": "npm run compile:self"
-  }
+    "name": "@idlizer/ost",
+    "version": "2.1.11+devel",
+    "description": "",
+    "main": "build/lib/src/index.js",
+    "types": "build/lib/src/index.d.ts",
+    "files": [
+        "build/lib/**/*.js",
+        "build/lib/**/*.d.ts"
+    ],
+    "engines": {
+        "npm": ">= 8",
+        "node": ">= 18"
+    },
+    "keywords": [],
+    "devDependencies": {
+        "typescript": "4.9.5",
+        "@types/node": "^18.19.127",
+        "rimraf": "^6.0.1"
+    },
+    "scripts": {
+        "clean": "rimraf -g build",
+        "compile:self": "tsc -b .",
+        "compile": "npm run compile:self"
+    }
 }

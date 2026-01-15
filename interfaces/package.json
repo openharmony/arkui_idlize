@@ -1,6 +1,6 @@
 {
     "name": "@idlizer/interfaces",
-    "version": "2.1.10+devel",
+    "version": "2.1.11+devel",
     "type": "commonjs",
     "main": "./dist/index.js",
     "exports": "./dist/index.js",

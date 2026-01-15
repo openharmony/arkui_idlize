@@ -1,54 +1,54 @@
 {
-  "name": "@idlizer/arktscgen",
-  "version": "2.1.10+devel",
-  "description": "",
-  "main": "lib/index.js",
-  "bin": "lib/index.js",
-  "files": [
-    "lib/*.js",
-    "templates/*",
-    "./build/libarkts-copy/src",
-    "./build/libarkts-copy/native",
-    "./build/libarkts-copy/generator",
-    "./build/libarkts-copy/package.json",
-    "./build/libarkts-copy/tsconfig.json",
-    "!./build/libarkts-copy/generated",
-    "!./build/libarkts-copy/native/build"
-  ],
-  "license": "Apache-2.0",
-  "keywords": [],
-  "dependencies": {
-    "@idlizer/core": "2.1.10+devel",
-    "commander": "^10.0.0",
-    "typescript": "^4.9.5"
-  },
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "^26.0.1",
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "@types/chai": "^4.3.1",
-    "@types/json5": "^2.2.0",
-    "@types/node": "^18.19.127",
-    "json5": "^2.2.3",
-    "source-map-support": "^0.5.21",
-    "rimraf": "^6.0.1"
-  },
-  "scripts": {
-    "clean": "rimraf lib build",
-    "compile:core": "npm run --prefix ../core compile",
-    "compile:self": "rollup -c",
-    "compile": "npm run compile:core && npm run compile:self",
-    "external:test": "npm run --prefix ../external/libarkts run:current",
-    "external:clean": "rimraf ../external/libarkts/generated",
-    "external:generate": "npm run compile && node . --panda-sdk-path ../external/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/ui2abc/ --options-file ../external/libarkts/generator/options.json5 --debug --no-initialize",
-    "all": "npm run compile && npm run external:clean && npm run external:generate && npm run external:test",
-    "prepack": "npm run compile && mkdir -p ./build && cp -r ../external/libarkts ./build/libarkts-copy",
-    "postpack": "rimraf ./build/libarkts-copy",
-    "test:pack": "node ./tools/main.mjs test-pack",
-    "test:all": "npm run all && npm run test:pack",
-    "release:patch": "node ./tools/main.mjs release patch",
-    "release:minor": "node ./tools/main.mjs release minor",
-    "release:major": "node ./tools/main.mjs release major"
-  }
+    "name": "@idlizer/arktscgen",
+    "version": "2.1.11+devel",
+    "description": "",
+    "main": "lib/index.js",
+    "bin": "lib/index.js",
+    "files": [
+        "lib/*.js",
+        "templates/*",
+        "./build/libarkts-copy/src",
+        "./build/libarkts-copy/native",
+        "./build/libarkts-copy/generator",
+        "./build/libarkts-copy/package.json",
+        "./build/libarkts-copy/tsconfig.json",
+        "!./build/libarkts-copy/generated",
+        "!./build/libarkts-copy/native/build"
+    ],
+    "license": "Apache-2.0",
+    "keywords": [],
+    "dependencies": {
+        "@idlizer/core": "2.1.11+devel",
+        "commander": "^10.0.0",
+        "typescript": "^4.9.5"
+    },
+    "devDependencies": {
+        "@rollup/plugin-commonjs": "^26.0.1",
+        "@rollup/plugin-node-resolve": "^15.3.0",
+        "@rollup/plugin-terser": "^0.4.4",
+        "@rollup/plugin-typescript": "^11.1.6",
+        "@types/chai": "^4.3.1",
+        "@types/json5": "^2.2.0",
+        "@types/node": "^18.19.127",
+        "json5": "^2.2.3",
+        "source-map-support": "^0.5.21",
+        "rimraf": "^6.0.1"
+    },
+    "scripts": {
+        "clean": "rimraf lib build",
+        "compile:core": "npm run --prefix ../core compile",
+        "compile:self": "rollup -c",
+        "compile": "npm run compile:core && npm run compile:self",
+        "external:test": "npm run --prefix ../external/libarkts run:current",
+        "external:clean": "rimraf ../external/libarkts/generated",
+        "external:generate": "npm run compile && node . --panda-sdk-path ../external/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/ui2abc/ --options-file ../external/libarkts/generator/options.json5 --debug --no-initialize",
+        "all": "npm run compile && npm run external:clean && npm run external:generate && npm run external:test",
+        "prepack": "npm run compile && mkdir -p ./build && cp -r ../external/libarkts ./build/libarkts-copy",
+        "postpack": "rimraf ./build/libarkts-copy",
+        "test:pack": "node ./tools/main.mjs test-pack",
+        "test:all": "npm run all && npm run test:pack",
+        "release:patch": "node ./tools/main.mjs release patch",
+        "release:minor": "node ./tools/main.mjs release minor",
+        "release:major": "node ./tools/main.mjs release major"
+    }
 }

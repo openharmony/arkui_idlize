@@ -1,51 +1,51 @@
 {
-  "name": "@idlizer/etsgen",
-  "version": "2.1.10+devel",
-  "description": "",
-  "main": "lib/cli.js",
-  "bin": "lib/cli.js",
-  "exports": "./build/lib/src/index.js",
-  "types": "./build/lib/src/index.d.ts",
-  "files": [
-    "build/**/*.js",
-    "build/**/*.map",
-    "build/**/*.d.ts",
-    "lib/*.js",
-    "lib/*.map",
-    "generation-config/**/*",
-    "config.json",
-    "generator-config.json",
-    "components_stubs/**/*"
-  ],
-  "license": "Apache-2.0",
-  "keywords": [],
-  "dependencies": {
-    "@koalaui/libarkts": "file:../external/libarkts",
-    "commander": "^10.0.0"
-  },
-  "devDependencies": {
-    "@idlizer/core": "2.1.10+devel",
-    "@types/node": "^18.19.127",
-    "@rollup/plugin-commonjs": "^26.0.1",
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "rimraf": "^6.0.1"
-  },
-  "scripts": {
-    "clean": "rimraf -g build .rollup.cache lib out",
-    "libarkts:reinstall:regenerate": "cd ../external/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
-    "compile:self": "tsc -b . && rollup -c",
-    "compile": "npm run -C ../core compile && npm run compile:self",
-    "plot:deps": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api && dot -T svg ./out/idl/deps.dot -o ./out/deps.svg",
-    "plot:deps:noplot": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
-    "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",
-    "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
-    "test": "npm run compile && npm run test:golden:features",
-    "test-gen": "npm run compile && npm run test:golden:features-gen",
-    "test:golden": "rimraf ./out/test-$TEST_CASE && node . --ets2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE",
-    "test:golden-gen": "rimraf ./out/test-$TEST_CASE && node . --ets2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE --gen",
-    "test:golden:features": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden",
-    "test:golden:features-gen": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden-gen"
-  }
+    "name": "@idlizer/etsgen",
+    "version": "2.1.11+devel",
+    "description": "",
+    "main": "lib/cli.js",
+    "bin": "lib/cli.js",
+    "exports": "./build/lib/src/index.js",
+    "types": "./build/lib/src/index.d.ts",
+    "files": [
+        "build/**/*.js",
+        "build/**/*.map",
+        "build/**/*.d.ts",
+        "lib/*.js",
+        "lib/*.map",
+        "generation-config/**/*",
+        "config.json",
+        "generator-config.json",
+        "components_stubs/**/*"
+    ],
+    "license": "Apache-2.0",
+    "keywords": [],
+    "dependencies": {
+        "@koalaui/libarkts": "file:../external/libarkts",
+        "commander": "^10.0.0"
+    },
+    "devDependencies": {
+        "@idlizer/core": "2.1.10+devel",
+        "@types/node": "^18.19.127",
+        "@rollup/plugin-commonjs": "^26.0.1",
+        "@rollup/plugin-node-resolve": "^15.3.0",
+        "@rollup/plugin-terser": "^0.4.4",
+        "@rollup/plugin-typescript": "^11.1.6",
+        "rimraf": "^6.0.1"
+    },
+    "scripts": {
+        "clean": "rimraf -g build .rollup.cache lib out",
+        "libarkts:reinstall:regenerate": "cd ../external/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
+        "compile:self": "tsc -b . && rollup -c",
+        "compile": "npm run -C ../core compile && npm run compile:self",
+        "plot:deps": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api && dot -T svg ./out/idl/deps.dot -o ./out/deps.svg",
+        "plot:deps:noplot": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
+        "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",
+        "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
+        "test": "npm run compile && npm run test:golden:features",
+        "test-gen": "npm run compile && npm run test:golden:features-gen",
+        "test:golden": "rimraf ./out/test-$TEST_CASE && node . --ets2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE",
+        "test:golden-gen": "rimraf ./out/test-$TEST_CASE && node . --ets2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE --gen",
+        "test:golden:features": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden",
+        "test:golden:features-gen": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden-gen"
+    }
 }
