@@ -35,6 +35,30 @@ arkgen ArkTS subset:
     - build idlize
     - build external
 
+<ArkTS> koala-projects integration test:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  needs:
+    - build idlize
+    - build external
+    - download external sdk
+  before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+  script:
+    # Bundle idlizer
+    - npm run bundle:idlizer --prefix external/arkoala-arkts/tools/idlizer-bundler
+    # Build
+    - npm run build --prefix external/arkoala-arkts/arkui
+    - npm run compile:native:node-host --prefix external/arkoala-arkts
+    # Verify the outputs
+    - ls -l external/arkoala-arkts/arkui/build/arkui.abc
+    - ls -l external/arkoala-arkts/framework/native/build-node-host-vmloader/ArkoalaLoader.node
+    - ls -l external/arkoala-arkts/framework/native/build-panda-host/libArkoalaNative_linux_x64_ani.so
+
+
 arkgen ArkTS unit:
   stage: test
   tags:

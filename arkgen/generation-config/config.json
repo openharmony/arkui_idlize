@@ -900,7 +900,10 @@
                 "getNodeId"
             ],
             "ScreenshotService": [
-                "requestScreenshot"
+                "provideSettings",
+                "makeScreenshot",
+                "compare",
+                "requestFrame"
             ],
             "DrawModifier": [
                 "invalidate",

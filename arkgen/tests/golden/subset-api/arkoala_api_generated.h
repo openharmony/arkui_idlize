@@ -467,6 +467,7 @@ typedef struct Opt_Indicator Opt_Indicator;
 typedef struct IndicatorComponentControllerPeer IndicatorComponentControllerPeer;
 typedef struct IndicatorComponentControllerPeer* Ark_IndicatorComponentController;
 typedef struct Opt_IndicatorComponentController Opt_IndicatorComponentController;
+typedef struct Opt_Int64 Opt_Int64;
 typedef struct Ark_IntentionCode Ark_IntentionCode;
 typedef struct Opt_IntentionCode Opt_IntentionCode;
 typedef struct KeyEventPeer KeyEventPeer;
@@ -4260,6 +4261,10 @@ typedef struct Opt_IndicatorComponentController {
     Ark_Tag tag;
     Ark_IndicatorComponentController value;
 } Opt_IndicatorComponentController;
+typedef struct Opt_Int64 {
+    Ark_Tag tag;
+    Ark_Int64 value;
+} Opt_Int64;
 typedef struct Ark_IntentionCode {
     /* kind: Interface */
     void *handle;
@@ -14865,8 +14870,19 @@ typedef struct GENERATED_ArkUIScaleSymbolEffectAccessor {
 } GENERATED_ArkUIScaleSymbolEffectAccessor;
 
 typedef struct GENERATED_ArkUIScreenshotServiceAccessor {
-    Ark_Boolean (*requestScreenshot)(const Ark_String* target,
-                                     const Ark_String* name);
+    void (*provideSettings)(const Ark_String* goldenPath,
+                            const Ark_String* outputPath,
+                            Ark_Boolean generateGoldenFiles,
+                            Ark_Float64 similarityThreshold);
+    Ark_Boolean (*makeScreenshot)(Ark_NativePointer data,
+                                  Ark_Int64 length,
+                                  Ark_Int32 width,
+                                  Ark_Int32 height,
+                                  Ark_Int64 timeStamp);
+    Ark_Boolean (*compare)(const Ark_String* test,
+                           const Ark_String* expected,
+                           Ark_Int64 requestID);
+    void (*requestFrame)(Ark_Int64 requestID);
 } GENERATED_ArkUIScreenshotServiceAccessor;
 
 typedef struct GENERATED_ArkUIScrollableTargetInfoAccessor {
