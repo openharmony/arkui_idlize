@@ -35,7 +35,7 @@ arkgen ArkTS subset:
     - build idlize
     - build external
 
-test generator with arkoala-arkts build:
+<ArkTS> koala-projects integration test:
   stage: test
   tags:
     - idlize-ci
@@ -49,7 +49,7 @@ test generator with arkoala-arkts build:
     - !reference [.panda, script]
   script:
     # Download interface SDK
-    - npm run interface-sdk:download --prefix external/arkoala-arkts/arkui
+    - npm run sdk:all --prefix external
     # Bundle idlizer
     - npm run bundle:idlizer --prefix external/arkoala-arkts/tools/idlizer-bundler
     # Build
