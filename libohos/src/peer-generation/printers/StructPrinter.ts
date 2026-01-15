@@ -137,7 +137,8 @@ export class StructPrinter {
             } else if (idl.isEnum(target) || idl.isEnumMember(target)) {
                 const enumTarget = idl.isEnumMember(target) ? target.parent : target
                 const stringEnum = isStringEnum(enumTarget)
-                enumsDeclarations.print(`typedef enum ${nameAssigned} {`)
+                const baseType = enumBaseType(target)
+                enumsDeclarations.print(`typedef enum ${nameAssigned}${baseType} {`)
                 enumsDeclarations.pushIndent()
                 for (let member of enumTarget.elements) {
                     const memberName = member.name
@@ -590,4 +591,12 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
         result.push(new NameWithType(name, type))
     }
     return result
+}
+
+function enumBaseType(decl: idl.IDLEnum | idl.IDLEnumMember): string {
+    if (!idl.isEnum(decl)) return ""
+    const { low, high } = idl.extremumOfOrdinals(decl)
+    if (low >=0 && high <= 255) return ": InteropUInt8"
+    if (low >=-128 && high <= 127) return ": InteropInt8"
+    return ""
 }
