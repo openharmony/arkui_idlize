@@ -48,8 +48,6 @@ arkgen ArkTS subset:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
-    # Download interface SDK
-    - npm run sdk:all --prefix external
     # Bundle idlizer
     - npm run bundle:idlizer --prefix external/arkoala-arkts/tools/idlizer-bundler
     # Build

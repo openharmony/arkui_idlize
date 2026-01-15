@@ -68,11 +68,11 @@ build external:
         - external/libarkts/lib
         - external/libarkts/build
         - external/ui2abc/annotate/lib
-        - external/ui2abc/fast-arktsc/lib
         - external/ui2abc/memo-plugin-ng/lib
         - external/ui2abc/ui-plugins-ng/lib
         - external/common/build
         - external/compat/build
+        - external/fast-arktsc/lib
         - external/incremental/runtime/build/lib
         - external/incremental/runtime/build/incremental.abc
         - external/incremental/runtime/ets
@@ -111,8 +111,9 @@ download external sdk:
     - koala-ci
     script:
     - !reference [.npm, script]
-    - npm run -C external download:sdk
+    - npm run -C external sdk:all
     artifacts:
         paths:
         - external/sdk-prepared
+        - external/absolute-sdk-patched
         expire_in: 1 day
