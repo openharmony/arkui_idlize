@@ -180,6 +180,7 @@ export function createEnumMember(
     parent: IDLEnum,
     type: IDLPrimitiveType,
     initializer: number | string | undefined,
+    initializerDecimalType: number = 0,
     nodeInitializer: IDLNodeInitializer = {},
 ): IDLEnumMember {
     return {
@@ -188,6 +189,7 @@ export function createEnumMember(
         parent,
         type,
         initializer,
+        initializerDecimalType,
         ...nodeInitializer,
         _idlNodeBrand: innerIdlSymbol,
         _idlEntryBrand: innerIdlSymbol,
