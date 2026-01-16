@@ -1,21 +1,3 @@
-test bundle:
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  needs:
-    - build idlize
-    - build external
-    - download sdk
-  script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-    - node ./tools/bundle.mjs 0.0.0-work-conf-v137 bundle
-    - cd bundle
-    - node install.js ./unpacked
-    - cd unpacked
-    - PANDA_SDK_PATH=../../external/incremental/tools/panda/node_modules/@panda/sdk npx runner m3 ../../sdk-patched-arkts ../../interfaces/interfaces/arkui-extra --output ../generated --sdk-stage prepared --arkgen-options-file ../../arkgen/generation-config/config.json
-    - cd ../..
 
 test sdk api compat:
   allow_failure: true
@@ -31,18 +13,3 @@ test sdk api compat:
     - npm run download:sdk
     - node idlinter/bin/check-api-compat.mjs --idlize interface_sdk-js $CI_COMMIT_REF_NAME master
 
-test complete sdk api:
-  allow_failure: true
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  needs:
-    - build idlize
-    - build external
-    - download sdk
-  script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-    - npm run -C etsgen run:sdk
-    - node idlinter check etsgen/out/idl --load libohos/predefined/stdlib.idl interfaces/interfaces

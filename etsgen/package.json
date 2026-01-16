@@ -39,8 +39,6 @@
         "compile": "npm run -C ../core compile && npm run compile:self",
         "plot:deps": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api && dot -T svg ./out/idl/deps.dot -o ./out/deps.svg",
         "plot:deps:noplot": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
-        "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",
-        "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
         "test": "npm run compile && npm run test:golden:features",
         "test-gen": "npm run compile && npm run test:golden:features-gen",
         "test:golden": "rimraf ./out/test-$TEST_CASE && node . --ets2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE",

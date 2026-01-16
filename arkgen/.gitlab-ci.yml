@@ -125,43 +125,6 @@ arkgen Kotlin subset:
     - npm run -C arkgen compile:kt:subset
     - npm run -C arkgen exec:kt:subset
 
-arkgen TS sdk:
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-  script:
-    - npm run -C arkgen setup:sdk:ts
-    - npm run -C arkgen gen-idl:sdk:ts
-    - npm run -C arkgen gen:sdk:ts
-    - npm run -C arkgen gen-modules:sdk:ts
-    - npm run -C arkgen build:sdk:ts
-    - npm run -C arkgen build-native:sdk:ts
-    - npm run -C arkgen exec:sdk:ts
-  needs:
-    - build idlize
-    - build external
-    - download sdk
-
-compile arkts peers:
-  stage: test
-  when: manual
-  tags:
-    - idlize-ci
-    - koala-ci
-  needs:
-  - build idlize
-  - build external
-  - download sdk
-  before_script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-    - cd $CI_PROJECT_DIR/arkgen
-  script:
-    - npm run make:compile:arkts:peers
 
 build arkoala-ts:
   allow_failure: true
@@ -228,23 +191,6 @@ publish idlize-linter:
     - build idlize
 
 
-check index-full:
-    stage: test
-    tags:
-      - idlize-ci
-      - koala-ci
-    needs:
-    - build idlize
-    - build external
-    - download sdk
-    before_script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-    - cd $CI_PROJECT_DIR/arkgen
-    script:
-      - npm run gen-idl:sdk:ts
-      - npm run gen:sdk:ts
-      - npm run check:index-full:ts
 
 subset CAPI golden:
   stage: test

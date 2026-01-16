@@ -53,7 +53,7 @@ export default {
     //       // process.exit(-1);
     //     }
     // },
-    external: ["commander", "typescript", "@idlizer/interfaces"],
+    external: ["commander", "typescript"],
     plugins: [
         typescript({
             outputToFilesystem: false,

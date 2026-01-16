@@ -41,7 +41,7 @@
     "scripts": {
         "clean": "rimraf lib .rollup.cache build",
         "compile:self": "tsc && rollup -c",
-        "compile": "npm run --prefix ../dtsgen compile && npm run compile -C ../interfaces && npm run --prefix ../libohos compile && npm run compile:self",
+        "compile": "npm run --prefix ../dtsgen compile && npm run --prefix ../libohos compile && npm run compile:self",
         "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",
         "panda:sdk:check-install": "npm run panda:sdk:check-install --prefix ../external/incremental/tools/panda",
         "compile:all": "npm run compile && npm run compile -C ../etsgen",

@@ -51,7 +51,6 @@ import { loadPeerConfiguration,
     NativeModule,
     syntheticTransformer,
 } from "@idlizer/libohos"
-import { readLibrary } from "@idlizer/interfaces"
 import { generateOhos } from "./ohos"
 import { suggestLibraryName } from "./OhosNativeVisitor"
 import { ohosgenDefaultConfigurationPaths } from "./config"
@@ -113,7 +112,6 @@ export function ohosgen(args: string[]) {
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
             .concat(skoalaPredefinedFiles())
-            .concat(options.implicitPredefined ? readLibrary('arkuiExtra') : [])
         const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
         idlInputFiles.forEach(idlFilename => {
             idlFilename = path.resolve(idlFilename)

@@ -35,7 +35,6 @@ build idlize:
         - etsgen/lib
         - idlinter/build
         - idlinter/dist
-        - interfaces/dist
         - libohos/build
         - linter/lib
         - ohosgen/build
@@ -83,26 +82,6 @@ build external:
         # need these symlinks for require in es2panda.js to work
         - external/ui2abc/node_modules/@koalaui/memo-plugin-ng
         - external/ui2abc/node_modules/@koalaui/ui-plugins-ng
-        expire_in: 1 day
-
-download sdk:
-    stage: build
-    tags:
-    - idlize-ci
-    - koala-ci
-    script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-    - npm run download:sdk
-    - npm run absolute:sdk
-    needs:
-    - build idlize
-    - build external
-    artifacts:
-        paths:
-        - sdk-patched
-        - sdk-patched-arkts
-        - absolute-sdk-patched-arkts
         expire_in: 1 day
 
 download external sdk:

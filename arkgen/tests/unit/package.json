@@ -11,7 +11,7 @@
   "devDependencies": {
   },
   "scripts": {
-    "gen": "node ../../ --no-implicit-predefined --api-version 99 --idl2peer --reference-names  ./conf/ets-sdk.refs.json --use-memo-m3 --arkts-extension .ets --input-files $(find ./idl -type f | tr '\\n' ' ')  --output-dir ./generated --language $LANG --ignore-default-config --options-file ./conf/config-arkui.json",
+    "gen": "node ../../ --api-version 99 --idl2peer --reference-names  ./conf/ets-sdk.refs.json --use-memo-m3 --arkts-extension .ets --input-files $(find ./idl -type f | tr '\\n' ' ')  --output-dir ./generated --language $LANG --ignore-default-config --options-file ./conf/config-arkui.json",
     "UNIT": "#-------------------",
     "init:arkts": "./scripts/init-arkts.sh",
     "gen:arkts": "LANG=arkts npm run gen",

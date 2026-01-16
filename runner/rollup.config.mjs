@@ -57,7 +57,6 @@ export default {
     external: [
         "commander",
         "typescript",
-        "@idlizer/interfaces",
         "@koalaui/libarkts"
     ],
     plugins: [
