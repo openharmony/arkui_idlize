@@ -700,6 +700,10 @@
                 "hookName": "hookDragEventGetSummary",
                 "replaceImplementation": true
             },
+            "setDataLoadParams": {
+                "hookName": "hookDragEventSetDataLoadParams",
+                "replaceImplementation": true
+            },
             "enableInternalDropAnimation": {
                 "hookName": "hookEnableInternalDropAnimation",
                 "replaceImplementation": true
