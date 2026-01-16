@@ -308,10 +308,6 @@ export class OverloadsPrinter {
         const key = peer + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
-            if (this.isComponent) {
-                writer.print(`if (this.checkPriority('${collapsedMethod.name}')) {`)
-                this.printer.pushIndent()
-            }
             const hookMethod = getHookMethod(methods[0].originalParentName, collapsedMethod.name)
             if (hookMethod) {
                 this.printHookedMethodBody(peer, collapsedMethod, hookMethod.hookName, writer)
@@ -320,11 +316,6 @@ export class OverloadsPrinter {
                 }
             } else {
                 this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
-            }
-            if (this.isComponent) {
-                this.printer.popIndent()
-                this.printer.print(`}`)
-                this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
     }

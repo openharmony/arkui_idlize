@@ -86,7 +86,7 @@ export class EtsAssignStatement implements LanguageStatement {
             const typeClause = this.type !== undefined ? `: ${writer.getNodeName(this.type)}` : ''
             const maybeAssign = this.expression !== undefined ? " = " : ""
             const initValue = this.expression !== undefined ? this.expression : writer.makeString("")
-            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName} ${typeClause}${maybeAssign}${initValue.asString()}`)
+            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName}${typeClause}${maybeAssign}${initValue.asString()}`)
         } else {
             const receiver = this.options?.receiver
             const withReceiver = receiver ? `${receiver}.` : ""
