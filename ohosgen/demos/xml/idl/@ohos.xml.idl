@@ -1,0 +1,93 @@
+package ohos.xml;
+[DefaultExport]
+namespace xml {
+    [Entity=Class]
+    interface XmlDynamicSerializer {
+        constructor(optional String encoding);
+        [Throws]
+        void setAttributes(String name, String value);
+        [Throws]
+        void addEmptyElement(String name);
+        [Throws]
+        void setDeclaration();
+        [Throws]
+        void startElement(String name);
+        [Throws]
+        void endElement();
+        [Throws]
+        void setNamespace(String prefix, String namespace);
+        [Throws]
+        void setComment(String text);
+        [Throws]
+        void setCdata(String text);
+        [Throws]
+        void setText(String text);
+        [Throws]
+        void setDocType(String text);
+        buffer getOutput();
+    };
+    [Entity=Class]
+    interface XmlSerializer {
+        constructor((buffer or DataView) buffer, optional String encoding);
+        [Throws]
+        void setAttributes(String name, String value);
+        [Throws]
+        void addEmptyElement(String name);
+        void setDeclaration();
+        [Throws]
+        void startElement(String name);
+        void endElement();
+        [Throws]
+        void setNamespace(String prefix, String namespace);
+        [Throws]
+        void setComment(String text);
+        [Throws]
+        void setCDATA(String text);
+        [Throws]
+        void setText(String text);
+        [Throws]
+        void setDocType(String text);
+    };
+    dictionary EventType {
+        number START_DOCUMENT = 0;
+        number END_DOCUMENT = 1;
+        number START_TAG = 2;
+        number END_TAG = 3;
+        number TEXT = 4;
+        number CDSECT = 5;
+        number COMMENT = 6;
+        number DOCDECL = 7;
+        number INSTRUCTION = 8;
+        number ENTITY_REFERENCE = 9;
+        number WHITESPACE = 10;
+    };
+    interface ParseInfo {
+        i32 getColumnNumber();
+        i32 getDepth();
+        i32 getLineNumber();
+        String getName();
+        String getNamespace();
+        String getPrefix();
+        String getText();
+        boolean isEmptyElementTag();
+        boolean isWhitespace();
+        i32 getAttributeCount();
+    };
+    [Synthetic]
+    callback Callback_String_String_Boolean = boolean (String name, String value);
+    [Synthetic]
+    callback Callback_EventType_ParseInfo_Boolean = boolean (EventType eventType, ParseInfo value);
+    interface ParseOptions {
+        optional attribute boolean supportDoctype;
+        optional attribute boolean ignoreNameSpace;
+        optional attribute Callback_String_String_Boolean tagValueCallbackFunction;
+        optional attribute Callback_String_String_Boolean attributeValueCallbackFunction;
+        optional attribute Callback_EventType_ParseInfo_Boolean tokenValueCallbackFunction;
+    };
+    [Entity=Class]
+    interface XmlPullParser {
+        constructor((buffer or DataView) buffer, optional String encoding);
+        [Throws]
+        void parseXml(ParseOptions option);
+    };
+};
