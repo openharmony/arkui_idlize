@@ -15,6 +15,8 @@
 
 import { createEmptyReferenceResolver, IndentedPrinter, Language, LanguageWriter, NativeModuleType, PeerLibrary, TSLanguageWriter, TSTypeNameConvertor } from "@idlizer/core";
 
-export function createLanguageWriter(lang:Language): LanguageWriter {
-    return new TSLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new TSTypeNameConvertor(new PeerLibrary(lang, new NativeModuleType('__'))))
+export namespace legacy {
+    export function createLanguageWriter(lang:Language): LanguageWriter {
+        return new TSLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new TSTypeNameConvertor(new PeerLibrary(lang, new NativeModuleType('__'))))
+    }
 }

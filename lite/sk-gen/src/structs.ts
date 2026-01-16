@@ -16,7 +16,7 @@
 import { createConstructor, createParameter, createReferenceType, hasExtAttribute, IDLBooleanType, IDLConstructor, IDLEnum, IDLExtendedAttributes, IDLF32Type, IDLI32Type, IDLInterface, IDLPointerType, IDLType, IDLVoidType, isEnum, isInterface, isReferenceType } from "@idlizer/core/idl"
 import { E, LWExpression, LWStatement, LWType, S, Ts } from "@idlizer/ost"
 import { terminate } from "@idlizer/kit"
-import { IDLLibrary } from "./library"
+import { GeneratorLibrary } from "./library"
 import { GO } from "./generator"
 
 export interface StructMemoryInfo {
@@ -34,7 +34,7 @@ export interface StructMemoryInfo {
 
 ///
 
-function typeSizeOf(type: IDLType, lib: IDLLibrary): number {
+function typeSizeOf(type: IDLType, lib: GeneratorLibrary): number {
     if (type === IDLI32Type) {
         return 1
     }
@@ -67,7 +67,7 @@ interface SelectStat {
     i32: number
 }
 
-function selectBaseTypeFor(type: IDLType, lib:IDLLibrary, seenVals: Set<StructMemoryInfo['basedOn']>): SelectStat {
+function selectBaseTypeFor(type: IDLType, lib:GeneratorLibrary, seenVals: Set<StructMemoryInfo['basedOn']>): SelectStat {
     if (type === IDLI32Type) {
         return { i32: 1, f32: 0 }
     }
@@ -104,7 +104,7 @@ function selectBaseTypeFor(type: IDLType, lib:IDLLibrary, seenVals: Set<StructMe
 
 class FieldAssigner {
     constructor(
-        private library: IDLLibrary,
+        private library: GeneratorLibrary,
         private basedOn: StructMemoryInfo['basedOn']
     ) { }
 
@@ -262,11 +262,11 @@ class FieldAssigner {
 }
 
 // REVIEW AND REWORK THE METHOD
-export function makeStructureInfo(decl: IDLInterface, lib: IDLLibrary): StructMemoryInfo {
+export function makeStructureInfo(decl: IDLInterface, lib: GeneratorLibrary): StructMemoryInfo {
     return makeStructureInfoUnpacked(decl, lib)
 }
 
-function makeStructureInfoUnpacked(decl: IDLInterface, lib: IDLLibrary): StructMemoryInfo {
+function makeStructureInfoUnpacked(decl: IDLInterface, lib: GeneratorLibrary): StructMemoryInfo {
 
     const offsetTable: number[] = []
     let structureSize = 0

@@ -15,37 +15,48 @@
 
 import { IDLType, isReferenceType, isPrimitiveType, isOptionalType, isContainerType, DebugUtils, IDLMethod, isInterface, IDLInterface, getFQName, IDLEnum, IDLPrimitiveType, IDLPointerType, IDLBooleanType, IDLI32Type, IDLU32Type, IDLF32Type, IDLBufferType, IDLStringType, IDLVoidType, IDLContainerType, IDLContainerUtils, IDLOptionalType, isNamespace, isEnum, isCallback, IDLKind, IDLReferenceType, IDLEntry, createReferenceType, IDLThisType, IDLObjectType, IDLCallback, createMethod, createParameter, IDLProperty, linkParentBack, isMethod, hasExtAttribute, IDLExtendedAttributes, getExtAttribute, forEachChild, isUnionType, toIDLString, printType, isType, isTypedef, IDLTypedef, getPackageClause, getNamespaceName, getNamespacesPathFor } from "@idlizer/core/idl"
 import { LWType, FunctionDeclaration, Modifier, Md, E, T, Vs, DD, S, D, Ts, LWExpression, LWStatement, std, LWKind } from "@idlizer/ost"
-import { terminate, makeSeed, ProducerResult, ProducerContext } from "@idlizer/kit"
-import { IDLLibrary } from "./library"
+import { terminate, ProducerResult, ProducerContext, Seed, onlyFor } from "@idlizer/kit"
+import { GeneratorLibrary } from "./library"
 import { TYPES } from "./shared"
 import { selectDeclaration, selectEQ, Selector, SelectorBuilder, selectReference, selectType } from "./selector"
 import { capitalize } from "@idlizer/core"
 import { makeStructureInfo } from "./structs"
 
-export type GeneratorSeed = {
-    typeToGenerate: IDLType
-}
+export class GeneratorSeed extends Seed {
 
-export function hashFromType(type: IDLType): string {
-    if (isReferenceType(type)) {
-        return 'REF:' + type.name
+    constructor(
+        public typeToGenerate: IDLType
+    ) {
+        super()
     }
-    if (isPrimitiveType(type)) {
-        return 'PRIMITIVE:' + type.name
-    }
-    if (isOptionalType(type)) {
-        return 'OPTIONAL:' + hashFromType(type.type)
-    }
-    if (isContainerType(type)) {
-        return 'CONTAINER:' + type.elementType.map(e => hashFromType(e)).join(':')
-    }
-    terminate(`CAN NOT HASH TYPE "${DebugUtils.debugPrintType(type)}"`)
-}
 
-export const GeneratorSeed = makeSeed<GeneratorSeed>(s => "SEED:" + hashFromType(s.typeToGenerate), s => `Generating "${printType(s.typeToGenerate)}"`)
+    private hashFromType(type: IDLType): string {
+        if (isReferenceType(type)) {
+            return 'REF:' + type.name
+        }
+        if (isPrimitiveType(type)) {
+            return 'PRIMITIVE:' + type.name
+        }
+        if (isOptionalType(type)) {
+            return 'OPTIONAL:' + this.hashFromType(type.type)
+        }
+        if (isContainerType(type)) {
+            return 'CONTAINER:' + type.elementType.map(e => this.hashFromType(e)).join(':')
+        }
+        terminate(`CAN NOT HASH TYPE "${DebugUtils.debugPrintType(type)}"`)
+    }
+
+    hash(): string {
+        return this.hashFromType(this.typeToGenerate)
+    }
+
+    debugMessage(): string {
+        return `Generating "${printType(this.typeToGenerate)}"`
+    }
+}
 
 export const GO = {
-    typeName: (type: IDLType): LWType => GeneratorSeed.createType({ typeToGenerate: type })
+    typeName: (type: IDLType): LWType => T.hole(new GeneratorSeed(type))
 }
 
 ///
@@ -94,7 +105,7 @@ function satisfyTypePred(type: IDLType, predicate: (type: IDLType) => boolean): 
     return found
 }
 
-function isPrimitiveCollection(type: IDLContainerType, lib: IDLLibrary): boolean {
+function isPrimitiveCollection(type: IDLContainerType, lib: GeneratorLibrary): boolean {
     if (([IDLI32Type, IDLF32Type, IDLStringType] as IDLType[]).includes(type.elementType[0])) {
         return true
     }
@@ -110,7 +121,7 @@ function isPrimitiveCollection(type: IDLContainerType, lib: IDLLibrary): boolean
     return false
 }
 
-function evalBlacklistMethodFilter(text: string, lib: IDLLibrary, methodOrProp: IDLMethod | IDLProperty): boolean {
+function evalBlacklistMethodFilter(text: string, lib: GeneratorLibrary, methodOrProp: IDLMethod | IDLProperty): boolean {
     if (!text.startsWith('$')) {
         terminate(`CAN NOT FILTER WITH OPTION "${text}"`)
     }
@@ -151,7 +162,7 @@ function evalBlacklistMethodFilter(text: string, lib: IDLLibrary, methodOrProp: 
     terminate(`UNKNOWN PREDICATE "${command}"`)
 }
 
-function findBlacklistRecord(ref: string, lib: IDLLibrary) {
+function findBlacklistRecord(ref: string, lib: GeneratorLibrary) {
     return lib.config.declarations.custom.find(record => record === ref)
         ?? lib.config.declarations.ignore.find(record => {
             if (typeof record === 'string') {
@@ -161,11 +172,11 @@ function findBlacklistRecord(ref: string, lib: IDLLibrary) {
         })
 }
 
-function isInterfaceWhitelisted(ref: string, lib: IDLLibrary): boolean {
+function isInterfaceWhitelisted(ref: string, lib: GeneratorLibrary): boolean {
     return !findBlacklistRecord(ref, lib)
 }
 
-function isWhitelistedMember(ref: string, member: IDLMethod | IDLProperty, lib: IDLLibrary): boolean {
+function isWhitelistedMember(ref: string, member: IDLMethod | IDLProperty, lib: GeneratorLibrary): boolean {
     const record = findBlacklistRecord(ref, lib)
     if (!record) {
         return true
@@ -178,7 +189,7 @@ function isWhitelistedMember(ref: string, member: IDLMethod | IDLProperty, lib: 
 
 ///
 
-function printIDLTypeForce(type: IDLType, lib: IDLLibrary): LWType {
+function printIDLTypeForce(type: IDLType, lib: GeneratorLibrary): LWType {
     type = lib.followTypedefs(type)
     if (isPrimitiveType(type)) {
         if (knownPrimitives.has(type)) {
@@ -205,7 +216,7 @@ function printIDLTypeForce(type: IDLType, lib: IDLLibrary): LWType {
     terminate("NOT SUPPORTED IDL TYPE")
 }
 
-function generateCustomMethod(method: IDLMethod, lib: IDLLibrary, selector: Selector): FunctionDeclaration {
+function generateCustomMethod(method: IDLMethod, lib: GeneratorLibrary, selector: Selector): FunctionDeclaration {
     const body: LWStatement[] = []
     const callee = E.get(E.v('custom'), 'impl' + getFQName(method).split('.').map(capitalize).join(''))
     const callArgs = method.parameters.map(param => E.v(param.name))
@@ -228,7 +239,7 @@ function generateCustomMethod(method: IDLMethod, lib: IDLLibrary, selector: Sele
 
 ///
 
-function generateBridgeAndNM(method: IDLMethod, lib: IDLLibrary, selector: Selector): [FunctionDeclaration, FunctionDeclaration] {
+function generateBridgeAndNM(method: IDLMethod, lib: GeneratorLibrary, selector: Selector): [FunctionDeclaration, FunctionDeclaration] {
     const modifiers: Modifier[] = []
     if (method.isStatic) {
         modifiers.push(Md.static())
@@ -867,7 +878,7 @@ export function buildSelectors() {
 ///
 
 export interface RollProps {
-    library: IDLLibrary
+    library: GeneratorLibrary
     selector: Selector
 }
 

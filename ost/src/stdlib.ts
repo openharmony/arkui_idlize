@@ -26,6 +26,7 @@ const knownHints = {
     arrayInstance: 'arrayInstance',
     excl: 'excl',
     macroCall: 'macroCall',
+    questionMark: 'questionMark',
 }
 
 const knownModifiers = {
@@ -118,6 +119,7 @@ export const Hs = {
     arrayInstance: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.arrayInstance }),
     excl: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.excl }),
     macroCall: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.macroCall }),
+    questionMark: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.questionMark })
 }
 
 export const Md = {

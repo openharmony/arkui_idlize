@@ -15,7 +15,7 @@
 
 import { DiagnosticMessageGroup, DiagnosticResults, forEachChild, Location} from "@idlizer/core";
 import { hasExtAttribute, IDLExtendedAttributes, IDLFile, IDLNode, IDLNumberType, IDLReferenceType, isInterface, isMethod, isReferenceType } from "@idlizer/core/idl"
-import { IDLLibrary } from "./library";
+import { GeneratorLibrary } from "./library";
 
 const InputFatal = new DiagnosticMessageGroup("error", "InputFatal", "Input error")
 const InputWarning = new DiagnosticMessageGroup("warning", "InputWarning", "Input warning")
@@ -29,7 +29,7 @@ function over<T, U>(x:T | undefined, op:(x:T) => U): U | undefined {
 
 class DiagnosticRunner {
     constructor(
-        private library: IDLLibrary
+        private library: GeneratorLibrary
     ) {}
 
     private forEach(op:(node:IDLNode) => void) {
@@ -139,12 +139,11 @@ class DiagnosticRunner {
     }
 }
 
-export function doInputDiagnostics(library:IDLLibrary): DiagnosticResults {
+export function doInputDiagnostics(library:GeneratorLibrary): void {
     const runner = new DiagnosticRunner(library)
     runner.checkLegacyTypes()
     runner.checkSupportedTypes()
     runner.checkMethods()
     runner.checkUnresolvedReferences()
     runner.checkDataClasses()
-    return DiagnosticMessageGroup.collectedResults
 }

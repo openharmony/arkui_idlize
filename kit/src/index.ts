@@ -20,6 +20,11 @@ export * from './cli/utils'
 
 ///
 
+export * from './legacy'
+export * from './appBuilder'
+
+///
+
 export * from './engine'
 
 ///

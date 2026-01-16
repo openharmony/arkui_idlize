@@ -239,6 +239,9 @@ export class TSPrinter {
       }
       case lw.LWKind.AccessorExpression: {
         this.maybeUseParen([lw.LWKind.BinaryExpression, lw.LWKind.UnaryExpression].includes(expression.base.kind), () => this.printExpression(expression.base))
+        if (utils.hasHint(expression, std.names.hints.questionMark)) {
+          this.p.put('?')
+        }
         if (typeof expression.accessor === 'string') {
           this.p.put('.', expression.accessor)
         } else {

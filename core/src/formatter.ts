@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-import { DiagnosticResults, MessageSeverityList, DiagnosticMessage, Range } from "./diagnostictypes"
+import { DiagnosticResults, MessageSeverityList, DiagnosticMessage, Range, MessageSeverity } from "./diagnostictypes"
 
-type Logger = (...msg:string[]) => void
-
-let logger: Logger = (...msg) => console.log(...msg)
+type Logger = (severity:MessageSeverity, ...msg:string[]) => void
+let logger: Logger = (_, ...msg) => console.log(...msg)
 
 export function setFormatterLogger(log:Logger) {
     logger = log
@@ -35,7 +34,7 @@ function outputReadableTotals(result: DiagnosticResults): void {
     for (let k of MessageSeverityList) {
         totals.push(`${k}: ${result.totals[k]}`)
     }
-    logger(totals.join(", "))
+    logger('information', totals.join(", "))
 }
 
 function lineDigitCount(message: DiagnosticMessage): number {
@@ -82,7 +81,7 @@ export function outputDiagnosticMessageFormatted(message: DiagnosticMessage): vo
     if (message.parts.length == 0) {
         return
     }
-    logger(`${message.severity}[${message.code}]: ${message.codeDescription}`)
+    logger(message.severity, `${message.severity}[${message.code}]: ${message.codeDescription}`)
     let digits = lineDigitCount(message)
     let indent = " ".repeat(digits)
     let first: boolean = true
@@ -92,24 +91,24 @@ export function outputDiagnosticMessageFormatted(message: DiagnosticMessage): vo
         if (location.range != null && location.lines != null) {
             let range = location.range
             let lines = location.lines
-            logger(`${indent}${lastPath != part.location.documentPath ? "-->" : ":::"} ${part.location.documentPath}:${range.start.line}:${range.start.character}`)
-            logger(`${indent} |`)
+            logger(message.severity, `${indent}${lastPath != part.location.documentPath ? "-->" : ":::"} ${part.location.documentPath}:${range.start.line}:${range.start.character}`)
+            logger(message.severity, `${indent} |`)
             const last = Math.min(range.end.line + 1, lines.length - 1)
             for (let i = Math.max(range.start.line - 1, 1); i <= last; ++i) {
-                logger(formatLine(digits, lines, i))
+                logger(message.severity, formatLine(digits, lines, i))
                 if (i >= range.start.line && i <= range.end.line) {
-                    logger(formatUnderline(indent, lines, i, range, "^", first ? "-" : "~", part.message))
+                    logger(message.severity, formatUnderline(indent, lines, i, range, "^", first ? "-" : "~", part.message))
                 }
             }
         } else {
-            logger(`${indent}--> ${part.location.documentPath}`)
+            logger(message.severity, `${indent}--> ${part.location.documentPath}`)
             if (message.parts.length > 1) {
-                logger(`${indent} # ${part.message}`)
+                logger(message.severity, `${indent} # ${part.message}`)
             }
         }
         first = false
         lastPath = part.location.documentPath
     }
-    logger(`${indent} = ${message.parts[0].message}`)
-    logger()
+    logger(message.severity, `${indent} = ${message.parts[0].message}`)
+    logger(message.severity)
 }
