@@ -9,6 +9,7 @@
     "dumpSerialized": false,
     "ignoreMaterialized": [
         "AnimatableArithmetic",
+        "CrownEvent",
         "CustomLayoutRoot",
         "DynamicNode",
         "GestureHandler",
@@ -29,6 +30,9 @@
         "arkui.component.ContentModifier"
     ],
     "forceMaterialized": [
+        "Indicator",
+        "DigitIndicator",
+        "DotIndicator",
         "TapGestureInterface",
         "LongPressGestureInterface",
         "PanGestureInterface",
@@ -452,7 +456,8 @@
         ]
     },
     "forceResource": [
-        "ContentModifier"
+        "ContentModifier",
+        "UserDataSpan"
     ],
     "boundProperties": {
         "Checkbox": [
@@ -563,11 +568,8 @@
         "Record"
     ],
     "builderClasses": [
-        "Indicator",
         "SubTabBarStyle",
-        "BottomTabBarStyle",
-        "DotIndicator",
-        "DigitIndicator"
+        "BottomTabBarStyle"
     ],
     "components": {
         "customNodeTypes": [
@@ -747,6 +749,10 @@
             "dragPreviewOptions": {
                 "hookName": "hookDragPreviewOptions",
                 "replaceImplementation": true
+            },
+            "drawModifier": {
+                "hookName": "hookDrawModifier",
+                "replaceImplementation": true
             }
         },
         "CheckboxAttribute": {
@@ -904,11 +910,11 @@
             },
             "analyzerConfig": {
                 "hookName": "hookVideoAnalyzerConfig",
-                "replaceImplementation": true
+                "replaceImplementation": false
             },
             "onError": {
                 "hookName": "hookVideoOnError",
-                "replaceImplementation": true
+                "replaceImplementation": false
             }
         },
         "waterFlowAttribute": {

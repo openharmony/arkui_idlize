@@ -33,7 +33,7 @@ interface LengthMetricsCustom {
 
 [Entity=Class]
 interface UIContextGetInfo {
-    static (observer.NavigationInfo or undefined) getNavigationInfoByUniqueId(i32 id);
+    static (observer.NavigationInfo or undefined) getNavigationInfoByUniqueId(i64 id);
     static void enableSwipeBack((boolean or undefined) enabled);
 };
 
@@ -49,13 +49,13 @@ interface SystemOps {
     static void resourceManagerReset();
     static void setFrameCallback(Callback_Long_Void onFrameCallback, Callback_Long_Void onIdleCallback, i64 delayTime);
     static sequence<number> colorMetricsResourceColor(Resource color);
-    static LengthMetricsCustom resourceToLengthMetrics(Resource res);
     static sequence<number> blendColorByColorMetrics(number color, number overlayColor);
+    static LengthMetricsCustom resourceToLengthMetrics(Resource res);
 };
 
 [Entity=Class]
 interface GestureOps {
-    static pointer createTapGesture(number fingers, number count, number distanceThreshold, boolean isFingerCountLimited);
+    static pointer createTapGesture(number fingers, number count, f64 distanceThreshold, boolean isFingerCountLimited);
     static pointer createLongPressGesture(number fingers, boolean repeat, number duration, boolean isFingerCountLimited);
     static pointer createPanGesture(number fingers, PanDirection direction, number distance, boolean isFingerCountLimited);
     static pointer createPanGestureWithPanGestureOptions(pointer panGestureOptions);
@@ -225,8 +225,10 @@ interface BuilderNodeOps {
     void setUpdateConfigurationCallback(Callback_Void configurationUpdateFunc);
     void setOptions(BuilderNodeOptions options);
     boolean postTouchEvent(TouchEvent event);
+    boolean postInputEvent(optional InputEventType event);
     pointer setRootFrameNodeInBuilderNode(pointer node);
 };
+typedef (TouchEvent or MouseEvent or AxisEvent) InputEventType;
 
 [Entity=Class]
 interface NodeContainerOps {
@@ -238,6 +240,7 @@ interface NodeContainerOps {
     static void setAboutToResize(pointer self, Callback_Size_Void value);
     static void setOnAttach(pointer self, Callback_Void value);
     static void setOnDetach(pointer self, Callback_Void value);
+    static void setOnTouchEvent(pointer self, optional Callback_TouchEvent_Void value);
     static void setOnDestoryEvent(pointer self, Callback_OnDestory_Void value);
 };
 callback Callback_Size_Void = void (Size size);
