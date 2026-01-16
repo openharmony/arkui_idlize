@@ -697,6 +697,10 @@
             "getSummary": {
                 "hookName": "hookDragEventGetSummary",
                 "replaceImplementation": true
+            },
+            "enableInternalDropAnimation": {
+                "hookName": "hookEnableInternalDropAnimation",
+                "replaceImplementation": true
             }
         },
         "ButtonAttribute": {
