@@ -21,23 +21,23 @@ dictionary NumberEnum {
 };
 dictionary BinaryEnum {
     [OriginalEnumMemberName=Value0]
-    number VALUE_0 = 0;
+    number VALUE_0 = 0b0;
     [OriginalEnumMemberName=Value1]
-    number VALUE_1 = 1;
+    number VALUE_1 = 0b1;
     [OriginalEnumMemberName=Value101]
-    number VALUE_101 = 5;
+    number VALUE_101 = 0b101;
     [OriginalEnumMemberName=Value1001]
-    number VALUE_1001 = 9;
+    number VALUE_1001 = 0b1001;
 };
 dictionary HexEnum {
     [OriginalEnumMemberName=Value0]
-    number VALUE_0 = 0;
+    number VALUE_0 = 0x0;
     [OriginalEnumMemberName=Value1]
-    number VALUE_1 = 1;
+    number VALUE_1 = 0x1;
     [OriginalEnumMemberName=ValueAB]
-    number VALUE_AB = 171;
+    number VALUE_AB = 0xAB;
     [OriginalEnumMemberName=ValueCD]
-    number VALUE_CD = 205;
+    number VALUE_CD = 0xCD;
 };
 dictionary StringEnum {
     [OriginalEnumMemberName=Value1]

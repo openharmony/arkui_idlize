@@ -300,13 +300,20 @@ export class IDLWriter {
         return this.popIndent().print("};")
     }
 
+    getInitializerValue(type: string, decimalType: number, initializer: number | string): string {
+        if (type == IDLStringType.name) return `"${String(initializer).replaceAll('"', "'")}"`
+        switch (decimalType) {
+            case 2: return `0b${initializer.toString(2)}`
+            case 16: return `0x${initializer.toString(16).toUpperCase()}`
+            default: return `${initializer}`
+        }
+    }
+
     printEnumMember(idl: IDLEnumMember): this {
         const type = printType(idl.type)
         const initializer = idl.initializer === undefined
             ? ''
-            : ' = ' + (type === IDLStringType.name
-                ? `"${String(idl.initializer).replaceAll('"', "'")}"`
-                : idl.initializer)
+            : ` = ${this.getInitializerValue(type, idl.initializerDecimalType, idl.initializer)}`
 
         return this.print(idl.documentation)
             .printExtendedAttributes(idl)
