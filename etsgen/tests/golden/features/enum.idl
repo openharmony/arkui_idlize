@@ -38,6 +38,8 @@ dictionary HexEnum {
     number VALUE_AB = 0xAB;
     [OriginalEnumMemberName=ValueCD]
     number VALUE_CD = 0xCD;
+    [OriginalEnumMemberName=ValueFFFFFFFF]
+    number VALUE_FFFFFFFF = 0xFFFFFFFF;
 };
 dictionary StringEnum {
     [OriginalEnumMemberName=Value1]

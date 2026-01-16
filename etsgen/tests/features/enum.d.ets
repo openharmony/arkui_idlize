@@ -24,6 +24,7 @@ export enum HexEnum {
     Value1 = 0X1,
     ValueAB = 0xAB,
     ValueCD = 0XCD,
+    ValueFFFFFFFF = 0xFFFFFFFF,
 }
 
 export enum StringEnum {
