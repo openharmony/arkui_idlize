@@ -1085,7 +1085,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             parent,
             typeof initializer == 'string' ? idl.IDLStringType : idl.IDLNumberType,
             initializer,
-            undefined,
+            typeof initializer == 'string' ? undefined : 0,
             {
             fileName: node.getSourceFile().fileName,
             documentation: getDocumentation(this.sourceFile, node, this.options.docs),
