@@ -38,5 +38,25 @@ namespace font {
         attribute sequence<UIFontGenericInfo> generic;
         attribute sequence<UIFontFallbackGroupInfo> fallbackGroups;
     };
+
+    [Entity=Interface]
+    interface FontInfo {
+        attribute String path;
+        attribute String postScriptName;
+        attribute String fullName;
+        attribute String family;
+        attribute String subfamily;
+        attribute number weight;
+        attribute number width;
+        attribute boolean italic;
+        attribute boolean monoSpace;
+        attribute boolean symbolic;
+    };
+
+    [Entity=Interface]
+    interface FontOptions {
+        attribute (String or Resource) familyName;
+        attribute (String or Resource) familySrc;
+    };
 };
 

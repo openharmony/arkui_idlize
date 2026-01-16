@@ -97,7 +97,7 @@ interface CustomDialogControllerOptionsExtender {
   [Optional]
   attribute boolean customStyle;
   [Optional]
-  attribute number gridCount;
+  attribute i32 gridCount;
   [Optional]
   attribute ResourceColor maskColor;
   [Optional]
@@ -153,7 +153,7 @@ interface CustomDialogControllerOptionsExtender {
   [Optional]
   attribute LevelMode levelMode;
   [Optional]
-  attribute number levelUniqueId;
+  attribute i32 levelUniqueId;
   [Optional]
   attribute ImmersiveMode immersiveMode;
   [Optional]

@@ -1,7 +1,9 @@
 {
     "target": [
         "arkui.component",
-        "arkui.AttributeUpdater"
+        "arkui.AttributeUpdater",
+        "ohos.arkui.ArcList",
+        "ohos.arkui.ArcScrollBar"
     ],
     "main": {
         "additionalPackages": [

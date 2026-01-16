@@ -67,10 +67,18 @@
         "ForEach",
         "_r",
         "_rawfile",
-        "LazyGridLayoutAttribute",
-        "LazyVGridLayoutAttribute",
-        "LazyVGridLayoutInterface",
-        "DynamicNode"
+        "DynamicNode",
+        "ArcListInterface",
+        "ArcListItemInterface",
+        "ArcScrollBarInterface",
+        "Gesture",
+        "GestureGroup",
+        "TapGesture",
+        "LongPressGesture",
+        "PanGesture",
+        "PinchGesture",
+        "RotationGesture",
+        "SwipeGesture"
     ],
     "DeletedMembers": {
         "CommonMethod": [

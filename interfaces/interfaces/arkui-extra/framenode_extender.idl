@@ -74,7 +74,7 @@ interface FrameNodeExtender {
   static i32 getLastChildIndexWithoutExpand(FrameNode peer);
   static pointer getAttachedFrameNodeById(String id);
   static pointer getFrameNodeById(number id);
-  static pointer getFrameNodeByUniqueId(number id);
+  static pointer getFrameNodeByUniqueId(i32 id);
   static void reuse(FrameNode peer);
   static void recycle(FrameNode peer);
   static boolean createAnimation(FrameNode peer, AnimationPropertyType property, (sequence<f64> or undefined) startValue, sequence<f64> endValue, AnimateParam param);
@@ -84,14 +84,14 @@ interface FrameNodeExtender {
   static pointer createTypedFrameNode(String type);
   static pointer createByRawPtr(pointer ptr);
   static pointer unWrapRawPtr(pointer ptr);
-  static UICommonEvent getCommonEvent(FrameNode peer);
+  static UICommonEvent getCommonEvent(pointer peer);
+  static sequence<f64> convertPoint(FrameNode peer, FrameNode node, NodePosition vector2);
   static pointer getRenderNode(pointer peer);
   static i32 adoptChild(FrameNode peer, FrameNode child);
   static i32 removeAdoptedChild(FrameNode peer, FrameNode child);
   static boolean isOnRenderTree(FrameNode peer);
   static boolean isOnMainTree(FrameNode peer);
-  static NodePosition convertPosition(FrameNode peer, NodePosition position, FrameNode targetNode);
-  static NodePosition convertPositionToWindow(FrameNode peer, NodePosition positionByLocal);
-  static NodePosition convertPositionFromWindow(FrameNode peer, NodePosition positionByWindow);
+  static sequence<f64> convertPositionToWindow(FrameNode peer, NodePosition positionByLocal);
+  static sequence<f64> convertPositionFromWindow(FrameNode peer, NodePosition positionByWindow);
   static void applyAttributesFinish(FrameNode peer);
 };
