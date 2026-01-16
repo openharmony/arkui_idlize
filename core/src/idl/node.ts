@@ -203,7 +203,7 @@ export interface IDLEnumMember extends IDLEntry {
     type: IDLPrimitiveType
     // TODO: remove undefined case
     initializer: number | string | undefined
-    initializerDecimalType: number
+    initializerDecimalType: number | undefined
 }
 
 export interface IDLConstant extends IDLTypedEntry {

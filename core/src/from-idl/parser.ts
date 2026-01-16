@@ -938,7 +938,7 @@ export class Parser {
             extracted = extractLiteral(value)
         }
         this.skip(";")
-        return idl.createEnumMember(name.value, undefined as any as idl.IDLEnum, type, extracted?.extractedValue, extracted?.decimalType ?? 0, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
+        return idl.createEnumMember(name.value, undefined as any as idl.IDLEnum, type, extracted?.extractedValue, extracted?.decimalType, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
     }
 
     parsePackage(): {location: Location, name: string} {
@@ -1005,10 +1005,10 @@ interface ExtractedLiteral {
     type: string
     extractedString: string
     extractedValue: string | number
-    decimalType: number
+    decimalType: number | undefined
 }
 
-const extractedUndefined: ExtractedLiteral = {type: "undefined", extractedString: "undefined", extractedValue: "undefined", decimalType: 0}
+const extractedUndefined: ExtractedLiteral = {type: "undefined", extractedString: "undefined", extractedValue: "undefined", decimalType: undefined }
 
 function getDecimalType(value: string) {
     if (value.startsWith("0b") || value.startsWith("0B")) return 2
@@ -1033,7 +1033,7 @@ function extractLiteral(token: Token): ExtractedLiteral {
         const type = literalTypes.get(token.value)!
         const extractedString = token.value
         const extractedValue = type == "number" ? extractNumber(extractedString) : extractedString
-        const decimalType = getDecimalType(extractedString)
+        const decimalType = type == "number" ? getDecimalType(extractedString) : undefined
         return {type, extractedString, extractedValue, decimalType}
     }
     if (token.kind != TokenKind.Literal) {
@@ -1043,7 +1043,7 @@ function extractLiteral(token: Token): ExtractedLiteral {
     if (token.value[0] == "\"") {
         try {
             const extractedString = unescapeString(token.value)
-            return {type: "string", extractedString, extractedValue: extractedString, decimalType: 0}
+            return {type: "string", extractedString, extractedValue: extractedString, decimalType: undefined}
         }
         catch (e) {
             IncorrectLiteral.reportDiagnosticMessage([token.location], `Incorrect literal: ${(e as Error).message}`)

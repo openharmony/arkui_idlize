@@ -180,7 +180,7 @@ export function createEnumMember(
     parent: IDLEnum,
     type: IDLPrimitiveType,
     initializer: number | string | undefined,
-    initializerDecimalType: number = 0,
+    initializerDecimalType: number | undefined = undefined,
     nodeInitializer: IDLNodeInitializer = {},
 ): IDLEnumMember {
     return {

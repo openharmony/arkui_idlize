@@ -662,6 +662,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     currentValue = value + 1
                 if (typeof value === 'undefined') {
                     value = currentValue
+                    decimalType = 0
                     currentValue++
                 }
                 let extendedAttributes: idl.IDLExtendedAttribute[] = this.traceAttrs()
@@ -706,13 +707,13 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
     }
 
-    convertEnumInitializer(expression: arkts.Expression | undefined): [idl.IDLPrimitiveType, number, string | number | undefined] {
+    convertEnumInitializer(expression: arkts.Expression | undefined): [idl.IDLPrimitiveType, number | undefined, string | number | undefined] {
         let initializer: string | number | undefined
         let type = idl.IDLNumberType
         if (!expression) {
-            return [type, 0,  initializer]
+            return [type, undefined,  initializer]
         }
-        let decimalType = 0
+        let decimalType: number | undefined
         if (arkts.isNumberLiteral(expression) && expression.str !== "") {
             decimalType = this.getDecimalType(expression.str)
             initializer = this.parseNumber(decimalType, expression.str)
