@@ -130,7 +130,8 @@ export function isMaterializedMethodOverridden(decl: idl.IDLInterface, methodNam
     // Use callHolder name instead of PeerMethodSignature.CALL_HOLDER
     // to break the circular dependencies
     if (methodName == "callHolder") {
-        return getSuper(decl, resolver) != undefined
+        const superDecl = getSuper(decl, resolver)
+        return superDecl != undefined && isMaterialized(superDecl, resolver)
     }
 
     if (idl.isInterfaceSubkind(decl) && !isStaticMaterialized(decl, resolver)) return !synthesized
