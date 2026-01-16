@@ -10,6 +10,13 @@ dictionary IntEnum {
     number E5 = 55;
 };
 
+dictionary BinEnum {
+    number E0 = 0b0;
+    number E1 = 0b1;
+    number E101 = 0b101;
+    number E10010 = 0b10010;
+};
+
 dictionary HexEnum {
     number E0 = 0x0;
     number E1 = 0X1;
@@ -40,6 +47,7 @@ dictionary StringEnum {
 };
 OrdinaryEnum checkOrdinaryEnums(OrdinaryEnum value1, OrdinaryEnum value2);
 IntEnum checkIntEnums(IntEnum value1, IntEnum value2);
+BinEnum checkBinEnums(BinEnum value1, BinEnum value2);
 HexEnum checkHexEnums(HexEnum value1, HexEnum value2);
 DuplicateIntEnum checkDuplicateIntEnums(DuplicateIntEnum value1, DuplicateIntEnum value2);
 StringEnum checkStringEnums(StringEnum value1, StringEnum value2);

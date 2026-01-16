@@ -199,7 +199,7 @@ export class Parser {
     // symTokens = ["(", ")", "[", "]", "{", "}", ",", "...", ":", ";", "<", "=", ">", "?"]
 
     _reDecimal = /-?(?=[0-9]*\.|[0-9]+[eE])(([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([Ee][-+]?[0-9]+)?|[0-9]+[Ee][-+]?[0-9]+)/y
-    _reInteger = /-?(0([Xx][0-9A-Fa-f]+|[0-7]*)|[1-9][0-9]*)/y
+    _reInteger = /-?(0([Xx|Bb][0-9A-Fa-f]+|[0-7]*)|[1-9][0-9]*)/y
     _reString = /"[^"]*"/y
     // -something is handled for -Infinity literal parsing, but rejected for identifiers later
     _reWords = /[-]?[_$A-Za-z][_$0-9A-Za-z]*([.][_$A-Za-z][_$0-9A-Za-z]*)*/y
@@ -1011,6 +1011,7 @@ const extractedUndefined: ExtractedLiteral = {type: "undefined", extractedString
 
 function extractNumber(value: string): number {
     if (value.startsWith("0x") || value.startsWith("0X")) return parseInt(value)
+    if (value.startsWith("0b") || value.startsWith("0B")) return parseInt(value.substring(2), 2)
     return parseFloat(value)
 }
 
