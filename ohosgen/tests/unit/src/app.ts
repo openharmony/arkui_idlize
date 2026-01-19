@@ -41,11 +41,13 @@ import { test_buffer } from '#compat'
 import {
   OrdinaryEnum,
   IntEnum,
+  BinEnum,
   HexEnum,
   DuplicateIntEnum,
   StringEnum,
   checkOrdinaryEnums,
   checkIntEnums,
+  checkBinEnums,
   checkHexEnums,
   checkDuplicateIntEnums,
   checkStringEnums,
@@ -209,12 +211,20 @@ function checkEnum() {
 
   assertEQ(OrdinaryEnum.E3, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2))
   assertEQ(IntEnum.E5, checkIntEnums(IntEnum.E1, IntEnum.E3))
+
+  assertEQ(0, BinEnum.E0)
+  assertEQ(0b1, BinEnum.E1)
+  assertEQ(0b101, BinEnum.E101)
+  assertEQ(0b10010, BinEnum.E10010)
+  assertEQ(BinEnum.E10010, checkBinEnums(BinEnum.E1, BinEnum.E101))
+
   assertEQ(0, HexEnum.E0)
   assertEQ(1, HexEnum.E1)
   assertEQ(4, HexEnum.E4)
   assertEQ(0xAB, HexEnum.EAB)
   assertEQ(0xCD, HexEnum.ECD)
   assertEQ(HexEnum.ECD, checkHexEnums(HexEnum.E4, HexEnum.EAB))
+
   assertEQ(DuplicateIntEnum.THIRD, checkDuplicateIntEnums(DuplicateIntEnum.FIRST, DuplicateIntEnum.SECOND))
   assertEQ(DuplicateIntEnum.LEGACY_THIRD.valueOf(),
     checkDuplicateIntEnums(DuplicateIntEnum.LEGACY_FIRST, DuplicateIntEnum.LEGACY_SECOND).valueOf())

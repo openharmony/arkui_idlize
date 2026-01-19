@@ -199,7 +199,7 @@ export class Parser {
     // symTokens = ["(", ")", "[", "]", "{", "}", ",", "...", ":", ";", "<", "=", ">", "?"]
 
     _reDecimal = /-?(?=[0-9]*\.|[0-9]+[eE])(([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([Ee][-+]?[0-9]+)?|[0-9]+[Ee][-+]?[0-9]+)/y
-    _reInteger = /-?(0([Xx][0-9A-Fa-f]+|[0-7]*)|[1-9][0-9]*)/y
+    _reInteger = /-?(0([Xx|Bb][0-9A-Fa-f]+|[0-7]*)|[1-9][0-9]*)/y
     _reString = /"[^"]*"/y
     // -something is handled for -Infinity literal parsing, but rejected for identifiers later
     _reWords = /[-]?[_$A-Za-z][_$0-9A-Za-z]*([.][_$A-Za-z][_$0-9A-Za-z]*)*/y
@@ -904,7 +904,7 @@ export class Parser {
             next = true
             const ext = this.parseExtendedAttributes()
             const entry = this.parseLiteral()
-            const member = idl.createEnumMember(entry.value, undefined as any, idl.IDLNumberType, undefined, {extendedAttributes: ext, nodeLocation: entry.location, nameLocation: entry.location})
+            const member = idl.createEnumMember(entry.value, undefined as any, idl.IDLNumberType, undefined, undefined, {extendedAttributes: ext, nodeLocation: entry.location, nameLocation: entry.location})
             items.push(member)
         }
         return idl.createEnum(name.value, items, {extendedAttributes: ext, documentation: extractDocumentation(ext), nodeLocation: sloc(), nameLocation: name.location})
@@ -938,7 +938,7 @@ export class Parser {
             extracted = extractLiteral(value)
         }
         this.skip(";")
-        return idl.createEnumMember(name.value, undefined as any as idl.IDLEnum, type, extracted?.extractedValue, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
+        return idl.createEnumMember(name.value, undefined as any as idl.IDLEnum, type, extracted?.extractedValue, extracted?.decimalType, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
     }
 
     parsePackage(): {location: Location, name: string} {
@@ -1005,13 +1005,23 @@ interface ExtractedLiteral {
     type: string
     extractedString: string
     extractedValue: string | number
+    decimalType: number | undefined
 }
 
-const extractedUndefined: ExtractedLiteral = {type: "undefined", extractedString: "undefined", extractedValue: "undefined"}
+const extractedUndefined: ExtractedLiteral = {type: "undefined", extractedString: "undefined", extractedValue: "undefined", decimalType: undefined }
+
+function getDecimalType(value: string) {
+    if (value.startsWith("0b") || value.startsWith("0B")) return 2
+    if (value.startsWith("0x") || value.startsWith("0X")) return 16
+    return 0
+}
 
 function extractNumber(value: string): number {
-    if (value.startsWith("0x") || value.startsWith("0X")) return parseInt(value)
-    return parseFloat(value)
+    switch (getDecimalType(value)) {
+        case 2: return parseInt(value.substring(2), 2)
+        case 16: return parseInt(value)
+        default: return parseFloat(value)
+    }
 }
 
 function extractLiteral(token: Token): ExtractedLiteral {
@@ -1023,7 +1033,8 @@ function extractLiteral(token: Token): ExtractedLiteral {
         const type = literalTypes.get(token.value)!
         const extractedString = token.value
         const extractedValue = type == "number" ? extractNumber(extractedString) : extractedString
-        return {type, extractedString, extractedValue}
+        const decimalType = type == "number" ? getDecimalType(extractedString) : undefined
+        return {type, extractedString, extractedValue, decimalType}
     }
     if (token.kind != TokenKind.Literal) {
         IncorrectLiteral.reportDiagnosticMessage([token.location])
@@ -1032,7 +1043,7 @@ function extractLiteral(token: Token): ExtractedLiteral {
     if (token.value[0] == "\"") {
         try {
             const extractedString = unescapeString(token.value)
-            return {type: "string", extractedString, extractedValue: extractedString}
+            return {type: "string", extractedString, extractedValue: extractedString, decimalType: undefined}
         }
         catch (e) {
             IncorrectLiteral.reportDiagnosticMessage([token.location], `Incorrect literal: ${(e as Error).message}`)
@@ -1040,11 +1051,12 @@ function extractLiteral(token: Token): ExtractedLiteral {
         }
     }
     const extractedValue = extractNumber(token.value)
+    const decimalType = getDecimalType(token.value)
     if (Number.isNaN(extractedValue)) {
         // Real NaNs are handled before that, so report an error
         IncorrectLiteral.reportDiagnosticMessage([token.location])
     }
-    return {type: "number", extractedString: token.value, extractedValue}
+    return {type: "number", extractedString: token.value, extractedValue, decimalType}
 }
 
 // Taken from deserialize.ts as is

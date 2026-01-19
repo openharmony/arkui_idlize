@@ -389,6 +389,25 @@ OH_UNIT_HexEnum GlobalScope_checkHexEnumsImpl(OH_UNIT_HexEnum value1, OH_UNIT_He
     return OH_UNIT_HEX_ENUM_ECD;
 }
 
+OH_UNIT_BinEnum GlobalScope_checkBinEnumsImpl(OH_UNIT_BinEnum value1, OH_UNIT_BinEnum value2) {
+    if (OH_UNIT_BIN_ENUM_E0 != 0b0) {
+        INTEROP_FATAL("Enum OH_UNIT_BIN_ENUM_E0 %d does not equal to: %d", OH_UNIT_BIN_ENUM_E0, 0b0);
+    }
+    if (OH_UNIT_BIN_ENUM_E101 != 0b101) {
+        INTEROP_FATAL("Enum OH_UNIT_BIN_ENUM_E101 %d does not equal to: %d", OH_UNIT_BIN_ENUM_E101, 0b101);
+    }
+    if (OH_UNIT_BIN_ENUM_E10010 != 0b10010) {
+        INTEROP_FATAL("Enum OH_UNIT_BIN_ENUM_E10010 %d does not equal to: %d", OH_UNIT_BIN_ENUM_E10010, 0b10010);
+    }
+    if (value1 != OH_UNIT_BIN_ENUM_E1) {
+        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_BIN_ENUM_E1: %d", value1, OH_UNIT_BIN_ENUM_E1);
+    }
+    if (value2 != OH_UNIT_BIN_ENUM_E101) {
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_BIN_ENUM_E101: %d", value1, OH_UNIT_BIN_ENUM_E101);
+    }
+    return OH_UNIT_BIN_ENUM_E10010;
+}
+
 OH_UNIT_DuplicateIntEnum GlobalScope_checkDuplicateIntEnumsImpl(OH_UNIT_DuplicateIntEnum value1, OH_UNIT_DuplicateIntEnum value2) {
     if (value2 != OH_UNIT_DUPLICATE_INT_ENUM_SECOND) {
         INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_SECOND: %d", value1, OH_UNIT_DUPLICATE_INT_ENUM_SECOND);

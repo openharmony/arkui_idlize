@@ -403,6 +403,7 @@ export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode
                 node.parent /* TODO seems strange in that context */,
                 t,
                 node.initializer,
+                node.initializerDecimalType,
                 cloneNodeInitializer(node),
             )
         })
@@ -652,6 +653,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     entry.parent,
                     clone(entry.type),
                     entry.initializer,
+                    entry.initializerDecimalType,
                     cloneNodeInitializer(entry),
                 )
             )

@@ -657,18 +657,19 @@ class IDLVisitor extends arkts.AbstractVisitor {
         result.elements =
             node.members.map((it, index) => this.processNode((it, index) => {
                 let element = (it as arkts.TSEnumMember)
-                let [type, value] = this.convertEnumInitializer(element.init)
+                let [type, decimalType, value] = this.convertEnumInitializer(element.init)
                 if (typeof value === 'number')
                     currentValue = value + 1
                 if (typeof value === 'undefined') {
                     value = currentValue
+                    decimalType = 0
                     currentValue++
                 }
                 let extendedAttributes: idl.IDLExtendedAttribute[] = this.traceAttrs()
                 if (enumNames[index] != element.name) {
                     extendedAttributes.push({ name: idl.IDLExtendedAttributes.OriginalEnumMemberName, value: fixEnumMemberName(element.name, true) })
                 }
-                return idl.createEnumMember(enumNames[index], result, type, value, { extendedAttributes })
+                return idl.createEnumMember(enumNames[index], result, type, value, decimalType, { extendedAttributes })
             }, it, index))
         this.entries.push(result)
         return node
@@ -693,14 +694,29 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return node
     }
 
-    convertEnumInitializer(expression: arkts.Expression | undefined): [idl.IDLPrimitiveType, string | number | undefined] {
+    getDecimalType(value: string) {
+        if (value.startsWith("0b") || value.startsWith("0B")) return 2
+        if (value.startsWith("0x") || value.startsWith("0X")) return 16
+        return 0
+    }
+
+    parseNumber(decimalType: number, value: string): number {
+        switch (decimalType) {
+            case 2: return parseInt(value.substring(2), 2)
+            default: return parseInt(value)
+        }
+    }
+
+    convertEnumInitializer(expression: arkts.Expression | undefined): [idl.IDLPrimitiveType, number | undefined, string | number | undefined] {
         let initializer: string | number | undefined
         let type = idl.IDLNumberType
         if (!expression) {
-            return [type, initializer]
+            return [type, undefined,  initializer]
         }
+        let decimalType: number | undefined
         if (arkts.isNumberLiteral(expression) && expression.str !== "") {
-            initializer = parseInt(expression.str)
+            decimalType = this.getDecimalType(expression.str)
+            initializer = this.parseNumber(decimalType, expression.str)
             if (Number.isNaN(initializer)) {
                 throw new Error("Initializator is not number!")
             }
@@ -709,7 +725,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             initializer = expression.str
             type = idl.IDLStringType
         }
-        return [type, initializer]
+        return [type, decimalType, initializer]
     }
 
     visitImportDeclaration(node: arkts.ImportDeclaration): arkts.ImportDeclaration {
