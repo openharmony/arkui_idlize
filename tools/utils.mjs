@@ -69,7 +69,7 @@ export class Package {
         publish("latest")
     }
 
-    externalDependencies = ["@idlizer/interfaces", "@idlizer/ost", "@idlizer/kit", "@idlizer/core", "@idlizer/libohos", "@koalaui/interop"]
+    externalDependencies = ["@idlizer/ost", "@idlizer/kit", "@idlizer/core", "@idlizer/libohos", "@koalaui/interop"]
 }
 
 export const all_packages = [

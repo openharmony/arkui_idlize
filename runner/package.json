@@ -14,7 +14,6 @@
     "keywords": [],
     "dependencies": {
         "@idlizer/core": "2.1.11+devel",
-        "@idlizer/interfaces": "2.1.11+devel",
         "commander": "^10.0.0"
     },
     "devDependencies": {

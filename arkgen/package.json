@@ -23,7 +23,6 @@
     "dependencies": {
         "@idlizer/libohos": "2.1.11+devel",
         "@idlizer/core": "2.1.11+devel",
-        "@idlizer/interfaces": "2.1.11+devel",
         "json5": "^2.2.3",
         "commander": "^10.0.0"
     },

@@ -30,7 +30,6 @@ const koalaui_dependencies = [
 ]
 const idlizer_dependencies = [
     "@idlizer/core",
-    "@idlizer/interfaces",
     "@idlizer/libohos",
     "@idlizer/etsgen",
     "@idlizer/arkgen",
