@@ -18,13 +18,13 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language,
     createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, isEnumType, InteropReturnTypeConvertor,
     isInIdlizeInterop,
-    TypeConvertor,
-    convertType,
     LayoutNodeRole,
     createOutArgConvertor,
     isInCurrentModule,
     createLanguageWriter,
     IdlNameConvertor,
+    KotlinLanguageWriter,
+    isMaterializedType,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -116,9 +116,6 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
 }
 
 class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
-    private readonly interopConvertor = createInteropArgConvertor(this.language)
-    private readonly interopRetConvertor = new InteropReturnTypeConvertor(this.library)
-
     constructor(
         library: PeerLibrary,
         language: Language,
@@ -128,20 +125,18 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
 
     private printPeerMethods(peer: PeerClass) {
         const constructMethod = createConstructPeerMethod(peer)
-        this.printPeerMethod(constructMethod, constructMethod.method.signature.returnType)
-        peer.methods.forEach(it => this.printPeerMethod(it, undefined))
+        this.printPeerMethod(constructMethod)
+        peer.methods.forEach(it => this.printPeerMethod(it))
     }
 
     private printMaterializedMethods() {
         this.library.orderedMaterialized.forEach(clazz => {
             clazz.ctors.forEach(ctor => {
-                this.printPeerMethod(ctor, idl.IDLPointerType)
+                this.printPeerMethod(ctor)
             })
-            if (clazz.finalizer) this.printPeerMethod(clazz.finalizer, idl.IDLPointerType)
+            if (clazz.finalizer) this.printPeerMethod(clazz.finalizer)
             clazz.methods.forEach(method => {
-                var retType = method.tsReturnType()
-                retType = retType && idl.isTypeParameterType(retType) ? idl.IDLVoidType : retType
-                this.printPeerMethod(method, retType)
+                this.printPeerMethod(method)
             })
         })
     }
@@ -151,15 +146,14 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             entry.methods = entry.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
             const peerMethods = idlFreeMethodsGroupToLegacy(this.library, entry.methods)
             peerMethods.forEach(method => {
-                this.printPeerMethod(method, method.returnType)
+                this.printPeerMethod(method)
             })
         })
     }
 
-    private printPeerMethod(method: PeerMethod, returnType?: idl.IDLType) {
+    protected printPeerMethod(method: PeerMethod) {
         const hookMethod = getHookMethod(method.originalParentName, method.method.name)
         if (hookMethod && hookMethod.replaceImplementation) return
-        returnType = toNativeReturnType(returnType, this.library)
         const component = method.originalParentName
         const name = `_${component}_${method.sig.name}`
         const interopMethod = makeInteropMethod(this.library, name, method)
@@ -308,6 +302,59 @@ class CJNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisi
     }
 }
 
+// this visitor is needed until object deserialization in writePeerMethod is implemented
+class KotlinNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisitor {
+    protected readonly interopRetConvertor = new InteropReturnTypeConvertor(this.library)
+
+    constructor(
+        library: PeerLibrary,
+        language: Language,
+    ) {
+        super(library, language)
+    }
+
+    protected override printPeerMethod(method: PeerMethod) {
+        const hookMethod = getHookMethod(method.originalParentName, method.method.name)
+        if (hookMethod && hookMethod.replaceImplementation) return
+        const component = method.originalParentName
+        const name = `_${component}_${method.sig.name}`
+        const interopMethod = makeInteropMethod(this.library, name, method)
+        if (this.returnsObject(method)) {
+            this.printMethodStub(interopMethod)
+        }
+        else {
+            this.printMethod(interopMethod)
+        }
+    }
+
+    protected printMethodStub(method: Method) {
+        const writer = this.nativeModule as KotlinLanguageWriter
+        const isStub = true
+        writer.writeNativeMethodDeclaration(method, isStub)
+    }
+
+    protected returnsObject(method: PeerMethod): boolean {
+        const returnType = method.sig.returnType
+        if (idl.isPrimitiveType(returnType) || idl.IDLContainerUtils.isSequence(returnType) ||
+            idl.IDLContainerUtils.isRecord(returnType) || this.interopRetConvertor.isReturnInteropBuffer(returnType)
+        ) {
+            return false
+        }
+        if (idl.isNamedNode(returnType) &&
+            (returnType.name === method.originalParentName || isMaterializedType(returnType, this.library))
+        ) {
+            return false
+        }
+        if (idl.isReferenceType(returnType)) {
+            const resolved = this.library.resolveTypeReference(returnType)
+            if (resolved && !idl.isEnum(resolved)) {
+                return true
+            }
+        }
+        return false
+    }
+}
+
 function createPredefinedNativeModuleVisitor(library: PeerLibrary, language: Language, entries: idl.IDLInterface[]): NativeModulePredefinedVisitor {
     switch (language) {
         case Language.TS:
@@ -329,6 +376,7 @@ function createArkUIGeneratedNativeModuleVisitor(library: PeerLibrary, language:
         case Language.CJ:
             return new CJNativeModuleArkUIGeneratedVisitor(library, language)
         case Language.KOTLIN:
+            return new KotlinNativeModuleArkUIGeneratedVisitor(library, language)
         case Language.ARKTS:
             return new NativeModuleArkUIGeneratedVisitor(library, language)
         default:
