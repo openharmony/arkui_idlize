@@ -83,7 +83,7 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
         originalParentName,
         realRetType,
         isCallSignature,
-        isCallSignature ? newMethodName : overloadInfo.alias ?? methodName,
+        isCallSignature ? methodName : overloadInfo.alias ?? methodName,
         new Method(methodName!, signature, getMethodModifiers(method))
     )
 }
