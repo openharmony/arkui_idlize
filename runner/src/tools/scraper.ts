@@ -18,7 +18,6 @@ import { createFile, createNamespace, DebugUtils, forEachChild, getFileFor, getF
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, basename, resolve, sep } from "node:path";
 import { scan } from "../utils";
-import { readLibrary } from "@idlizer/interfaces"
 
 export const ScraperConfigSchema = D.object({
     target: D.default(D.array(D.string()), []),

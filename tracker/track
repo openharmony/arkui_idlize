@@ -1,0 +1,113 @@
+#!/bin/env bash
+
+set -e
+
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 <interface_sdk-js-path> <sdk-patched-arkts-path>"
+    echo "Example: $0 ../interface_sdk-js ../sdk-patched-arkts"
+    exit 1
+fi
+
+INTERFACE_SDK_JS_PATH="$1"
+SDK_PATCHED_ARKTS_PATH="$2"
+
+# Convert to absolute path if relative
+if [[ ! "$INTERFACE_SDK_JS_PATH" = /* ]]; then
+    INTERFACE_SDK_JS_PATH="$(cd "$(dirname "$0")/.." && pwd)/$INTERFACE_SDK_JS_PATH"
+fi
+
+if [[ ! "$SDK_PATCHED_ARKTS_PATH" = /* ]]; then
+    SDK_PATCHED_ARKTS_PATH="$(cd "$(dirname "$0")/.." && pwd)/$SDK_PATCHED_ARKTS_PATH"
+fi
+
+# Ensure the paths exist
+if [ ! -d "$INTERFACE_SDK_JS_PATH" ]; then
+    echo "Error: Directory does not exist: $INTERFACE_SDK_JS_PATH"
+    exit 1
+fi
+
+if [ ! -d "$SDK_PATCHED_ARKTS_PATH" ]; then
+    echo "Error: Directory does not exist: $SDK_PATCHED_ARKTS_PATH"
+    exit 1
+fi
+
+# Get the tracker directory (where this script is located)
+TRACKER_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$TRACKER_DIR/.." && pwd)"
+
+cd "$ROOT_DIR"
+
+# Install panda SDK
+echo "Installing panda SDK..."
+npm run panda:sdk:install -C external/libarkts
+
+# Compile libarkts
+echo "Compiling libarkts..."
+npm run compile -C external/libarkts
+
+# Compile etsgen
+echo "Compiling etsgen..."
+npm run compile -C etsgen
+
+# Compile runner
+echo "Compiling runner..."
+npm run compile -C $ROOT_DIR/runner
+
+# Run runner tracker command (inline from runner/package.json)
+echo "Running runner tracker..."
+cd "$ROOT_DIR"
+node "$ROOT_DIR/runner" tracker "$SDK_PATCHED_ARKTS_PATH" "$ROOT_DIR/interfaces/interfaces/arkui-extra" \
+    --sdk-status "$ROOT_DIR/doc/FULL_SDK_STATUS.md" \
+    --tracker-status "$ROOT_DIR/doc/COMPONENTS_STATUS.md" \
+    --output "$ROOT_DIR/doc" \
+    --arkgen-options-file "$ROOT_DIR/arkgen/generation-config/config.json" \
+    --etsgen "node $ROOT_DIR/etsgen" \
+    --arkgen "node $ROOT_DIR/arkgen"
+
+# Run etsgen --ets2idl (merged from parse_deleted)
+echo "Running etsgen --ets2idl with SDK path: $SDK_PATCHED_ARKTS_PATH/api"
+SDK_PATH="$SDK_PATCHED_ARKTS_PATH/api"
+node "$ROOT_DIR/etsgen" --ets2idl \
+    --output-dir out \
+    --base-dir ${SDK_PATH} \
+    --input-dir ${SDK_PATH} \
+    --ignore-default-config --options-file "$TRACKER_DIR/deleted-config.json" \
+    --trace-status "$ROOT_DIR/doc/FULL_SDK_STATUS.md"
+
+# Run python status tools
+echo "Running status_tools.py..."
+python3 "$TRACKER_DIR/status_tools.py" all
+
+# Add version information to COMPONENTS.md
+COMPONENTS_MD="$ROOT_DIR/doc/COMPONENTS.md"
+if [ -f "$COMPONENTS_MD" ]; then
+    echo "Adding version information to COMPONENTS.md..."
+    
+    # Get SDK version info from interface_sdk-js
+    if [ -d "$INTERFACE_SDK_JS_PATH/.git" ]; then
+        SDK_HASH=$(git -C "$INTERFACE_SDK_JS_PATH" rev-parse HEAD 2>/dev/null || echo "unknown")
+        SDK_BRANCH=$(git -C "$INTERFACE_SDK_JS_PATH" name-rev --name-only HEAD 2>/dev/null || echo "unknown")
+        SDK_VERSION_LINE="SDK version:    $SDK_HASH $SDK_BRANCH"
+    else
+        SDK_VERSION_LINE="SDK version:    (not a git repository)"
+    fi
+    
+    # Get IDLize version info from current repo
+    IDLIZE_HASH=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+    IDLIZE_BRANCH=$(git name-rev --name-only HEAD 2>/dev/null || echo "unknown")
+    IDLIZE_VERSION_LINE="IDLize Version: $IDLIZE_HASH $IDLIZE_BRANCH"
+    
+    # Add version lines at the beginning of the file
+    # Use a temporary file to avoid issues with sed -i on some systems
+    {
+        echo "$IDLIZE_VERSION_LINE"
+        echo "$SDK_VERSION_LINE"
+        cat "$COMPONENTS_MD"
+    } > "$COMPONENTS_MD.tmp" && mv "$COMPONENTS_MD.tmp" "$COMPONENTS_MD"
+    
+    echo "Version information added to COMPONENTS.md"
+else
+    echo "Warning: COMPONENTS.md not found at $COMPONENTS_MD, skipping version info"
+fi
+
+echo "Tracker script completed successfully."

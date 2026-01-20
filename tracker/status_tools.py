@@ -8,17 +8,21 @@ from collections import namedtuple
 import os
 import re
 
-JSON_FILE = 'packages-filter.json'
-FULL_SDK_STATUS = '../doc/FULL_SDK_STATUS.md'
-SDK_STATUS = '../doc/SDK_STATUS.md'
-DELETED_SDK_STATUS = '../doc/DELETED_SDK_STATUS.md'
-CAPI_STATUS = '../doc/COMPONENTS.md'
-CAPI_STATUS_INPUT = '../doc/COMPONENTS_STATUS.md'
-TS_STATUS = '../doc/MANAGED.md'
-TS_STATUS_INPUT = '../doc/MANAGED_STATUS.md'
-FULL_API_STATUS = '../doc/FULL_API_STATUS.md'
-HANDWRITTEN = '../doc/NEW_DEV_API_STATUS.md'
-HANDWRITTEN_STATUS = '../doc/DEV_API_STATUS.md'
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+
+JSON_FILE = os.path.join(SCRIPT_DIR, 'packages-filter.json')
+FULL_SDK_STATUS = os.path.join(ROOT_DIR, 'doc', 'FULL_SDK_STATUS.md')
+SDK_STATUS = os.path.join(ROOT_DIR, 'doc', 'SDK_STATUS.md')
+DELETED_SDK_STATUS = os.path.join(ROOT_DIR, 'doc', 'DELETED_SDK_STATUS.md')
+CAPI_STATUS = os.path.join(ROOT_DIR, 'doc', 'COMPONENTS.md')
+CAPI_STATUS_INPUT = os.path.join(ROOT_DIR, 'doc', 'COMPONENTS_STATUS.md')
+TS_STATUS = os.path.join(ROOT_DIR, 'doc', 'MANAGED.md')
+TS_STATUS_INPUT = os.path.join(ROOT_DIR, 'doc', 'MANAGED_STATUS.md')
+FULL_API_STATUS = os.path.join(ROOT_DIR, 'doc', 'FULL_API_STATUS.md')
+HANDWRITTEN = os.path.join(ROOT_DIR, 'doc', 'NEW_DEV_API_STATUS.md')
+HANDWRITTEN_STATUS = os.path.join(ROOT_DIR, 'doc', 'DEV_API_STATUS.md')
 
 SdkStatus = namedtuple('SdkStatus', ['i','pkg','old_pkg','parent','name','ovr','type','status','source'])
 CapiStatus = namedtuple('CapiStatus', ['i','pkg','parent','name','ovr','c_parent','c_name','type','owner','status','test_status','test_version','comment','ii'])

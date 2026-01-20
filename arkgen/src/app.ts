@@ -58,7 +58,6 @@ import {
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 import { makeInteropBridges } from "./InteropBridges"
 import { loadKnownReferences } from "./knownReferences"
-import { readLibrary } from "@idlizer/interfaces"
 import { arkgenDefaultConfigurationPaths } from "./config"
 
 export function arkgen(argv:string[]) {
@@ -91,7 +90,6 @@ export function arkgen(argv:string[]) {
         .option('--interop-bridges <string>', "Generate interop bridges macros")
         .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
         .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
-        .option('--no-implicit-predefined', "Removes predefined from the generator input")
         .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
 
     const options = command
@@ -132,7 +130,6 @@ export function arkgen(argv:string[]) {
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
-            .concat(options.implicitPredefined ? readLibrary("arkuiExtra") : [])
         const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
         idlInputFiles.forEach(idlFilename => {
             idlFilename = path.resolve(idlFilename)

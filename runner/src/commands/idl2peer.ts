@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { libraries as predefs } from "@idlizer/interfaces"
 import { GENERATED_PEER_DIR } from "../shared"
 import { flat, scan, over, run } from "../utils"
 import { basename, join, parse } from "node:path"
@@ -74,7 +73,6 @@ export function idl2peer({
         ['--generator-target', arkgenTarget],
         ['--language', language],
         '--use-memo-m3',
-        '--no-implicit-predefined',
         ['--arkts-extension', '.ets'],
         optionsFiles ? [`--options-file`, optionsFiles] : [],
         optionsFiles ? ['--ignore-default-config'] : [],
@@ -92,8 +90,7 @@ export function idl2ohos({
     optionsFile,
 }: Idl2PeerOhosConfig): Idl2PeerResult {
     const idlFiles = [
-        ...scan(idlPath),
-        ...scan(predefs.arkuiExtra)
+        ...scan(idlPath)
     ]
     run(context => context.exec([
         ohosgen,
