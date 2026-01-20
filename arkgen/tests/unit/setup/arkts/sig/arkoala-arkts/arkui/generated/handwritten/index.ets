@@ -80,3 +80,25 @@ export namespace extractors {
             : (value: boolean) => { return value }
     }
 }
+
+export namespace initializers {
+    export namespace arkui {
+        export namespace component {
+            export namespace check {
+                export namespace duplicates {
+                    export namespace DuplicateClassParentNS {
+                        export const parentEnabled = false
+                        export const commonEnabled = false
+                        export const parentStatic = false
+                    }
+                    export namespace DuplicateClassChildNS {
+                        export const childEnabled = false
+                        export const commonEnabled = false
+                        export const parentStatic = false
+                        export const childStatic = false
+                    }
+                }
+            }
+        }
+    }
+}

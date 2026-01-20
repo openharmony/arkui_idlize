@@ -17,7 +17,7 @@ import { getFQName, IDLEntry, isProperty } from "../idl"
 import { Language } from "../Language"
 
 export function getInitializerFeature(lang: Language): string {
-    // TBD: update code for KT and CJ
+    // TBD: update code for CJ
     return "initializers"
 }
 
@@ -26,7 +26,7 @@ export function getInitializerDefaultValue(decl: IDLEntry, lang: Language): stri
     const fqn = parent && isProperty(decl)
         ? `${getFQName(parent)}NS.${decl.name}`
         : getFQName(decl)
-    // TBD: update code for KT and CJ
+    // TBD: update code for CJ
     return `${getInitializerFeature(lang)}.${fqn}`
 }
 

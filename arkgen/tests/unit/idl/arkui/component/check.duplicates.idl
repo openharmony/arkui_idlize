@@ -22,3 +22,17 @@ interface CheckDuplicateParentAttribute: Root {
     attribute DuplicateInteraceSubChild subChildDuplicateInterface;
 };
 
+[Entity=Class]
+interface DuplicateClassParent {
+    attribute boolean parentEnabled;
+    attribute boolean commonEnabled;
+    static attribute boolean parentStatic;
+};
+
+[Entity=Class]
+interface DuplicateClassChild: DuplicateClassParent {
+    attribute boolean childEnabled;
+    attribute boolean commonEnabled;
+    static attribute boolean parentStatic;
+    static attribute boolean childStatic;
+};
