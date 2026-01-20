@@ -27,9 +27,10 @@ import {
     isPrimitiveType,
     LayoutNodeRole,
     PeerMethodSignature,
-    getExtractor
+    getExtractor,
+    MethodModifier
 } from '@idlizer/core'
-import { getHookMethod } from '../../DefaultConfiguration'
+import { getHookMethod, peerGeneratorConfiguration } from '../../DefaultConfiguration'
 import {
     ExpressionStatement,
     LanguageExpression,
@@ -118,22 +119,38 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                 params.push(writer.makeString(it.convertorArg(it.param, writer)))
             }
         })
-        let call = writer.makeNativeCall(
+        const call = writer.makeNativeCall(
             NativeModule.Generated,
             `_${method.originalParentName}_${method.sig.name}`,
             params)
-
-        if (!returnValueFilledThroughOutArg && returnType != IDLVoidType && returnType !== IDLThisType) {
-            writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
+        const returnsValue = !returnValueFilledThroughOutArg && returnType != IDLVoidType && returnType !== IDLThisType
+        const forceContext = method.sig.modifiers.includes(MethodModifier.FORCE_CONTEXT)
+        if (forceContext && serializerPushed) {
+            if (returnsValue) {
+                writer.makeAssign(returnValName, returnType, undefined, true, false)
+            }
+            writer.print("try {")
+            writer.pushIndent()
+        }
+        if (returnsValue) {
+            writer.writeStatement(writer.makeAssign(returnValName, undefined, call, !(forceContext && serializerPushed)))
         } else {
             writer.writeStatement(writer.makeStatement(call))
         }
-        if (serializerPushed)
+        if (serializerPushed) {
+            if (forceContext) {
+                writer.popIndent()
+                writer.print("} finally {")
+                writer.pushIndent()
+            }
             writer.writeStatement(new ExpressionStatement(
                 writer.makeMethodCall('thisSerializer', 'release', [])))
-        scopes.reverse().forEach(it => {
-            writer.popIndent()
-        })
+            if (forceContext) {
+                writer.popIndent()
+                writer.print("}")
+            }
+        }
+        scopes.reverse().forEach(_ => writer.popIndent())
         // TODO: refactor
         if (returnType != IDLVoidType) {
             let result: LanguageStatement[] = [writer.makeReturn(writer.makeString(returnValName))]
