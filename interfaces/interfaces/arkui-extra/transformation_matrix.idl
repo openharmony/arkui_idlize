@@ -1,6 +1,0 @@
-package arkui.component.idlize;
-
-[Entity=Interface]
-interface TransformationMatrix {
-    attribute sequence<number> matrix4x4; 
-};
