@@ -17,7 +17,6 @@ npm_cmd("compile") {
     deps = [
         "../core:compile",
         "../libohos:compile",
-        "../interfaces:compile",
     ]
     project_path = rebase_path(".")
     run_tasks = [ "compile:self" ]

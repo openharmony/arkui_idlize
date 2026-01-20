@@ -51,7 +51,7 @@
         "release": "npm run compile && npm run compile --prefix ../core && npm run compile --prefix linter && node tools/release.mjs",
         "GENERAL": "#------------------------",
         "compile:self": "tsc && rollup -c",
-        "compile": "npm run compile -C ../interfaces && npm run compile -C ../libohos && npm run compile:self",
+        "compile": "npm run compile -C ../libohos && npm run compile:self",
         "sanity": "npm run all:subset:ts && npm run all:sdk:ts && npm run all:subset:arkts",
         "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json",
         "compile:arkts:libs": "npm run build -C ../external/compat && npm run build -C ../external/common && npm run build -C ../external/interop && npm run build -C ./tests-template/arkts",

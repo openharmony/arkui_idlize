@@ -45,7 +45,6 @@ group("all") {
         "dtsgen:all",
         "etsgen:all",
         "idlinter:all",
-        "interfaces:all",
         "tools:all",
     ]
 }
