@@ -195,7 +195,6 @@ class ModifiersFileVisitor {
         }
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('ModifierState')), importsCollector)
         importsCollector.addFeature("AttributeModifier", HandwrittenModule(this.library.language))
-        importsCollector.addFeature("AttributeUpdaterFlag", "./AttributeUpdaterFlag")
         importsCollector.addFeature("PeerNode", "./PeerNode")
         const peerLocation = this.library.layout.resolve({
             node: component.attributeDeclaration,
@@ -326,14 +325,14 @@ class ModifiersFileVisitor {
                 if (parentSet) writer.print('super.applyModifierPatch(node)')
                 writer.print(`this._state.addRef()`)
                 writer.print(`const peer = node as ${componentToPeerClass(component.name)}`)
-                writer.print(`const flagArray = this._flagArray;`)
+                writer.print(`const flagArray = this._flagArray`)
                 const statements: IfStatement[] = []
                 attributeTypes.forEach((attribute, index) => {
                     // TODO: handle overload condition
                     if (this.noNeedPrintModifier(attribute)) {
                         return;
                     }
-                    const expr = `${this.generateFiledFlag(attribute, index, true)} != AttributeUpdaterFlag.INITIAL`
+                    const expr = `${this.generateFiledFlag(attribute, index, true)} != ${AttributeUpdaterFlag.INITIAL}`
                     const params: LanguageExpression[] = attribute.args.map((_, index) => {
                         return this.castSetType(attribute, writer, attribute.method.method.signature, index)
                         // return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), this.castResetType(attribute.method.method.signature.args[index]))
@@ -353,20 +352,20 @@ class ModifiersFileVisitor {
                     const switchPrinter = this.library.createLanguageWriter();
                     switchPrinter.print(`switch (${this.generateFiledFlag(attribute, index, true)}) {`)
                     switchPrinter.pushIndent()
-                    switchPrinter.print("case AttributeUpdaterFlag.UPDATE:")
+                    switchPrinter.print(`case ${AttributeUpdaterFlag.UPDATE}:`)
                     switchPrinter.pushIndent()
                     switchPrinter.print(`${statement.asString()};`)
-                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = AttributeUpdaterFlag.RESET`)
+                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = ${AttributeUpdaterFlag.RESET}`)
                     switchPrinter.print(`break`)
                     switchPrinter.popIndent()
-                    switchPrinter.print("case AttributeUpdaterFlag.SKIP:")
+                    switchPrinter.print(`case ${AttributeUpdaterFlag.SKIP}:`)
                     switchPrinter.pushIndent()
-                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = AttributeUpdaterFlag.RESET`)
+                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = ${AttributeUpdaterFlag.RESET}`)
                     switchPrinter.print(`break`)
                     switchPrinter.popIndent()
                     switchPrinter.print(`default:`)
                     switchPrinter.pushIndent()
-                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = AttributeUpdaterFlag.INITIAL`)
+                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = ${AttributeUpdaterFlag.INITIAL}`)
                     if (attribute.isOptional) {
                         if (hookRecord && hookRecord.replaceImplementation) {
                             switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
@@ -394,14 +393,14 @@ class ModifiersFileVisitor {
         writer.pushIndent()
         {
             if (parentSet) writer.print('super.mergeModifier(modifier)')
-            writer.print(`this._state = modifier._state;`)
-            writer.print(`const flagArray = modifier._flagArray;`)
+            writer.print(`this._state = modifier._state`)
+            writer.print(`const flagArray = modifier._flagArray`)
             const statements: IfStatement[] = []
             attributeTypes.forEach((attribute, index) => {
                 if (this.noNeedPrintModifier(attribute)) {
                     return
                 }
-                const expr = `${this.generateFiledFlag(attribute, index, true)} != AttributeUpdaterFlag.INITIAL`
+                const expr = `${this.generateFiledFlag(attribute, index, true)} != ${AttributeUpdaterFlag.INITIAL}`
                 const params: LanguageExpression[] = attribute.args.map((_, index) => {
                     return writer.makeString(`modifier.${this.generateFiledName(attribute, index.toString())}`)
                 })
@@ -413,8 +412,8 @@ class ModifiersFileVisitor {
                 const switchPrinter = this.library.createLanguageWriter();
                 switchPrinter.print(`switch (${this.generateFiledFlag(attribute, index, true)}) {`)
                 switchPrinter.pushIndent()
-                switchPrinter.print(`case AttributeUpdaterFlag.UPDATE:`)
-                switchPrinter.print(`case AttributeUpdaterFlag.SKIP:`)
+                switchPrinter.print(`case ${AttributeUpdaterFlag.UPDATE}:`)
+                switchPrinter.print(`case ${AttributeUpdaterFlag.SKIP}:`)
                 switchPrinter.pushIndent()
                 if (attribute.isOptional) switchPrinter.print(`${statement.asString()};`)
                 switchPrinter.print(`break;`)
@@ -518,7 +517,7 @@ class ModifiersFileVisitor {
                             return;
                         }
                         const equalStatements: LanguageExpression[] = []
-                        equalStatements.push(writer.makeEquals([writer.makeString(`${this.generateFiledFlag(attribute, index)}`), writer.makeString("AttributeUpdaterFlag.INITIAL")]))
+                        equalStatements.push(writer.makeEquals([writer.makeString(`${this.generateFiledFlag(attribute, index)}`), writer.makeString(`${AttributeUpdaterFlag.INITIAL}`)]))
                         attribute.argTypes.forEach((t, index) => {
                             if (isPrimitiveType(t)) {
                                 console.log("isPrimitiveType", `this.${this.generateFiledName(attribute, index.toString())}`)
@@ -531,13 +530,13 @@ class ModifiersFileVisitor {
                         const equalNary = writer.makeNaryOp('||', equalStatements)
 
                         const thenStatements: LanguageStatement[] = []
-                        thenStatements.push(writer.makeAssign(`${this.generateFiledFlag(attribute, index)}`, undefined, writer.makeString("AttributeUpdaterFlag.UPDATE"), false))
+                        thenStatements.push(writer.makeAssign(`${this.generateFiledFlag(attribute, index)}`, undefined, writer.makeString(`${AttributeUpdaterFlag.UPDATE}`), false))
                         attribute.argTypes.forEach((t, index) => {
                             thenStatements.push(writer.makeAssign(`this.${this.generateFiledName(attribute, index.toString())}`, t, writer.makeString(attribute.args[index]), false))
                         })
                         thenStatements.push(writer.makeStatement(writer.makeString(`this._state.fireChange()`)))
                         const thenStatementBlock = writer.makeBlock(thenStatements)
-                        const elseStatementBlock = writer.makeBlock([writer.makeAssign(`${this.generateFiledFlag(attribute, index)}`, undefined, writer.makeString("AttributeUpdaterFlag.SKIP"), false)])
+                        const elseStatementBlock = writer.makeBlock([writer.makeAssign(`${this.generateFiledFlag(attribute, index)}`, undefined, writer.makeString(`${AttributeUpdaterFlag.SKIP}`), false)])
                         const condition = writer.makeCondition(equalNary, thenStatementBlock, elseStatementBlock)
                         writer.writeStatement(condition)
                         writer.writeStatement(writer.makeReturn(writer.makeThis()))
