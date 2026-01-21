@@ -78,6 +78,13 @@ interface AttributeType {
     overloadIndex: number; // For overloads, we can track which overload this is
 }
 
+enum AttributeUpdaterFlag {
+    INITIAL = 0,
+    UPDATE = 1,
+    RESET = 2,
+    SKIP = 3
+}
+
 class ModifiersFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
@@ -121,12 +128,18 @@ class ModifiersFileVisitor {
         return `_${attribute.method.method.name}_${attribute.overloadIndex.toString()}_${subfix}value`
     }
 
-    generateFiledFlag(attribute: AttributeType, subfix: string = ''): string {
-        return `_${attribute.method.method.name}_${attribute.overloadIndex.toString()}_${subfix}flag`
+    generateFiledFlag(attribute: AttributeType, index: number, isLocal: boolean = false): string {
+        if (isLocal) {
+            return `flagArray[${index}]`
+        }
+        return `this._flagArray[${index}]`
     }
 
     castResetType(writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
-        return writer.makeCast(writer.makeString(`undefined`), idl.maybeOptional(sig.args[index], sig.isArgOptional(index)))
+        if (!sig.isArgOptional(index)) {
+            return writer.makeCast(writer.makeString(`undefined`), sig.args[index])
+        }
+        return writer.makeCast(writer.makeString(`undefined`), idl.createUnionType([sig.args[index], idl.IDLUndefinedType]))
     }
 
     castSetType(attribute: AttributeType, writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
@@ -180,9 +193,9 @@ class ModifiersFileVisitor {
                 }
             }
         }
-        collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), importsCollector)
-        collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdaterFlag')), importsCollector)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('ModifierState')), importsCollector)
+        importsCollector.addFeature("AttributeModifier", HandwrittenModule(this.library.language))
+        importsCollector.addFeature("AttributeUpdaterFlag", "./AttributeUpdaterFlag")
         importsCollector.addFeature("PeerNode", "./PeerNode")
         const peerLocation = this.library.layout.resolve({
             node: component.attributeDeclaration,
@@ -263,9 +276,12 @@ class ModifiersFileVisitor {
                 overloadCounter.set(parentTypeName, 0)
             overloadCounter.set(parentTypeName, overloadCounter.get(parentTypeName)! + 1)
         }
+        const attributeFilter = (name: string) => {
+            return name.startsWith('set') && name.endsWith('Options')
+        }
         groupOverloads(peer.methods, this.library.language).forEach(m => {
             const method = m[0]
-            if (method.isCallSignature) {
+            if (attributeFilter(method.method.name)) {
                 return
             }
             const args: string[] = []
@@ -299,21 +315,135 @@ class ModifiersFileVisitor {
         writer.writeExpressionStatement(hookCall)
     }
 
-    private hasHeirs(peer: PeerClass) {
-        const component = findComponentByName(this.library, peer.componentName)
-        if (!component) {
-            throw new Error(`Can not find component with name ${peer.componentName}`)
+    noNeedPrintModifier(attribute: AttributeType) {
+        return attribute.method.method.signature.returnType !== idl.IDLThisType
+    }
+
+    printApplyModifierPatch(peer: PeerClass, writer: LanguageWriter, component: IdlComponentDeclaration, attributeTypes: Array<AttributeType>, parentSet: string | undefined, collectedHooks: string[]) {
+        writer.writeMethodImplementation(new Method(`applyModifierPatch`,
+            new MethodSignature(idl.IDLVoidType, [idl.createReferenceType("PeerNode")], [], [], [], ['node'])),
+            writer => {
+                if (parentSet) writer.print('super.applyModifierPatch(node)')
+                writer.print(`this._state.addRef()`)
+                writer.print(`const peer = node as ${componentToPeerClass(component.name)}`)
+                writer.print(`const flagArray = this._flagArray;`)
+                const statements: IfStatement[] = []
+                attributeTypes.forEach((attribute, index) => {
+                    // TODO: handle overload condition
+                    if (this.noNeedPrintModifier(attribute)) {
+                        return;
+                    }
+                    const expr = `${this.generateFiledFlag(attribute, index, true)} != AttributeUpdaterFlag.INITIAL`
+                    const params: LanguageExpression[] = attribute.args.map((_, index) => {
+                        return this.castSetType(attribute, writer, attribute.method.method.signature, index)
+                        // return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), this.castResetType(attribute.method.method.signature.args[index]))
+                    })
+                    const resetParams: LanguageExpression[] = attribute.args.map((_, index) => {
+                        return this.castResetType(writer, attribute.method.method.signature, index)
+                    })
+
+                    const methodName = `${attribute.method.sig.name}Attribute`
+                    const hookRecord = peerGeneratorConfiguration().hooks.get(peer!.originalClassName ?? '')?.get(attribute.method.method.name)
+                    if (hookRecord && hookRecord.replaceImplementation) {
+                        collectedHooks.push(hookRecord.hookName)
+                    }
+                    // hookCall in applyModifierPatch
+                    const statement = (hookRecord && hookRecord.replaceImplementation) ? this.generateHooksCall(hookRecord.hookName, params, writer) : writer.makeMethodCall('peer', methodName, params)
+                    const resetStatement = writer.makeMethodCall('peer', methodName, resetParams)
+                    const switchPrinter = this.library.createLanguageWriter();
+                    switchPrinter.print(`switch (${this.generateFiledFlag(attribute, index, true)}) {`)
+                    switchPrinter.pushIndent()
+                    switchPrinter.print("case AttributeUpdaterFlag.UPDATE:")
+                    switchPrinter.pushIndent()
+                    switchPrinter.print(`${statement.asString()};`)
+                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = AttributeUpdaterFlag.RESET`)
+                    switchPrinter.print(`break`)
+                    switchPrinter.popIndent()
+                    switchPrinter.print("case AttributeUpdaterFlag.SKIP:")
+                    switchPrinter.pushIndent()
+                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = AttributeUpdaterFlag.RESET`)
+                    switchPrinter.print(`break`)
+                    switchPrinter.popIndent()
+                    switchPrinter.print(`default:`)
+                    switchPrinter.pushIndent()
+                    switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = AttributeUpdaterFlag.INITIAL`)
+                    if (attribute.isOptional) {
+                        if (hookRecord && hookRecord.replaceImplementation) {
+                            switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
+                        } else {
+                            switchPrinter.print(`${resetStatement.asString()};`)
+                        }
+                    }
+                    switchPrinter.popIndent()
+                    switchPrinter.popIndent()
+                    switchPrinter.print(`}`)
+                    statements.push(new IfStatement(
+                        writer.makeString(expr),
+                        writer.makeBlock(switchPrinter.getOutput().map(s => writer.makeStatement(writer.makeString(s)))),
+                        undefined,
+                        undefined,
+                        undefined
+                    ))
+                })
+                writer.writeStatements(...statements)
+            })
+    }
+
+    printMergeModifier(writer: LanguageWriter, component: IdlComponentDeclaration, attributeTypes: Array<AttributeType>, parentSet: string | undefined) {
+        writer.print(`mergeModifier(modifier: ${this.generateAttributeSetName(component.attributeDeclaration.name)}): void {`)
+        writer.pushIndent()
+        {
+            if (parentSet) writer.print('super.mergeModifier(modifier)')
+            writer.print(`this._state = modifier._state;`)
+            writer.print(`const flagArray = modifier._flagArray;`)
+            const statements: IfStatement[] = []
+            attributeTypes.forEach((attribute, index) => {
+                if (this.noNeedPrintModifier(attribute)) {
+                    return
+                }
+                const expr = `${this.generateFiledFlag(attribute, index, true)} != AttributeUpdaterFlag.INITIAL`
+                const params: LanguageExpression[] = attribute.args.map((_, index) => {
+                    return writer.makeString(`modifier.${this.generateFiledName(attribute, index.toString())}`)
+                })
+                const resetParams: LanguageExpression[] = attribute.args.map((_, index) => {
+                    return this.castResetType(writer, attribute.method.method.signature, index)
+                })
+                const statement = writer.makeMethodCall('this', attribute.method.method.name, params)
+                const resetStatement = writer.makeMethodCall('this', attribute.method.method.name, resetParams)
+                const switchPrinter = this.library.createLanguageWriter();
+                switchPrinter.print(`switch (${this.generateFiledFlag(attribute, index, true)}) {`)
+                switchPrinter.pushIndent()
+                switchPrinter.print(`case AttributeUpdaterFlag.UPDATE:`)
+                switchPrinter.print(`case AttributeUpdaterFlag.SKIP:`)
+                switchPrinter.pushIndent()
+                if (attribute.isOptional) switchPrinter.print(`${statement.asString()};`)
+                switchPrinter.print(`break;`)
+                switchPrinter.popIndent()
+                switchPrinter.print(`default:`)
+                switchPrinter.pushIndent()
+                if (attribute.isOptional) switchPrinter.print(`${resetStatement.asString()};`)
+                switchPrinter.popIndent()
+                switchPrinter.popIndent()
+                switchPrinter.print(`}`)
+                statements.push(new IfStatement(
+                    writer.makeString(expr),
+                    writer.makeBlock(switchPrinter.getOutput().map(s => writer.makeStatement(writer.makeString(s)))),
+                    undefined,
+                    undefined,
+                    undefined
+                ))
+            })
+            writer.writeStatements(...statements)
         }
-        return collectComponents(this.library).some(it => {
-            return getSuper(it.attributeDeclaration, this.library) === component?.attributeDeclaration
-        })
+        writer.popIndent()
+        writer.print(`}`)
     }
 
     printModifiers(peer: PeerClass): PrinterResult[] {
+
         const component = findComponentByName(this.library, peer.componentName)!
-        const generate = () => {
+        const generate: PrinterResult['generate'] = () => {
             const printer = this.library.createLanguageWriter();
-            const nameConvertor = this.library.createTypeNameConvertor(Language.ARKTS)
             const componentAttribute = component.attributeDeclaration;
             const parentSet = this.generateAttributeSetParentName(peer)
 
@@ -329,15 +459,24 @@ class ModifiersFileVisitor {
             let extendsInterface: string[] = []
             const collectedHooks: string[] = []
 
-            if (!this.hasHeirs(peer)) {
-                extendsInterface = [`${nameConvertor.convert(componentAttribute)}`, `AttributeModifier<${nameConvertor.convert(componentAttribute)}>`]
+            if (componentAttribute.name !== 'CommonMethod') {
+                extendsInterface = [`${componentAttribute.name}`, `AttributeModifier<${componentAttribute.name}>`]
             } else {
-                extendsInterface = [`${nameConvertor.convert(componentAttribute)}`]
+                extendsInterface = [`${componentAttribute.name}`]
             }
 
             printer.writeClass(this.generateAttributeSetName(componentAttribute.name), (writer) => {
-                writer.print("_instanceId: number = -1;")
+                writer.print("_instanceId: number = -1")
                 writer.print("_state: ModifierState = new ModifierState")
+                writer.print(`_addr: ArrayBuffer = new ArrayBuffer(4096)`)
+                writer.print(`_flagArray: Uint8Array = new Uint8Array(this._addr)`)
+
+                writer.print(`constructor() {`)
+                writer.pushIndent()
+                if (parentSet) writer.print(`super()`)
+                writer.print(`this._flagArray.fill(0)`)
+                writer.popIndent()
+                writer.print(`}`)
 
                 writer.writeMethodImplementation(new Method(
                     `setInstanceId`,
@@ -347,147 +486,24 @@ class ModifiersFileVisitor {
                     }
                 )
 
-                if (!this.hasHeirs(peer)) {
-                    writer.print(`isUpdater: () => boolean = () => false`)
-                    writer.print(`applyNormalAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
-                    writer.print(`applyPressedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
-                    writer.print(`applyFocusedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
-                    writer.print(`applyDisabledAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
-                    writer.print(`applySelectedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                writer.print(`isUpdater: () => boolean = () => false`)
+                if (componentAttribute.name !== 'CommonMethod') {
+                    writer.print(`applyNormalAttribute(instance: ${componentAttribute.name}): void { }`)
+                    writer.print(`applyPressedAttribute(instance: ${componentAttribute.name}): void { }`)
+                    writer.print(`applyFocusedAttribute(instance: ${componentAttribute.name}): void { }`)
+                    writer.print(`applyDisabledAttribute(instance: ${componentAttribute.name}): void { }`)
+                    writer.print(`applySelectedAttribute(instance: ${componentAttribute.name}): void { }`)
                 }
-
-                attributeTypes.forEach(attribute => {
-                    writer.writeFieldDeclaration(this.generateFiledFlag(attribute), idl.createReferenceType(getReferenceTo("AttributeUpdaterFlag")), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
+                attributeTypes.forEach((attribute, index) => {
                     attribute.argTypes.forEach((t, index) => {
                         writer.writeFieldDeclaration(this.generateFiledName(attribute, index.toString()), t, [], true)
                     })
                 })
 
-                writer.writeMethodImplementation(new Method('applyModifierPatch',
-                    new MethodSignature(idl.IDLVoidType, [idl.createReferenceType("arkui.PeerNode.PeerNode")], [], [], [], ['node'])),
-                    writer => {
-                        writer.print(`this._state.addRef()`);
-                        if (parentSet) writer.print('super.applyModifierPatch(node)');
-                        writer.print(`const peer = node as ${componentToPeerClass(component.name)};`)
-                        const statements: IfStatement[] = []
-                        attributeTypes.forEach((attribute) => {
-                            // TODO: handle overload condition 
-                            if (noNeedPrintModifier(attribute)) {
-                                return;
-                            }
-                            const expr = `this.${this.generateFiledFlag(attribute)} != AttributeUpdaterFlag.INITIAL`
-                            const params: LanguageExpression[] = attribute.args.map((_, index) => {
-                                return this.castSetType(attribute, writer, attribute.method.method.signature, index)
-                                // return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), this.castResetType(attribute.method.method.signature.args[index]))
-                            })
-                            const resetParams: LanguageExpression[] = attribute.args.map((_, index) => {
-                                return this.castResetType(writer, attribute.method.method.signature, index)
-                            })
+                this.printApplyModifierPatch(peer, writer, component, attributeTypes, parentSet, collectedHooks)
+                this.printMergeModifier(writer, component, attributeTypes, parentSet)
 
-                            const methodName = `${attribute.method.sig.name}Attribute`
-                            const hookRecord = peerGeneratorConfiguration().hooks.get(peer!.originalClassName ?? '')?.get(attribute.method.method.name)
-                            if (hookRecord && hookRecord.replaceImplementation) {
-                                collectedHooks.push(hookRecord.hookName)
-                            }
-                            // hookCall in applyModifierPatch
-                            const statement = (hookRecord && hookRecord.replaceImplementation) ? this.generateHooksCall(hookRecord.hookName, params, writer) : writer.makeMethodCall('peer', methodName, params)
-                            const resetStatement = writer.makeMethodCall('peer', methodName, resetParams)
-                            const switchPrinter = this.library.createLanguageWriter();
-                            switchPrinter.print(`switch (this.${this.generateFiledFlag(attribute)}) {`)
-                            switchPrinter.pushIndent()
-                            switchPrinter.print(`case AttributeUpdaterFlag.UPDATE: {`)
-                            switchPrinter.pushIndent()
-                            switchPrinter.print(`${statement.asString()};`)
-                            switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.RESET;`)
-                            switchPrinter.print(`break;`)
-                            switchPrinter.popIndent()
-                            switchPrinter.print(`}`)
-                            switchPrinter.print(`case AttributeUpdaterFlag.SKIP: {`)
-                            switchPrinter.pushIndent()
-                            switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.RESET;`)
-                            switchPrinter.print(`break;`)
-                            switchPrinter.popIndent()
-                            switchPrinter.print(`}`)
-                            switchPrinter.print(`default: {`)
-                            switchPrinter.pushIndent()
-                            switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.INITIAL;`)
-                            if (attribute.isOptional) {
-                                if (hookRecord && hookRecord.replaceImplementation) {
-                                    switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
-                                } else {
-                                    switchPrinter.print(`${resetStatement.asString()};`)
-                                }
-                            }
-                            switchPrinter.popIndent()
-                            switchPrinter.print(`}`)
-                            switchPrinter.popIndent()
-                            switchPrinter.print(`}`)
-                            statements.push(new IfStatement(
-                                writer.makeString(expr),
-                                writer.makeBlock(switchPrinter.getOutput().map(s => writer.makeStatement(writer.makeString(s)))),
-                                undefined,
-                                undefined,
-                                undefined
-                            ))
-                        })
-                        writer.writeStatements(...statements)
-                    }
-                )
-
-                writer.print(`mergeModifier(modifier: ${this.generateAttributeSetName(componentAttribute.name)}): void {`)
-                writer.pushIndent()
-                {
-                    if (parentSet) writer.print('super.mergeModifier(modifier)');
-                    const statements: IfStatement[] = []
-                    attributeTypes.forEach(attribute => {
-                        if (noNeedPrintModifier(attribute)) {
-                            return;
-                        }
-                        const expr = `modifier.${this.generateFiledFlag(attribute)} != AttributeUpdaterFlag.INITIAL`
-                        const params: LanguageExpression[] = attribute.args.map((_, index) => {
-                            return writer.makeCast(
-                                writer.makeString(`modifier.${this.generateFiledName(attribute, index.toString())}`),
-                                idl.maybeOptional(attribute.method.method.signature.args[index], attribute.method.method.signature.isArgOptional(index)),
-                            )
-                        })
-                        const resetParams: LanguageExpression[] = attribute.args.map((_, index) => {
-                            return this.castResetType(writer, attribute.method.method.signature, index)
-                        })
-                        const statement = writer.makeMethodCall('this', attribute.method.method.name, params)
-                        const resetStatement = writer.makeMethodCall('this', attribute.method.method.name, resetParams)
-                        const switchPrinter = this.library.createLanguageWriter();
-                        switchPrinter.print(`switch (modifier.${this.generateFiledFlag(attribute)}) {`)
-                        switchPrinter.pushIndent()
-                        switchPrinter.print(`case AttributeUpdaterFlag.UPDATE:`)
-                        switchPrinter.print(`case AttributeUpdaterFlag.SKIP: {`)
-                        switchPrinter.pushIndent()
-                        switchPrinter.print(`${statement.asString()};`)
-                        switchPrinter.print(`break;`)
-                        switchPrinter.popIndent()
-                        switchPrinter.print(`}`)
-                        switchPrinter.print(`default: {`)
-                        if (attribute.isOptional) {
-                            switchPrinter.pushIndent()
-                            switchPrinter.print(`${resetStatement.asString()};`)
-                            switchPrinter.popIndent()
-                        }
-                        switchPrinter.print(`}`)
-                        switchPrinter.popIndent()
-                        switchPrinter.print(`}`)
-                        statements.push(new IfStatement(
-                            writer.makeString(expr),
-                            writer.makeBlock(switchPrinter.getOutput().map(s => writer.makeStatement(writer.makeString(s)))),
-                            undefined,
-                            undefined,
-                            undefined
-                        ))
-                    })
-                    writer.writeStatements(...statements)
-                }
-                writer.popIndent()
-                writer.print(`}`)
-
-                attributeTypes.forEach(attribute => {
+                attributeTypes.forEach((attribute, index) => {
                     printer.writeMethodImplementation(attribute.method.method, (writer) => {
                         if (noNeedPrintModifier(attribute)) {
                             writer.writeStatement(writer.makeThrowError("Not implemented"))
@@ -502,9 +518,10 @@ class ModifiersFileVisitor {
                             return;
                         }
                         const equalStatements: LanguageExpression[] = []
-                        equalStatements.push(writer.makeEquals([writer.makeString(`this.${this.generateFiledFlag(attribute)}`), writer.makeString(`AttributeUpdaterFlag.INITIAL`)]))
+                        equalStatements.push(writer.makeEquals([writer.makeString(`${this.generateFiledFlag(attribute, index)}`), writer.makeString("AttributeUpdaterFlag.INITIAL")]))
                         attribute.argTypes.forEach((t, index) => {
                             if (isPrimitiveType(t)) {
+                                console.log("isPrimitiveType", `this.${this.generateFiledName(attribute, index.toString())}`)
                                 equalStatements.push(writer.makeNaryOp("!==", [writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), writer.makeString(attribute.args[index])]))
                             } else {
                                 equalStatements.push(writer.makeString('true'))
@@ -514,13 +531,13 @@ class ModifiersFileVisitor {
                         const equalNary = writer.makeNaryOp('||', equalStatements)
 
                         const thenStatements: LanguageStatement[] = []
-                        thenStatements.push(writer.makeAssign(`this.${this.generateFiledFlag(attribute)}`, undefined, writer.makeString(`AttributeUpdaterFlag.UPDATE`), false))
+                        thenStatements.push(writer.makeAssign(`${this.generateFiledFlag(attribute, index)}`, undefined, writer.makeString("AttributeUpdaterFlag.UPDATE"), false))
                         attribute.argTypes.forEach((t, index) => {
                             thenStatements.push(writer.makeAssign(`this.${this.generateFiledName(attribute, index.toString())}`, t, writer.makeString(attribute.args[index]), false))
                         })
                         thenStatements.push(writer.makeStatement(writer.makeString(`this._state.fireChange()`)))
                         const thenStatementBlock = writer.makeBlock(thenStatements)
-                        const elseStatementBlock = writer.makeBlock([writer.makeAssign(`this.${this.generateFiledFlag(attribute)}`, undefined, writer.makeString(`AttributeUpdaterFlag.SKIP`), false)])
+                        const elseStatementBlock = writer.makeBlock([writer.makeAssign(`${this.generateFiledFlag(attribute, index)}`, undefined, writer.makeString("AttributeUpdaterFlag.SKIP"), false)])
                         const condition = writer.makeCondition(equalNary, thenStatementBlock, elseStatementBlock)
                         writer.writeStatement(condition)
                         writer.writeStatement(writer.makeReturn(writer.makeThis()))
@@ -531,9 +548,14 @@ class ModifiersFileVisitor {
                     writer.writeStatement(writer.makeThrowError("Not implemented"))
                 })
             }, parentSet, extendsInterface)
+
             const collector = this.printImports(peer)
             collector.addFeatures(collectedHooks, HandwrittenModule(this.library.language))
-            return { content: printer, imports: collector}
+
+            return {
+                content: printer,
+                imports: collector,
+            }
         }
 
         return [{
