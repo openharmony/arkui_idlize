@@ -251,3 +251,42 @@ locationCheckPass.on({}).after = (node, st) => {
 locationCheckPass.afterAll = (st) => {
     console.log(`Stats: ${st[1]}/${st[0]} nodes have locations`);
 }
+
+const keywords = new Set([
+    "abstract", "alignas", "alignof", "and", "and_eq", "any", "as", "asm", "asserts", "async", "atomic_cancel", "atomic_commit", "atomic_noexcept", "auto", "await",
+    "bigint", "bitand", "bitor", "bool", "boolean", "break", "case", "catch", "char", "char16_t", "char32_t", "char8_t", "class", "co_await", "co_return", "co_yield",
+    "compl", "concept", "const", "const_cast", "consteval", "constexpr", "constinit", "constructor", "continue", "debugger", "declare", "decltype", "default", "delete",
+    "do", "double", "dynamic_cast", "else", "enum", "explicit", "export", "extends", "extern", "false", "finally", "float", "for", "friend", "from", "function",
+    "get", "global", "goto", "if", "implements", "import", "in", "infer", "inline", "instanceof", "int", "interface", "is", "keyof", "let", "long", "module", "mutable",
+    "namespace", "never", "new", "noexcept", "not", "not_eq", "null", "nullptr", "number", "object", "of", "operator", "or", "or_eq", "package", "private", "protected",
+    "public", "readonly", "reflexpr", "register", "reinterpret_cast", "require", "requires", "return", "set", "short", "signed", "sizeof",
+    "static", "static_assert", "static_cast", "string", "struct", "super", "switch", "symbol", "synchronized", "template", "this", "thread_local",
+    "throw", "true", "try", "type", "typedef", "typeid", "typename", "typeof", "undefined", "union", "unique", "unknown", "unsigned", "using",
+    "var", "virtual", "void", "volatile", "wchar_t", "while", "with", "xor", "xor_eq", "yield",
+    "_Alignas", "_Alignof", "_Atomic", "_Bool", "_Complex", "_Generic", "_Imaginary", "_Noreturn", "_Static_assert", "_Thread_local"
+])
+
+const KeywordUsed = new idl.DiagnosticMessageGroup("error", "KeywordUsed", "Identifier is a reserved keyword")
+
+const checkedKinds = new Set([
+     idl.IDLKind.Interface, idl.IDLKind.Method, idl.IDLKind.Property, idl.IDLKind.Const,
+     idl.IDLKind.Typedef, idl.IDLKind.Enum, idl.IDLKind.EnumMember, idl.IDLKind.Callback,
+     idl.IDLKind.Namespace
+])
+
+const keywordPass = idlManager.newPass("arkui.keywordPass", [], () => {})
+keywordPass.on({}).before = (node, st) => {
+    if (checkedKinds.has(node.kind) && node.name && keywords.has(node.name)) {
+        KeywordUsed.reportDiagnosticMessage(nameLoc(node), `Identifier "${node.name}" is a reserved keyword`)
+    }
+    if (node.kind === idl.IDLKind.Method || node.kind === idl.IDLKind.Callback) {
+        const method = node as any;
+        if (method.arguments) {
+            for (const arg of method.arguments) {
+                if (arg.name && keywords.has(arg.name)) {
+                    KeywordUsed.reportDiagnosticMessage(nameLoc(arg), `Identifier "${arg.name}" is a reserved keyword`)
+                }
+            }
+        }
+    }
+}
