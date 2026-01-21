@@ -983,6 +983,10 @@
             "startImageAnalyzer": {
                 "hookName": "hookCanvasStartImageAnalyzer",
                 "replaceImplementation": false
+            },
+            "getCanvas": {
+                "hookName": "hookGetCanvas",
+                "replaceImplementation": true
             }
         },
         "XComponentController": {
