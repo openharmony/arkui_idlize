@@ -34,10 +34,10 @@ function superPropsWithTypeArgs(superRef: idl.IDLReferenceType, superDecl: idl.I
     })
 }
 
-function getAllSuperProps(
+export function getAllSuperProps(
     decl: idl.IDLInterface,
     library: LibraryInterface,
-    propCollector: (ref: idl.IDLReferenceType, decl: idl.IDLInterface) => idl.IDLProperty[],
+    propCollector: (ref: idl.IDLReferenceType, decl: idl.IDLInterface) => idl.IDLProperty[] = (ref, decl) => decl.properties,
 ) {
     const superTypes = idl.isClassSubkind(decl)
         ? [getSuperType(decl, library)].flatMap(it => it ? [it] : [])
@@ -54,9 +54,10 @@ function getAllSuperProps(
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
     const superProps = getAllSuperProps(decl, library,
         (superRef, superDecl) => superPropsWithTypeArgs(superRef, superDecl, collectProperties(superDecl, library)))
+    const superPropsNames = new Set(superProps.map(it => it.name))
     return [
         ...superProps,
-        ...decl.properties,
+        ...decl.properties.filter(it => !superPropsNames.has(it.name)),
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
 }
 
