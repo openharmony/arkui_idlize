@@ -1,6 +1,6 @@
 {
     "name": "@idlizer/kit",
-    "version": "2.1.11+devel",
+    "version": "2.2.0+devel",
     "description": "",
     "main": "build/lib/src/index.js",
     "types": "build/lib/src/index.d.ts",
@@ -14,8 +14,8 @@
     },
     "keywords": [],
     "dependencies": {
-        "@idlizer/core": "2.1.11+devel",
-        "@idlizer/ost": "2.1.11+devel"
+        "@idlizer/core": "2.2.0+devel",
+        "@idlizer/ost": "2.2.0+devel"
     },
     "devDependencies": {
         "typescript": "4.9.5",

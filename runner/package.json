@@ -1,6 +1,6 @@
 {
     "name": "@idlizer/runner",
-    "version": "2.1.11+devel",
+    "version": "2.2.0+devel",
     "description": "",
     "main": "lib/index.js",
     "bin": "lib/index.js",
@@ -13,12 +13,12 @@
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
-        "@idlizer/core": "2.1.11+devel",
+        "@idlizer/core": "2.2.0+devel",
         "commander": "^10.0.0"
     },
     "devDependencies": {
-        "@idlizer/arkgen": "2.1.11+devel",
-        "@idlizer/etsgen": "2.1.11+devel",
+        "@idlizer/arkgen": "2.2.0+devel",
+        "@idlizer/etsgen": "2.2.0+devel",
         "typescript": "^4.9.5",
         "@types/node": "^18.19.127",
         "@rollup/plugin-commonjs": "^26.0.1",
