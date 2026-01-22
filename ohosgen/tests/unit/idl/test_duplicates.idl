@@ -9,3 +9,8 @@ interface DuplicateInterfaceChild: DuplicateInterfaceParent {
     attribute boolean childFlag;
     attribute boolean commonFlag;
 };
+
+interface DuplicateInterfaceSubChild: DuplicateInterfaceChild {
+    attribute boolean subChildFlag;
+    attribute boolean commonFlag;
+};

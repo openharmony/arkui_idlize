@@ -1,0 +1,24 @@
+package arkui.component.check.duplicates;
+
+interface DuplicateInteraceParent {
+    attribute boolean parentEnabled;
+    attribute boolean commonEnabled;
+};
+
+interface DuplicateInteraceChild: DuplicateInteraceParent{
+    attribute boolean childEnabled;
+    attribute boolean commonEnabled;
+};
+
+interface DuplicateInteraceSubChild: DuplicateInteraceChild{
+    attribute boolean subChildEnabled;
+    attribute boolean commonEnabled;
+};
+
+[Component]
+interface CheckDuplicateParentAttribute: Root {
+    attribute DuplicateInteraceParent parentDuplicateInterface;
+    attribute DuplicateInteraceChild childDuplicateInterface;
+    attribute DuplicateInteraceSubChild subChildDuplicateInterface;
+};
+
