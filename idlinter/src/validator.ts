@@ -281,3 +281,11 @@ keywordPass.on({}).before = (node, _) => {
         KeywordUsed.reportDiagnosticMessage(nameLoc(node), `Identifier "${node.name}" is a reserved keyword`)
     }
 }
+
+const NumberTypeUsed = new idl.DiagnosticMessageGroup("error", "NumberTypeUsed", "Usage of the number type")
+const numberPass = idlManager.newPass("arkui.numberPass", [], () => {})
+numberPass.on({kind: idl.IDLKind.PrimitiveType}).before = (node, _) => {
+    if (node.name === "number") {
+        NumberTypeUsed.reportDiagnosticMessage(nameLoc(node), "Usage of the number type")
+    }
+}
