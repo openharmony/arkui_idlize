@@ -13,24 +13,10 @@
  * limitations under the License.
  */
 
-export * from './cli/application'
-export * from './cli/logger'
-export * from './cli/error'
-export * from './cli/utils'
+import { createEmptyReferenceResolver, IndentedPrinter, Language, LanguageWriter, NativeModuleType, PeerLibrary, TSLanguageWriter, TSTypeNameConvertor } from "@idlizer/core";
 
-///
-
-export * from './legacy'
-export * from './appBuilder'
-
-///
-
-export * from './engine'
-
-///
-
-export * from './processors/declarations'
-export * as lowLevelLike from './processors/lowLevelLike'
-export * as moduleLike from './processors/moduleLike'
-export * from './processors/sorts'
-export * from './processors/transformers'
+export namespace legacy {
+    export function createLanguageWriter(lang:Language): LanguageWriter {
+        return new TSLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new TSTypeNameConvertor(new PeerLibrary(lang, new NativeModuleType('__'))))
+    }
+}

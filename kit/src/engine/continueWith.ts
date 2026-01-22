@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import { IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType } from "@idlizer/ost"
-import { Seed, SeedTypeDiscriminator, showHistory, withProcessingSeed } from "./seed"
+import { E, IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType, T } from "@idlizer/ost"
+import { Seed, showHistory, withProcessingSeed } from "./seed"
 
 export class ContinueWithGenerationError extends Error {
     constructor(
-        public message:string,
+        public message: string,
         public causedBy: unknown
     ) {
         super(message)
     }
 }
 
-function callProduce(currentSeed: Seed<any>,op: () => ProducerResult): ProducerResult {
+function callProduce(currentSeed: Seed, op: () => ProducerResult): ProducerResult {
     try {
         return withProcessingSeed(currentSeed, op)
     } catch (ex) {
@@ -38,6 +38,8 @@ function callProduce(currentSeed: Seed<any>,op: () => ProducerResult): ProducerR
 
 export interface ProducerContext<T, E> {
     library: T
+    expectType<T extends Seed>(seed:T): LWType
+    expectExpr<T extends Seed>(seed:T): LWExpression
     updateEffect: (updater: (x: E) => void) => void
     getEffect: () => E
 }
@@ -53,27 +55,26 @@ export interface ProducerResultSkip {
     skip: true
 }
 export type ProducerResult = ProducerResultData | ProducerResultSkip
-export type Producer<Q, T, E> = (request: Q, context: ProducerContext<T, E>) => ProducerResult
-export type ProducerBox<Q, T, E> = {
-    action: Producer<Q, T, E>
+export type Producer<T, E> = (request: Seed, context: ProducerContext<T, E>) => ProducerResult
+export type ProducerBox<T, E> = {
+    action: Producer<T, E>
 }
 
 class HoleScanner extends IdentityTransformer {
     constructor(
-        private seedType: GenerateOptions<any, any, any>['seedType'],
-        private append: (req: Seed<any>) => void,
+        private append: (req: Seed) => void,
     ) {
         super()
     }
 
     goHoleType(type: lw.HoleType): lw.LWType {
-        if (this.seedType.isCurrentSeed(type.data)) {
+        if (Seed.isSeed(type.data)) {
             this.append(type.data)
         }
         return type
     }
     goHoleExpression(expr: lw.HoleExpression): lw.HoleExpression {
-        if (this.seedType.isCurrentSeed(expr.data)) {
+        if (Seed.isSeed(expr.data)) {
             this.append(expr.data)
         }
         return expr
@@ -82,17 +83,16 @@ class HoleScanner extends IdentityTransformer {
 
 class HoleFiller<Q> extends IdentityTransformer {
     constructor(
-        private cache: Map<string, LWType | LWExpression>,
-        private seeds: GenerateOptions<Q, any, any>['seedType']
+        private cache: Map<string, LWType | LWExpression>
     ) {
         super()
     }
 
     goHoleType(type: lw.HoleType): lw.LWType {
-        if (!this.seeds.isCurrentSeed(type.data)) {
+        if (!Seed.isSeed(type.data)) {
             return super.goHoleType(type)
         }
-        const found = this.cache.get(this.seeds.hash(type.data))
+        const found = this.cache.get(type.data.hash())
         if (found) {
             if (isLWType(found)) {
                 return this.goType(found)
@@ -102,10 +102,10 @@ class HoleFiller<Q> extends IdentityTransformer {
         return super.goHoleType(type)
     }
     goHoleExpression(expr: lw.HoleExpression): lw.LWExpression {
-        if (!this.seeds.isCurrentSeed(expr.data)) {
+        if (!Seed.isSeed(expr.data)) {
             return super.goHoleExpression(expr)
         }
-        const found = this.cache.get(this.seeds.hash(expr.data))
+        const found = this.cache.get(expr.data.hash())
         if (found) {
             if (!isLWType(found)) {
                 return this.goExpression(found)
@@ -121,11 +121,10 @@ export function makeGeneratorMemory(): GeneratorMemory {
     return new Map()
 }
 
-export interface GenerateOptions<Q, T, E> {
+export interface GenerateOptions<T, E> {
     library: T
-    createEffect: () => E
-    seedType: SeedTypeDiscriminator<Q>
-    roots: { declarations: LWDeclaration[] } | { seeds: Seed<any>[] }
+    createEffect: () => E,
+    roots: { declarations: LWDeclaration[] } | { seeds: Seed[] }
     sharedMemory?: GeneratorMemory
 }
 export interface GenerateResult<E> {
@@ -133,25 +132,28 @@ export interface GenerateResult<E> {
     declarations: LWDeclaration[]
 }
 
-export function continueWith<Q, T, E>({ library, roots, seedType, createEffect, sharedMemory }: GenerateOptions<Q, T, E>, produce: Producer<Q, T, E>): GenerateResult<E> {
+/**
+ * @deprecated Please use forEachSeed instead
+ */
+export function continueWith<Q, T, E>({ library, roots, createEffect, sharedMemory }: GenerateOptions<T, E>, produce: Producer<T, E>): GenerateResult<E> {
 
     /// THE ALGORITHM
     const effect = createEffect?.()
     const producerContext: ProducerContext<T, E> = {
         library,
+        expectExpr: (s) => E.hole(s),
+        expectType: (s) => T.hole(s),
         updateEffect: (up) => { up(effect) },
         getEffect: () => effect
     }
 
     const currentGeneratedIndex = sharedMemory ?? new Map<string, LWType | LWExpression>()
     const generatedDeclarations: LWDeclaration[] = []
-    const requestQueue: Seed<any>[] = []
+    const requestQueue: Seed[] = []
     if ('declarations' in roots) {
         roots.declarations.forEach(decl => {
             generatedDeclarations.push(decl)
-            const scanner = new HoleScanner(seedType, req => {
-                requestQueue.push(req)
-            })
+            const scanner = new HoleScanner(req => requestQueue.push(req))
             scanner.goDeclaration(decl)
         })
     } else {
@@ -162,20 +164,15 @@ export function continueWith<Q, T, E>({ library, roots, seedType, createEffect, 
 
     while (requestQueue.length) {
         const query = requestQueue.shift()!
-        if (!seedType.isCurrentSeed(query)) {
-            continue
-        }
-        const queryString = seedType.hash(query)
+        const queryString = query.hash()
         if (currentGeneratedIndex.has(queryString)) {
             continue
         }
-        const result = callProduce(query, () => produce(query.data, producerContext))
+        const result = callProduce(query, () => produce(query, producerContext))
         if ("skip" in result) {
             continue
         }
-        const scanner = new HoleScanner(seedType, req => {
-            requestQueue.push(req)
-        })
+        const scanner = new HoleScanner(req => requestQueue.push(req))
         if (isLWType(result.continuation)) {
             scanner.goType(result.continuation)
         } else {
@@ -188,14 +185,14 @@ export function continueWith<Q, T, E>({ library, roots, seedType, createEffect, 
         })
         if (result.trigger) {
             result.trigger.forEach(effect => {
-                if (seedType.isCurrentSeed(effect)) {
+                if (Seed.isSeed(effect)) {
                     requestQueue.push(effect)
                 }
             })
         }
     }
 
-    const filler = new HoleFiller(currentGeneratedIndex, seedType)
+    const filler = new HoleFiller(currentGeneratedIndex)
     const declarations = generatedDeclarations.map(decl => {
         return filler.goDeclaration(decl)
     })
@@ -208,4 +205,61 @@ export function continueWith<Q, T, E>({ library, roots, seedType, createEffect, 
 
 export function isLWType(node: LWType | LWExpression): node is LWType {
     return [LWKind.ValueType, LWKind.FunctionalType, LWKind.HoleType].includes(node.kind)
+}
+
+export function forEachSeed<T>({
+    context,
+    begin,
+    sharedMemory,
+}: {
+    context: T
+    begin: Seed[]
+    sharedMemory?: GeneratorMemory
+}, produce: Producer<T, undefined>): LWDeclaration[] {
+    return continueWith({
+        createEffect: () => undefined,
+        library: context,
+        roots: { seeds: begin },
+        sharedMemory,
+    }, produce).declarations
+}
+
+///
+
+export type TypedProducer<Q, T, E> = (request: Q, context: ProducerContext<T, E>) => ProducerResult
+interface TypedProducerBox<T, E> {
+    producer: Producer<T, E>
+    seedTypeSpec: new (...args:any[]) => Seed
+}
+
+type ClassReturnType<C extends new (...args:any[]) => any> = C extends new (...args:any[]) => infer R ? R : never
+
+class MatchBuilder<T, E> {
+    constructor(
+        private storage: TypedProducerBox<T, E>[]
+    ) {}
+    caseOf<Q extends new (...args:any[]) => Seed>(seedTypeSpec:Q, producer:TypedProducer<ClassReturnType<Q>, T, E>): this {
+        this.storage.push({
+            producer: producer as any,
+            seedTypeSpec,
+        })
+        return this
+    }
+}
+
+export function match<T, E>(op:(b:MatchBuilder<T, E>) => void): Producer<T, E> {
+    const storage: TypedProducerBox<T, E>[] = []
+    op(new MatchBuilder(storage))
+    return (seed, ctx) => {
+        for (const box of storage) {
+            if (seed instanceof box.seedTypeSpec) {
+                return box.producer(seed, ctx)
+            }
+        }
+        return { skip: true }
+    }
+}
+
+export function onlyFor<Q extends new (...args:any[]) => Seed, T, E>(seedTypeSpec:Q, producer:TypedProducer<ClassReturnType<Q>, T, E>): Producer<T, E> {
+    return match(cases => cases.caseOf(seedTypeSpec, producer))
 }

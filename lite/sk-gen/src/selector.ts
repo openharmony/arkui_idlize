@@ -16,7 +16,7 @@
 import { IDLType, IDLReferenceType, isReferenceType, IDLEntry, DebugUtils } from "@idlizer/core/idl"
 import { LWExpression, LWStatement, LWType } from "@idlizer/ost"
 import { terminate, ProducerResult } from "@idlizer/kit"
-import { IDLLibrary } from "./library"
+import { GeneratorLibrary } from "./library"
 
 export function selectEQ<T>(x: T): (x: IDLType) => T | undefined {
     return (type) => type === x ? type as T : undefined
@@ -28,11 +28,11 @@ export function selectReference(name: string): (x: IDLType) => IDLReferenceType 
         : undefined
 }
 
-export function selectType<T extends IDLType>(pred: (x: IDLType, lib:IDLLibrary) => x is T, ...conds: ((x: T, lib:IDLLibrary) => boolean)[]): (x: IDLType, lib: IDLLibrary) => T | undefined {
+export function selectType<T extends IDLType>(pred: (x: IDLType, lib:GeneratorLibrary) => x is T, ...conds: ((x: T, lib:GeneratorLibrary) => boolean)[]): (x: IDLType, lib: GeneratorLibrary) => T | undefined {
     return (type, lib) => pred(type, lib) && conds.every(c => c(type, lib)) ? type : undefined
 }
 
-export function selectDeclaration<T extends IDLEntry>(pred: (x: IDLEntry) => x is T, ...conds: ((x: T) => boolean)[]): (x: IDLType, lib: IDLLibrary) => T | undefined {
+export function selectDeclaration<T extends IDLEntry>(pred: (x: IDLEntry) => x is T, ...conds: ((x: T) => boolean)[]): (x: IDLType, lib: GeneratorLibrary) => T | undefined {
     return (type, lib) => {
         if (!isReferenceType(type)) {
             return undefined
@@ -47,10 +47,10 @@ export function selectDeclaration<T extends IDLEntry>(pred: (x: IDLEntry) => x i
 ///
 
 export interface GeneratorBox<T> {
-    select: (type: IDLType, lib: IDLLibrary) => T | undefined,
-    makeDeclaration: (decl: T, lib: IDLLibrary, selector: Selector) => ProducerResult
-    toNative: (decl: T, param: LWExpression, lib:IDLLibrary, selector:Selector) => [LWStatement[], LWExpression, LWType]
-    fromNative: (decl: T, returnValue: LWExpression, lib:IDLLibrary, selector:Selector, pushArg:(name:string, type:LWType, expr:LWExpression) => void) => [LWType, [LWStatement[], LWStatement[]], LWExpression]
+    select: (type: IDLType, lib: GeneratorLibrary) => T | undefined,
+    makeDeclaration: (decl: T, lib: GeneratorLibrary, selector: Selector) => ProducerResult
+    toNative: (decl: T, param: LWExpression, lib:GeneratorLibrary, selector:Selector) => [LWStatement[], LWExpression, LWType]
+    fromNative: (decl: T, returnValue: LWExpression, lib:GeneratorLibrary, selector:Selector, pushArg:(name:string, type:LWType, expr:LWExpression) => void) => [LWType, [LWStatement[], LWStatement[]], LWExpression]
 }
 
 export class SelectorBuilder {
@@ -71,7 +71,7 @@ export class Selector {
         private specs: GeneratorBox<any>[]
     ) { }
 
-    private findSafe(type: IDLType, library: IDLLibrary): [GeneratorBox<any>, any] | undefined {
+    private findSafe(type: IDLType, library: GeneratorLibrary): [GeneratorBox<any>, any] | undefined {
         for (const spec of this.specs) {
             const result = spec.select(type, library)
             if (result) {
@@ -81,25 +81,25 @@ export class Selector {
         return undefined
     }
 
-    private find(type: IDLType, library: IDLLibrary): [GeneratorBox<any>, any] {
+    private find(type: IDLType, library: GeneratorLibrary): [GeneratorBox<any>, any] {
         return this.findSafe(type, library) ?? terminate(`GENERATOR FOR THE TYPE "${DebugUtils.debugPrintType(type)}" is not specified`)
     }
 
-    isRegistered(type: IDLType, library: IDLLibrary): boolean {
+    isRegistered(type: IDLType, library: GeneratorLibrary): boolean {
         return !!this.findSafe(type, library)
     }
 
-    generate(type: IDLType, library: IDLLibrary): ProducerResult {
+    generate(type: IDLType, library: GeneratorLibrary): ProducerResult {
         const [spec, arg] = this.find(type, library)
         return spec.makeDeclaration(arg, library, this)
     }
 
-    toNative(type: IDLType, library: IDLLibrary, param: LWExpression) {
+    toNative(type: IDLType, library: GeneratorLibrary, param: LWExpression) {
         const [spec, arg] = this.find(type, library)
         return spec.toNative(arg, param, library, this)
     }
 
-    fromNative(type: IDLType, library: IDLLibrary, returnValue: LWExpression, pushArg:(name:string, type:LWType, expr:LWExpression) => void) {
+    fromNative(type: IDLType, library: GeneratorLibrary, returnValue: LWExpression, pushArg:(name:string, type:LWType, expr:LWExpression) => void) {
         const [spec, arg] = this.find(type, library)
         return spec.fromNative(arg, returnValue, library, this, pushArg)
     }

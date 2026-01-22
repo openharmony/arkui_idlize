@@ -13,27 +13,25 @@
  * limitations under the License.
  */
 
-import { E, HoleExpression, HoleType, T } from "@idlizer/ost"
-
 ///
 
-let processingSeed: Seed<unknown> | undefined = undefined
-export function setProcessingSeed(seed:Seed<unknown>) {
+let processingSeed: Seed | undefined = undefined
+export function setProcessingSeed(seed:Seed) {
     processingSeed = seed
 }
 export function deleteProcessingSeed() {
     processingSeed = undefined
 }
-export function withProcessingSeed<T>(seed:Seed<unknown>, op: () => T): T {
+export function withProcessingSeed<T>(seed:Seed, op: () => T): T {
     setProcessingSeed(seed)
     const r = op()
     deleteProcessingSeed()
     return r
 }
 
-export function showHistory(seed:Seed<unknown>): string {
-    const records: Seed<unknown>[] = []
-    let current: Seed<unknown> | undefined = seed
+export function showHistory(seed:Seed): string {
+    const records: Seed[] = []
+    let current: Seed | undefined = seed
     while (current) {
         records.unshift(current)
         current = current.causedBy
@@ -52,64 +50,18 @@ export function showHistory(seed:Seed<unknown>): string {
 
 ///
 
-const generatorAnchor = Symbol("GENERATED_SEED")
+export abstract class Seed {
+    public causedBy?: Seed
 
-export interface Seed<T> {
-    _meta: {
-        symbol: Symbol,
-        id: string
-    },
-    hash: () => void,
-    debugMessage?: () => string,
-    data: T
-    typeOf: SeedType<T>
-    causedBy: Seed<unknown> | undefined
-}
+    abstract hash(): string
 
-export interface SeedTypeDiscriminator<T> {
-    isCurrentSeed: (other: unknown) => other is Seed<T>
-    hash: (seed: Seed<T>) => string
-    debugMessage?: (data:Seed<T>) => string
-}
-export interface SeedType<T> extends SeedTypeDiscriminator<T> {
-    create: (x: T) => Seed<T>
-    createExp: (x: T) => HoleExpression
-    createType: (x: T) => HoleType
-}
-
-function generatedRandomId(): string {
-    return (Math.random() * 1000).toFixed(0) + Date.now() + (Math.random() * 1000).toFixed(0)
-}
-
-export function makeSeed<T>(
-    hash: (x: T) => string,
-    debugMessage?: (x:T) => string,
-): SeedType<T> {
-    const id = generatedRandomId()
-    const make = (data: T, type: SeedType<T>): Seed<T> => {
-        const seed: Seed<T> = {
-            _meta: {
-                id,
-                symbol: generatorAnchor
-            },
-            data,
-            debugMessage: debugMessage ? () => debugMessage(data) : undefined,
-            hash: () => hash(data),
-            typeOf: type,
-            causedBy: processingSeed
-        }
-        return seed
+    debugMessage(): string {
+        return this.hash()
     }
-    const seedType: SeedType<T> = {
-        create: x => make(x, seedType),
-        createExp: x => E.hole(make(x, seedType)),
-        createType: x => T.hole(make(x, seedType)),
-        hash: (box) => "::SEED:" + box._meta.id + hash(box.data),
-        debugMessage: debugMessage ? (box) => debugMessage?.(box.data) : undefined,
-        isCurrentSeed: (box): box is Seed<T> => box !== undefined && typeof box === 'object' && box !== null
-            && "_meta" in box && typeof box._meta === 'object' && box._meta !== null
-            && "symbol" in box._meta && box._meta.symbol === generatorAnchor
-            && "id" in box._meta && box._meta.id === id
+
+    static isSeed(something:unknown): something is Seed {
+        return typeof something === 'object'
+            && something !== null
+            && something instanceof Seed
     }
-    return seedType
 }

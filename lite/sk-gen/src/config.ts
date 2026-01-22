@@ -14,10 +14,7 @@
  */
 
 import { D as Conf, ConfigTypeInfer } from "@idlizer/core"
-import { getIO, terminate } from "@idlizer/kit"
-import { join, resolve } from "node:path"
-
-const io = getIO()
+import { resolve } from "node:path"
 
 export const GeneratedSchema = Conf.object({
     output: Conf.string(),
@@ -93,42 +90,19 @@ export interface ProjectEnvConfig {
 }
 export type ProjectConfig = ProjectUserConfig & ProjectEnvConfig
 
-const CONFIG_SEARCH_PATHS = [
+export const CONFIG_SEARCH_PATHS = [
     '.idlizer.config.json',
     '.idlizerrc',
     '.idlizerrc.json',
 ]
 
-async function readUserConfig(rootDirectory: string): Promise<[ProjectUserConfig, string]> {
-    const triedPaths: string[] = []
-    for (const path of CONFIG_SEARCH_PATHS) {
-        const possiblePath = join(rootDirectory, path)
-        if (await io.exists(possiblePath)) {
-            const text = await io.readFile(possiblePath)
-            const json = JSON.parse(text)
-            const maybeConfig = ProjectConfigSchema.validate(json)
-            if (!maybeConfig.success()) {
-                terminate(`Config was found at "${possiblePath}", but was not parsed!\n ` + maybeConfig.error())
-            }
-            return [maybeConfig.unwrap(), possiblePath]
-        }
-        triedPaths.push(possiblePath)
-    }
-    terminate(
-        'Config was not found!\n'
-        + 'Searched at: \n'
-        + triedPaths.map(p => ' '.repeat(2) + p).join('\n')
-    )
-}
+export function resolveConfigPaths(userConfig:ProjectUserConfig, foundPath: string): ProjectConfig {
 
-export async function readConfig(rootDirectory: string): Promise<ProjectConfig> {
-    const [userConfig, foundPath] = await readUserConfig(rootDirectory)
-
-    userConfig.generated.output = resolve(rootDirectory, userConfig.generated.output)
+    userConfig.generated.output = resolve(foundPath, userConfig.generated.output)
     if (userConfig.generated.outputReport) {
-        userConfig.generated.outputReport = resolve(rootDirectory, userConfig.generated.outputReport)
+        userConfig.generated.outputReport = resolve(foundPath, userConfig.generated.outputReport)
     }
-    userConfig.declarations.source = userConfig.declarations.source.map(path => resolve(rootDirectory, path))
+    userConfig.declarations.source = userConfig.declarations.source.map(path => resolve(foundPath, path))
 
     return {
         ...userConfig,
