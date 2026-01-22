@@ -20,6 +20,7 @@ import { forkWith, getIO, RealWorld } from "./cli/application"
 import { CURRENT_LOG_LEVEL, logger } from "./cli/logger"
 import { text } from "./text"
 import { EOL } from "node:os"
+import { dirname } from "node:path"
 
 export interface LoadedConfig<T> {
     data: T
@@ -111,10 +112,12 @@ export class IdlizerAppBuilder {
 
     private flushDiagnostics() {
         const diagnosticResult = DiagnosticMessageGroup.collectedResults
-        outputDiagnosticResultsFormatted(diagnosticResult)
-        DiagnosticMessageGroup.collectedResults = new DiagnosticResults()
-        if (diagnosticResult.hasErrors) {
-            throw new FailedDiagnosticsError(true)
+        if (diagnosticResult.entries.length) {
+            outputDiagnosticResultsFormatted(diagnosticResult)
+            DiagnosticMessageGroup.collectedResults = new DiagnosticResults()
+            if (diagnosticResult.hasErrors) {
+                throw new FailedDiagnosticsError(true)
+            }
         }
     }
 
@@ -159,6 +162,10 @@ export class IdlizerAppBuilder {
         const header = text.getClaim(this.desc.name, this.desc.version, this.desc.commit ?? 'N/A')
         const files = gen()
         if (!this.desc.dryRun) {
+            const directories = new Set<string>()
+            files.forEach(file => directories.add(dirname(file.filePath)))
+            const mkdirHandles = Array.from(directories).map(dir => this.io.mkdir(dir, { recursive: true }))
+            await Promise.all(mkdirHandles)
             const handles = files.map(file => this.io.writeFile(file.filePath, [header, file.content].join(EOL)))
             return Promise.all(handles)
         } else {
