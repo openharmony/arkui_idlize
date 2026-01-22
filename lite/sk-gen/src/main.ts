@@ -40,7 +40,7 @@ idlizer({ name: 'skgen', version: '0.3.0' }, async $ => {
     )
 
     logger.info("Installing")
-    await $.install(() => print(config.generated.output, generated.declarations, library.allPackages(['framework'])))
+    await $.install(() => print(config.generated.output, generated, library.allPackages(['framework'])))
     if (config.generated.outputReport) {
         const report = library.prepareReport()
         await $.io.mkdir(config.generated.outputReport, { recursive: true })

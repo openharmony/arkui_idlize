@@ -1,0 +1,16 @@
+package test.declarations;
+
+interface A {
+    attribute B b;
+    attribute i32 x;
+};
+
+interface B {
+    attribute A a;
+    attribute i32 y;
+};
+
+interface C {
+    attribute A a;
+    attribute B b;
+};

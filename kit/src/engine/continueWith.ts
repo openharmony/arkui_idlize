@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType } from "@idlizer/ost"
+import { E, IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType, T } from "@idlizer/ost"
 import { Seed, showHistory, withProcessingSeed } from "./seed"
 
 export class ContinueWithGenerationError extends Error {
@@ -38,6 +38,8 @@ function callProduce(currentSeed: Seed, op: () => ProducerResult): ProducerResul
 
 export interface ProducerContext<T, E> {
     library: T
+    expectType<T extends Seed>(seed:T): LWType
+    expectExpr<T extends Seed>(seed:T): LWExpression
     updateEffect: (updater: (x: E) => void) => void
     getEffect: () => E
 }
@@ -139,6 +141,8 @@ export function continueWith<Q, T, E>({ library, roots, createEffect, sharedMemo
     const effect = createEffect?.()
     const producerContext: ProducerContext<T, E> = {
         library,
+        expectExpr: (s) => E.hole(s),
+        expectType: (s) => T.hole(s),
         updateEffect: (up) => { up(effect) },
         getEffect: () => effect
     }
@@ -211,13 +215,13 @@ export function forEachSeed<T>({
     context: T
     begin: Seed[]
     sharedMemory?: GeneratorMemory
-}, produce: Producer<T, undefined>) {
+}, produce: Producer<T, undefined>): LWDeclaration[] {
     return continueWith({
         createEffect: () => undefined,
         library: context,
         roots: { seeds: begin },
         sharedMemory,
-    }, produce)
+    }, produce).declarations
 }
 
 ///
