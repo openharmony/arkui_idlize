@@ -15,7 +15,7 @@
 */
 
 export namespace text {
-    export function getLicense() {
+    export function getLicense(): string {
         return `
 @license
 Copyright (c) ${new Date().getUTCFullYear()} Huawei Device Co., Ltd.
@@ -64,14 +64,14 @@ limitations under the License.
 `
     }
 
-    export function generatedWarning() {
+    export function generatedWarning(): string {
         return `
 WARNING! THIS FILE IS AUTO-GENERATED. DO NOT MAKE CHANGES.
 THEY WILL BE LOST ON NEXT GENERATION!
 `
     }
 
-    export function concatVertical(leftText: string, rightText: string, sep: string) {
+    export function concatVertical(leftText: string, rightText: string, sep: string): string {
         const leftLines = leftText.split('\n')
         const rightLines = rightText.split('\n')
 
@@ -86,7 +86,7 @@ THEY WILL BE LOST ON NEXT GENERATION!
         return result
     }
 
-    export function concatHorizontal(topText: string, bottomText: string) {
+    export function concatHorizontal(topText: string, bottomText: string): string {
         return topText + bottomText
     }
 
@@ -104,7 +104,7 @@ THEY WILL BE LOST ON NEXT GENERATION!
         return result
     }
 
-    export function getClaim(name: string, version: string, commit: string) {
+    export function getClaim(name: string, version: string, commit: string): string {
         return makeComment(
             concatVertical(
                 getLogo(name, version, commit),

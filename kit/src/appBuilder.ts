@@ -73,11 +73,11 @@ export class IDLFileLibrary {
         this.index = index ?? this.initIndex(files)
     }
 
-    toDeclarationSafe(reference: IDLReferenceType) {
+    toDeclarationSafe(reference: IDLReferenceType): IDLEntry | undefined {
         return this.index.get(reference.name)
     }
 
-    toDeclaration(reference: IDLReferenceType) {
+    toDeclaration(reference: IDLReferenceType): IDLEntry {
         return this.toDeclarationSafe(reference) ?? terminate(`Reference was not found! "${reference.name}" `)
     }
 
@@ -91,7 +91,7 @@ export class IDLFileLibrary {
         return type
     }
 
-    allPackages(more?: string[]) {
+    allPackages(more?: string[]): Set<string> {
         return new Set(this.files.map(file => file.packageClause.join('.')).concat(more ?? []))
     }
 }
@@ -118,7 +118,7 @@ export class IdlizerAppBuilder {
         }
     }
 
-    async readFiles(paths: string[]) {
+    async readFiles(paths: string[]): Promise<IDLFile[]> {
         const files: string[] = []
         for (const path of paths) {
             files.push(... await this.io.scan(path))
@@ -150,12 +150,12 @@ export class IdlizerAppBuilder {
         )
     }
 
-    diagnostics(op: () => void) {
+    diagnostics(op: () => void): void {
         op()
         this.flushDiagnostics()
     }
 
-    async install(gen: () => IdlizerAppInstallFile[]) {
+    async install(gen: () => IdlizerAppInstallFile[]): Promise<unknown> {
         const header = text.getClaim(this.desc.name, this.desc.version, this.desc.commit ?? 'N/A')
         const files = gen()
         if (!this.desc.dryRun) {
@@ -178,7 +178,7 @@ Oh no!
 Looks like the generator was terminated unexpectedly.
 `
 
-export function idlizer(desc: IdlizerAppDescription, app: (builder: IdlizerAppBuilder) => void | Promise<void>) {
+export function idlizer(desc: IdlizerAppDescription, app: (builder: IdlizerAppBuilder) => void | Promise<void>): void {
     forkWith(async () => {
         setFormatterLogger((sev, ...msg) => {
             switch (sev) {
