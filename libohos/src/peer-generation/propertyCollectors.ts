@@ -54,9 +54,10 @@ function getAllSuperProps(
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
     const superProps = getAllSuperProps(decl, library,
         (superRef, superDecl) => superPropsWithTypeArgs(superRef, superDecl, collectProperties(superDecl, library)))
+    const superPropsNames = new Set(superProps.map(it => it.name))
     return [
         ...superProps,
-        ...decl.properties,
+        ...decl.properties.filter(it => !superPropsNames.has(it.name)),
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
 }
 

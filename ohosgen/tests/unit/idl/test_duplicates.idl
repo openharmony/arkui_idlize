@@ -1,0 +1,11 @@
+package test_duplicates;
+
+interface DuplicateInterfaceParent {
+    attribute boolean parentFlag;
+    attribute boolean commonFlag;
+};
+
+interface DuplicateInterfaceChild: DuplicateInterfaceParent {
+    attribute boolean childFlag;
+    attribute boolean commonFlag;
+};

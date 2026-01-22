@@ -38,6 +38,7 @@
                 "test_force_callback",
                 "test_generics",
                 "test_declare_type",
+                "test_duplicates",
                 "test_override_methods",
                 "test_materialized_classes",
                 "test_any",
