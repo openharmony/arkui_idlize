@@ -37,6 +37,9 @@ import {
     IDLStringType,
     IDLVoidType,
     isMethodOverridden,
+    getSuper,
+    KotlinTypeComparator,
+    LibraryInterface,
 } from '@idlizer/core'
 import {
     ImportsCollector,
@@ -60,6 +63,33 @@ export function componentToPeerClass(component: string) {
 
 export function componentToAttributesInterface(component: string) {
     return `${component}`
+}
+
+export function isPropertyBasedMethodOverridden(decl: idl.IDLInterface, property: string | idl.IDLProperty, library: LibraryInterface): boolean {
+    if (typeof property === "string") {
+        const originalProperty = decl.properties.find(it => it.name === property)
+        if (originalProperty) {
+            return isPropertyBasedMethodOverridden(decl, originalProperty, library)
+        }
+        return false
+    }
+
+    const ancestor = getSuper(decl, library)
+    if (ancestor) {
+        if (library.language === Language.KOTLIN) {
+            const comparator = new KotlinTypeComparator(library)
+            for (const ancestorProperty of ancestor.properties) {
+                if (property.name == ancestorProperty.name) {
+                    return comparator.isCompatibleType(property.type, ancestorProperty.type)
+                }
+            }
+        }
+        else if (ancestor.properties.some(it => it.name === property.name)) {
+            return true
+        }
+        return isPropertyBasedMethodOverridden(ancestor, property, library)
+    }
+    return false
 }
 
 // For TS and ArkTS
@@ -189,7 +219,8 @@ class PeerFileVisitor {
 
     protected printPeerMethod(decl: idl.IDLInterface, method: PeerMethod, printer: LanguageWriter) {
         this.library.setCurrentContext(`${method.originalParentName}.${method.sig.name}`)
-        const isOverridden = isMethodOverridden(decl, method.method.name, this.library)
+        const isOverridden = isMethodOverridden(decl, method.method, this.library) ||
+            isPropertyBasedMethodOverridden(decl, method.method.name, this.library)
         writePeerMethod(this.library, printer, method, this.dumpSerialized, "Attribute", "this.peer.ptr", undefined, isOverridden)
         this.library.setCurrentContext(undefined)
     }

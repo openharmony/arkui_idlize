@@ -18,8 +18,15 @@ interface DuplicateInteraceSubChild: DuplicateInteraceChild{
 [Component]
 interface CheckDuplicateParentAttribute: Root {
     attribute DuplicateInteraceParent parentDuplicateInterface;
-    attribute DuplicateInteraceChild childDuplicateInterface;
+    attribute DuplicateInteraceChild commonProperty;
     attribute DuplicateInteraceSubChild subChildDuplicateInterface;
+    this commonMethod((DuplicateInteraceParent or undefined) param1, optional DuplicateInteraceSubChild param2);
+};
+
+[Component]
+interface CheckDuplicateChildAttribute: CheckDuplicateParentAttribute {
+    attribute DuplicateInteraceChild commonProperty;
+    this commonMethod((DuplicateInteraceParent or undefined) param1, optional (DuplicateInteraceSubChild or undefined) param2);
 };
 
 [Entity=Class]

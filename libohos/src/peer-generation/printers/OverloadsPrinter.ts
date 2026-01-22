@@ -340,7 +340,7 @@ export class OverloadsPrinter {
                 if (interfaceDeclaration) {
                     const isStatic = collapsedMethod.modifiers?.includes(MethodModifier.STATIC)
                     if (!isStatic) {
-                        const isOverridden = isMaterializedMethodOverridden(interfaceDeclaration, collapsedMethodToPrint.name, this.library)
+                        const isOverridden = isMaterializedMethodOverridden(interfaceDeclaration, collapsedMethodToPrint, this.library)
                         collapsedMethodToPrint.modifiers!.push(isOverridden ? MethodModifier.OVERRIDE : MethodModifier.OPEN)
                     }
                 }

@@ -14,6 +14,10 @@
  */
 
 import * as idl from '../idl'
+import { Language } from '../Language'
+import { Method } from '../LanguageWriters/LanguageWriter'
+import { KotlinTypeComparator } from '../LanguageWriters/TypeComparator'
+import { LibraryInterface } from '../LibraryInterface'
 import { ReferenceResolver } from './ReferenceResolver'
 
 function getSuperCandidates(declaration:idl.IDLInterface, resolver: ReferenceResolver): [idl.IDLInterface, idl.IDLReferenceType][] {
@@ -67,15 +71,39 @@ export function getSuperType(declaration:idl.IDLInterface, resolver: ReferenceRe
     return getSuperTuple(declaration, resolver)?.[1]
 }
 
-export function isMethodOverridden(decl: idl.IDLInterface, methodName: string, resolver: ReferenceResolver): boolean {
-    let ancestor = getSuper(decl, resolver)
+function maybeWrapOptionalArgumentType(type: idl.IDLType, isArgumentOptional: boolean): idl.IDLType {
+    if (isArgumentOptional && !idl.isOptionalType(type)) {
+        return idl.maybeOptional(type, true)
+    }
+    return type
+}
+
+export function isMethodOverridden(decl: idl.IDLInterface, method: Method, library: LibraryInterface): boolean {
+    let ancestor = getSuper(decl, library)
     if (ancestor) {
-        for (const ancestorMethod of ancestor.methods) {
-            if (methodName == ancestorMethod.name) {
-                return true
+        if (library.language === Language.KOTLIN) {
+            const comparator = new KotlinTypeComparator(library)
+            for (const ancestorMethod of ancestor.methods) {
+                if (method.name == ancestorMethod.name) {
+                    const paramCount = method.signature.args.length
+                    if (ancestorMethod.parameters.length !== paramCount) {
+                        return false
+                    }
+                    for (let i = 0; i < paramCount; i++) {
+                        const type1 = maybeWrapOptionalArgumentType(method.signature.args[i], method.signature.isArgOptional(i))
+                        const type2 = maybeWrapOptionalArgumentType(ancestorMethod.parameters[i].type, ancestorMethod.parameters[i].isOptional)
+                        if (!comparator.isCompatibleType(type1, type2)) {
+                            return false
+                        }
+                    }
+                    return true
+                }
             }
         }
-        return isMethodOverridden(ancestor, methodName, resolver)
+        else if (ancestor.methods.some(it => it.name === method.name)) {
+            return true
+        }
+        return isMethodOverridden(ancestor, method, library)
     }
     return false
 }
