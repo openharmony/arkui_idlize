@@ -42,7 +42,7 @@ import { isComponentDeclaration } from '../ComponentsCollector'
 import { DependenciesCollector, KotlinDependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { ImportsCollector, ImportFeature } from '../ImportsCollector'
 import { convertDeclToFeature, collectDeclDependencies } from '../ImportsCollectorUtils'
-import { collectAllProperties } from '../propertyCollectors'
+import { collectAllProperties, getAllSuperProps } from '../propertyCollectors'
 export interface InterfacesVisitor {
     printInterfaces(): PrinterResult[]
 }
@@ -1448,8 +1448,11 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         return ""
     }
 
-    private printProperty(writer: LanguageWriter, property: idl.IDLProperty): void {
+    private printProperty(writer: LanguageWriter, property: idl.IDLProperty, superProps: Set<string>): void {
         const modifiers: FieldModifier[] = []
+        if (superProps.has(property.name)) {
+            modifiers.push(FieldModifier.OVERRIDE)
+        }
         if (property.isReadonly) {
             modifiers.push(FieldModifier.READONLY)
         }
@@ -1462,16 +1465,18 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     private makeClass(writer: LanguageWriter, type: idl.IDLInterface): void {
         const superNames = type.inheritance
         const generics = type.typeParameters
+        const superPropNames = new Set(getAllSuperProps(type, this.peerLibrary).map(it => it.name))
         writer.writeClass(type.name, (writer) => {
-            type.properties.forEach(it => this.printProperty(writer, it))
+            type.properties.forEach(it => this.printProperty(writer, it, superPropNames))
         }, undefined, superNames ? superNames.map(it => this.convertInheritance(it)) : undefined, generics)
     }
 
     private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
         const superNames = type.inheritance
         const generics = type.typeParameters
+        const superPropNames = new Set(getAllSuperProps(type, this.peerLibrary).map(it => it.name))
         writer.writeInterface(type.name, (writer) => {
-            type.properties.forEach(it => this.printProperty(writer, it))
+            type.properties.forEach(it => this.printProperty(writer, it, superPropNames))
         }, superNames ? superNames.map(it => this.convertType(it)) : undefined, generics)
     }
 

@@ -34,10 +34,10 @@ function superPropsWithTypeArgs(superRef: idl.IDLReferenceType, superDecl: idl.I
     })
 }
 
-function getAllSuperProps(
+export function getAllSuperProps(
     decl: idl.IDLInterface,
     library: LibraryInterface,
-    propCollector: (ref: idl.IDLReferenceType, decl: idl.IDLInterface) => idl.IDLProperty[],
+    propCollector: (ref: idl.IDLReferenceType, decl: idl.IDLInterface) => idl.IDLProperty[] = (ref, decl) => decl.properties,
 ) {
     const superTypes = idl.isClassSubkind(decl)
         ? [getSuperType(decl, library)].flatMap(it => it ? [it] : [])
