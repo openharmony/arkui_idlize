@@ -15,13 +15,5 @@
             "arkui.PeerNode"
         ]
     },
-    "tsLikePackages": {
-        "arkui.RenderNode": "@arkui.RenderNode",
-        "arkui.FrameNode": "@arkui.FrameNode",
-        "arkui.NodeController": "@arkui.NodeController",
-        "arkui.BuilderNode": "@arkui.BuilderNode",
-        "arkui.ComponentContent": "@arkui.ComponentContent",
-        "arkui.Content": "@arkui.Content",
-        "arkui": "@ohos.arkui.component"
-    }
+    "tsLikePackages": {}
 }
