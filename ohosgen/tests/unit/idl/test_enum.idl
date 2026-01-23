@@ -25,6 +25,15 @@ dictionary HexEnum {
     number ECD = 0XCD;
 };
 
+dictionary BigHexEnum {
+    number E0 = 0x0;
+    number E1 = 0X1;
+    number EFFFFFFFF = 0xFFFFFFFF;
+    number EFFFFFFFFAB = 0xFFFFFFFFAB;
+    number EFFFFFFFFFF = 0xFFFFFFFFFF;
+    number EFFFFFFFFFFCD = 0xFFFFFFFFFFCD;
+};
+
 dictionary DuplicateIntEnum {
     number FIRST = 0;
     [OriginalEnumMemberName=first]
@@ -49,6 +58,7 @@ OrdinaryEnum checkOrdinaryEnums(OrdinaryEnum value1, OrdinaryEnum value2);
 IntEnum checkIntEnums(IntEnum value1, IntEnum value2);
 BinEnum checkBinEnums(BinEnum value1, BinEnum value2);
 HexEnum checkHexEnums(HexEnum value1, HexEnum value2);
+BigHexEnum checkBigHexEnums(BigHexEnum value1, BigHexEnum value2);
 DuplicateIntEnum checkDuplicateIntEnums(DuplicateIntEnum value1, DuplicateIntEnum value2);
 StringEnum checkStringEnums(StringEnum value1, StringEnum value2);
 StringEnum checkStringEnumOrdinal(StringEnum value, i32 expectedOrdinal);

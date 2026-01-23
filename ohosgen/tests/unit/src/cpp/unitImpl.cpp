@@ -389,6 +389,16 @@ OH_UNIT_HexEnum GlobalScope_checkHexEnumsImpl(OH_UNIT_HexEnum value1, OH_UNIT_He
     return OH_UNIT_HEX_ENUM_ECD;
 }
 
+OH_UNIT_BigHexEnum GlobalScope_checkBigHexEnumsImpl(OH_UNIT_BigHexEnum value1, OH_UNIT_BigHexEnum value2) {
+    if (OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF != 0xFFFFFFFF) {
+        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF %d does not equal to: %d", OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF, 0xFFFFFFFF);
+    }
+    if (OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB != 0xFFFFFFFFAB) {
+        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB %d does not equal to: %d", OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB, 0xFFFFFFFF);
+    }
+    return OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB;
+}
+
 OH_UNIT_BinEnum GlobalScope_checkBinEnumsImpl(OH_UNIT_BinEnum value1, OH_UNIT_BinEnum value2) {
     if (OH_UNIT_BIN_ENUM_E0 != 0b0) {
         INTEROP_FATAL("Enum OH_UNIT_BIN_ENUM_E0 %d does not equal to: %d", OH_UNIT_BIN_ENUM_E0, 0b0);

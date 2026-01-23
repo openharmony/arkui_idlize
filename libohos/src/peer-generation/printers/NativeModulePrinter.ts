@@ -764,8 +764,10 @@ function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLi
         return idl.IDLVoidType
     }
 
-    if (isEnumType(returnType, library))
-        return idl.IDLI32Type
+    if (idl.isReferenceType(returnType)) {
+        const resolvedType = library.resolveTypeReference(returnType)!
+        if (idl.isEnum(resolvedType)) return idl.enumBinaryRepresentation(resolvedType)
+    }
 
     if (idl.isPrimitiveType(returnType)
         || isStructureType(returnType, library)

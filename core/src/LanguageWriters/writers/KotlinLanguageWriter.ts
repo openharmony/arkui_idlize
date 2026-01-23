@@ -92,9 +92,10 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
                 initializer = mapping.get(it.numberId)!
             }
             else {
+                const enumValue = this.convertEnumValue(it.numberId, writer)
                 initializer = isStringEnum ?
-                    `${this.enumEntity.name}(${it.numberId}, "${it.stringId}")` :
-                    `${this.enumEntity.name}(${it.numberId})`
+                    `${this.enumEntity.name}(${enumValue}, "${it.stringId}")` :
+                    `${this.enumEntity.name}(${enumValue})`
                 mapping.set(it.numberId, it.name)
             }
             writer.writeFieldDeclaration(it.name, enumType, modifiers, false, writer.makeString(initializer))
@@ -102,8 +103,8 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
     }
     protected writeValuesMap(writer: LanguageWriter, mapping: Map<number, string>): void {
         const enumType = idl.createReferenceType(this.enumEntity)
-        const mappingStr: string[] = Array.from(mapping).map(it => `${it[0]} to ${it[1]}`)
-        const mapType = idl.createContainerType("record", [idl.IDLI32Type, enumType])
+        const mappingStr: string[] = Array.from(mapping).map(it => `${this.convertEnumValue(it[0], writer)} to ${it[1]}`)
+        const mapType = idl.createContainerType("record", [this.getEnumBinaryType(), enumType])
         const modifiers = [FieldModifier.PUBLIC, FieldModifier.READONLY, FieldModifier.FINAL]
         const initExpr = writer.makeString(`mutableMapOf(${mappingStr.join(", ")})`)
         writer.writeFieldDeclaration(KotlinEnumWithGetter.values, mapType, modifiers, false, initExpr)
@@ -111,7 +112,7 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
     protected writeConstructor(writer: LanguageWriter, isStringEnum: boolean): void {
         const modifiers = [MethodModifier.PRIVATE]
         if (isStringEnum) {
-            const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type, idl.IDLStringType])
+            const signature = new MethodSignature(idl.IDLVoidType, [this.getEnumBinaryType(), idl.IDLStringType])
             writer.writeConstructorImplementation("constructor", signature, () => {
                 const initExpr = [0, 1].map(i => writer.makeString(signature.argName(i)))
                 writer.writeStatement(
@@ -123,7 +124,7 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
             }, undefined, modifiers)
         }
         else {
-            const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type])
+            const signature = new MethodSignature(idl.IDLVoidType, [this.getEnumBinaryType()])
             writer.writeConstructorImplementation("constructor", signature, () => {
                 const initExpr = writer.makeString(signature.argName(0))
                 writer.writeStatement(
@@ -135,12 +136,21 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
     protected writeFields(writer: LanguageWriter, isStringEnum: boolean): void {
         const modifiers = [FieldModifier.PUBLIC, FieldModifier.READONLY, FieldModifier.FINAL]
         if (isStringEnum) {
-            writer.writeFieldDeclaration(KotlinEnumWithGetter.ordinal, idl.IDLI32Type, modifiers, true)
+            writer.writeFieldDeclaration(KotlinEnumWithGetter.ordinal, this.getEnumBinaryType(), modifiers, true)
             writer.writeFieldDeclaration(KotlinEnumWithGetter.value, idl.IDLStringType, modifiers, true)
         }
         else {
-            writer.writeFieldDeclaration(KotlinEnumWithGetter.value, idl.IDLI32Type, modifiers, true)
+            writer.writeFieldDeclaration(KotlinEnumWithGetter.value, this.getEnumBinaryType(), modifiers, true)
         }
+    }
+    private getEnumBinaryType(): idl.IDLPrimitiveType {
+        return idl.enumBinaryRepresentation(this.enumEntity)
+    }
+    private convertEnumValue(value: number, writer: LanguageWriter): string {
+        const type = this.getEnumBinaryType()
+        return type == idl.IDLI32Type
+            ? `${value}` :
+            `(${value}).to${writer.getNodeName(type)}()`
     }
 }
 
@@ -672,7 +682,11 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.OVERRIDE]
     }
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        return this.makeString(`${this.getNodeName(enumEntry)}.${KotlinEnumWithGetter.values}[${value.asString()}]!!`)
+        const enumBinaryType = idl.enumBinaryRepresentation(enumEntry)
+        const convertedValue = enumBinaryType == idl.IDLI32Type
+            ? value.asString()
+            : `${value.asString()}.to${this.getNodeName(enumBinaryType)}()`
+        return this.makeString(`${this.getNodeName(enumEntry)}.${KotlinEnumWithGetter.values}[${convertedValue}]!!`)
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const fieldName = idl.isStringEnum(enumEntry) ? KotlinEnumWithGetter.ordinal : KotlinEnumWithGetter.value

@@ -136,7 +136,7 @@ export class InteropReturnTypeConvertor extends InteropArgConvertor {
                 return KInteropReturnBuffer
             }
             if (idl.isEnum(decl)) {
-                return PrimitiveTypesInstance.Int32.getText()
+                return this.convertPrimitiveType(idl.enumBinaryRepresentation(decl))
             }
         }
         return "void"
