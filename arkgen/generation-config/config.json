@@ -119,6 +119,7 @@
         "ohos.graphics.uiEffect.uiEffect.Blender",
         "ohos.graphics.uiEffect.uiEffect.BrightnessBlender",
         "ohos.graphics.uiEffect.uiEffect.HdrBrightnessBlender",
+        "ohos.inputMethod.ExtraConfig.InputMethodExtraConfig",
         "ohos.multimedia.image.Size",
         "ohos.multimedia.image.Region",
         "ohos.multimedia.image.PositionArea",
