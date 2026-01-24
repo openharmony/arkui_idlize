@@ -183,6 +183,9 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
 
             case idl.IDLInteropReturnBufferType:
                 return `KInteropReturnBuffer`
+            
+            case idl.IDLArrayFuncORUndefined:
+                return 'Array<(instance: CommonMethod) => void> | undefined';
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }

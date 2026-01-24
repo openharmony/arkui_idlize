@@ -57,6 +57,27 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const collapsedMethods = groupOverloads(filteredMethods, this.peerLibrary.language)
             .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
         const parentMethods = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
+        // generate __get__commonStyles__Internal
+
+        if (idlInterface.name === 'CommonMethod') {
+            const getCommonStyleMethod = new Method(
+                '__get__commonStyles__Internal',
+                new NamedMethodSignature(idl.IDLArrayFuncORUndefined, [], []),
+                []
+            )
+            printer.writeMethodImplementation(getCommonStyleMethod, w => {
+                w.print('return undefined;');
+            })
+            const isCustomComponentMethod = new Method(
+                '__is_CustomComponent__Internal',
+                new NamedMethodSignature(idl.IDLBooleanType, [], []),
+                []
+            )
+            printer.writeMethodImplementation(isCustomComponentMethod, w => {
+                w.print('return false;');
+            })
+        }
+
         collapsedMethods.forEach(method => {
             if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has(method.method.name)) {
                 const nonPublic = new Method(
@@ -64,9 +85,30 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                     method.method.signature,
                     method.method.modifiers?.filter(it => it !== MethodModifier.PUBLIC)
                 )
-                printer.writeMethodImplementation(nonPublic, w => {
-                    w.writeStatement(w.makeThrowError(`Unimplemented method ${method.method.name}`))
-                })
+                if (idlInterface.name === 'CommonMethod') {
+                    printer.writeMethodImplementation(nonPublic, w => {
+                        w.print('const commonStyle: Array<(instance: CommonMethod) => void> | undefined = this.__get__commonStyles__Internal();');
+                        w.print('if (commonStyle) {');
+                        w.pushIndent();
+                        const paramNames = method.sig.args.map(arg => arg.name).join(', ');
+                        //const paramNames = nonPublic.signature.argNames.length > 0 ? nonPublic.signature.argNames.join(', ') : '';
+                        w.print(`(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => instance.${nonPublic.name}(${paramNames}));`);
+                        w.print('return this;');
+                        w.popIndent();
+                        w.print('} else {');
+                        w.pushIndent();
+                        w.print('if (this.__is_CustomComponent__Internal()) {');
+                        w.pushIndent();
+                        w.writeStatement(w.makeThrowError(`Common method '${nonPublic.name}' can only be set when creating a custom component.`))
+                        w.popIndent();
+                        w.print('}');
+                        w.popIndent();
+                        w.print('}');
+                        w.writeStatement(w.makeThrowError(`Unimplemented method ${nonPublic.name}`))
+                    })
+                } else {
+                    printer.writeMethodImplementation(nonPublic, w => w.writeStatement(w.makeThrowError(`Unimplemented method ${nonPublic.name}`)))
+                }
             } else {
                 printer.writeMethodDeclaration(method.method.name, method.method.signature)
             }

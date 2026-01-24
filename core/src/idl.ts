@@ -663,6 +663,7 @@ export const IDLBufferType = createPrimitiveType('buffer')
 
 export const IDLUint8ArrayType = createContainerType('sequence', [IDLU8Type])
 export const IDLSerializerBuffer = createPrimitiveType('SerializerBuffer')
+export const IDLArrayFuncORUndefined = createPrimitiveType('Array<(instance: CommonMethod) => void> | undefined')
 
 // Stub for IdlPeerLibrary
 export const IDLFunctionType = createPrimitiveType('Function')
