@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLBooleanType, IDLF32Type, IDLI32Type, IDLPointerType, IDLPrimitiveType, IDLU64Type, IDLU8Type } from "@idlizer/core/idl"
+import { IDLPrimitiveType } from "@idlizer/core/idl"
 import { InputLibrary } from "../../library"
 import { InteropProducerTypeDescription } from "../../generator/builder"
 import { addTrivialProducers } from "../common"
@@ -21,11 +21,11 @@ import { Ts } from "@idlizer/ost"
 
 export const createIntegralTypeProducer = (_: InputLibrary): InteropProducerTypeDescription<IDLPrimitiveType> => {
     return addTrivialProducers([
-        [IDLBooleanType, Ts.prim.boolean, 'Boolean'],
-        [IDLU8Type, Ts.prim.u8, 'UInt8'],
-        [IDLI32Type, Ts.prim.i32, 'Int32'],
-        [IDLU64Type, Ts.prim.u64, 'UInt64'],
-        [IDLF32Type, Ts.prim.f32, 'Float32'],
-        [IDLPointerType, Ts.prim.pointer, 'Pointer'],
+        ['boolean', Ts.prim.boolean, 'Boolean'],
+        ['u8', Ts.prim.u8, 'UInt8'],
+        ['i32', Ts.prim.i32, 'Int32'],
+        ['u64', Ts.prim.u64, 'UInt64'],
+        ['f32', Ts.prim.f32, 'Float32'],
+        ['pointer', Ts.prim.pointer, 'Pointer'],
     ])
 }

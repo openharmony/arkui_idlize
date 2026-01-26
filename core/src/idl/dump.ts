@@ -15,10 +15,10 @@
 
 import { IndentedPrinter } from "../IndentedPrinter"
 import { stringOrNone } from "../util"
-import { IDLNullTypeName, IDLStringType, IDLUndefinedType } from "./builders"
+import { IDLNullTypeName, createPrimitiveType } from "./builders"
 import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute, isFile } from "./discriminators"
 import { IDLKeywords } from "./keywords"
-import { IDLType, IDLInterface, IDLExtendedAttributes, IDLKind, IDLParameter, IDLConstructor, IDLVariable, IDLConstant, IDLProperty, IDLNode, IDLSignature, IDLTypedef, IDLReferenceType, IDLExtendedAttribute, IDLFunction, IDLMethod, IDLFile, IDLImport, IDLNamespace, IDLCallback, IDLEntry, IDLEnumMember, IDLEnum } from "./node"
+import { IDLType, IDLInterface, IDLExtendedAttributes, IDLKind, IDLParameter, IDLConstructor, IDLVariable, IDLConstant, IDLProperty, IDLNode, IDLSignature, IDLTypedef, IDLReferenceType, IDLExtendedAttribute, IDLFunction, IDLMethod, IDLFile, IDLImport, IDLNamespace, IDLCallback, IDLEntry, IDLEnumMember, IDLEnum, IDLPrimitiveType } from "./node"
 
 export function escapeIDLKeyword(name: string): string {
     return name + (IDLKeywords.has(name) ? "_" : "")
@@ -43,9 +43,9 @@ export function printType(type: IDLType | IDLInterface | undefined, options?: Pr
         if (hasExtAttribute(type, IDLExtendedAttributes.UnionOnlyNull))
             return `(${printType(type.type)} or ${IDLNullTypeName})`
         else if (hasExtAttribute(type, IDLExtendedAttributes.UnionWithNull))
-            return `(${printType(type.type)} or ${IDLUndefinedType.name} or ${IDLNullTypeName})`
+            return `(${printType(type.type)} or undefined or ${IDLNullTypeName})`
         else
-            return `(${printType(type.type)} or ${IDLUndefinedType.name})`
+            return `(${printType(type.type)} or undefined)`
     }
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) {
@@ -300,8 +300,8 @@ export class IDLWriter {
         return this.popIndent().print("};")
     }
 
-    getInitializerValue(type: string, initializer: number | string, decimalType: number | undefined): string {
-        if (type == IDLStringType.name) return `"${String(initializer).replaceAll('"', "'")}"`
+    getInitializerValue(type: IDLPrimitiveType, initializer: number | string, decimalType: number | undefined): string {
+        if (type.name == 'String') return `"${String(initializer).replaceAll('"', "'")}"`
         if (decimalType == undefined) throw new Error(`Expected defined enum initializer decimal type for value: ${initializer}`)
         switch (decimalType) {
             case 2: return `0b${initializer.toString(2)}`
@@ -314,7 +314,7 @@ export class IDLWriter {
         const type = printType(idl.type)
         const initializer = idl.initializer === undefined
             ? ''
-            : ` = ${this.getInitializerValue(type, idl.initializer, idl.initializerDecimalType)}`
+            : ` = ${this.getInitializerValue(idl.type, idl.initializer, idl.initializerDecimalType)}`
 
         return this.print(idl.documentation)
             .printExtendedAttributes(idl)

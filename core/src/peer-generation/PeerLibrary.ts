@@ -154,7 +154,7 @@ export class PeerLibrary implements LibraryInterface {
     createContinuationParameters(continuationType: idl.IDLType): idl.IDLParameter[] {
         const continuationParameters: idl.IDLParameter[] = []
         if (idl.isContainerType(continuationType) && idl.IDLContainerUtils.isPromise(continuationType)) {
-            const errorType = idl.createOptionalType(idl.createContainerType("sequence", [idl.IDLStringType]))
+            const errorType = idl.createOptionalType(idl.createContainerType("sequence", [idl.createPrimitiveType('String')]))
             continuationParameters.push(idl.createParameter("error", errorType, true))
             const promise = continuationType as idl.IDLContainerType
             if (!idl.isVoidType(promise.elementType[0])) {
@@ -169,7 +169,7 @@ export class PeerLibrary implements LibraryInterface {
         const continuationParameters = this.createContinuationParameters(continuationType)
         const syntheticName = generateSyntheticFunctionName(
             continuationParameters,
-            idl.IDLVoidType,
+            idl.createPrimitiveType('void'),
             { nameConvertor: new StructureNameConvertor(this) }
         )
         const primaryReference = idl.createReferenceType(`synthetic.${syntheticName}`)
@@ -217,33 +217,33 @@ export class PeerLibrary implements LibraryInterface {
             return new OptionConvertor(this, param, type)
         }
         if (idl.isPrimitiveType(type)) {
-            switch (type) {
-                case idl.IDLI8Type: return new NumericConvertor(this, param, type)
-                case idl.IDLU8Type: return new NumericConvertor(this, param, type)
-                case idl.IDLI16Type: return new NumericConvertor(this, param, type)
-                case idl.IDLU16Type: return new NumericConvertor(this, param, type)
-                case idl.IDLI32Type: return new NumericConvertor(this, param, type)
-                case idl.IDLU32Type: return new NumericConvertor(this, param, type)
-                case idl.IDLI64Type: return new NumericConvertor(this, param, type)
-                case idl.IDLU64Type: return new NumericConvertor(this, param, type)
-                case idl.IDLF16Type: return new NumericConvertor(this, param, type)
-                case idl.IDLF32Type: return new NumericConvertor(this, param, type)
-                case idl.IDLF64Type: return new NumericConvertor(this, param, type)
-                case idl.IDLBigintType: return new BigIntToU64Convertor(param)
-                case idl.IDLSerializerBuffer: new PointerConvertor(param)
-                case idl.IDLPointerType: return new PointerConvertor(param)
-                case idl.IDLBufferType: return new BufferConvertor(param)
-                case idl.IDLBooleanType: return new BooleanConvertor(param)
-                case idl.IDLStringType: return new StringConvertor(param)
-                case idl.IDLNumberType: return new NumberConvertor(param)
-                case idl.IDLUndefinedType: return new UndefinedConvertor(param)
-                case idl.IDLVoidType: return new VoidConvertor(param)
-                case idl.IDLUnknownType:
-                case idl.IDLObjectType:
-                case idl.IDLAnyType: return new ObjectConvertor(param, idl.IDLAnyType)
-                case idl.IDLDate: return new DateConvertor(param)
+            switch (type.name) {
+                case 'i8': return new NumericConvertor(this, param, type)
+                case 'u8': return new NumericConvertor(this, param, type)
+                case 'i16': return new NumericConvertor(this, param, type)
+                case 'u16': return new NumericConvertor(this, param, type)
+                case 'i32': return new NumericConvertor(this, param, type)
+                case 'u32': return new NumericConvertor(this, param, type)
+                case 'i64': return new NumericConvertor(this, param, type)
+                case 'u64': return new NumericConvertor(this, param, type)
+                case 'f16': return new NumericConvertor(this, param, type)
+                case 'f32': return new NumericConvertor(this, param, type)
+                case 'f64': return new NumericConvertor(this, param, type)
+                case 'bigint': return new BigIntToU64Convertor(param, type)
+                case 'SerializerBuffer': new PointerConvertor(param, type)
+                case 'pointer': return new PointerConvertor(param, type)
+                case 'buffer': return new BufferConvertor(param, type)
+                case 'boolean': return new BooleanConvertor(param, type)
+                case 'String': return new StringConvertor(param, type)
+                case 'number': return new NumberConvertor(param, type)
+                case 'undefined': return new UndefinedConvertor(param, type)
+                case 'void': return new VoidConvertor(param, type)
+                case 'unknown':
+                case 'Object':
+                case 'any': return new ObjectConvertor(param, idl.createPrimitiveType('any'))
+                case 'date': return new DateConvertor(param, type)
 
-                case idl.IDLFunctionType: return new FunctionConvertor(this, param)
+                case 'Function': return new FunctionConvertor(this, param, type)
                 default: throw new Error(`Unconverted primitive ${idl.DebugUtils.debugPrintType(type)}`)
             }
         }
@@ -251,14 +251,14 @@ export class PeerLibrary implements LibraryInterface {
             // TODO: special cases for interop types.
             // TODO: this types are not references! NativeModulePrinter must be fixed
             switch (type.name.replaceAll('%TEXT%:', '')) { // this is really bad stub, to fix legacy references
-                case 'KBoolean': return new BooleanConvertor(param)
-                case 'KInt': return new NumericConvertor(this, param, idl.IDLI32Type)
-                case 'KFloat': return new NumericConvertor(this, param, idl.IDLF32Type)
-                case 'KLong': return new NumericConvertor(this, param, idl.IDLI64Type)
-                case 'KDouble': return new NumericConvertor(this, param, idl.IDLF64Type)
-                case 'KStringPtr': return new StringConvertor(param)
-                case 'number': return new NumberConvertor(param)
-                case 'KPointer': return new PointerConvertor(param)
+                case 'KBoolean': return new BooleanConvertor(param, idl.createPrimitiveType('boolean'))
+                case 'KInt': return new NumericConvertor(this, param, idl.createPrimitiveType('i32'))
+                case 'KFloat': return new NumericConvertor(this, param, idl.createPrimitiveType('f32'))
+                case 'KLong': return new NumericConvertor(this, param, idl.createPrimitiveType('i64'))
+                case 'KDouble': return new NumericConvertor(this, param, idl.createPrimitiveType('f64'))
+                case 'KStringPtr': return new StringConvertor(param, idl.createPrimitiveType('String'))
+                case 'number': return new NumberConvertor(param, idl.createPrimitiveType('number'))
+                case 'KPointer': return new PointerConvertor(param, idl.createPrimitiveType('pointer'))
             }
             if (generatorConfiguration().forceResource.includes(type.name)) {
                 return new ObjectConvertor(param, type)
@@ -346,11 +346,11 @@ export class PeerLibrary implements LibraryInterface {
     private customConvertor(param: string, typeName: string, type: idl.IDLReferenceType): ArgConvertor | undefined {
         switch (typeName) {
             case `Object`:
-                return new ObjectConvertor(param, idl.IDLObjectType)
+                return new ObjectConvertor(param, idl.createPrimitiveType('Object'))
             case `Date`:
-                return new DateConvertor(param)
+                return new DateConvertor(param, idl.createPrimitiveType('date'))
             case `Function`:
-                return new FunctionConvertor(this, param)
+                return new FunctionConvertor(this, param, idl.createPrimitiveType('Function'))
             case `Record`:
                 return new CustomTypeConvertor(param, "Record", false, "Record<string, string>")
             case `Optional`:
@@ -374,11 +374,6 @@ export class PeerLibrary implements LibraryInterface {
     }
 }
 
-export const ArkInt32 = idl.IDLI32Type
-export const ArkInt64 = idl.IDLI64Type
-export const ArkFunction = idl.IDLFunctionType
-export const ArkDate = idl.IDLDate
-export const ArkCustomObject = idl.IDLCustomObjectType
 
 export function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
@@ -403,28 +398,30 @@ function isCyclicTypeDef(resolver: ReferenceResolver, decl: idl.IDLTypedef): boo
 }
 
 export function toDeclaration(type: idl.IDLType | idl.IDLEntry, resolver: ReferenceResolver): idl.IDLEntry | idl.IDLType {
-    switch (type) {
-        case idl.IDLAnyType: return ArkCustomObject
-        case idl.IDLVoidType: return idl.IDLVoidType
-        case idl.IDLUndefinedType: return idl.IDLUndefinedType
-        case idl.IDLUnknownType: return ArkCustomObject
-        // case idl.IDLObjectType: return ArkCustomObject
+    if (idl.isPrimitiveType(type)) {
+        switch (type.name) {
+            case 'any': return idl.createPrimitiveType('CustomObject')
+            case 'void': return idl.createPrimitiveType('void')
+            case 'undefined': return idl.createPrimitiveType('undefined')
+            case 'unknown': return idl.createPrimitiveType('CustomObject')
+            // case 'Object': return ArkCustomObject
+        }
     }
     const typeName = idl.isNamedNode(type) ? type.name : undefined
     switch (typeName) {
         case "object":
-        case "Object": return idl.IDLObjectType
+        case "Object": return idl.createPrimitiveType('Object')
     }
     if (idl.isReferenceType(type)) {
         // TODO: remove all this!
         if (type.name === 'Date') {
-            return ArkDate
+            return idl.createPrimitiveType('date')
         }
         if (type.name === 'AnimationRange') {
-            return ArkCustomObject
+            return idl.createPrimitiveType('CustomObject')
         }
         if (type.name === 'Function') {
-            return ArkFunction
+            return idl.createPrimitiveType('Function')
         }
         if (type.name === 'Optional') {
             return toDeclaration((type as idl.IDLReferenceType).typeArguments![0], resolver)
@@ -434,18 +431,18 @@ export function toDeclaration(type: idl.IDLType | idl.IDLEntry, resolver: Refere
             console.warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
         }
         if (decl && idl.isTypedef(decl) && forceTypedefAsResource(resolver, type, decl)) {
-            return idl.IDLObjectType
+            return idl.createPrimitiveType('Object')
         }
         if (decl && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)) {
             const type = toIdlType("", idl.getExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)!)
             return toDeclaration(type, resolver)
         }
-        return !decl ? ArkCustomObject  // assume some builtin type
+        return !decl ? idl.createPrimitiveType('CustomObject')  // assume some builtin type
             : idl.isTypedef(decl) ? toDeclaration(decl.type, resolver)
                 : decl
     }
     if (isImportAttr(type)) {
-        return ArkCustomObject
+        return idl.createPrimitiveType('CustomObject')
     }
     return type
 }

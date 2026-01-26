@@ -15,7 +15,7 @@
 
 import * as idl from '../idl'
 import { convertType, TypeConvertor } from "../LanguageWriters";
-import { IDLImport, IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isType, isUnionType } from '../idl'
+import { IDLImport, IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUnionType, isType, isUnionType } from '../idl'
 import { collapseTypes } from "./idl/common"
 import { LanguageExpression, LanguageWriter } from "../LanguageWriters/LanguageWriter";
 import { ArgConvertor } from "../LanguageWriters/ArgConvertors";

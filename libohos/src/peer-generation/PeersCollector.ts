@@ -45,17 +45,17 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
     const isCallSignature = idl.isCallable(method)
     const methodName = isCallSignature ? `set${capitalize(peer.componentName)}Options` : method.name
     const retType = method.returnType!
-    const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T" || retType === idl.IDLThisType)
+    const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T" || idl.isPrimitiveType(retType, 'this'))
     const originalParentName = parentName ?? peer.originalClassName!
     const { parameters } = extractContentParameter(method)
     const signature = new NamedMethodSignature(
-        (isThisRet ? idl.IDLThisType : retType) ?? method.returnType!,
+        (isThisRet ? idl.createPrimitiveType('this') : retType) ?? method.returnType!,
         parameters.map(it => it.type),
         parameters.map(it => it.name),
         undefined,
         parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined)
     )
-    const realRetType = isThisRet ? idl.IDLVoidType : retType
+    const realRetType = isThisRet ? idl.createPrimitiveType('void') : retType
     const overloadInfo = PeerMethodSignature.mangleOverloadedName(method)
     const newMethodName = isCallSignature
         ? methodName + overloadInfo.postfix
@@ -98,7 +98,7 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
     if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(prop.name))
         return
     const originalParentName = parentName ?? peer.originalClassName!
-    const signature = new NamedMethodSignature(idl.IDLThisType, [idl.maybeOptional(prop.type, prop.isOptional)], ["value"])
+    const signature = new NamedMethodSignature(idl.createPrimitiveType('this'), [idl.maybeOptional(prop.type, prop.isOptional)], ["value"])
     const overloadInfo = PeerMethodSignature.mangleOverloadedName(prop)
     const methodName = `set${capitalize(overloadInfo.alias ?? (prop.name + overloadInfo.postfix))}`
     return new PeerMethod(
@@ -107,12 +107,12 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
             methodName,
             idl.getFQName(prop.parent as idl.IDLInterface).split('.').concat(methodName).join('_'),
             [new PeerMethodArg('value', idl.maybeOptional(prop.type, prop.isOptional))],
-            idl.IDLVoidType,
+            idl.createPrimitiveType('void'),
             prop.parent as idl.IDLInterface,
             peerGeneratorConfiguration().forceContext.includes(idl.getFQName(prop)) ? [MethodModifier.FORCE_CONTEXT] : undefined
         ),
         originalParentName,
-        idl.IDLVoidType,
+        idl.createPrimitiveType('void'),
         false,
         overloadInfo.alias ?? prop.name,
         new Method(prop.name, signature, []))

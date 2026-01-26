@@ -80,7 +80,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         } else {
             printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
         }
-        const applyAttributesFinishSignature = new MethodSignature(idl.IDLVoidType, [])
+        const applyAttributesFinishSignature = new MethodSignature(idl.createPrimitiveType('void'), [])
         if (this.peerLibrary.language === Language.ARKTS) {
             if (idlInterface.name === 'CommonMethod') {
                 printer.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature), () => {})
@@ -155,7 +155,8 @@ class ArkoalaKotlinDeclarationConvertor extends KotlinDeclarationConvertor {
         printer.writeInterface(componentInterface, writer => {
             for (const peerMethod of peer.methods) {
                 const peerSig = peerMethod.method.signature as NamedMethodSignature
-                const returnType = peerSig.returnType === idl.IDLThisType || maybeRestoreThrows(peerSig.returnType, this.peerLibrary) === idl.IDLThisType
+                const restoredReturnType = maybeRestoreThrows(peerSig.returnType, this.peerLibrary)
+                const returnType = idl.isPrimitiveType(peerSig.returnType, 'this') || (restoredReturnType && idl.isPrimitiveType(restoredReturnType, 'this'))
                     ? idl.createReferenceType(peer.decl)
                     : peerSig.returnType
                 const componentMethodSignature = new NamedMethodSignature(returnType, peerSig.args, peerSig.argsNames,

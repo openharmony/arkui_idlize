@@ -32,10 +32,6 @@ import {
     MethodModifier,
     NamedMethodSignature,
     createReferenceType,
-    IDLI32Type,
-    IDLPointerType,
-    IDLStringType,
-    IDLVoidType,
     isMethodOverridden,
     getSuper,
     KotlinTypeComparator,
@@ -167,8 +163,8 @@ class PeerFileVisitor {
         // TODO: fully switch to writer!
         const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
         const signature = new NamedMethodSignature(
-            IDLVoidType,
-            [IDLPointerType, IDLI32Type, IDLStringType, IDLI32Type],
+            idl.createPrimitiveType('void'),
+            [idl.createPrimitiveType('pointer'), idl.createPrimitiveType('i32'), idl.createPrimitiveType('String'), idl.createPrimitiveType('i32')],
             ['peerPtr', 'id', 'name', 'flags'],
             [undefined, undefined, [Language.TS, Language.ARKTS].includes(printer.language) ? `''` : '""', '0'])
 
@@ -181,7 +177,7 @@ class PeerFileVisitor {
         const peerClass = componentToPeerClass(peer.componentName)
         const signature = new NamedMethodSignature(
             createReferenceType(peerClass),
-            [createReferenceType('idlize.internal.ComponentBase'), IDLI32Type],
+            [createReferenceType('idlize.internal.ComponentBase'), idl.createPrimitiveType('i32')],
             ['component', 'flags'],
             [undefined, '0'],
             [[ArgumentModifier.OPTIONAL], undefined]

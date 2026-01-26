@@ -100,7 +100,7 @@ export const ApiCallSeed = makeSeed<ApiSeedType>(
 
 export const Ask = {
     typeName: (declaration: idl.IDLType | idl.IDLEntry): LWType =>
-        declaration === idl.IDLVoidType
+        idl.isPrimitiveType(declaration, 'void')
             ? Ts.prim.void
             : GeneratorSeed.createType({
                 sort: 'idl',

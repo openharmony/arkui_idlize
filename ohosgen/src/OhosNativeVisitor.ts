@@ -29,12 +29,10 @@ import {
     IDLExtendedAttributes,
     IDLInterface,
     IDLMethod,
-    IDLNumberType,
     IDLParameter,
     IDLPrimitiveType,
     IDLProperty,
     IDLType,
-    IDLVoidType,
     isConstructor,
     isEnum,
     isInterface,
@@ -257,7 +255,7 @@ class OHOSNativeVisitor {
                 let setterMethod = createMethod(
                     `set${capitalize(property.name)}`,
                     [createParameter("value", property.type)],
-                    IDLVoidType, {
+                    idl.createPrimitiveType('void'), {
                     isStatic: property.isStatic,
                     isAsync: false, isOptional: false, isFree: false})
                 accessorMethods.push(setterMethod)
@@ -463,7 +461,7 @@ class OHOSNativeVisitor {
 
 class ReturnTypeConvertor extends CppReturnTypeConvertor {
     override convertPrimitiveType(type: IDLPrimitiveType): string {
-        if (type === IDLNumberType)
+        if (idl.isPrimitiveType(type, 'number'))
             return `${generatorConfiguration().TypePrefix}Number`
         return super.convertPrimitiveType(type)
     }
@@ -562,7 +560,7 @@ function adjustSignature(library: PeerLibrary, parameters: IDLParameter[], retur
         return {
             convertors: [...convertors, outConvertor],
             parameters: [...parameters, createParameter(outConvertor.param, outConvertor.idlType)],
-            returnType: IDLVoidType
+            returnType: idl.createPrimitiveType('void')
         }
     else
         return { convertors, parameters, returnType }

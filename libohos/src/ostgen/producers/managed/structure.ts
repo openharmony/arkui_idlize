@@ -86,7 +86,7 @@ function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGen
         extendedAttributes: [
           { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Getter },
           { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
-      idl.createMethod('set' + capitalize(prop.name), [idl.createParameter(prop.name, prop.type)], idl.IDLVoidType, undefined, {
+      idl.createMethod('set' + capitalize(prop.name), [idl.createParameter(prop.name, prop.type)], idl.createPrimitiveType('void'), undefined, {
         extendedAttributes: [
           { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter },
           { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),

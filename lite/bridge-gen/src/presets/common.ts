@@ -14,40 +14,40 @@
  */
 
 import { E, LWType, S } from "@idlizer/ost"
-import { IDLPrimitiveType, isPrimitiveType } from "@idlizer/core"
+import { IDLPrimitiveType, IDLPrimitiveTypeKind, isPrimitiveType } from "@idlizer/core"
 import { InteropProducerTypeDescription, SelectResult } from "../generator/builder"
 import { terminate } from "@idlizer/kit"
 
 export function addTrivialProducers(
-    types: [IDLPrimitiveType, LWType, string][]
+    types: [IDLPrimitiveTypeKind, LWType, string][]
 ): InteropProducerTypeDescription<IDLPrimitiveType> {
     return {
         select(ref) {
             if (!isPrimitiveType(ref)) {
                 return SelectResult.reject()
             }
-            const found = types.find(record => record[0] === ref)
+            const found = types.find(record => record[0] === ref.name)
             if (!found) {
                 return SelectResult.reject()
             }
             return SelectResult.take(ref as IDLPrimitiveType)
         },
         onManagedDeclaration(val) {
-            const found = types.find(record => record[0] === val) ?? terminate("WOW!")
+            const found = types.find(record => record[0] === val.name) ?? terminate("WOW!")
             return {
                 continuation: found[1],
                 declarations: []
             }
         },
         onNativeDeclaration(val) {
-            const found = types.find(record => record[0] === val) ?? terminate("WOW!")
+            const found = types.find(record => record[0] === val.name) ?? terminate("WOW!")
             return {
                 continuation: found[1],
                 declarations: []
             }
         },
         fromInteropTransferable: (val) => {
-            const found = types.find(record => record[0] === val) ?? terminate("WOW!")
+            const found = types.find(record => record[0] === val.name) ?? terminate("WOW!")
             return {
                 fromInteropReturn(param) {
                     return param
@@ -58,7 +58,7 @@ export function addTrivialProducers(
             }
         },
         toInteropTransferable: (val) => {
-            const found = types.find(record => record[0] === val) ?? terminate("WOW!")
+            const found = types.find(record => record[0] === val.name) ?? terminate("WOW!")
             return {
                 fromInteropArgument(param) {
                     return param
@@ -69,7 +69,7 @@ export function addTrivialProducers(
             }
         },
         interopBufferTransferable: (val) => {
-            const found = types.find(record => record[0] === val) ?? terminate("WOW!")
+            const found = types.find(record => record[0] === val.name) ?? terminate("WOW!")
             return {
                 symmetric: true,
                 fromInteropBuffer(buffer) {

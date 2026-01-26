@@ -168,7 +168,7 @@ export class IdlPeerProcessor {
                 constructor.parent = decl
                 constructors = [constructor]
             } else {
-                const constructor = idl.createConstructor([], idl.IDLVoidType)
+                const constructor = idl.createConstructor([], idl.createPrimitiveType('void'))
                 constructor.parent = decl
                 constructors = [constructor]
             }
@@ -180,11 +180,11 @@ export class IdlPeerProcessor {
                 PeerMethodSignature.GET_FINALIZER,
                 idl.getFQName(decl).split('.').concat(PeerMethodSignature.GET_FINALIZER).join('_'),
                 [],
-                idl.IDLPointerType,
+                idl.createPrimitiveType('pointer'),
             ),
-            fullCName, implemenationParentName, idl.IDLPointerType, false,
+            fullCName, implemenationParentName, idl.createPrimitiveType('pointer'), false,
             "getFinalizer",
-            new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
+            new Method("getFinalizer", new NamedMethodSignature(idl.createPrimitiveType('pointer'), [], [], []), [MethodModifier.STATIC]))
         
         const mMethods: MaterializedMethod[] = []
         if (mFinalizer) {
@@ -194,14 +194,14 @@ export class IdlPeerProcessor {
                     PeerMethodSignature.CALL_HOLDER,
                     idl.getFQName(decl).split('.').concat(PeerMethodSignature.CALL_HOLDER).join('_'),
                     [],
-                    idl.IDLVoidType,
+                    idl.createPrimitiveType('void'),
                     decl
                 ),
-                fullCName, implemenationParentName, idl.IDLVoidType, false,
+                fullCName, implemenationParentName, idl.createPrimitiveType('void'), false,
                 PeerMethodSignature.CALL_HOLDER,
                 new Method(
                     PeerMethodSignature.CALL_HOLDER,
-                    new NamedMethodSignature(idl.IDLVoidType, [], [], []),
+                    new NamedMethodSignature(idl.createPrimitiveType('void'), [], [], []),
                     [MethodModifier.PROTECTED])
                 )
             mMethods.push(callHolder)
@@ -248,17 +248,17 @@ export class IdlPeerProcessor {
             }
 
             if (!f.state.isAccessor && !f.state.isReadonly || f.state.isAccessor && f.state.hasSetter) {
-                const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.maybeOptional(idlType, f.isNullableOriginalTypeField)], [field.name])
+                const setSignature = new NamedMethodSignature(idl.createPrimitiveType('void'), [idl.maybeOptional(idlType, f.isNullableOriginalTypeField)], [field.name])
                 const setAccessor = new MaterializedMethod(
                     undefined,
                     new PeerMethodSignature(
                         `set${capitalize(field.name)}${overloadPostfix}`,
                         idl.getFQName(decl).split('.').concat(`set${capitalize(field.name)}${overloadPostfix}`).join('_'),
                         [new PeerMethodArg(f.field.name, idl.maybeOptional(idlType, f.isNullableOriginalTypeField))],
-                        idl.IDLVoidType,
+                        idl.createPrimitiveType('void'),
                         isStatic ? undefined : decl,
                     ),
-                    fullCName, implemenationParentName, idl.IDLVoidType, false,
+                    fullCName, implemenationParentName, idl.createPrimitiveType('void'), false,
                     `set${capitalize(field.name)}`,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC] : [])]))
                 mMethods.push(setAccessor)

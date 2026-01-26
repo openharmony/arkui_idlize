@@ -14,7 +14,7 @@
  */
 
 import { DiagnosticMessageGroup, DiagnosticResults, forEachChild, Location} from "@idlizer/core";
-import { hasExtAttribute, IDLExtendedAttributes, IDLFile, IDLNode, IDLNumberType, IDLReferenceType, isInterface, isMethod, isReferenceType } from "@idlizer/core/idl"
+import { hasExtAttribute, IDLExtendedAttributes, IDLFile, IDLNode, IDLReferenceType, isInterface, isMethod, isPrimitiveType, isReferenceType } from "@idlizer/core/idl"
 import { GeneratorLibrary } from "./library";
 
 const InputFatal = new DiagnosticMessageGroup("error", "InputFatal", "Input error")
@@ -84,7 +84,7 @@ class DiagnosticRunner {
 
     checkSupportedTypes() {
         this.forEach(node => {
-            if (node === IDLNumberType) {
+            if (isPrimitiveType(node, 'number')) {
                 InputFatal.reportDiagnosticMessage(
                     this.nodeLocation(node),
                     `'number' is not supported`,

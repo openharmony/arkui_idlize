@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLType, isReferenceType, isPrimitiveType, isOptionalType, isContainerType, DebugUtils, IDLMethod, isInterface, IDLInterface, getFQName, IDLEnum, IDLPrimitiveType, IDLPointerType, IDLBooleanType, IDLI32Type, IDLU32Type, IDLF32Type, IDLBufferType, IDLStringType, IDLVoidType, IDLContainerType, IDLContainerUtils, IDLOptionalType, isNamespace, isEnum, isCallback, IDLKind, IDLReferenceType, IDLEntry, createReferenceType, IDLThisType, IDLObjectType, IDLCallback, createMethod, createParameter, IDLProperty, linkParentBack, isMethod, hasExtAttribute, IDLExtendedAttributes, getExtAttribute, forEachChild, isUnionType, toIDLString, printType, isType, isTypedef, IDLTypedef, getPackageClause, getNamespaceName, getNamespacesPathFor } from "@idlizer/core/idl"
+import { IDLType, isReferenceType, isPrimitiveType, isOptionalType, isContainerType, DebugUtils, IDLMethod, isInterface, IDLInterface, getFQName, IDLEnum, IDLPrimitiveType, IDLPrimitiveTypeKind, IDLContainerType, IDLContainerUtils, IDLOptionalType, isNamespace, isEnum, isCallback, IDLKind, IDLReferenceType, IDLEntry, createReferenceType, IDLCallback, createMethod, createParameter, createPrimitiveType, IDLProperty, linkParentBack, isMethod, hasExtAttribute, IDLExtendedAttributes, getExtAttribute, forEachChild, isUnionType, toIDLString, printType, isType, isTypedef, IDLTypedef, getPackageClause, getNamespaceName, getNamespacesPathFor } from "@idlizer/core/idl"
 import { LWType, FunctionDeclaration, Modifier, Md, E, T, Vs, DD, S, D, Ts, LWExpression, LWStatement, std, LWKind } from "@idlizer/ost"
 import { terminate, ProducerResult, ProducerContext, Seed, onlyFor } from "@idlizer/kit"
 import { GeneratorLibrary } from "./library"
@@ -106,7 +106,8 @@ function satisfyTypePred(type: IDLType, predicate: (type: IDLType) => boolean): 
 }
 
 function isPrimitiveCollection(type: IDLContainerType, lib: GeneratorLibrary): boolean {
-    if (([IDLI32Type, IDLF32Type, IDLStringType] as IDLType[]).includes(type.elementType[0])) {
+    const elemType = type.elementType[0]
+    if (isPrimitiveType(elemType, 'i32') || isPrimitiveType(elemType, 'f32') || isPrimitiveType(elemType, 'String')) {
         return true
     }
     if (isReferenceType(type.elementType[0])) {
@@ -138,7 +139,7 @@ function evalBlacklistMethodFilter(text: string, lib: GeneratorLibrary, methodOr
             case 'generalSequence': return types.some(t => satisfyTypePred(t, t => isContainerType(t) && IDLContainerUtils.isSequence(t) && !isPrimitiveCollection(t, lib)))
             case 'optional': return types.some(t => satisfyTypePred(t, isOptionalType))
             case 'container': return types.some(t => satisfyTypePred(t, isContainerType))
-            case 'buffer': return types.some(t => satisfyTypePred(t, x => x === IDLBufferType))
+            case 'buffer': return types.some(t => satisfyTypePred(t, x => isPrimitiveType(x, 'buffer')))
             case 'reference': return types.some(t => satisfyTypePred(t, x => isReferenceType(x) && x.name === values[1]))
             case 'union': return types.some(t => satisfyTypePred(t, isUnionType))
         }
@@ -153,7 +154,7 @@ function evalBlacklistMethodFilter(text: string, lib: GeneratorLibrary, methodOr
             case 'generalSequence': return satisfyTypePred(type, type => isContainerType(type) && IDLContainerUtils.isSequence(type) && !isPrimitiveCollection(type, lib))
             case 'optional': return satisfyTypePred(type, isOptionalType)
             case 'container': return satisfyTypePred(type, isContainerType)
-            case 'buffer': return satisfyTypePred(type, x => x === IDLBufferType)
+            case 'buffer': return satisfyTypePred(type, x => isPrimitiveType(x, 'buffer'))
             case 'reference': return satisfyTypePred(type, x => isReferenceType(x) && x.name === values[1])
             case 'union': return satisfyTypePred(type, isUnionType)
         }
@@ -192,8 +193,8 @@ function isWhitelistedMember(ref: string, member: IDLMethod | IDLProperty, lib: 
 function printIDLTypeForce(type: IDLType, lib: GeneratorLibrary): LWType {
     type = lib.followTypedefs(type)
     if (isPrimitiveType(type)) {
-        if (knownPrimitives.has(type)) {
-            return knownPrimitives.get(type)!
+        if (knownPrimitives.has(type.name)) {
+            return knownPrimitives.get(type.name)!
         }
     }
     if (isContainerType(type)) {
@@ -224,7 +225,7 @@ function generateCustomMethod(method: IDLMethod, lib: GeneratorLibrary, selector
         callArgs.unshift(Vs.self)
     }
     const call = E.call(callee, callArgs)
-    if (method.returnType === IDLVoidType) {
+    if (isPrimitiveType(method.returnType, 'void')) {
         body.push(S.e(call))
     } else {
         body.push(S.return(call))
@@ -282,9 +283,9 @@ function generateBridgeAndNM(method: IDLMethod, lib: GeneratorLibrary, selector:
     })
     let nmReturnType: LWType = Ts.prim.void
     const theCall = E.call(E.get(E.v(NATIVE_MODULE_NAME), nmName), nmArgs)
-    if (method.returnType === IDLVoidType || method.returnType === IDLThisType) {
+    if (isPrimitiveType(method.returnType, 'void') || isPrimitiveType(method.returnType, 'this')) {
         bridgeBody.push(S.e(theCall))
-        if (method.returnType === IDLThisType) {
+        if (isPrimitiveType(method.returnType, 'this')) {
             bridgeBody.push(S.return(Vs.self))
         }
     } else {
@@ -321,17 +322,17 @@ function generateBridgeAndNM(method: IDLMethod, lib: GeneratorLibrary, selector:
 
 ///
 
-const knownPrimitives = new Map<IDLPrimitiveType, LWType>([
-    [IDLPointerType, T.c(TYPES.pointer)],
-    [IDLBooleanType, Ts.prim.boolean],
-    [IDLI32Type, T.c(TYPES.i32)],
-    [IDLU32Type, T.c(TYPES.u32)],
-    [IDLF32Type, T.c(TYPES.f32)],
-    [IDLBufferType, Ts.prim.buffer],
-    [IDLStringType, Ts.prim.str],
-    [IDLVoidType, Ts.prim.void],
-    [IDLThisType, Ts.prim.self],
-    [IDLObjectType, Ts.prim.object],
+const knownPrimitives = new Map<IDLPrimitiveTypeKind, LWType>([
+    ['pointer', T.c(TYPES.pointer)],
+    ['boolean', Ts.prim.boolean],
+    ['i32', T.c(TYPES.i32)],
+    ['u32', T.c(TYPES.u32)],
+    ['f32', T.c(TYPES.f32)],
+    ['buffer', Ts.prim.buffer],
+    ['String', Ts.prim.str],
+    ['void', Ts.prim.void],
+    ['this', Ts.prim.self],
+    ['Object', Ts.prim.object],
 ])
 
 export function buildSelectors() {
@@ -339,9 +340,9 @@ export function buildSelectors() {
 
     /// PRIMITIVE TYPE
 
-    knownPrimitives.forEach((mapped, type) => {
+    knownPrimitives.forEach((mapped, typeName) => {
         selectors.register<IDLPrimitiveType>({
-            select: selectEQ(type),
+            select: (type: IDLType) => isPrimitiveType(type, typeName) ? type : undefined,
             makeDeclaration() {
                 return {
                     continuation: mapped,
@@ -809,7 +810,7 @@ export function buildSelectors() {
                     const proxySetMethod = createMethod(
                         'set' + capitalize(prop.name),
                         [createParameter('value', prop.type)],
-                        IDLVoidType
+                        createPrimitiveType('void')
                     )
                     proxySetMethod.parent = decl
                     linkParentBack(proxySetMethod)

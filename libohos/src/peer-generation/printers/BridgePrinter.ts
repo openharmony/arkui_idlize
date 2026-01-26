@@ -35,7 +35,7 @@ import * as idl from "@idlizer/core";
 import { getHookMethod } from '../../DefaultConfiguration';
 import { customBridgeDeclaration, generatedBridgeDeclaration, bridgeHeaderCustomDeclaration, bridgeHeaderGeneratedDeclaration } from "../FileGenerators";
 import { ExpressionStatement } from "../LanguageWriters";
-import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
+import { forceAsNamedNode, isPrimitiveType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { makeInteropMethod } from "./NativeModulePrinter";
 import { collectPeersForFile } from "../PeersCollector";
@@ -208,7 +208,7 @@ export class BridgeVisitor {
         }
         argConvertors.forEach((it, index) => {
             const type = it.nativeType()
-            if (type === IDLNumberType && (it.idlType === IDLNumberType || it.idlType === IDLBooleanType)) {
+            if (idl.isPrimitiveType(type, 'number') && (idl.isPrimitiveType(it.idlType, 'number') || idl.isPrimitiveType(it.idlType, 'boolean'))) {
                 this.generatedApi.print(`_logData.append("${varNames[index]}_" + std::to_string(_num));`)
             } else {
                 this.generatedApi.print(`_logData.append("&${varNames[index]}_" + std::to_string(_num));`)
@@ -246,7 +246,7 @@ export class BridgeVisitor {
 
     protected generateCParameters(method: PeerMethod): [string, string][] {
         const maybeReceiver: [string, string][] = method.sig.context
-            ? [[this.argConvertor.convert(idl.IDLPointerType), "thisPtr"]] : []
+            ? [[this.argConvertor.convert(idl.createPrimitiveType('pointer')), "thisPtr"]] : []
         let ptrCreated = false;
         method.argAndOutConvertors(this.library).forEach(it => {
             if (it.useArray) {
@@ -264,9 +264,11 @@ export class BridgeVisitor {
 
     // stub
     private mapToKTypes(type:idl.IDLType): string | undefined {
-        switch (type) {
-            case idl.IDLStringType: return 'KStringPtr'
-            case idl.IDLNumberType: return 'KInteropNumber'
+        if (isPrimitiveType(type, 'String')) {
+            return "KStringPtr"
+        }
+        if (isPrimitiveType(type, 'number')) {
+            return "KInteropNumber"
         }
         return undefined
     }
@@ -287,7 +289,7 @@ export class BridgeVisitor {
             this.generatedApi.print(`}`)
         }
         const macroRetType = this.mapToKTypes(method.returnType) ?? retType
-        let macroArgs = [cName, retType === IDLVoidType.name ? undefined : macroRetType]
+        let macroArgs = [cName, retType === idl.createPrimitiveType('void').name ? undefined : macroRetType]
             .concat(argTypesAndNames.map(([type, _]) => type))
             .filter(isDefined)
             .join(", ")

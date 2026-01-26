@@ -33,7 +33,7 @@ import {
 import { allowNamedOverloads, allowsOverloads, collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector"
 import { TargetFile } from "./TargetFile"
-import { IDLPointerType, IDLType, maybeOptional } from '@idlizer/core/idl'
+import { IDLType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
 import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
@@ -143,8 +143,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const peerPtr = "peerPtr"
         const peerPtrExpr = this.printer.makeString(peerPtr)
         const params = ["tag", peerPtr]
-        const types = [idl.createReferenceType("idlize.stdlib.MaterializedBaseTag"), idl.IDLPointerType]
-        const sig = new NamedMethodSignature(idl.IDLVoidType, types, params)
+        const types = [idl.createReferenceType("idlize.stdlib.MaterializedBaseTag"), idl.createPrimitiveType('pointer')]
+        const sig = new NamedMethodSignature(idl.createPrimitiveType('void'), types, params)
         this.printer.writeConstructorImplementation(className, sig, writer => {
             if (!hasSuperClass || !isSuperClassMaterialized(this.library, clazz.superClass)) {
                 this.assignFinalizable(className, peerPtr, clazz.isRefCounted, writer)
@@ -155,14 +155,14 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     printCollapsedCtors(clazz: MaterializedClass, superClassName?: string) {
         const ctorPostfix = `_${clazz.className.toLowerCase()}`
-        const ctors = clazz.ctors.map(ctor => ctor.withReturnType(idl.IDLPointerType))
+        const ctors = clazz.ctors.map(ctor => ctor.withReturnType(idl.createPrimitiveType('pointer')))
         const collapsedCtor = collapseSameNamedMethods(ctors.map(it => it.method), undefined, undefined)
         this.printCollapsedCtor(clazz, collapsedCtor, ctorPostfix, superClassName)
         this.overloadsPrinter.setPostfix(ctorPostfix)
         this.overloadsPrinter.printGroupedComponentOverloads(this.mangle(clazz.getImplementationName()), ctors)
         this.overloadsPrinter.setPostfix()
         for (const ctor of clazz.ctors) {
-            this.printMethod(ctor, `${ctorPostfix}_serialize`, idl.IDLPointerType)
+            this.printMethod(ctor, `${ctorPostfix}_serialize`, idl.createPrimitiveType('pointer'))
         }
     }
 
@@ -194,7 +194,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const ctorSig = ctor.signature as NamedMethodSignature
         const sigWithPointer = new NamedMethodSignature(
             ctorSig.returnType,
-            [...ctorSig.args, idl.IDLPointerType],
+            [...ctorSig.args, idl.createPrimitiveType('pointer')],
             [...ctorSig.argsNames, peerPtr],
             ctorSig.defaults,
             [...Array(ctorSig.args.length + 1)].map(_ => ArgumentModifier.OPTIONAL))
@@ -219,7 +219,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (hasMaterializedSuperClass) return
 
             writer.writeStatement(
-                writer.makeAssign(unwrapPeerPtr, idl.IDLPointerType, peerPtrExpr, true))
+                writer.makeAssign(unwrapPeerPtr, idl.createPrimitiveType('pointer'), peerPtrExpr, true))
             this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, clazz.isRefCounted, writer)
         }, delegationCall)
     }
@@ -314,7 +314,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const clazzRefType = clazz.isInterface
             ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(it => idl.createTypeParameterReference(sanitizeGenerics(it))))
             : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
-        const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
+        const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.createPrimitiveType('pointer')], ["ptr"])
         writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
             var returnedExpr: LanguageExpression | undefined = undefined
             const classFQName = idl.getFQName(clazz.decl)
@@ -346,7 +346,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const isOverridden = isMaterializedMethodOverridden(this.clazz.decl, method.method, this.library, true)
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         returnType = returnType ?? method.sig.returnType
-        returnType = idl.isTypeParameterType(method.sig.returnType) ? idl.IDLVoidType : returnType
+        returnType = idl.isTypeParameterType(method.sig.returnType) ? idl.createPrimitiveType('void') : returnType
         writePeerMethod(this.library, this.printer, privateMethod, this.dumpSerialized, `${postfix}`,
             this.printer.language == Language.CJ ?
                 "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
@@ -402,7 +402,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                         }
                     } : undefined,
                     hasSetter ? {
-                        method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
+                        method: new Method('set', new NamedMethodSignature(idl.createPrimitiveType('void'), [mField.type], [mField.name])), op: () => {
                             let castedNonNullArg
                             if (field.isNullableOriginalTypeField) {
                                 castedNonNullArg = `${mField.name}_NonNull`
@@ -570,7 +570,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             writer.writeStaticEntitiesBlock(() => {
                 if (allowsOverloads(this.library.language)) {
                     for (const ctor of clazz.ctors) {
-                        const pointerType = IDLPointerType
+                        const pointerType = idl.createPrimitiveType('pointer')
                         this.library.setCurrentContext(`${clazz.className}.constructor`)
                         writePeerMethod(this.library, printer, ctor, this.dumpSerialized, "", "", pointerType)
                         this.library.setCurrentContext(undefined)
@@ -599,7 +599,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWriter): void {
     const finalizer = new Method(
         "getFinalizer",
-        new MethodSignature(IDLPointerType, []),
+        new MethodSignature(idl.createPrimitiveType('pointer'), []),
         // TODO: private static getFinalizer() method conflicts with its implementation in the parent class
         [MethodModifier.STATIC])
     writer.writeMethodImplementation(finalizer, writer => {
@@ -937,7 +937,7 @@ function paramFromTagged(paramOrTag: idl.IDLParameter | idl.SignatureTag): idl.I
     const param = paramOrTag as idl.IDLParameter
     if (param.kind === idl.IDLKind.Parameter) return param
     const tag = paramOrTag as idl.SignatureTag
-    return idl.createParameter(tag.name, idl.IDLStringType)
+    return idl.createParameter(tag.name, idl.createPrimitiveType('String'))
 }
 
 function paramsFromTagged(node: idl.IDLSignature): idl.IDLParameter[] {

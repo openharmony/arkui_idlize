@@ -289,16 +289,16 @@ keywordPass.on({}).before = (node, _) => {
     }
 }
 
-const typeWarnings = new Set([
-    idl.IDLObjectType,
-    idl.IDLAnyType,
-    idl.IDLUnknownType
+const typeWarnings: Set<idl.IDLPrimitiveTypeKind> = new Set([
+    'Object',
+    'any',
+    'unknown'
 ])
 function checkType(node: idl.IDLNode, type: idl.IDLType | undefined) {
     if (type) {
-        if (type === idl.IDLNumberType)
+        if (idl.isPrimitiveType(type, 'number'))
             WrongType.reportDiagnosticMessage(nameLoc(node), "Usage of the number type")
-        else if (idl.isPrimitiveType(type) && typeWarnings.has(type))
+        else if (idl.isPrimitiveType(type) && typeWarnings.has(type.name))
             TypeWarning.reportDiagnosticMessage(nameLoc(node), `Usage of the ${type.name} type`)
     }
 }
@@ -322,7 +322,7 @@ anonymousTypePass.on({kind: idl.IDLKind.Interface}).before = (node, _) => {
 
 function isValidComponentPropertyType(type: idl.IDLType) {
     return idl.isOptionalType(type)
-        || idl.isUnionType(type) && type.types.includes(idl.IDLUndefinedType)
+        || idl.isUnionType(type) && type.types.some(t => idl.isUndefinedType(t))
 }
 const attributeTypePass = idlManager.newPass("arkui.attributeTypePass", [], () => ({}))
 attributeTypePass.on({kind: idl.IDLKind.Interface}).before = (node, _) => {

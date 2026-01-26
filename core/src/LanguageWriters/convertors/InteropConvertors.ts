@@ -41,24 +41,24 @@ export class InteropArgConvertor implements TypeConvertor<string> {
         return "KNativePointer"
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLI8Type: case idl.IDLU8Type:
-            case idl.IDLI16Type: case idl.IDLU16Type:
-            case idl.IDLI32Type: case idl.IDLU32Type: return "KInt"
-            case idl.IDLI64Type: case idl.IDLU64Type: return "KLong"
-            case idl.IDLF16Type: case idl.IDLF32Type: return "KFloat"
-            case idl.IDLF64Type: return "KDouble"
-            case idl.IDLNumberType: return 'KInteropNumber'
-            case idl.IDLBigintType: return 'KLong'
-            case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
-            case idl.IDLBooleanType:
-            case idl.IDLFunctionType: return 'KInt'
-            case idl.IDLStringType: return 'KStringPtr'
-            case idl.IDLBufferType: return `KInteropBuffer`
-            case idl.IDLDate: return 'KLong'
-            case idl.IDLUndefinedType:
-            case idl.IDLVoidType:
-            case idl.IDLPointerType: return 'KPointer' // return PrimitiveTypesInstance.NativePointer.getText()
+        switch (type.name) {
+            case 'i8': case 'u8':
+            case 'i16': case 'u16':
+            case 'i32': case 'u32': return "KInt"
+            case 'i64': case 'u64': return "KLong"
+            case 'f16': case 'f32': return "KFloat"
+            case 'f64': return "KDouble"
+            case 'number': return 'KInteropNumber'
+            case 'bigint': return 'KLong'
+            case 'SerializerBuffer': return 'KSerializerBuffer'
+            case 'boolean':
+            case 'Function': return 'KInt'
+            case 'String': return 'KStringPtr'
+            case 'buffer': return `KInteropBuffer`
+            case 'date': return 'KLong'
+            case 'undefined':
+            case 'void':
+            case 'pointer': return 'KPointer' // return PrimitiveTypesInstance.NativePointer.getText()
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
     }
@@ -81,7 +81,7 @@ export class InteropReturnTypeConvertor extends InteropArgConvertor {
     }
 
     isVoid(method: PeerMethod): boolean {
-        return this.convert(method.returnType) === idl.IDLVoidType.name
+        return this.convert(method.returnType) === 'void'
     }
     isReturnInteropBuffer(type: idl.IDLType) {
         return this.convert(type) === KInteropReturnBuffer
@@ -100,26 +100,26 @@ export class InteropReturnTypeConvertor extends InteropArgConvertor {
         return KInteropReturnBuffer
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
-            case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()
-            case idl.IDLStringType: return PrimitiveTypesInstance.String.getText()
-            case idl.IDLBufferType: return KInteropReturnBuffer /* ArkTS can not return buffer as language object yet */
-            case idl.IDLAnyType:
-            case idl.IDLThisType:
-            case idl.IDLUndefinedType:
-            case idl.IDLUnknownType:
-            case idl.IDLObjectType:
-            case idl.IDLVoidType: return idl.IDLVoidType.name
+        switch (type.name) {
+            case 'boolean': return PrimitiveTypesInstance.Boolean.getText()
+            case 'pointer': return PrimitiveTypesInstance.NativePointer.getText()
+            case 'String': return PrimitiveTypesInstance.String.getText()
+            case 'buffer': return KInteropReturnBuffer /* ArkTS can not return buffer as language object yet */
+            case 'any':
+            case 'this':
+            case 'undefined':
+            case 'unknown':
+            case 'Object':
+            case 'void': return 'void'
         }
         return super.convertPrimitiveType(type)
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
-        return idl.IDLVoidType.name
+        return 'void'
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
        if (type.name.endsWith("Attribute"))
-            return idl.IDLVoidType.name
+            return 'void'
         const decl = this.resolver.resolveTypeReference(type)
         if (decl) {
             // Callbacks and array types return by value

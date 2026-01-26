@@ -74,7 +74,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                     writer.writeFunctionImplementation(mangledGlobalScopeName(method.name, library.language), signature, w => {
                         const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0], library.language),
                             method.parameters.map(it => w.makeString(it.name)))
-                        const statement = method.returnType !== idl.IDLVoidType
+                        const statement = !idl.isPrimitiveType(method.returnType, 'void')
                             ? w.makeReturn(call)
                             : w.makeStatement(call)
                         w.writeStatement(statement)

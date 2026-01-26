@@ -23,8 +23,8 @@ import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, Pe
 } from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector"
 import {
-    createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, IDLI32Type,
-    IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType
+    createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, createPrimitiveType,
+    createContainerType, IDLType
 } from "@idlizer/core/idl"
 import { makeInteropMethod } from "./NativeModulePrinter";
 import { collectPeersForFile } from "../PeersCollector";
@@ -51,8 +51,8 @@ class NativeModuleRecorderVisitor {
 
     private printUiElement() {
         this.nativeModuleRecorder.writeInterface("UIElement", w => {
-            w.writeFieldDeclaration("nodeId", IDLI32Type, undefined, false)
-            w.writeFieldDeclaration("kind", IDLStringType, undefined, false)
+            w.writeFieldDeclaration("nodeId", createPrimitiveType('i32'), undefined, false)
+            w.writeFieldDeclaration("kind", createPrimitiveType('String'), undefined, false)
             w.writeFieldDeclaration("children", createReferenceType("Array<UIElement>|undefined"), undefined, false)
             w.writeFieldDeclaration("elementId", createReferenceType("string|undefined"), undefined, false)
         })
@@ -107,7 +107,7 @@ class NativeModuleRecorderVisitor {
         const name = `_${method.originalParentName}_${method.sig.name}`
         const signature = method.method.signature
         const args = signature.args.map((arg, idx) => { return { name: signature.argName(idx), type: arg } })
-        const parameters = NamedMethodSignature.make(IDLPointerType, args)
+        const parameters = NamedMethodSignature.make(createPrimitiveType('pointer'), args)
 
         nativeModuleRecorder.writeMethodImplementation(new Method(name, parameters), (w) => {
             w.writeLines(`let element: UIElement = {`)
@@ -126,14 +126,14 @@ class NativeModuleRecorderVisitor {
         this.nativeModuleRecorder.writeLines(`const NULL_POINTER = 0`)
         this.nativeModuleRecorder.writeLines(`const FINALIZER_POINTER = 1`)
         this.nativeModuleRecorder.writeInterface("MenuAlign", w => {
-            w.writeFieldDeclaration("type", IDLStringType, undefined, false)
-            w.writeFieldDeclaration("dx", IDLStringType, undefined, true)
-            w.writeFieldDeclaration("dy", IDLStringType, undefined, true)
+            w.writeFieldDeclaration("type", createPrimitiveType('String'), undefined, false)
+            w.writeFieldDeclaration("dx", createPrimitiveType('String'), undefined, true)
+            w.writeFieldDeclaration("dy", createPrimitiveType('String'), undefined, true)
         })
     }
 
     printOtherMethods() {
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_ManagedStringWrite", new NamedMethodSignature(IDLI32Type, [IDLStringType, IDLUint8ArrayType, IDLI32Type], ['value', 'buffer', 'offset'])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_ManagedStringWrite", new NamedMethodSignature(createPrimitiveType('i32'), [createPrimitiveType('String'), createContainerType('sequence', [createPrimitiveType('u8')]), createPrimitiveType('i32')], ['value', 'buffer', 'offset'])), w => {
             w.writeLines(`if (typeof value === 'number' || value === null)`)
             w.pushIndent()
             w.writeLines(`throw "Not implemented"`)
@@ -148,7 +148,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return length`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_CaptureUIStructure", new NamedMethodSignature(IDLPointerType, [], [])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_CaptureUIStructure", new NamedMethodSignature(createPrimitiveType('pointer'), [], [])), w => {
             w.writeLines(`return this.object2ptr(JSON.stringify({`)
             w.pushIndent()
             w.writeLines(`rootElement: this.rootElement`)
@@ -156,11 +156,11 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`}))`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("private ptr2object<T>", new NamedMethodSignature(createTypeParameterReference("T"), [IDLPointerType], ["ptr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("private ptr2object<T>", new NamedMethodSignature(createTypeParameterReference("T"), [createPrimitiveType('pointer')], ["ptr"])), w => {
             w.writeLines(`return this.pointers[ptr as number] as T`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("private object2ptr", new NamedMethodSignature(IDLPointerType, [createUnionType([IDLObjectType, IDLUndefinedType])], ["object"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("private object2ptr", new NamedMethodSignature(createPrimitiveType('pointer'), [createUnionType([createPrimitiveType('Object'), createPrimitiveType('undefined')])], ["object"])), w => {
             w.writeLines(`if (object == null) return nullptr`)
             w.writeLines(`for (let i = 1; i < this.pointers.length; i++) {`)
             w.pushIndent()
@@ -177,38 +177,38 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return ptr`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringLength", new NamedMethodSignature(IDLI32Type, [IDLPointerType], ["ptr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringLength", new NamedMethodSignature(createPrimitiveType('i32'), [createPrimitiveType('pointer')], ["ptr"])), w => {
             w.writeLines(`return this.ptr2object<string>(ptr).length`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringData", new NamedMethodSignature(IDLVoidType, [IDLPointerType, IDLUint8ArrayType, IDLNumberType], ["ptr", "buffer", "length"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringData", new NamedMethodSignature(createPrimitiveType('void'), [createPrimitiveType('pointer'), createContainerType('sequence', [createPrimitiveType('u8')]), createPrimitiveType('number')], ["ptr", "buffer", "length"])), w => {
             w.writeLines(`let value = this.ptr2object<string>(ptr);`)
             w.writeLines(`(buffer as Uint8Array).set(encodeToData(value))`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_GetStringFinalizer", new NamedMethodSignature(IDLPointerType, [], [])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_GetStringFinalizer", new NamedMethodSignature(createPrimitiveType('pointer'), [], [])), w => {
             w.writeLines(`return FINALIZER_POINTER as pointer`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InvokeFinalizer", new NamedMethodSignature(IDLVoidType, [IDLPointerType, IDLPointerType], ["ptr", "finalizer"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InvokeFinalizer", new NamedMethodSignature(createPrimitiveType('void'), [createPrimitiveType('pointer'), createPrimitiveType('pointer')], ["ptr", "finalizer"])), w => {
             w.writeLines(`let finalizerFunc = this.ptr2object<(obj: pointer) => void>(finalizer)`)
             w.writeLines(`finalizerFunc(ptr)`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_DisposeNode", new NamedMethodSignature(IDLVoidType, [IDLPointerType /* NodePointer */], ["ptr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_DisposeNode", new NamedMethodSignature(createPrimitiveType('void'), [createPrimitiveType('pointer') /* NodePointer */], ["ptr"])), w => {
             w.writeLines(`let node = this.ptr2object<UIElement|null>(ptr)`)
             w.writeLines(`console.log("Dispose", node)`)
             w.writeLines(`if (node?.elementId) this.nodeById.delete(node.elementId)`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_AddChild", new NamedMethodSignature(IDLNumberType, [IDLPointerType, IDLPointerType], ["ptr1", "ptr2"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_AddChild", new NamedMethodSignature(createPrimitiveType('number'), [createPrimitiveType('pointer'), createPrimitiveType('pointer')], ["ptr1", "ptr2"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(ptr1)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(ptr2)`)
             w.writeLines(`parent?.children?.push(child!)`)
             w.writeLines(`return 0`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_RemoveChild", new NamedMethodSignature(IDLVoidType, [IDLPointerType /* NodePointer */, IDLPointerType /* NodePointer */], ["parentPtr", "childPtr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_RemoveChild", new NamedMethodSignature(createPrimitiveType('void'), [createPrimitiveType('pointer') /* NodePointer */, createPrimitiveType('pointer') /* NodePointer */], ["parentPtr", "childPtr"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(parentPtr)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(childPtr)`)
             w.writeLines(`parent?.children?.forEach((element, index) => {`)
@@ -222,7 +222,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`})`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildAfter", new NamedMethodSignature(IDLNumberType, [IDLPointerType, IDLPointerType, IDLPointerType], ["ptr0", "ptr1", "ptr2"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildAfter", new NamedMethodSignature(createPrimitiveType('number'), [createPrimitiveType('pointer'), createPrimitiveType('pointer'), createPrimitiveType('pointer')], ["ptr0", "ptr1", "ptr2"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(ptr0)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(ptr1)`)
             w.writeLines(`let sibling = this.ptr2object<UIElement|null>(ptr2)`)
@@ -249,7 +249,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return 0`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildBefore", new NamedMethodSignature(IDLNumberType, [IDLPointerType, IDLPointerType, IDLPointerType], ["ptr0", "ptr1", "ptr2"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildBefore", new NamedMethodSignature(createPrimitiveType('number'), [createPrimitiveType('pointer'), createPrimitiveType('pointer'), createPrimitiveType('pointer')], ["ptr0", "ptr1", "ptr2"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(ptr0)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(ptr1)`)
             w.writeLines(`let sibling = this.ptr2object<UIElement|null>(ptr2)`)
@@ -276,7 +276,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return 0`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildAt", new NamedMethodSignature(IDLNumberType, [IDLPointerType, IDLPointerType, IDLNumberType], ["ptr0", "ptr1", "arg"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildAt", new NamedMethodSignature(createPrimitiveType('number'), [createPrimitiveType('pointer'), createPrimitiveType('pointer'), createPrimitiveType('number')], ["ptr0", "ptr1", "arg"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(ptr0)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(ptr1)`)
             w.writeLines(`let inserted = false`)
@@ -310,15 +310,15 @@ class NativeModuleRecorderVisitor {
     }
 
     printConstructor(writer: LanguageWriter) {
-        const callbackParameters = [createParameter('type', IDLI32Type)]
-        const callbackName = generateSyntheticFunctionName(callbackParameters, IDLStringType)
-        const callback = createCallback(callbackName, callbackParameters, IDLStringType,
+        const callbackParameters = [createParameter('type', createPrimitiveType('i32'))]
+        const callbackName = generateSyntheticFunctionName(callbackParameters, createPrimitiveType('String'))
+        const callback = createCallback(callbackName, callbackParameters, createPrimitiveType('String'),
             { extendedAttributes: [{name: IDLExtendedAttributes.Synthetic}]})
         const alternativeResolver = createAlternativeReferenceResolver(this.library, new Map([[
             callbackName, callback
         ]]))
         const alternativeWriter = writer.fork({resolver: alternativeResolver})
-        alternativeWriter.writeConstructorImplementation("NativeModuleRecorder", new NamedMethodSignature(IDLVoidType, [createReferenceType(callbackName)], ["nameByNodeType"]), w => {
+        alternativeWriter.writeConstructorImplementation("NativeModuleRecorder", new NamedMethodSignature(createPrimitiveType('void'), [createReferenceType(callbackName)], ["nameByNodeType"]), w => {
             w.writeSuperCall([])
             w.writeLines(`this.nameByNodeType = nameByNodeType`)
             w.writeLines(`this.pointers[NULL_POINTER] = null`)

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createConstructor, createParameter, createReferenceType, hasExtAttribute, IDLBooleanType, IDLConstructor, IDLEnum, IDLExtendedAttributes, IDLF32Type, IDLI32Type, IDLInterface, IDLPointerType, IDLType, IDLVoidType, isEnum, isInterface, isReferenceType } from "@idlizer/core/idl"
+import { createConstructor, createParameter, createPrimitiveType, createReferenceType, hasExtAttribute, IDLConstructor, IDLEnum, IDLExtendedAttributes, IDLInterface, IDLType, isEnum, isInterface, isPrimitiveType, isReferenceType } from "@idlizer/core/idl"
 import { E, LWExpression, LWStatement, LWType, S, Ts } from "@idlizer/ost"
 import { terminate } from "@idlizer/kit"
 import { GeneratorLibrary } from "./library"
@@ -35,16 +35,16 @@ export interface StructMemoryInfo {
 ///
 
 function typeSizeOf(type: IDLType, lib: GeneratorLibrary): number {
-    if (type === IDLI32Type) {
+    if (isPrimitiveType(type, 'i32')) {
         return 1
     }
-    if (type === IDLBooleanType) {
+    if (isPrimitiveType(type, 'boolean')) {
         return 1
     }
-    if (type === IDLF32Type) {
+    if (isPrimitiveType(type, 'f32')) {
         return 1
     }
-    if (type === IDLPointerType) {
+    if (isPrimitiveType(type, 'pointer')) {
         return 2
     }
     if (isReferenceType(type)) {
@@ -68,13 +68,13 @@ interface SelectStat {
 }
 
 function selectBaseTypeFor(type: IDLType, lib:GeneratorLibrary, seenVals: Set<StructMemoryInfo['basedOn']>): SelectStat {
-    if (type === IDLI32Type) {
+    if (isPrimitiveType(type, 'i32')) {
         return { i32: 1, f32: 0 }
     }
-    if (type === IDLF32Type) {
+    if (isPrimitiveType(type, 'f32')) {
         return { i32: 0, f32: 1 }
     }
-    if (type === IDLBooleanType) {
+    if (isPrimitiveType(type, 'boolean')) {
         return { i32: 0, f32: 0 }
     }
     if (isReferenceType(type)) {
@@ -160,13 +160,13 @@ class FieldAssigner {
     }
 
     assignToType(type: IDLType, param: LWExpression, offsetVal: LWExpression, receiver: LWExpression) {
-        if (type === IDLI32Type) {
+        if (isPrimitiveType(type, 'i32')) {
             return this.assignI32ToVec(param, offsetVal, receiver)
         }
-        if (type === IDLF32Type) {
+        if (isPrimitiveType(type, 'f32')) {
             return this.assignF32ToVec(param, offsetVal, receiver)
         }
-        if (type === IDLBooleanType) {
+        if (isPrimitiveType(type, 'boolean')) {
             return this.assignBooleanToVec(param, offsetVal, receiver)
         }
         if (isReferenceType(type)) {
@@ -235,13 +235,13 @@ class FieldAssigner {
     }
 
     readFromType(type: IDLType, offsetVal: LWExpression, receiver: LWExpression): [LWStatement[], LWExpression] {
-        if (type === IDLI32Type) {
+        if (isPrimitiveType(type, 'i32')) {
             return this.readI32FromVec(offsetVal, receiver)
         }
-        if (type === IDLF32Type) {
+        if (isPrimitiveType(type, 'f32')) {
             return this.readF32FromVec(offsetVal, receiver)
         }
-        if (type === IDLBooleanType) {
+        if (isPrimitiveType(type, 'boolean')) {
             return this.readBoolFromVec(offsetVal, receiver)
         }
         if (isReferenceType(type)) {
@@ -287,7 +287,7 @@ function makeStructureInfoUnpacked(decl: IDLInterface, lib: GeneratorLibrary): S
     return {
         ctor: createConstructor(
             decl.properties.map(prop => createParameter(prop.name, prop.type)),
-            IDLVoidType
+            createPrimitiveType('void')
         ),
         bufferType,
         isWriteable: true,

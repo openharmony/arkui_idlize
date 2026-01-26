@@ -113,7 +113,7 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
     protected writeConstructor(writer: LanguageWriter, isStringEnum: boolean): void {
         const modifiers = [MethodModifier.PRIVATE]
         if (isStringEnum) {
-            const signature = new MethodSignature(idl.IDLVoidType, [this.getEnumBinaryType(), idl.IDLStringType])
+            const signature = new MethodSignature(idl.createPrimitiveType('void'), [this.getEnumBinaryType(), idl.createPrimitiveType('String')])
             writer.writeConstructorImplementation("constructor", signature, () => {
                 const initExpr = [0, 1].map(i => writer.makeString(signature.argName(i)))
                 writer.writeStatement(
@@ -125,7 +125,7 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
             }, undefined, modifiers)
         }
         else {
-            const signature = new MethodSignature(idl.IDLVoidType, [this.getEnumBinaryType()])
+            const signature = new MethodSignature(idl.createPrimitiveType('void'), [this.getEnumBinaryType()])
             writer.writeConstructorImplementation("constructor", signature, () => {
                 const initExpr = writer.makeString(signature.argName(0))
                 writer.writeStatement(
@@ -138,7 +138,7 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
         const modifiers = [FieldModifier.PUBLIC, FieldModifier.READONLY, FieldModifier.FINAL]
         if (isStringEnum) {
             writer.writeFieldDeclaration(KotlinEnumWithGetter.ordinal, this.getEnumBinaryType(), modifiers, true)
-            writer.writeFieldDeclaration(KotlinEnumWithGetter.value, idl.IDLStringType, modifiers, true)
+            writer.writeFieldDeclaration(KotlinEnumWithGetter.value, idl.createPrimitiveType('String'), modifiers, true)
         }
         else {
             writer.writeFieldDeclaration(KotlinEnumWithGetter.value, this.getEnumBinaryType(), modifiers, true)
@@ -149,7 +149,7 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
     }
     private convertEnumValue(value: number, writer: LanguageWriter): string {
         const type = this.getEnumBinaryType()
-        return type == idl.IDLI32Type
+        return type.name === 'i32'
             ? `${value}` :
             `(${value}).to${writer.getNodeName(type)}()`
     }
@@ -353,7 +353,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             }
             return `${signature.argName(index)}: ${this.getNodeName(it)}${isOptional ? "?" : ""}${defaultValue ? " = " + defaultValue : ""}`
         }).join(", ")
-        if (signature.returnType === idl.IDLThisType) {
+        if (idl.isPrimitiveType(signature.returnType, 'this')) {
             throw new Error(`Return type 'this' must be substituted when generating for Kotlin`)
         }
         const returnTypePart = needReturn ? ": " + this.getNodeName(signature.returnType) : ""
@@ -390,7 +390,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             const args = signature.args.map((type, index) => this.convertInteropArgument(signature.argName(index), type))
             this.printForeignApiOptIn()
             const interopCallExpression = this.makeFunctionCall(interopCallName, args)
-            if (signature.returnType === idl.IDLVoidType) {
+            if (idl.isVoidType(signature.returnType)) {
                 this.writeExpressionStatement(interopCallExpression)
                 unpins.filter(it => !!it).forEach(it => this.writeStatement(it!))
                 return
@@ -413,8 +413,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             return false
         }
         const elementType = (type as idl.IDLContainerType).elementType[0]
-        const allowedTypes: idl.IDLType[] = [idl.IDLU8Type, idl.IDLI32Type, idl.IDLF32Type]
-        return allowedTypes.includes(elementType)
+        return idl.isPrimitiveType(elementType) && (elementType.name === 'u8' || elementType.name === 'i32' || elementType.name === 'f32')
     }
     private pinArrayArgument(varName: string, type: idl.IDLType): LanguageStatement[] {
         if (this.isPrimitiveArray(type)) {
@@ -683,7 +682,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return idl.createReferenceType("Tag")
     }
     getRuntimeType(): idl.IDLType {
-        return idl.IDLI8Type
+        return idl.createPrimitiveType('i8')
     }
     makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
         throw new Error("Not implemented")
@@ -696,7 +695,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
     }
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumBinaryType = idl.enumBinaryRepresentation(enumEntry)
-        const convertedValue = enumBinaryType == idl.IDLI32Type
+        const convertedValue = enumBinaryType.name === 'i32'
             ? value.asString()
             : `${value.asString()}.to${this.getNodeName(enumBinaryType)}()`
         return this.makeString(`${this.getNodeName(enumEntry)}.${KotlinEnumWithGetter.values}[${convertedValue}]!!`)
@@ -730,7 +729,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return keyword
     }
     makeCastCustomObject(customName: string, isGenericType: boolean): LanguageExpression {
-        return this.makeCast(this.makeString(customName), idl.IDLAnyType)
+        return this.makeCast(this.makeString(customName), idl.createPrimitiveType('any'))
     }
     writeStaticEntitiesBlock(op: (writer: LanguageWriter) => void) {
         this.writePrefixedBlock("companion object", op)

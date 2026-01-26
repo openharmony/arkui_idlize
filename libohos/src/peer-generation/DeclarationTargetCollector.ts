@@ -92,7 +92,7 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
         synthesizeCallbacks(library, orderer)
     }
     let orderedDependencies = orderer.getToposorted()
-    orderedDependencies.unshift(idl.IDLI32Type)
+    orderedDependencies.unshift(idl.createPrimitiveType('i32'))
     return orderedDependencies
 }
 
@@ -195,7 +195,7 @@ export namespace DeclarationTargets {
     export function allOptionalTypes(library: LibraryInterface, unionFlatteningMode: UnionFlatteningMode = false): Set<string> {
         const nativeNameConvertorInstance: IdlNameConvertor = library.createTypeNameConvertor(Language.CPP)
         const data = collectDeclarationTargets(library, unionFlatteningMode)
-            .filter(it => it !== idl.IDLVoidType)
+            .filter(it => !idl.isPrimitiveType(it, 'void'))
             .filter(it => {
                 if (idl.isOptionalType(it)) it = it.type
                 if (idl.isReferenceType(it)) {

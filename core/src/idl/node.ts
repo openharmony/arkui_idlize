@@ -146,8 +146,12 @@ export interface IDLTypedef extends IDLEntry {
     typeParameters?: string[]
 }
 
+export const IDLPrimitiveTypeNames = ["pointer", "void", "boolean", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64", "f16", "f32", "f64", "bigint", "number", "String", "any", "undefined", "unknown", "Object", "this", "date", "buffer", "SerializerBuffer", "Function", "CustomObject", "InteropReturnBuffer"] as const
+export type IDLPrimitiveTypeKind = (typeof IDLPrimitiveTypeNames)[number]
+
 export interface IDLPrimitiveType extends IDLType, IDLNamedNode {
     kind: IDLKind.PrimitiveType
+    name: IDLPrimitiveTypeKind,
 }
 
 export interface IDLOptionalType extends IDLType {

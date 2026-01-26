@@ -42,39 +42,39 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         return super.convertContainer(type)
     }
     override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLAnyType: return "object"
-            case idl.IDLUnknownType: return "object"
+        switch (type.name) {
+            case 'any': return "object"
+            case 'unknown': return "object"
 
-            case idl.IDLPointerType: return 'KPointer'
-            case idl.IDLVoidType: return 'void'
-            case idl.IDLBooleanType: return 'boolean'
+            case 'pointer': return 'KPointer'
+            case 'void': return 'void'
+            case 'boolean': return 'boolean'
 
-            case idl.IDLU8Type:
-            case idl.IDLI8Type:
-            case idl.IDLI16Type:
-            case idl.IDLU16Type:
-            case idl.IDLI32Type:
-            case idl.IDLU32Type:
+            case 'u8':
+            case 'i8':
+            case 'i16':
+            case 'u16':
+            case 'i32':
+            case 'u32':
                 return 'int32'
 
-            case idl.IDLI64Type:
-            case idl.IDLU64Type:
+            case 'i64':
+            case 'u64':
                 return 'int64'
 
-            case idl.IDLF32Type:
+            case 'f32':
                 return 'float'
 
-            case idl.IDLF64Type:
+            case 'f64':
                 return 'double'
-            case idl.IDLNumberType:
+            case 'number':
                 return 'number'
 
-            case idl.IDLStringType: return 'string'
-            case idl.IDLFunctionType: return 'Object'
+            case 'String': return 'string'
+            case 'Function': return 'Object'
 
-            case idl.IDLBigintType: return 'long'
-            case idl.IDLCustomObjectType: return 'object'
+            case 'bigint': return 'long'
+            case 'CustomObject': return 'object'
         }
         return super.convertPrimitiveType(type)
     }
@@ -89,7 +89,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
             return {
                 ...idlProperty,
                 isOptional: false,
-                type: idl.createUnionType([idlProperty.type, idl.IDLUndefinedType])
+                type: idl.createUnionType([idlProperty.type, idl.createPrimitiveType('undefined')])
             }
         }
         return idlProperty
@@ -109,7 +109,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         // Replace "Function" to "Function<void>"
         // Use "FunctionN" for ts compatibility
         if (typeArgs.length === 0) {
-            typeArgs = [this.convert(idl.IDLVoidType)]
+            typeArgs = [this.convert(idl.createPrimitiveType('void'))]
         }
         return isInsideInstanceof() ? `Function${typeArgs.length - 1}` : `Function${typeArgs.length - 1}<${typeArgs.join(",")}>`
     }
@@ -117,8 +117,8 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
 
 export class ETSInteropArgConvertor extends TSInteropArgConvertor {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLBigintType: return 'long'
+        switch (type.name) {
+            case 'bigint': return 'long'
         }
         return super.convertPrimitiveType(type)
     }

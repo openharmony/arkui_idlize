@@ -75,7 +75,7 @@ export function producesVanillaTwinFunctions(node: idl.IDLMethod, selector: Type
     const wrappedFunction = DD({ modifiers }).func(
         idl.getFQName(node),
         { implicitThisType: node.parent && idl.isInterface(node.parent) ? Ask.typeName(node.parent) : undefined, parameters },
-        node.returnType === idl.IDLVoidType ? Ts.prim.void : Ask.typeName(node.returnType),
+        idl.isPrimitiveType(node.returnType, 'void') ? Ts.prim.void : Ask.typeName(node.returnType),
         S.block(writeFunctionBody)
     )
 
@@ -116,7 +116,7 @@ export function producesVanillaTwinFunctions(node: idl.IDLMethod, selector: Type
         }
     })
 
-    const trivialReturn = node.returnType === idl.IDLVoidType || !!selector.selectConvertor(node.returnType).fromInteropTransferable
+    const trivialReturn = idl.isPrimitiveType(node.returnType, 'void') || !!selector.selectConvertor(node.returnType).fromInteropTransferable
     if (serializerUsed || !trivialReturn) {
         callArgs.push(E.call(E.get(memoryBuffer, 'getPeer'), []))
         receiveParameters.push({ name: 'buffer', type: Ts.prim.pointer })
@@ -138,7 +138,7 @@ export function producesVanillaTwinFunctions(node: idl.IDLMethod, selector: Type
     const writeCall = E.call(Ask.interopCall(node, hostFunction), callArgs)
     const apiCall = Ask.apiCall(node, apiCallArgs, apiCallParams, Ask.typeName(node.returnType))
 
-    if (node.returnType !== idl.IDLVoidType) {
+    if (!idl.isPrimitiveType(node.returnType, 'void')) {
         const returnTypeConvertor = selector.selectConvertor(node.returnType)
         if (returnTypeConvertor.fromInteropTransferable) {
             const [hostReturnExpression, interopReturnType] = returnTypeConvertor.fromInteropTransferable.toInteropReturn(apiCall)

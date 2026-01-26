@@ -55,7 +55,7 @@ export class StructPrinter {
     private isPointerDeclaration(target: idl.IDLNode, isOptional: boolean = false): boolean {
         if (isOptional) return true
         if (idl.isPrimitiveType(target))
-            return [idl.IDLAnyType.name, idl.IDLStringType.name, idl.IDLNumberType.name, "CustomObject"].includes(target.name)
+            return ['any', 'String', 'number', "CustomObject"].includes(target.name)
         if (idl.isEnum(target)) return false
         if (idl.isReferenceType(target) && target.name === "GestureType") return false
         if (idl.isInterface(target) && isMaterialized(target, this.library)) return false
@@ -87,8 +87,8 @@ export class StructPrinter {
     }
 
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
-        const DECL_RESOURCE = `${generatorConfiguration().TypePrefix}${idl.IDLObjectType.name}`
-        const DECL_OPT_RESOURCE = `${generatorConfiguration().OptionalPrefix}${idl.IDLObjectType.name}`
+        const DECL_RESOURCE = `${generatorConfiguration().TypePrefix}Object`
+        const DECL_OPT_RESOURCE = `${generatorConfiguration().OptionalPrefix}Object`
         const DECL_OPT_POINTER = `${generatorConfiguration().OptionalPrefix}NativePointer`
         const typedefDeclarations = this.library.createLanguageWriter(Language.CPP)
         const enumsDeclarations = this.library.createLanguageWriter(Language.CPP)
@@ -96,10 +96,10 @@ export class StructPrinter {
         const concreteDeclarations = this.library.createLanguageWriter(Language.CPP)
         const seenNames = new Set<string>()
         seenNames.clear()
-        const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
+        const noDeclaration = ["Int32", "Tag", 'number', 'boolean', 'String', 'void']
         const declTargets = collectDeclarationTargets(this.library, true)
         for (const target of declTargets) {
-            if (target === idl.IDLVoidType) {
+            if (idl.isPrimitiveType(target, 'void')) {
                 continue
             }
             if (idl.isTypeParameterType(target)) {
@@ -116,9 +116,9 @@ export class StructPrinter {
                 continue
             }
             seenNames.add(nameAssigned)
-            if (target == idl.IDLObjectType) {
+            if (idl.isPrimitiveType(target, 'Object')) {
                 // Object type is already defined as interop resource
-                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.IDLObjectType, seenNames)
+                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.createPrimitiveType('Object'), seenNames)
                 continue
             }
             if (idl.isInterface(target) && generatorConfiguration().forceResource.includes(target.name)) {
@@ -156,11 +156,11 @@ export class StructPrinter {
                 concreteDeclarations.print(`/* kind: ${idl.IDLKind[target.kind]} */`)
                 let restoredThrows: idl.IDLType | undefined
                 if (restoredThrows = maybeRestoreThrows(target, this.library)) {
-                    concreteDeclarations.print(`${structs.getNodeName(idl.IDLBooleanType)} hasException;`)
+                    concreteDeclarations.print(`${structs.getNodeName(idl.createPrimitiveType('boolean'))} hasException;`)
                     concreteDeclarations.print("union {")
                     concreteDeclarations.pushIndent()
                     concreteDeclarations.print(`${generatorConfiguration().TypePrefix}Exception exception;`)
-                    if (restoredThrows !== idl.IDLVoidType && restoredThrows !== idl.IDLThisType)
+                    if (!idl.isPrimitiveType(restoredThrows, 'void') && !idl.isPrimitiveType(restoredThrows, 'this'))
                         concreteDeclarations.print(`${structs.getNodeName(restoredThrows)} value;`)
                     concreteDeclarations.popIndent()
                     concreteDeclarations.print("};")
@@ -224,14 +224,14 @@ export class StructPrinter {
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             }
         }
-        if (!seenNames.has(structs.getNodeName(idl.IDLObjectType))) {
+        if (!seenNames.has(structs.getNodeName(idl.createPrimitiveType('Object')))) {
             if (generatorConfiguration().LibraryPrefix) {
                 // declare resource for the current library
-                const objectDecl = `${generatorConfiguration().TypePrefix}${idl.IDLObjectType.name}`
-                const objectLibDecl = `${generatorTypePrefix()}${idl.IDLObjectType.name}`
+                const objectDecl = `${generatorConfiguration().TypePrefix}Object`
+                const objectLibDecl = `${generatorTypePrefix()}Object`
                 typedefDeclarations.print(`typedef ${objectDecl} ${objectLibDecl};`)
             }
-            this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.IDLObjectType, seenNames)
+            this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.createPrimitiveType('Object'), seenNames)
         }
         structs.concat(forwardDeclarations)
         structs.concat(typedefDeclarations)
@@ -272,10 +272,10 @@ export class StructPrinter {
     }
 
     private prologueDefinedRuntimeTypes = [
-        idl.IDLDate.name,
+        idl.createPrimitiveType('date').name,
     ]
     private writeRuntimeType(target: idl.IDLNode, targetType: idl.IDLType, isOptional: boolean, writer: LanguageWriter) {
-        if (idl.isNamedNode(target) && this.prologueDefinedRuntimeTypes.includes(target.name) && !isOptional)
+        if (idl.isPrimitiveType(target) && this.prologueDefinedRuntimeTypes.includes(target.name) && !isOptional)
             return
         const resultType = idl.createReferenceType("idlize.stdlib.RuntimeType")
         const op = this.writeRuntimeTypeOp(target, targetType, resultType, isOptional, writer)
@@ -328,13 +328,13 @@ export class StructPrinter {
                     result = writer.makeRuntimeType(RuntimeType.FUNCTION)
                     break
                 case "Int32":
-                case idl.IDLNumberType.name:
+                case 'number':
                     result = writer.makeRuntimeType(RuntimeType.NUMBER)
                     break
                 case "Length":
                     result = writer.makeCast(writer.makeString("value.type"), resultType)
                     break
-                case idl.IDLStringType.name:
+                case 'String':
                     result = writer.makeRuntimeType(RuntimeType.STRING)
                     break
                 case "undefined":
@@ -455,7 +455,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
             printer.print(`inline void WriteToString(std::string* result, const ${name} value) {`)
             printer.pushIndent()
             printer.print(`result->append("${name}(");`)
-            const type = idl.enumBinaryRepresentation(target) == idl.IDLI64Type
+            const type = idl.enumBinaryRepresentation(target).name === 'i64'
                 ? PrimitiveTypesInstance.Int64
                 : PrimitiveTypesInstance.Int32
             printer.print(`WriteToString(result, static_cast<${type.getText()}>(value));`)
@@ -490,7 +490,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                 printer.print(`result->append(".exception=");`)
                 printer.print(`WriteToString(result, &value${access}exception);`)
                 printer.popIndent()
-                if (restoredThrow != idl.IDLVoidType && restoredThrow != idl.IDLThisType) {
+                if (!idl.isPrimitiveType(restoredThrow, 'void') && !idl.isPrimitiveType(restoredThrow, 'this')) {
                     printer.print(`} else {`)
                     printer.pushIndent()
                     printer.print(`result->append(".value=");`)
@@ -599,9 +599,9 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
 function enumBaseType(decl: idl.IDLEnum | idl.IDLEnumMember): string {
     if (!idl.isEnum(decl)) return ""
     const binaryType = idl.enumBinaryRepresentation(decl, true)
-    switch (binaryType) {
-        case idl.IDLU8Type: return ": InteropUInt8"
-        case idl.IDLI8Type: return ": InteropInt8"
+    switch (binaryType.name) {
+        case 'u8': return ": InteropUInt8"
+        case 'i8': return ": InteropInt8"
         default: return ""
     }
 }

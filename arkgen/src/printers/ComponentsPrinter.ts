@@ -17,7 +17,7 @@ import * as idl from '@idlizer/core/idl'
 import {
     Language, isCommonMethod,
     LanguageWriter, PeerClass, PeerLibrary,
-    createReferenceType, IDLVoidType,
+    createReferenceType,
     Method,
     MethodSignature,
     MethodModifier,
@@ -80,8 +80,8 @@ export function generateAttributeModifierSignature(library: PeerLibrary, compone
         )
     )
     return new NamedMethodSignature(
-        idl.IDLThisType,
-        [idl.createUnionType([...modifiers, idl.IDLUndefinedType])],
+        idl.createPrimitiveType('this'),
+        [idl.createUnionType([...modifiers, idl.createPrimitiveType('undefined')])],
         // [idl.createOptionalType(modifiers.length > 1 ? idl.createUnionType(modifiers) : modifiers[0])],
         ['value']
     )
@@ -214,15 +214,15 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                     writer.writeStatement(writer.makeReturn(writer.makeThis()))
                 })
 
-                const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
+                const attributesFinishSignature = new MethodSignature(idl.createPrimitiveType('void'), [])
                 const applyAttributesFinish = 'applyAttributesFinish'
                 writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
                     writer.print('// we call this function outside of class, so need to make it public')
                     writer.writeMethodCall('super', applyAttributesFinish, [])
                 })
                 const optionsFinishSignature = new MethodSignature(
-                    IDLVoidType,
-                    [idl.IDLStringType],
+                    idl.createPrimitiveType('void'),
+                    [idl.createPrimitiveType('String')],
                     undefined,
                     undefined,
                     undefined,
@@ -412,7 +412,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
                 if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
                     writer.print(`public func attributeModifier(modifier: AttributeModifier<Object>) { throw Exception("not implemented") }`)
 
-                const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
+                const attributesFinishSignature = new MethodSignature(idl.createPrimitiveType('void'), [])
                 const applyAttributesFinish = 'applyAttributesFinish'
                 writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
                     writer.print('// we call this function outside of class, so need to make it public')
@@ -530,13 +530,13 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
                     this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, [peerMethod], peer.decl)
                 }
 
-                const attributesFinishSignature = new MethodSignature(idl.IDLVoidType, [])
+                const attributesFinishSignature = new MethodSignature(idl.createPrimitiveType('void'), [])
                 const applyAttributesFinish = "applyAttributesFinish"
                 writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, modifiers), (writer) => {
                     writer.writeMethodCall("super", applyAttributesFinish, [])
                 })
 
-                const applyOptionsFinishSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLStringType], ["traceName"])
+                const applyOptionsFinishSignature = new NamedMethodSignature(idl.createPrimitiveType('void'), [idl.createPrimitiveType('String')], ["traceName"])
                 const applyOptionsFinish = "applyOptionsFinish"
                 writer.writeMethodImplementation(new Method(applyOptionsFinish, applyOptionsFinishSignature, modifiers), (writer) => {
                     writer.writeMethodCall("super", applyOptionsFinish, [applyOptionsFinishSignature.argName(0)])

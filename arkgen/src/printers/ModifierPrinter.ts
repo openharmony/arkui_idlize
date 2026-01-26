@@ -147,18 +147,18 @@ class ModifiersFileVisitor {
         if (!sig.isArgOptional(index)) {
             return writer.makeCast(writer.makeString(`undefined`), sig.args[index])
         }
-        return writer.makeCast(writer.makeString(`undefined`), idl.createUnionType([sig.args[index], idl.IDLUndefinedType]))
+        return writer.makeCast(writer.makeString(`undefined`), idl.createUnionType([sig.args[index], idl.createPrimitiveType('undefined')]))
     }
 
     castSetType(attribute: AttributeType, writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
         const hasUndefinedType = (type: idl.IDLType) => {
             if (idl.isUnionType(type)) {
-                return type.types.includes(idl.IDLUndefinedType)
+                return type.types.some(t => idl.isUndefinedType(t))
             }
             return false;
         }
         if (sig.isArgOptional(index) && !hasUndefinedType(sig.args[index])) {
-            return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), idl.createUnionType([sig.args[index], idl.IDLUndefinedType]))
+            return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), idl.createUnionType([sig.args[index], idl.createPrimitiveType('undefined')]))
         }
         return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), sig.args[index])
     }
@@ -315,7 +315,7 @@ class ModifiersFileVisitor {
     }
 
     noNeedPrintModifier(attribute: AttributeType) {
-        return attribute.method.method.signature.returnType !== idl.IDLThisType
+        return !idl.isPrimitiveType(attribute.method.method.signature.returnType, 'this')
     }
 
     printApplyModifierPatch(peer: PeerClass, writer: LanguageWriter, component: IdlComponentDeclaration, attributeTypes: Array<AttributeType>, parentSet: string | undefined, collectedHooks: string[]) {
@@ -453,8 +453,7 @@ class ModifiersFileVisitor {
             const attributeTypes: Array<AttributeType> = new Array
 
             const noNeedPrintModifier = (attribute: AttributeType) => {
-                // return attribute.method.method.signature.returnType !== idl.IDLThisType || !attribute.isOptional
-                return attribute.method.method.signature.returnType !== idl.IDLThisType
+                return !idl.isPrimitiveType(attribute.method.method.signature.returnType, 'this')
             }
 
             this.collectAttributes(peer, attributeTypes)
@@ -504,7 +503,7 @@ class ModifiersFileVisitor {
 
                 writer.writeMethodImplementation(new Method(
                     `setInstanceId`,
-                    new MethodSignature(idl.IDLVoidType, [idl.IDLNumberType], [], [], [], ['instanceId'])),
+                    new MethodSignature(idl.createPrimitiveType('void'), [idl.createPrimitiveType('number')], [], [], [], ['instanceId'])),
                     writer => {
                         writer.writeStatement(writer.makeAssign('this._instanceId', undefined, writer.makeString('instanceId'), false))
                     }

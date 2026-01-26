@@ -27,7 +27,7 @@ import {
     MethodSignature,
 } from "../LanguageWriter"
 import { TSCastExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { IDLThisType, IDLType } from '../../idl'
+import { IDLType, isPrimitiveType } from '../../idl'
 import {
     ArgConvertor,
     makeETSDiscriminatorFromFields,
@@ -225,14 +225,14 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return idl.asPromise(type) == undefined
     }
     writeNativeMethodDeclaration(method: Method): void {
-        if (method.signature.returnType === IDLThisType) {
+        if (isPrimitiveType(method.signature.returnType, 'this')) {
             throw new Error('static method can not return this!')
         }
         this.writeMethodDeclaration(method.name, method.signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
     makeCastCustomObject(customName: string, isGenericType: boolean): LanguageExpression {
         if (isGenericType) {
-            return this.makeCast(this.makeString(customName), idl.IDLObjectType)
+            return this.makeCast(this.makeString(customName), idl.createPrimitiveType('Object'))
         }
         return super.makeCastCustomObject(customName, isGenericType)
     }
@@ -257,15 +257,15 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     override castToBoolean(value: string): string { return `${value} ? true : false` }
 
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
-        if (node === idl.IDLI64Type)
+        if (idl.isPrimitiveType(node, 'i64'))
             return this.makeMethodCall(value.asString() + '!', `toLong`, [])
-        if (node === idl.IDLI32Type)
+        if (idl.isPrimitiveType(node, 'i32'))
             return this.makeMethodCall(value.asString() + '!', `toInt`, [])
-        if (node === idl.IDLI8Type)
+        if (idl.isPrimitiveType(node, 'i8'))
             return this.makeMethodCall(value.asString() + '!', `toByte`, [])
-        if (node === idl.IDLF64Type)
+        if (idl.isPrimitiveType(node, 'f64'))
             return this.makeMethodCall(value.asString() + '!', `toDouble`, [])
-        if (node === idl.IDLF32Type)
+        if (idl.isPrimitiveType(node, 'f32'))
             return this.makeMethodCall(value.asString() + '!', `toFloat`, [])
         return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
     }
