@@ -230,7 +230,8 @@ export class StringConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    constructor(param: string, public enumEntry: idl.IDLEnum) {
+    private readonly interopNameConvertor = new CppNameConvertor(this.library)
+    constructor(param: string, public enumEntry: idl.IDLEnum, protected library: LibraryInterface) {
         super(idl.createReferenceType(enumEntry),
             [idl.isStringEnum(enumEntry) ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
@@ -240,12 +241,12 @@ export class EnumConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
         return writer.makeStatement(
-            writer.makeMethodCall(`${param}Serializer`, "writeInt32",
-                [writer.i32FromEnum(writer.makeString(value), this.enumEntry)]
+            writer.makeMethodCall(`${param}Serializer`, `write${this.enumSerializeInteropType()}`,
+                [this.toEnumSerializeType(writer.i32FromEnum(writer.makeString(value), this.enumEntry), writer)]
             ))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])
+        const readExpr = writer.makeMethodCall(`${deserializerName}`, `read${this.enumSerializeInteropType()}`, [])
         const enumExpr = writer.enumFromI32(readExpr, this.enumEntry)
         return assigneer(enumExpr)
     }
@@ -253,7 +254,7 @@ export class EnumConvertor extends BaseArgConvertor {
         return this.idlType
     }
     interopType(): idl.IDLType {
-        return idl.IDLI32Type
+        return idl.enumBinaryRepresentation(this.enumEntry)
     }
     isPointerType(): boolean {
         return false
@@ -282,6 +283,17 @@ export class EnumConvertor extends BaseArgConvertor {
             writer.makeNaryOp(">=", [ordinal, writer.makeString(low.toString())]),
             writer.makeNaryOp("<=", [ordinal, writer.makeString(high.toString())])
         ])
+    }
+    enumSerializeInteropType(): string {
+        // Note that the serializes do not have methods for unsigned types
+        const interopName = this.interopNameConvertor.convert(idl.enumBinaryRepresentation(this.enumEntry))
+        return interopName.startsWith("U") ? interopName.substring(1) : interopName
+    }
+    toEnumSerializeType(expr: LanguageExpression, writer: LanguageWriter): LanguageExpression {
+        if (writer.language != Language.KOTLIN) return expr
+        const typeName = writer.getNodeName(idl.enumBinaryRepresentation(this.enumEntry))
+        if (!typeName.startsWith("U")) return expr
+        return writer.makeMethodCall(`(${expr.asString()})`, `to${typeName.substring(1)}`, [])
     }
 }
 

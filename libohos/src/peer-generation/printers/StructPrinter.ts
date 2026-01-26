@@ -595,8 +595,10 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
 
 function enumBaseType(decl: idl.IDLEnum | idl.IDLEnumMember): string {
     if (!idl.isEnum(decl)) return ""
-    const { low, high } = idl.extremumOfOrdinals(decl)
-    if (low >=0 && high <= 255) return ": InteropUInt8"
-    if (low >=-128 && high <= 127) return ": InteropInt8"
-    return ""
+    const binaryType = idl.enumBinaryRepresentation(decl)
+    switch (binaryType) {
+        case idl.IDLU8Type: return ": InteropUInt8"
+        case idl.IDLI8Type: return ": InteropInt8"
+        default: return ""
+    }
 }

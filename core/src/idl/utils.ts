@@ -15,9 +15,9 @@
 
 import { basename } from "node:path"
 import { capitalize, stringOrNone } from "../util"
-import { createOptionalType, createContainerType, createReferenceType, IDLVoidType, IDLStringType } from "./builders"
+import { createOptionalType, createContainerType, createReferenceType, IDLVoidType, IDLStringType, IDLI64Type, IDLU8Type, IDLI32Type, IDLI8Type } from "./builders"
 import { isNamedNode, QNPattern, getQualifiedName, getFQName, isOptionalType, isContainerType, IDLContainerUtils, isNamespace, isInPackage, isType, isEntry, isTypeParameterType, isInterface, isTypedef, isCallback, isMethod, isCallable, getExtAttribute, hasExtAttribute, getNamespacesPathFor, getPackageName } from "./discriminators"
-import { IDLNode, IDLNamedNode, IDLKind, IDLExtendedAttributes, IDLType, IDLEntry, IDLReferenceType, IDLContainerType, IDLSignature, IDLParameter, IDLEnum, IDLFile } from "./node"
+import { IDLNode, IDLNamedNode, IDLKind, IDLExtendedAttributes, IDLType, IDLEntry, IDLReferenceType, IDLContainerType, IDLSignature, IDLParameter, IDLEnum, IDLFile, IDLPrimitiveType } from "./node"
 import { forEachChild, forEachFunction } from "./visitors"
 import { Language } from "../Language"
 
@@ -187,6 +187,14 @@ export function extremumOfOrdinals(enumEntry: IDLEnum): { low: number, high: num
         if (high < value) high = value
     })
     return { low, high }
+}
+
+export function enumBinaryRepresentation(enumEntry: IDLEnum): IDLPrimitiveType {
+    const { low, high } = extremumOfOrdinals(enumEntry)
+    if (0 <= low && high <= 255) return IDLU8Type
+    if (-128 <= low && high <= 127) return IDLI8Type
+    if (low <= -0xFFFFFFFF || high >= 0xFFFFFFFF) return IDLI64Type
+    return IDLI32Type
 }
 
 export const PACKAGE_IDLIZE_INTERNAL = "idlize.internal"

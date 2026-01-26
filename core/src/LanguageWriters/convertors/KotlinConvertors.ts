@@ -311,7 +311,7 @@ export class KotlinCInteropReturnTypeConvertor extends InteropReturnTypeConverto
                 return KInteropReturnBuffer
             }
             if (idl.isEnum(decl)) {
-                return KInt
+                return this.convertPrimitiveType(idl.enumBinaryRepresentation(decl))
             }
         }
         return idl.IDLVoidType.name

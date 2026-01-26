@@ -31,12 +31,14 @@ export {
     IntEnum,
     BinEnum,
     HexEnum,
+    BigHexEnum,
     DuplicateIntEnum,
     StringEnum,
     checkOrdinaryEnums,
     checkIntEnums,
     checkBinEnums,
     checkHexEnums,
+    checkBigHexEnums,
     checkDuplicateIntEnums,
     checkStringEnums,
     checkStringEnumOrdinal,
@@ -150,8 +152,16 @@ export function checkEQ(value1: unknown, value2: unknown, comment?: string): voi
         }
         return;
     }
+    if (typeof value1 == "bigint" || typeof value2 == "bigint") {
+        if (value1 != value2) {
+            console.log(`value ${value1} type ${typeof value1} does not equal to the value ${value2} type ${typeof value2}`)
+            throw new UnitTestError(comment)
+        }
+        return;
+    }
+
     if (value1 !== value2) {
-        console.log(`value ${value1} does not equal to the value ${value2}`)
+        console.log(`value ${value1} type ${typeof value1} does not equal to the value ${value2} type ${typeof value2}`)
         throw new UnitTestError(comment)
     }
 }

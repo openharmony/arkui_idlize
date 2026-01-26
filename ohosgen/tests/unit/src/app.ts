@@ -43,12 +43,14 @@ import {
   IntEnum,
   BinEnum,
   HexEnum,
+  BigHexEnum,
   DuplicateIntEnum,
   StringEnum,
   checkOrdinaryEnums,
   checkIntEnums,
   checkBinEnums,
   checkHexEnums,
+  checkBigHexEnums,
   checkDuplicateIntEnums,
   checkStringEnums,
   checkStringEnumOrdinal,
@@ -224,6 +226,14 @@ function checkEnum() {
   assertEQ(0xAB, HexEnum.EAB)
   assertEQ(0xCD, HexEnum.ECD)
   assertEQ(HexEnum.ECD, checkHexEnums(HexEnum.E4, HexEnum.EAB))
+
+  assertEQ(0, BigHexEnum.E0)
+  assertEQ(1, BigHexEnum.E1)
+  assertEQ(0xFFFFFFFF, BigHexEnum.EFFFFFFFF)
+  assertEQ(0xFFFFFFFFAB, BigHexEnum.EFFFFFFFFAB)
+  assertEQ(0xFFFFFFFFFF, BigHexEnum.EFFFFFFFFFF)
+  assertEQ(0xFFFFFFFFFFCD, BigHexEnum.EFFFFFFFFFFCD)
+  assertEQ(BigHexEnum.EFFFFFFFFAB, checkBigHexEnums(BigHexEnum.EFFFFFFFFFFCD, BigHexEnum.EFFFFFFFFFF))
 
   assertEQ(DuplicateIntEnum.THIRD, checkDuplicateIntEnums(DuplicateIntEnum.FIRST, DuplicateIntEnum.SECOND))
   assertEQ(DuplicateIntEnum.LEGACY_THIRD.valueOf(),

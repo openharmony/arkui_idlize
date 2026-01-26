@@ -115,9 +115,9 @@ fun checkForceCallback() {
 }
 
 fun checkEnum() {
-    assertEQ(11, IntEnum.E1.value)
-    assertEQ(33, IntEnum.E3.value)
-    assertEQ(55, IntEnum.E5.value)
+    assertEQ(11.toUByte(), IntEnum.E1.value)
+    assertEQ(33.toUByte(), IntEnum.E3.value)
+    assertEQ(55.toUByte(), IntEnum.E5.value)
     assertEQ("e11", StringEnum.E1.value)
     assertEQ("e22", StringEnum.E2.value)
 
