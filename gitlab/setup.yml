@@ -57,6 +57,7 @@ build external:
     - npm run compile --prefix external/common
     - npm run compile --prefix external/compat
     - npm run compile --prefix external/interop
+    - npm run compile --prefix external/smart-arkts
     - npm run compile --prefix external/fast-arktsc
     - npm run compile -C external/libarkts
     - npm run build:all -C external/ui2abc
@@ -72,6 +73,7 @@ build external:
         - external/ui2abc/ui-plugins-ng/lib
         - external/common/build
         - external/compat/build
+        - external/smart-arkts/lib
         - external/fast-arktsc/lib
         - external/incremental/runtime/build/lib
         - external/incremental/runtime/build/incremental.abc
