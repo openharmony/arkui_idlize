@@ -12,6 +12,7 @@ test arktscgen:
     - npm run compile --prefix external/common
     - npm run compile --prefix external/compat
     - npm run compile --prefix external/interop
+    - npm run compile --prefix external/smart-arkts
     - npm run compile --prefix external/fast-arktsc
     - npm run compile -C external/libarkts
     - npm run build:all -C external/ui2abc
