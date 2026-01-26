@@ -39,6 +39,9 @@ const WrongAttributeName = new idl.DiagnosticMessageGroup("error", "WrongAttribu
 const WrongAttributePlacement = new idl.DiagnosticMessageGroup("error", "WrongAttributePlacement", "Wrong attribute placement")
 
 const CyclicInheritance = new idl.DiagnosticMessageGroup("error", "CyclicInheritance", "Cyclic inheritance")
+const WrongEntityName = new idl.DiagnosticMessageGroup("error", "WrongEntityName", "Name is not allowed")
+const WrongType = new idl.DiagnosticMessageGroup("error", "WrongType", "Type is not allowed")
+const TypeWarning = new idl.DiagnosticMessageGroup("warning", "TypeWarning", "Consider using another type")
 
 idlManager.newFeature(KnownFeatures.arkui, 'ArkUI-specific checks')
 
@@ -270,22 +273,45 @@ const keywords = new Set([
     "_Atomic", "_Bool", "_Complex", "_Generic", "_Imaginary", "_Noreturn", "_Static_assert", "_Thread_local"
 ])
 
-const KeywordUsed = new idl.DiagnosticMessageGroup("error", "KeywordUsed", "Identifier is a reserved keyword")
 const keywordKinds = new Set([
      idl.IDLKind.Interface, idl.IDLKind.Const, idl.IDLKind.Property, idl.IDLKind.Method, idl.IDLKind.Parameter,
      idl.IDLKind.Enum, idl.IDLKind.EnumMember, idl.IDLKind.Typedef, idl.IDLKind.TypeParameterType, idl.IDLKind.Namespace
 ])
 const keywordPass = idlManager.newPass("arkui.keywordPass", [], () => {})
 keywordPass.on({}).before = (node, _) => {
-    if (keywordKinds.has(node.kind) && node.name && keywords.has(node.name)) {
-        KeywordUsed.reportDiagnosticMessage(nameLoc(node), `Identifier "${node.name}" is a reserved keyword`)
+    if (keywordKinds.has(node.kind) && node.name) {
+        if (keywords.has(node.name))
+            WrongEntityName.reportDiagnosticMessage(nameLoc(node), `Identifier "${node.name}" is a reserved keyword`)
+        else if (node.name == "RecordData")
+            WrongEntityName.reportDiagnosticMessage(nameLoc(node), "`RecordData` should not be redefined")
     }
 }
 
-const NumberTypeUsed = new idl.DiagnosticMessageGroup("error", "NumberTypeUsed", "Usage of the number type")
-const numberPass = idlManager.newPass("arkui.numberPass", [], () => {})
-numberPass.on({kind: idl.IDLKind.PrimitiveType}).before = (node, _) => {
-    if (node.name === "number") {
-        NumberTypeUsed.reportDiagnosticMessage(nameLoc(node), "Usage of the number type")
+const typeWarnings = new Set([
+    idl.IDLObjectType,
+    idl.IDLAnyType,
+    idl.IDLUnknownType
+])
+function checkType(node: idl.IDLNode, type: idl.IDLType | undefined, resolvedNodes: Map<IdlNodeAny, IdlNodeAny>) {
+    if (type) {
+        if (type === idl.IDLNumberType)
+            WrongType.reportDiagnosticMessage(nameLoc(node), "Usage of the number type")
+        else if (idl.isPrimitiveType(type) && typeWarnings.has(type))
+            TypeWarning.reportDiagnosticMessage(nameLoc(node), `Usage of the ${type.name} type`)
+        else if (idl.isReferenceType(type)) {
+            const resolved = resolvedNodes.get(type)
+            if (!idl.isCallback(resolved!) && idl.hasExtAttribute(resolved!, idl.IDLExtendedAttributes.Synthetic)) {
+                WrongType.reportDiagnosticMessage(nameLoc(node), `Usage of anonymous type ${type.name}`)
+            }
+        }
     }
+}
+const typePass = idlManager.newPass("arkui.typePass", [resolvePass], () => ({resolvedNodes: resolvePass.state.resolvedNodes}))
+typePass.on({}).before = (node, st) => {
+    checkType(node, node.type, st.resolvedNodes)
+    checkType(node, node.returnType, st.resolvedNodes)
+    if (idl.isContainerType(node))
+        node.elementType.forEach(ty => checkType(node, ty, st.resolvedNodes))
+    if (idl.isUnionType(node))
+        node.types.forEach(ty => checkType(node, ty, st.resolvedNodes))
 }
