@@ -1,4 +1,4 @@
-check generated XML demo:
+ohosgen XML demo:
     stage: test
     tags:
       - idlize-ci
@@ -10,26 +10,14 @@ check generated XML demo:
       - !reference [.panda, script]
     script:
       - cd $CI_PROJECT_DIR/ohosgen/demos/xml
-      - npm run check:ts
-      - npm run check:arkts
-
-check generated XML demo for Kotlin:
-    stage: test
-    tags:
-      - idlize-ci
-      - koala-ci
-    needs:
-      - build external
-    before_script:
-      - !reference [.npm, script]
-      - !reference [.panda, script]
-    script:
+      - npm run all:ts
+      - npm run all:arkts
       - cd $CI_PROJECT_DIR/external/arkoala-arkts
       - npm i
       - cd $CI_PROJECT_DIR/ohosgen/demos/xml
-      - npm run check:kt
+      - npm run all:kt
 
-check ohos unit tests:
+ohosgen unit tests:
   stage: test
   tags:
     - idlize-ci
@@ -41,16 +29,16 @@ check ohos unit tests:
     - !reference [.panda, script]
   script:
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
-    - npm run check:ts
-    - npm run check:arkts
-    - npm run check:kt
+    - npm run all:ts
+    - npm run all:arkts
+    - npm run all:kt
     - cd $CI_PROJECT_DIR/ohosgen/tests/dummy
-    - npm run check:ts
-    - npm run check:arkts
+    - npm run all:ts
+    - npm run all:arkts
   # after_script:
   #   - !reference [.notify-telegram, script]
 
-check ohos demos:
+ohosgen demos:
   stage: test
   tags:
     - idlize-ci
@@ -63,16 +51,16 @@ check ohos demos:
   script:
     - cd $CI_PROJECT_DIR/ohosgen/demos/mediaquery
     - npm show @koalaui/interop && npm show @koalaui/common
-    - npm run check:ts
-    - npm run check:arkts
+    - npm run all:ts
+    - npm run all:arkts
     - cd $CI_PROJECT_DIR/ohosgen/demos/context
-#   - npm run check:ts
-    - npm run check:arkts
+#   - npm run all:ts
+    - npm run all:arkts
     - cd $CI_PROJECT_DIR/ohosgen/demos/huks
-    - npm run check:ts
-    - npm run check:arkts
+    - npm run all:ts
+    - npm run all:arkts
 
-check ohos system tests:
+ohosgen system tests:
   stage: test
   tags:
     - idlize-ci
