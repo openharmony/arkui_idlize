@@ -13,7 +13,11 @@ interface ChildI: ParentI {
 };
 
 [Entity=Class]
-interface ParentC {
+interface EmptyParentC {
+};
+
+[Entity=Class]
+interface ParentC: EmptyParentC {
     attribute boolean parentFlag;
     attribute number parentCount;
     attribute String parentText;

@@ -188,7 +188,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     printCollapsedCtor(clazz: MaterializedClass, ctor: Method, ctorPostfix: string, superClassName?: string) {
-        const hasSuperClass = (superClassName != undefined)
+        let hasMaterializedSuperClass = isSuperClassMaterialized(this.library, clazz.superClass)
         const peerPtr = "peerPtr"
         const unwrapPeerPtr = "unwrapPeerPtr"
         const ctorSig = ctor.signature as NamedMethodSignature
@@ -216,7 +216,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
 
-            if (hasSuperClass) return
+            if (hasMaterializedSuperClass) return
 
             writer.writeStatement(
                 writer.makeAssign(unwrapPeerPtr, idl.IDLPointerType, peerPtrExpr, true))
@@ -325,7 +325,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
         const useProtected = this.printer.supportedModifiers.includes(MethodModifier.PROTECTED)
         const privateMethod = method.getPrivateMethod(useProtected)
-        const isOverridden = isMaterializedMethodOverridden(this.clazz.decl, method.method.name, this.library, true)
+        const isOverridden = isMaterializedMethodOverridden(this.clazz.decl, method.method, this.library, true)
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         returnType = returnType ?? method.sig.returnType
         returnType = idl.isTypeParameterType(method.sig.returnType) ? idl.IDLVoidType : returnType

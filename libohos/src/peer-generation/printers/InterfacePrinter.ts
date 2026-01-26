@@ -1393,11 +1393,9 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
             // no need to print separate declarations for materialized classes
             return
         }
-        else if (idl.isClassSubkind(node)) {
-            this.makeClass(this.writer, node)
-        }
         else {
-            this.makeInterface(this.writer, node)
+            const result = this.printInterface(node)
+            this.writer.writeLines(result)
         }
     }
 
@@ -1448,36 +1446,86 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         return ""
     }
 
-    private printProperty(writer: LanguageWriter, property: idl.IDLProperty, superProps: Set<string>): void {
-        const modifiers: FieldModifier[] = []
-        if (superProps.has(property.name)) {
-            modifiers.push(FieldModifier.OVERRIDE)
+    private printIfNotSeen<T extends idl.IDLNamedNode>(
+        type: T,
+        print: (_: T) => stringOrNone[],
+        seenNames: Set<string>
+    ): stringOrNone[] | undefined {
+        if (!seenNames.has(type.name)) {
+            seenNames.add(type.name)
+            return print(type)
         }
-        if (property.isReadonly) {
-            modifiers.push(FieldModifier.READONLY)
-        }
-        if (property.isStatic) {
-            modifiers.push(FieldModifier.STATIC)
-        }
-        writer.writeProperty(property.name, idl.maybeOptional(property.type, property.isOptional), modifiers)
+        return undefined
     }
 
-    private makeClass(writer: LanguageWriter, type: idl.IDLInterface): void {
-        const superNames = type.inheritance
-        const generics = type.typeParameters
-        const superPropNames = new Set(getAllSuperProps(type, this.peerLibrary).map(it => it.name))
-        writer.writeClass(type.name, (writer) => {
-            type.properties.forEach(it => this.printProperty(writer, it, superPropNames))
-        }, undefined, superNames ? superNames.map(it => this.convertInheritance(it)) : undefined, generics)
+    protected printInterface(idlInterface: idl.IDLInterface): stringOrNone[] {
+        const seenFields = new Set<string>()
+        const kindPrefix = idl.isClassSubkind(idlInterface) ? "open class " : "interface "
+
+        const superPropNames = new Set(getAllSuperProps(idlInterface, this.peerLibrary).filter(it => !it.isStatic).map(it => it.name))
+        const nonStaticProps = idlInterface.properties
+            .filter(it => !it.isStatic)
+            .map(it => this.printIfNotSeen(it, it => this.printProperty(idlInterface, it, superPropNames), seenFields)).flat()
+        const staticProps = idlInterface.properties
+            .filter(it => it.isStatic)
+            .map(it => this.printIfNotSeen(it, it => this.printProperty(idlInterface, it), seenFields)).flat()
+
+        // also need to print methods where there is TS/ArkTS implementation
+        return ([`${kindPrefix}${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
+            .concat(nonStaticProps)
+            .concat(staticProps.length > 0 ? [
+                "companion object {",
+                ...staticProps,
+                "}",
+            ].map(it => it ? indentedBy(it, 1) : it) : [])
+            .concat(["}"])
     }
 
-    private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
-        const superNames = type.inheritance
-        const generics = type.typeParameters
-        const superPropNames = new Set(getAllSuperProps(type, this.peerLibrary).map(it => it.name))
-        writer.writeInterface(type.name, (writer) => {
-            type.properties.forEach(it => this.printProperty(writer, it, superPropNames))
-        }, superNames ? superNames.map(it => this.convertType(it)) : undefined, generics)
+    protected printInterfaceName(idlInterface: idl.IDLInterface): string {
+        const extendsItems: string[] = []
+        const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
+        idlInterface.inheritance?.forEach(it => {
+            const superDecl = this.peerLibrary.resolveTypeReference(it)
+            if (!superDecl || !idl.isInterface(superDecl)) {
+                throw new Error(`Unexpected ancestor '${superDecl?.name}' in declaration '${idlInterface.name}'`)
+            }
+            const clause = nameConvertor.convert(it)
+            if (idl.isClassSubkind(superDecl)) {
+                extendsItems.push(`${clause}()`)
+            }
+            else {
+                extendsItems.push(clause)
+            }
+        })
+        const extendsClause = extendsItems.length ? `: ${extendsItems.join(", ")}` : ``
+        return [
+            idlInterface.name,
+            this.printTypeParameters(idlInterface.typeParameters),
+            extendsClause,
+        ].join("")
+    }
+
+    private printExtendedAttributes(idl: idl.IDLEntry): stringOrNone[] {
+        return []
+    }
+
+    private printProperty(decl: idl.IDLInterface, prop: idl.IDLProperty, superProps?: Set<string>): stringOrNone[] {
+        const open = idl.isClassSubkind(decl) && !prop.isStatic ? "open " : ""
+        const override = superProps?.has(prop.name) ? "override " : ""
+        const kind = prop.isReadonly ? "val " : "var "
+        let result = [
+            ...this.printExtendedAttributes(prop),
+        ]
+        const defaultValue = getDefaultValue(decl, prop, this.peerLibrary.language)
+        const initExpr = defaultValue ? ` = ${defaultValue}` : ""
+        result.push(indentedBy(`${open}${override}${kind}${prop.name}: ${this.printPropertyType(prop)}${initExpr}`, 1))
+        return result
+    }
+
+    private printPropertyType(prop: idl.IDLProperty): string {
+        const type = this.convertType(prop.type)
+        const optionalMark = prop.isOptional && !type.endsWith("?") ? "?" : ""
+        return `${type}${optionalMark}`
     }
 
     private printParameters(parameters: idl.IDLParameter[]): string {
@@ -1746,6 +1794,11 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
 
 function getDefaultValue(decl: idl.IDLInterface, prop: idl.IDLProperty, lang: Language): string | undefined {
     if (!idl.isClassSubkind(decl)) return undefined
-    if (prop.isOptional || idl.isOptionalType(prop.type)) return undefined
+    if (prop.isOptional || idl.isOptionalType(prop.type)) {
+        if (lang === Language.KOTLIN) {
+            return "null"
+        }
+        return undefined
+    }
     return getInitializerDefaultValue(prop, lang);
 }

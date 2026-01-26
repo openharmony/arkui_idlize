@@ -16,6 +16,8 @@
 import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
 import { Language } from '../Language'
+import { Method } from '../LanguageWriters/LanguageWriter'
+import { LibraryInterface } from '../LibraryInterface'
 import { capitalize } from '../util'
 import { getSuper, isMethodOverridden } from './getSuperType'
 import { qualifiedName } from './idl/common'
@@ -125,15 +127,16 @@ export function getMaterializedFileName(name:string): string {
     return `Ark${pascalCase}Materialized`
 }
 
-export function isMaterializedMethodOverridden(decl: idl.IDLInterface, methodName: string, resolver: ReferenceResolver, synthesized: boolean = false): boolean {
+export function isMaterializedMethodOverridden(decl: idl.IDLInterface, method: Method, libary: LibraryInterface, synthesized: boolean = false): boolean {
 
     // Use callHolder name instead of PeerMethodSignature.CALL_HOLDER
     // to break the circular dependencies
-    if (methodName == "callHolder") {
-        return getSuper(decl, resolver) != undefined
+    if (method.name == "callHolder") {
+        const superDecl = getSuper(decl, libary)
+        return superDecl != undefined && isMaterialized(superDecl, libary)
     }
 
-    if (idl.isInterfaceSubkind(decl) && !isStaticMaterialized(decl, resolver)) return !synthesized
+    if (idl.isInterfaceSubkind(decl) && !isStaticMaterialized(decl, libary)) return !synthesized
 
-    return isMethodOverridden(decl, methodName, resolver)
+    return isMethodOverridden(decl, method, libary)
 }

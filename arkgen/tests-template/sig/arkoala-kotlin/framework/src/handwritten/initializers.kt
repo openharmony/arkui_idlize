@@ -16,6 +16,8 @@
 package handwritten
 
 import arkui.SymbolGlyphModifier.SymbolGlyphModifier
+import koalaui.arkoala.ColorContent
+import koalaui.arkoala.LayoutPolicy
 import koalaui.arkoala.RectResult
 import koalaui.arkoala.TouchTestStrategy
 
@@ -53,6 +55,9 @@ class initializers {
                 val valBoolean = true
             } }
             class common {
+                class LayoutPolicyNS { companion object {
+                    val matchParent = LayoutPolicy()
+                } }
                 class TouchTestInfoNS { companion object {
                     val windowX = 0.0
                     val windowY = 0.0
@@ -72,9 +77,14 @@ class initializers {
                     val strategy = TouchTestStrategy.DEFAULT
                 } }
             }
+            class image {
+                class ColorContentNS { companion object {
+                    val ORIGIN = ColorContent()
+                } }
+            }
             class waterFlow {
                 class SectionOptionsNS { companion object {
-                    val itemsCount = 0.0
+                    val itemsCount = 0
                 } }
             }
             class idlize {
@@ -84,10 +94,5 @@ class initializers {
                 } }
             }
         }
-    }
-    class waterFlow {
-        class SectionOptionsNS { companion object {
-            val itemsCount = 0.0
-        } }
     }
 }
