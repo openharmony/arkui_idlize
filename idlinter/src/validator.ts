@@ -42,6 +42,7 @@ const CyclicInheritance = new idl.DiagnosticMessageGroup("error", "CyclicInherit
 const WrongEntityName = new idl.DiagnosticMessageGroup("error", "WrongEntityName", "Name is not allowed")
 const WrongType = new idl.DiagnosticMessageGroup("error", "WrongType", "Type is not allowed")
 const TypeWarning = new idl.DiagnosticMessageGroup("warning", "TypeWarning", "Consider using another type")
+const AnonymousType = new idl.DiagnosticMessageGroup("error", "AnonymousType", "Anonymous types are not allowed")
 
 idlManager.newFeature(KnownFeatures.arkui, 'ArkUI-specific checks')
 
@@ -292,26 +293,26 @@ const typeWarnings = new Set([
     idl.IDLAnyType,
     idl.IDLUnknownType
 ])
-function checkType(node: idl.IDLNode, type: idl.IDLType | undefined, resolvedNodes: Map<IdlNodeAny, IdlNodeAny>) {
+function checkType(node: idl.IDLNode, type: idl.IDLType | undefined) {
     if (type) {
         if (type === idl.IDLNumberType)
             WrongType.reportDiagnosticMessage(nameLoc(node), "Usage of the number type")
         else if (idl.isPrimitiveType(type) && typeWarnings.has(type))
             TypeWarning.reportDiagnosticMessage(nameLoc(node), `Usage of the ${type.name} type`)
-        else if (idl.isReferenceType(type)) {
-            const resolved = resolvedNodes.get(type)
-            if (!idl.isCallback(resolved!) && idl.hasExtAttribute(resolved!, idl.IDLExtendedAttributes.Synthetic)) {
-                WrongType.reportDiagnosticMessage(nameLoc(node), `Usage of anonymous type ${type.name}`)
-            }
-        }
     }
 }
-const typePass = idlManager.newPass("arkui.typePass", [resolvePass], () => ({resolvedNodes: resolvePass.state.resolvedNodes}))
-typePass.on({}).before = (node, st) => {
-    checkType(node, node.type, st.resolvedNodes)
-    checkType(node, node.returnType, st.resolvedNodes)
+const typePass = idlManager.newPass("arkui.typePass", [], () => ({}))
+typePass.on({}).before = (node, _) => {
+    checkType(node, node.type)
+    checkType(node, node.returnType)
     if (idl.isContainerType(node))
-        node.elementType.forEach(ty => checkType(node, ty, st.resolvedNodes))
+        node.elementType.forEach(ty => checkType(node, ty))
     if (idl.isUnionType(node))
-        node.types.forEach(ty => checkType(node, ty, st.resolvedNodes))
+        node.types.forEach(ty => checkType(node, ty))
+}
+
+const anonTypePass = idlManager.newPass("arkui.anonTypePass", [], () => ({}))
+anonTypePass.on({kind: idl.IDLKind.Interface}).before = (node, _) => {
+    if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic))
+        AnonymousType.reportDiagnosticMessage(nameLoc(node), "Anonymous type")
 }
