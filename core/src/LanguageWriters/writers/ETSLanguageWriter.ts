@@ -170,7 +170,13 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`${super.makeMapSize(map).asString()}`) // TODO: cast really needed?
     }
     get supportedModifiers(): MethodModifier[] {
-        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]
+        return [
+            MethodModifier.PUBLIC,
+            MethodModifier.PRIVATE,
+            MethodModifier.NATIVE,
+            MethodModifier.STATIC,
+            MethodModifier.ABSTRACT
+        ]
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         super.runtimeType(param, valueType, value)

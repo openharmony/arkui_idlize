@@ -38,9 +38,9 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
     let alias: string | undefined
     if ([Language.TS, Language.ARKTS, Language.KOTLIN].includes(library.language)) {
         if (isTopLevelConflicted(library, library.language, node)) {
-            const featureNs = idl.getNamespaceName(node)
+            const featureNs = idl.getNamespacesPathFor(node)
             alias = feature
-            feature = featureNs.at(0) ?? node.name
+            feature = featureNs.at(0)?.name ?? node.name
         }
     }
 

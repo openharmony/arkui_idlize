@@ -17,7 +17,6 @@ import { posix as path } from "node:path"
 import { getOrPut } from "./util"
 import { LanguageWriter } from "./LanguageWriters/LanguageWriter";
 import { Language } from "./Language";
-import { LayoutNodeRole } from "./peer-generation/LayoutManager";
 
 class FeatureInfo {
     aliases: Set<string | undefined> = new Set()
@@ -150,4 +149,4 @@ export class ImportsCollector {
     }
 }
 
-export type ImportFeature = { feature: string, alias?: string, module: string,  role?: LayoutNodeRole, isDefault?: boolean }
+export type ImportFeature = { feature: string, alias?: string, module: string, isDefault?: boolean }

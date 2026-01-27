@@ -1,6 +1,10 @@
 package arkui.CheckModifiersModifier;
 
 import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.check.modifiers.CheckModifiersAttribute as CheckModifiersAttribute;
 
 [Entity=Class, ComponentModifier]
-interface CheckModifiersModifier {};
+interface CheckModifiersModifier: CheckModifiersAttribute, AttributeModifier<CheckModifiersAttribute> {
+    constructor(number a);
+    number foo(String param);
+};

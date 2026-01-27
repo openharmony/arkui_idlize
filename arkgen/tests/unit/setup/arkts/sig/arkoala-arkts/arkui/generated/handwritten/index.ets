@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CheckModifiersModifierBase } from '../CheckModifiersModifier';
 import { AnimateParam } from '../framework'
 import { ArkCheckHooksComponent, ArkCheckHooksPeer } from '../framework'
 import {
@@ -100,5 +101,16 @@ export namespace initializers {
                 }
             }
         }
+    }
+}
+
+export class CheckModifiersModifier extends CheckModifiersModifierBase {
+    private _a: number
+    constructor(a: number) {
+        super()
+        this._a = a
+    }
+    foo(param: string): number {
+        return this._a + param.length
     }
 }
