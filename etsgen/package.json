@@ -1,6 +1,6 @@
 {
     "name": "@idlizer/etsgen",
-    "version": "2.2.0+devel",
+    "version": "2.2.1+devel",
     "description": "",
     "main": "lib/cli.js",
     "bin": "lib/cli.js",
@@ -24,7 +24,7 @@
         "commander": "^10.0.0"
     },
     "devDependencies": {
-        "@idlizer/core": "2.2.0+devel",
+        "@idlizer/core": "2.2.1+devel",
         "@types/node": "^18.19.127",
         "@rollup/plugin-commonjs": "^26.0.1",
         "@rollup/plugin-node-resolve": "^15.3.0",
