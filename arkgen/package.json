@@ -1,6 +1,6 @@
 {
     "name": "@idlizer/arkgen",
-    "version": "2.2.0+devel",
+    "version": "2.2.1+devel",
     "description": "",
     "main": "lib/cli.js",
     "bin": "lib/cli.js",
@@ -21,8 +21,8 @@
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
-        "@idlizer/libohos": "2.2.0+devel",
-        "@idlizer/core": "2.2.0+devel",
+        "@idlizer/libohos": "2.2.1+devel",
+        "@idlizer/core": "2.2.1+devel",
         "json5": "^2.2.3",
         "commander": "^10.0.0"
     },
