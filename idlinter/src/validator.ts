@@ -39,6 +39,11 @@ const WrongAttributeName = new idl.DiagnosticMessageGroup("error", "WrongAttribu
 const WrongAttributePlacement = new idl.DiagnosticMessageGroup("error", "WrongAttributePlacement", "Wrong attribute placement")
 
 const CyclicInheritance = new idl.DiagnosticMessageGroup("error", "CyclicInheritance", "Cyclic inheritance")
+const WrongEntityName = new idl.DiagnosticMessageGroup("error", "WrongEntityName", "Name is not allowed")
+const WrongType = new idl.DiagnosticMessageGroup("error", "WrongType", "Type is not allowed")
+const TypeWarning = new idl.DiagnosticMessageGroup("warning", "TypeWarning", "Consider using another type")
+const AnonymousType = new idl.DiagnosticMessageGroup("error", "AnonymousType", "Anonymous types are not allowed")
+const WrongComponentPropertyType = new idl.DiagnosticMessageGroup("error", "WrongComponentPropertyType", "Component property type should allow undefined")
 
 idlManager.newFeature(KnownFeatures.arkui, 'ArkUI-specific checks')
 
@@ -250,4 +255,81 @@ locationCheckPass.on({}).after = (node, st) => {
 }
 locationCheckPass.afterAll = (st) => {
     console.log(`Stats: ${st[1]}/${st[0]} nodes have locations`);
+}
+
+const keywords = new Set([
+    "abstract", "alignas", "alignof", "and", "and_eq", "any", "as", "asm", "asserts", "async",
+    "atomic_cancel", "atomic_commit", "atomic_noexcept", "auto", "await", "bigint", "bitand", "bitor", "bool",
+    "boolean", "break", "case", "catch", "char", "char16_t", "char32_t", "char8_t", "class", "co_await",
+    "co_return", "co_yield", "compl", "concept", "const", "const_cast", "consteval", "constexpr", "constinit",
+    "constructor", "continue", "debugger", "declare", "decltype", "default", "delete", "do", "double", "dynamic_cast",
+    "else", "enum", "explicit", "export", "extends", "extern", "false", "finally", "float", "for", "friend", "from",
+    "function", "get", "global", "goto", "if", "implements", "import", "in", "infer", "inline", "instanceof", "int",
+    "interface", "is", "keyof", "let", "long", "module", "mutable", "namespace", "never", "new", "noexcept",
+    "not", "not_eq", "null", "nullptr", "number", "object", "of", "operator", "or", "or_eq", "package",
+    "private", "protected", "public", "readonly", "reflexpr", "register", "reinterpret_cast", "require", "requires",
+    "return", "set", "short", "signed", "sizeof", "static", "static_assert", "static_cast", "string", "struct",
+    "super", "switch", "symbol", "synchronized", "template", "this", "thread_local", "throw", "true", "try", "type",
+    "typedef", "typeid", "typename", "typeof", "undefined", "union", "unique", "unknown", "unsigned", "using", "var",
+    "virtual", "void", "volatile", "wchar_t", "while", "with", "xor", "xor_eq", "yield", "_Alignas", "_Alignof",
+    "_Atomic", "_Bool", "_Complex", "_Generic", "_Imaginary", "_Noreturn", "_Static_assert", "_Thread_local"
+])
+
+const keywordKinds = new Set([
+     idl.IDLKind.Interface, idl.IDLKind.Const, idl.IDLKind.Property, idl.IDLKind.Method, idl.IDLKind.Parameter,
+     idl.IDLKind.Enum, idl.IDLKind.EnumMember, idl.IDLKind.Typedef, idl.IDLKind.TypeParameterType, idl.IDLKind.Namespace
+])
+const keywordPass = idlManager.newPass("arkui.keywordPass", [], () => {})
+keywordPass.on({}).before = (node, _) => {
+    if (keywordKinds.has(node.kind) && node.name) {
+        if (keywords.has(node.name))
+            WrongEntityName.reportDiagnosticMessage(nameLoc(node), `Identifier "${node.name}" is a reserved keyword`)
+        else if (node.name == "RecordData")
+            WrongEntityName.reportDiagnosticMessage(nameLoc(node), "`RecordData` should not be redefined")
+    }
+}
+
+const typeWarnings = new Set([
+    idl.IDLObjectType,
+    idl.IDLAnyType,
+    idl.IDLUnknownType
+])
+function checkType(node: idl.IDLNode, type: idl.IDLType | undefined) {
+    if (type) {
+        if (type === idl.IDLNumberType)
+            WrongType.reportDiagnosticMessage(nameLoc(node), "Usage of the number type")
+        else if (idl.isPrimitiveType(type) && typeWarnings.has(type))
+            TypeWarning.reportDiagnosticMessage(nameLoc(node), `Usage of the ${type.name} type`)
+    }
+}
+const typePass = idlManager.newPass("arkui.typePass", [], () => ({}))
+typePass.on({}).before = (node, _) => {
+    if (idl.isEnumMember(node))
+        return
+    checkType(node, node.type)
+    checkType(node, node.returnType)
+    if (idl.isContainerType(node))
+        node.elementType.forEach(ty => checkType(node, ty))
+    if (idl.isUnionType(node))
+        node.types.forEach(ty => checkType(node, ty))
+}
+
+const anonymousTypePass = idlManager.newPass("arkui.anonymousTypePass", [], () => ({}))
+anonymousTypePass.on({kind: idl.IDLKind.Interface}).before = (node, _) => {
+    if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic))
+        AnonymousType.reportDiagnosticMessage(nameLoc(node), "Anonymous type")
+}
+
+function isValidComponentPropertyType(type: idl.IDLType) {
+    return idl.isOptionalType(type)
+        || idl.isUnionType(type) && type.types.includes(idl.IDLUndefinedType)
+}
+const attributeTypePass = idlManager.newPass("arkui.attributeTypePass", [], () => ({}))
+attributeTypePass.on({kind: idl.IDLKind.Interface}).before = (node, _) => {
+    if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Component)) {
+        node.properties?.forEach(prop => {
+            if (!isValidComponentPropertyType(prop.type))
+                WrongComponentPropertyType.reportDiagnosticMessage(nameLoc(prop), "Component property type does not allow undefined")
+        })
+    }
 }

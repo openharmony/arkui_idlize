@@ -52,12 +52,7 @@ interface IdlProcessingRule<State> {
 }
 
 class IdlProcessignProxy<State> {
-    pass: IdlProcessingPass<State>
-    pattern: IdlNodePattern
-    constructor(reg: IdlProcessingPass<State>, pattern: IdlNodePattern) {
-        this.pass = reg
-        this.pattern = pattern
-    }
+    constructor(public pass: IdlProcessingPass<State>, public pattern: IdlNodePattern) {}
     set before(func: IdlProcessingFunc<State>) {
         this.pass.add(func, this.pattern, true)
     }
@@ -147,7 +142,6 @@ export class IdlProcessingManager {
     passes: IdlProcessingPass<any>[] = []
     passesByName: Map<string, IdlProcessingPass<any>> = new Map()
     activePasses: Set<IdlProcessingPass<any>> = new Set()
-    orderedPasses: IdlProcessingPass<any>[][] = []
 
     library: idl.ReferenceResolver = idl.createAlgotithmicReferenceResolver([])
 
@@ -206,12 +200,13 @@ export class IdlProcessingManager {
             }
         }
 
+        const orderedPasses: IdlProcessingPass<any>[][] = []
         let maxOrder = Math.max(0, ...this.passes.map(x => x.order))
         for (let i = 0; i < maxOrder; ++i) {
-            this.orderedPasses.push(this.passes.filter(x => (this.activePasses.has(x)) && x.order == i + 1))
+            orderedPasses.push(this.passes.filter(x => (this.activePasses.has(x)) && x.order == i + 1))
         }
 
-        for (let passes of this.orderedPasses) {
+        for (let passes of orderedPasses) {
             for (let pass of passes) {
                 pass.begin()
             }
