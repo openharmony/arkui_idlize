@@ -304,6 +304,8 @@ function checkType(node: idl.IDLNode, type: idl.IDLType | undefined) {
 }
 const typePass = idlManager.newPass("arkui.typePass", [], () => ({}))
 typePass.on({}).before = (node, _) => {
+    if (idl.isEnumMember(node))
+        return
     checkType(node, node.type)
     checkType(node, node.returnType)
     if (idl.isContainerType(node))
