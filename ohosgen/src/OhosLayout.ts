@@ -191,9 +191,6 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
     }
 
     private isSyntheticType(node: idl.IDLEntry): boolean {
-        if (idl.isTypedef(node) && idl.isUnionType(node.type)) {
-            return true
-        }
         if (idl.isSyntheticEntry(node) && idl.isInterface(node) && node.subkind === idl.IDLInterfaceSubkind.Tuple) {
             return true
         }
