@@ -176,6 +176,16 @@ class RefSearcher extends IdentityTransformer {
         this.localNames.pop()
         return r
     }
+    override goLambdaExpression(expr: lw.LambdaExpression): lw.LambdaExpression {
+        const store = new Set<string>()
+        expr.parameters.forEach(param => {
+            store.add(param.name)
+        })
+        this.localNames.push(store)
+        const r = super.goLambdaExpression(expr)
+        this.localNames.pop()
+        return r
+    }
     override goCompoundStatement(stmt: lw.CompoundStatement): lw.CompoundStatement {
         const store = new Set<string>()
         this.localNames.push(store)
