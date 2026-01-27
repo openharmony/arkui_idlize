@@ -43,6 +43,7 @@ const WrongEntityName = new idl.DiagnosticMessageGroup("error", "WrongEntityName
 const WrongType = new idl.DiagnosticMessageGroup("error", "WrongType", "Type is not allowed")
 const TypeWarning = new idl.DiagnosticMessageGroup("warning", "TypeWarning", "Consider using another type")
 const AnonymousType = new idl.DiagnosticMessageGroup("error", "AnonymousType", "Anonymous types are not allowed")
+const WrongComponentPropertyType = new idl.DiagnosticMessageGroup("error", "WrongComponentPropertyType", "Component property type should allow undefined")
 
 idlManager.newFeature(KnownFeatures.arkui, 'ArkUI-specific checks')
 
@@ -311,8 +312,22 @@ typePass.on({}).before = (node, _) => {
         node.types.forEach(ty => checkType(node, ty))
 }
 
-const anonTypePass = idlManager.newPass("arkui.anonTypePass", [], () => ({}))
-anonTypePass.on({kind: idl.IDLKind.Interface}).before = (node, _) => {
+const anonymousTypePass = idlManager.newPass("arkui.anonymousTypePass", [], () => ({}))
+anonymousTypePass.on({kind: idl.IDLKind.Interface}).before = (node, _) => {
     if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic))
         AnonymousType.reportDiagnosticMessage(nameLoc(node), "Anonymous type")
+}
+
+function isValidComponentPropertyType(type: idl.IDLType) {
+    return idl.isOptionalType(type)
+        || idl.isUnionType(type) && type.types.includes(idl.IDLUndefinedType)
+}
+const attributeTypePass = idlManager.newPass("arkui.attributeTypePass", [], () => ({}))
+attributeTypePass.on({kind: idl.IDLKind.Interface}).before = (node, _) => {
+    if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Component)) {
+        node.properties?.forEach(prop => {
+            if (!isValidComponentPropertyType(prop.type))
+                WrongComponentPropertyType.reportDiagnosticMessage(nameLoc(prop), "Component property type does not allow undefined")
+        })
+    }
 }
