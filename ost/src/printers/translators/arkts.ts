@@ -47,23 +47,6 @@ export class ArkTSPrinter extends TSPrinter {
     }
     return super.printDeclaration(declaration)
   }
-  printExpression(expression: lw.LWExpression): void {
-    if (expression.kind === lw.LWKind.ConstructorExpression) {
-      if ("type" in expression.data) {
-        if (expression.data.type.kind === lw.LWKind.ValueType) {
-          if (expression.data.type.name === 'FixedArray') {
-            this.p.put('new', ' ')
-            this.printType(expression.data.type.args[0])
-            this.p.put('[')
-            this.printExpression(expression.args[0])
-            this.p.put(']')
-            return
-          }
-        }
-      }
-    }
-    return super.printExpression(expression)
-  }
 }
 
 export function processNPrintArkTS(tree: lw.LWDeclaration, localPackage: string, packages: Set<string>) {
