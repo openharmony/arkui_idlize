@@ -30,6 +30,7 @@ Options:
                             (these files will not be checked)
   --features <features...>  Enable additional validation features,
                             including:
+                            arkui ArkUI-specific checks
                             ohos  OHOS-specific checks
 
   compat <dir0> <dir1>   Check if dir1 is API-wise compatible with dir0
@@ -38,6 +39,10 @@ Exit codes are (1) for invalid arguments and (2) in case of errors/fatals found 
 ```
 
 For architecture overview and extensions how-to see [architecture-and-extensions.md](architecture-and-extensions.md)
+
+### Example: Checking ArkUI
+
+`node idlinter check runner/out/idl --load libohos/predefined/stdlib.idl external/arkoala-arkts/arkui/idl --features arkui`
 
 ## API Compatibility Checker
 
