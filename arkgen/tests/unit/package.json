@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/arkgen-unit-test",
-  "version": "2.2.1+devel",
+  "version": "2.2.2+devel",
   "description": "Arkgen unit test",
   "files": [
   ],

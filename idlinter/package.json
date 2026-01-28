@@ -1,6 +1,6 @@
 {
     "name": "@idlizer/idlinter",
-    "version": "2.2.1+devel",
+    "version": "2.2.2+devel",
     "description": "Tool for .idl validation",
     "main": "dist/index.js",
     "bin": "dist/index.js",
@@ -14,7 +14,7 @@
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
-        "@idlizer/core": "2.2.1+devel",
+        "@idlizer/core": "2.2.2+devel",
         "commander": "^10.0.0"
     },
     "devDependencies": {
