@@ -22,9 +22,9 @@
     "toml": "^3.0.0"
   },
   "devDependencies": {
-    "@idlizer/kit": "2.2.1+devel",
-    "@idlizer/core": "2.2.1+devel",
-    "@idlizer/ost": "2.2.1+devel",
+    "@idlizer/kit": "2.2.2+devel",
+    "@idlizer/core": "2.2.2+devel",
+    "@idlizer/ost": "2.2.2+devel",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-replace": "^5.0.7",
