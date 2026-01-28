@@ -10,3 +10,10 @@ callback Callback_T_Void = void (T data);
 interface GenericInterfaceDataHandler {
     attribute ([TypeArguments="void"] Callback_T_Void) onData;
 };
+
+[TypeParametersDefaults="void"]
+callback <T, V> Callback = V (T data);
+
+interface InterfaceWithVoidDataCallback {
+    optional attribute Callback<void> onAppear;
+};
