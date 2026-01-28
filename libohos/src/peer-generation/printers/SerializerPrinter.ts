@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription, maybeRestoreThrows } from '@idlizer/core'
+import { Language, isMaterialized, throwException, LanguageExpression, getExtractor, getSerializerName, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription, maybeRestoreThrows } from '@idlizer/core'
 import { Method, NamedMethodSignature } from "../LanguageWriters/index.js"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration.js'
@@ -386,7 +386,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
         .map(it => it)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => !library.isHandwritten(it)
-            && !isInIdlizeInternal(it)
+            && !idl.isInIdlizeStdlib(it)
             && !peerGeneratorConfiguration().components.custom.includes(it.name))
         .filter(it => !peerGeneratorConfiguration().ignoreEntry(it.name, language))
         .filter(it => !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)))

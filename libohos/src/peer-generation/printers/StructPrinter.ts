@@ -562,10 +562,11 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         }
     }
 
-    private ignoreTarget(target: idl.IDLNode): target is idl.IDLPrimitiveType | idl.IDLEnum {
+    private ignoreTarget(target: idl.IDLNode): boolean {
         if (idl.isNamedNode(target) && peerGeneratorConfiguration().serializer.ignore.includes(target.name)) return true
         if (idl.isPrimitiveType(target)) return true
         if (idl.isEnum(target)) return true
+        if (idl.isEntry(target) && idl.isInIdlizeStdlib(target)) return true
         if (isImportAttr(target)) return true
         return false
     }

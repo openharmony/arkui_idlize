@@ -1,0 +1,25 @@
+package idlize.stdlib;
+
+namespace Intl {
+    interface Locale {};
+};
+interface Error {};
+interface Type {};
+
+interface Int8Array {};
+interface Int16Array {};
+interface Int32Array {};
+interface Int64Array {};
+interface Uint8ClampedArray {};
+interface Uint8Array {};
+interface Uint16Array {};
+interface Uint32Array {};
+interface Uint64Array {};
+interface Float16Array {};
+interface Float32Array {};
+interface Float64Array {};
+interface BigInt64Array {};
+interface BigUint64Array {};
+interface <T> FixedArray {};
+interface <T> ReadonlyArray {};
+interface DataView {};
