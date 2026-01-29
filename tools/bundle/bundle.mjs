@@ -16,11 +16,11 @@
 import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { basename, join, resolve } from 'node:path'
 import { Package, IDLIZE_HOME, all_packages as idlize_packages } from '../utils.mjs'
-import { all_packages as external_packages } from '../../external/tools/utils.mjs'
+import { all_workspace_packages} from '../../external/tools/utils.mjs'
 
 const all_packages = [
     ...idlize_packages,
-    ...external_packages.map(it => new Package(it.path)),
+    ...all_workspace_packages.filter(pkg => !pkg.read('private')).map(it => new Package(it.path)),
 ]
 const koalaui_dependencies = [
     "@koalaui/compat",
