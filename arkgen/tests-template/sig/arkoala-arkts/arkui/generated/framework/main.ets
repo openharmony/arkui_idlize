@@ -96,7 +96,7 @@ let hasTestErrors = false
 export function getNativeLog(): string {
     let ptr = InteropNativeModule._GetGroupedLog(1)
     let length = InteropNativeModule._StringLength(ptr)
-    let data: FixedArray<byte> = new byte[length]
+    let data = new FixedArray<byte>(length)
     InteropNativeModule._StringData(ptr, data, length)
     InteropNativeModule._InvokeFinalizer(ptr, InteropNativeModule._GetStringFinalizer())
     // Improve: better string decoding.
@@ -369,7 +369,7 @@ function checkNativeCallback() {
         }
         return sum
     })
-    const arr2: FixedArray<int> = new int[4]
+    const arr2 = new FixedArray<int>(4)
     arr2[0] = 100
     arr2[1] = 200
     arr2[2] = 300
@@ -392,7 +392,7 @@ function checkNativeCallback() {
         }
         return 0
     })
-    const arr3: FixedArray<int> = new int[4]
+    const arr3 = new FixedArray<int>(4)
     arr3[0] = 100
     arr3[1] = 200
     arr3[2] = 300
