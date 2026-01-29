@@ -566,7 +566,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         if (idl.isNamedNode(target) && peerGeneratorConfiguration().serializer.ignore.includes(target.name)) return true
         if (idl.isPrimitiveType(target)) return true
         if (idl.isEnum(target)) return true
-        if (idl.isEntry(target) && idl.isInIdlizeStdlib(target)) return true
+        if (idl.isEntry(target) && idl.isInIdlizeTypescript(target)) return true
         if (isImportAttr(target)) return true
         return false
     }

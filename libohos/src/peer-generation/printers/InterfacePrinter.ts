@@ -23,10 +23,8 @@ import {
     Method,
     MethodSignature,
     NamedMethodSignature,
-    isInIdlizeInternal,
     isInCurrentModule,
     LayoutNodeRole,
-    isInIdlizeStdlib,
     removePoints,
     getOrPut,
     zipStrip,
@@ -623,10 +621,9 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isImport(entry) ||
                     idl.isNamespace(entry) ||
-                    isInIdlizeInternal(entry) ||
+                    idl.isInIdlize(entry) ||
                     this.peerLibrary.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
-                    isInIdlizeStdlib(entry) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses
                 )
                     continue
@@ -772,10 +769,9 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isNamespace(entry) ||
                     idl.isImport(entry) ||
-                    isInIdlizeInternal(entry) ||
+                    idl.isInIdlize(entry) ||
                     this.peerLibrary.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
-                    isInIdlizeStdlib(entry) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier) && !this.isDeclarationFile
                 )
@@ -860,7 +856,7 @@ export class CJInterfacesVisitor implements InterfacesVisitor {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isImport(entry) ||
                     idl.isNamespace(entry) ||
-                    isInIdlizeInternal(entry) ||
+                    idl.isInIdlize(entry) ||
                     this.peerLibrary.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
@@ -1246,10 +1242,9 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             for (const entry of linearizeAndSortNamespaceMembers(file.entries)) {
                 if (idl.isNamespace(entry) ||
                     idl.isImport(entry) ||
-                    isInIdlizeInternal(entry) ||
+                    idl.isInIdlize(entry) ||
                     this.peerLibrary.isHandwritten(entry) ||
-                    peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
-                    isInIdlizeStdlib(entry) //||
+                    peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language)
                 ) {
                     continue
                 }

@@ -1438,9 +1438,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Readonly': return typeArgs![0]
                 case 'Optional': return idl.createOptionalType(typeArgs![0])
                 case 'ESValue': return idl.createPrimitiveType('Object')
-                case 'Intl.Locale': return idl.createReferenceType('idlize.stdlib.Intl.Locale')
-                case 'Error': return idl.createReferenceType('idlize.stdlib.Error')
-                case 'Type': return idl.createReferenceType('idlize.stdlib.Type')
+                case 'Intl.Locale': return idl.createReferenceType('idlize.typescript.Intl.Locale')
+                case 'Error': return idl.createReferenceType('idlize.typescript.Error')
+                case 'Type': return idl.createReferenceType('idlize.typescript.Type')
                 case 'ParticleTuple': {
                     const typeParameters = new Set<string>()
                     typeArgs?.forEach(arg => {

@@ -219,6 +219,10 @@ export function isInIdlizeStdlib(entry: IDLEntry | IDLFile): boolean {
     return isInPackage(entry, "idlize.stdlib")
 }
 
+export function isInIdlizeTypescript(entry: IDLEntry | IDLFile): boolean {
+    return isInPackage(entry, "idlize.typescript")
+}
+
 export function hasTypeParameters(entry: IDLEntry): boolean {
     let foundTypeParameter = false
     forEachChild(entry, n => {

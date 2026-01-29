@@ -1,4 +1,4 @@
-package idlize.stdlib;
+package idlize.typescript;
 
 namespace Intl {
     interface Locale {};
