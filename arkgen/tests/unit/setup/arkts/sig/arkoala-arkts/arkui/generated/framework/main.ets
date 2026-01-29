@@ -42,7 +42,7 @@ let hasTestErrors = false
 export function getNativeLog(): string {
     let ptr = InteropNativeModule._GetGroupedLog(1)
     let length = InteropNativeModule._StringLength(ptr)
-    let data: FixedArray<byte> = new byte[length]
+    let data = new FixedArray<byte>(length)
     InteropNativeModule._StringData(ptr, data, length)
     InteropNativeModule._InvokeFinalizer(ptr, InteropNativeModule._GetStringFinalizer())
     // Improve: better string decoding.
