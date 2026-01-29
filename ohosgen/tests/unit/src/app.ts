@@ -41,6 +41,7 @@ import { test_buffer } from '#compat'
 import {
   OrdinaryEnum,
   IntEnum,
+  IntEnumNegative,
   BinEnum,
   HexEnum,
   BigHexEnum,
@@ -48,6 +49,7 @@ import {
   StringEnum,
   checkOrdinaryEnums,
   checkIntEnums,
+  checkIntNegativeEnums,
   checkBinEnums,
   checkHexEnums,
   checkBigHexEnums,
@@ -213,6 +215,11 @@ function checkEnum() {
 
   assertEQ(OrdinaryEnum.E3, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2))
   assertEQ(IntEnum.E5, checkIntEnums(IntEnum.E1, IntEnum.E3))
+
+  assertEQ(-1, IntEnumNegative.E1.valueOf())
+  assertEQ(-3, IntEnumNegative.E3.valueOf())
+  assertEQ(-15, IntEnumNegative.E15.valueOf())
+  assertEQ(IntEnumNegative.E15, checkIntNegativeEnums(IntEnumNegative.E1, IntEnumNegative.E3))
 
   assertEQ(0, BinEnum.E0)
   assertEQ(0b1, BinEnum.E1)

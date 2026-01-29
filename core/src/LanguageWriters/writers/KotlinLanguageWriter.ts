@@ -440,6 +440,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             case "KFloat32ArrayPtr": expr = `${varName}Pinned.addressOf(0)`; break
             case "KNativePointer":
             case "KSerializerBuffer": expr = `${varName}.toCPointer<CPointed>()!!`; break
+            case "KUByte":
             case "KByte":
             case "KShort":
             case "KInt":
@@ -465,6 +466,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         let expr: string
         switch (realInteropType) {
             case "KNativePointer": expr = `${varName}.toLong()`; break
+            case "KUByte":
             case "KByte":
             case "KShort":
             case "KInt":

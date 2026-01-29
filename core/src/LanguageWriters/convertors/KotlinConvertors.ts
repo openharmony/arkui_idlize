@@ -26,6 +26,7 @@ import { LanguageWriter } from '../LanguageWriter'
 
 const KBoolean = "KBoolean"
 const KByte = "KByte"
+const KUByte = "KUByte"
 const KShort = "KShort"
 const KUShort = "KUShort"
 const KInt = "KInt"
@@ -233,7 +234,7 @@ export class KotlinInteropArgConvertor extends InteropArgConvertor {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLI8Type: return KByte
-            case idl.IDLU8Type: return KByte
+            case idl.IDLU8Type: return KUByte
             case idl.IDLI16Type: return KShort
             case idl.IDLU16Type: return KUShort
             case idl.IDLI32Type: return KInt
@@ -270,7 +271,7 @@ export class KotlinCInteropReturnTypeConvertor extends InteropReturnTypeConverto
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLI8Type: return KByte
-            case idl.IDLU8Type: return KByte
+            case idl.IDLU8Type: return KUByte
             case idl.IDLI16Type: return KShort
             case idl.IDLU16Type: return KShort
             case idl.IDLI32Type: return KInt
@@ -338,7 +339,7 @@ export class KotlinCInteropArgConvertor implements TypeConvertor<string> {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLI8Type: return KByte
-            case idl.IDLU8Type: return KByte
+            case idl.IDLU8Type: return KUByte
             case idl.IDLI16Type: return KShort
             case idl.IDLU16Type: return KShort
             case idl.IDLI32Type: return KInt
