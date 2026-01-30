@@ -1,0 +1,30 @@
+package test_synthetics;
+
+// The test checks that generation in a language without native unions or tuples
+// does not conatain duplicated declarations of such types (one from typedef and
+// another from direct usage of an unsupported type)
+namespace test_synthetics {
+
+    [Entity=Tuple, Synthetic]
+    interface Tuple_Boolean_String {
+        attribute boolean value0;
+        attribute String value1;
+    };
+
+    [Entity=Tuple]
+    interface TupleType {
+        attribute boolean value0;
+        attribute String value1;
+    };
+
+    typedef TupleTypedef = Tuple_Boolean_String;
+    typedef UnionTypedef = (number or boolean);
+
+    interface TestSyntheticType {
+        attribute Tuple_Boolean_String field00;
+        attribute TupleType field01;
+        attribute TupleTypedef field02;
+        attribute (number or boolean) field10;
+        attribute UnionTypedef field11;
+    };
+};

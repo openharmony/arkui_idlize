@@ -1277,6 +1277,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
 
         const collector = new KotlinDependenciesCollector(this.peerLibrary)
         const nameConvertor = this.peerLibrary.createTypeNameConvertor(Language.KOTLIN)
+        const printedSynthetics = new Set<string>()
         for (const entry of syntheticEntriesToPrint.values()) {
             let file: idl.IDLFile
             let resultEntry: idl.IDLEntry
@@ -1295,6 +1296,12 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             const generate = () => {
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
+
+                const declName = writer.getNodeName(entry)
+                if (printedSynthetics.has(declName)) {
+                    return { content: writer, imports }
+                }
+                printedSynthetics.add(declName)
 
                 getCommonImports(writer.language, { isDeclared: false, useMemoM3: false, libraryName: this.peerLibrary.name })
                     .forEach(it => imports.addFeature(it.feature, it.module))

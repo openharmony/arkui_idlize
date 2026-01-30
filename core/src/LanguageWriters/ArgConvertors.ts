@@ -1413,6 +1413,27 @@ export class CallbackConvertor extends BaseArgConvertor {
         }
         return writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, `holdAndWriteCallback`, [writer.makeString(`${value}`)]))
     }
+    private checkForMeaninglessParameters(decl: idl.IDLCallback): [string[], idl.IDLType[]] {
+        const originalReference = maybeRestoreGenerics(decl, this.library)
+        if (originalReference) {
+            const original = this.library.resolveTypeReference(originalReference) as idl.IDLCallback
+            if (original.parameters.length !== decl.parameters.length) {
+                const newNames = original.parameters.map(it => it.name)
+                const newTypes: idl.IDLType[] = []
+                const names = decl.parameters.map(it => it.name)
+                original.parameters.forEach(it => {
+                    if (names.includes(it.name)) {
+                        newTypes.push(idl.maybeOptional(it.type!, it.isOptional))
+                    }
+                    else {
+                        newTypes.push(idl.IDLVoidType)
+                    }
+                })
+                return [newNames, newTypes]
+            }
+        }
+        return [[], []]
+    }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter, useSyncVersion: boolean = true): LanguageStatement {
         if (writer.language == Language.CPP) {
             const callerInvocation = writer.makeString(`getManagedCallbackCaller(${generateCallbackKindAccess(this.transformedDecl, writer.language)})`)
@@ -1464,11 +1485,17 @@ export class CallbackConvertor extends BaseArgConvertor {
             writer.makeMethodCall(deserializerName, 'readPointer', []),
             true,
         ))
+        let names = this.decl.parameters.map(it => it.name)
+        let types = this.decl.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional))
+        if (writer.language === Language.KOTLIN) {
+            const [newNames, newTypes] = this.checkForMeaninglessParameters(this.decl)
+            if (newNames.length > 0 && newTypes.length > 0) {
+                names = newNames
+                types = newTypes
+            }
+        }
         const callbackSignature = new NamedMethodSignature(
-            maybeRestoreThrows(this.decl.returnType, this.library) ?? this.decl.returnType,
-            this.decl.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional)),
-            this.decl.parameters.map(it => it.name),
-        )
+            maybeRestoreThrows(this.decl.returnType, this.library) ?? this.decl.returnType, types, names)
         const hasContinuation = !idl.isVoidType(this.decl.returnType)
         let continuation: LanguageStatement[] = []
         if (hasContinuation) {

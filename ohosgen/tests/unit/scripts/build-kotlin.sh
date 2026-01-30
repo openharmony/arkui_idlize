@@ -23,4 +23,5 @@ konanc ./generated/kotlin/*.kt \
     -l $external_dir/interop/build/kotlin-interop/atomicfu-linuxx64-"${atomic_version//\"}".klib \
     -linker-options "-L$out_dir -lUNITNativeModule" \
     -linker-options "-L$external_dir/interop/build -lInteropNativeModule" \
+    -Xnested-type-aliases \
     -p program -entry main -o ./build/kotlin/unit
