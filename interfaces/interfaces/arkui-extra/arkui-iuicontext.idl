@@ -6,7 +6,7 @@ import arkui.component.Scroller as Scroller;
 interface IUIContext {
     static void freezeUINode(String id , boolean isFrozen );
     static void freezeUINode(i32 id , boolean isFrozen );
-    static boolean dispatchKeyEvent((number or String) node, KeyEvent event);
+    static boolean dispatchKeyEvent((i32 or String) node, KeyEvent event);
     static async void openBindSheet(pointer bindSheetContent, optional SheetOptions sheetOptions, optional i32 targetId);
     static async void updateBindSheet(pointer bindSheetContent, SheetOptions sheetOptions, optional boolean partialUpdate);
     static async void closeBindSheet(pointer bindSheetContent);
