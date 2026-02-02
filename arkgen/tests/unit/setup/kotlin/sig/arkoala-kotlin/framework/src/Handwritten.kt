@@ -24,3 +24,7 @@ fun hookCheckHooksText(receiver: ArkCheckHooksComponent, text: String?): Unit {
 fun hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksComponent, flag: Boolean, count: Double, text: String): Unit {
     receiver.checkHookResult("Check hook method primitives: $flag, ${count.toInt()}, $text")
 }
+
+class CheckModifiersModifier {
+    
+}

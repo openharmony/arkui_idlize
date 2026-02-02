@@ -29,6 +29,7 @@ import { LayoutNodeRole } from '@idlizer/core'
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { flattenUnionType } from '@idlizer/core'
+import { isHandWritten } from '../idl/IdlPeerGeneratorVisitor'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { isComponentDeclaration } from '../ComponentsCollector'
 import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../propertyCollectors'
@@ -385,7 +386,9 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
     return collectDeclarationTargets(library)
         .map(it => it)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
-        .filter(it => !idl.isHandwritten(it) && !isInIdlizeInternal(it) && !peerGeneratorConfiguration().components.custom.includes(it.name) && !peerGeneratorConfiguration().isHandWritten(it.name))
+        .filter(it => !isHandWritten(it, library)
+            && !isInIdlizeInternal(it)
+            && !peerGeneratorConfiguration().components.custom.includes(it.name))
         .filter(it => !peerGeneratorConfiguration().ignoreEntry(it.name, language))
         .filter(it => !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)))
         .filter(it => !it.typeParameters?.length

@@ -29,6 +29,7 @@
                 "arkui.component.common",
                 "arkui.component.datebook",
                 "arkui.component.units",
+                "arkui.CheckModifiersModifier",
                 "arkui.ModifierState",
                 "arkui.component.stage_extender",
                 "arkui.component",
@@ -40,14 +41,6 @@
             "packages": [
                 "unit"
             ]
-        },
-        "arkui.CheckModifiersModifier": {
-            "name": "arkui.CheckModifiersModifier",
-            "external": true,
-            "packages": [
-                "arkui.CheckModifiersModifier"
-            ],
-            "tsLikePackage": "@arkui.CheckModifiersModifier"
         }
     },
     "libraryNameMapping": {

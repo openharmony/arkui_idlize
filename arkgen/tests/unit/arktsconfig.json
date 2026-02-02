@@ -39,9 +39,6 @@
             ],
             "arkui.incremental.runtime.tree.IncrementalNode": [
                 "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.tree.IncrementalNode"
-            ],
-            "@arkui.CheckModifiersModifier": [
-                "./CheckModifiersModifier"
             ]
         }
     },

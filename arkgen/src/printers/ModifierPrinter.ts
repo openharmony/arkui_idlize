@@ -175,25 +175,11 @@ class ModifiersFileVisitor {
         if (this.needCollectParentMethods(modifier)) {
             this.recursiveCollect(component, importsCollector)
         }
-        const parent = this.generateAttributeSetParentName(modifier)
-        if (parent) {
-            let [parentRef] = component.attributeDeclaration.inheritance
-            let parentDecl = this.library.resolveTypeReference(parentRef)
-            while (parentDecl) {
-                const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
-                const parentGeneratedPath = this.library.layout.resolve({
-                    node: parentDecl,
-                    role: LayoutNodeRole.COMPONENT,
-                    hint: 'component.modifier'
-                })
-                importsCollector.addFeature(parent, `./${parentGeneratedPath}`)
-                if (parentComponent.attributeDeclaration.inheritance.length) {
-                    let [parentRef] = parentComponent.attributeDeclaration.inheritance
-                    parentDecl = this.library.resolveTypeReference(parentRef)
-                } else {
-                    parentDecl = undefined
-                }
-            }
+        let parentModifier = modifier.parent
+        while (parentModifier) {
+            const parentModifierName = this.generateAttributeSetName(parentModifier)
+            importsCollector.addFeature(parentModifierName, `./${parentModifierName}`)
+            parentModifier = parentModifier.parent
         }
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('ModifierState')), importsCollector)
         importsCollector.addFeature("AttributeModifier", HandwrittenModule(this.library.language))
@@ -468,7 +454,17 @@ class ModifiersFileVisitor {
             } else {
                 extendsInterface = [`${componentAttribute.name}`]
             }
-            const abstractMethods = modifierInfo.modifier?.methods ?? []
+            let abstractMethods = modifierInfo.modifier?.methods ?? []
+            const baseModifierMethods = [
+                'applyNormalAttribute',
+                'applyPressedAttribute',
+                'applyFocusedAttribute',
+                'applyDisabledAttribute',
+                'applySelectedAttribute'
+            ]
+            abstractMethods = abstractMethods.filter(method => {
+                return (!baseModifierMethods.includes(method.name) || method.parameters.length != 1)
+            })
             const modifierName = this.generateAttributeSetName(modifierInfo)
 
             printer.writeClass(modifierName, (writer) => {
@@ -494,11 +490,9 @@ class ModifiersFileVisitor {
 
                 writer.print(`isUpdater: () => boolean = () => false`)
                 if (componentAttribute.name !== 'CommonMethod') {
-                    writer.print(`applyNormalAttribute(instance: ${componentAttribute.name}): void { }`)
-                    writer.print(`applyPressedAttribute(instance: ${componentAttribute.name}): void { }`)
-                    writer.print(`applyFocusedAttribute(instance: ${componentAttribute.name}): void { }`)
-                    writer.print(`applyDisabledAttribute(instance: ${componentAttribute.name}): void { }`)
-                    writer.print(`applySelectedAttribute(instance: ${componentAttribute.name}): void { }`)
+                    baseModifierMethods.forEach(method => {
+                        writer.print(`${method}(instance: ${componentAttribute.name}): void { }`)
+                    })
                 }
                 attributeTypes.forEach((attribute, index) => {
                     attribute.argTypes.forEach((t, index) => {

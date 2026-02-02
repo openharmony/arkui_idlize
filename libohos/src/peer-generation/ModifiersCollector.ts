@@ -62,8 +62,10 @@ class ModifierCollector {
         }
         const modifier = modifierInfo.modifier
         if (modifier) {
-            if (modifier.constructors || modifier.constants || modifier.properties || modifier.methods || modifier.callables)
+            if (modifier.constructors.length || modifier.constants.length || modifier.properties.length ||
+                modifier.methods.length || modifier.callables.length) {
                 return false
+            }
         }
         if (modifierInfo.parent) {
             return this.isModifierTrivial(modifierInfo.parent)
@@ -117,10 +119,10 @@ export function isModifier(entry: idl.IDLEntry, resolver: ReferenceResolver): bo
         return true;
     }
     for (const ancestor of entry.inheritance) {
-        if (ancestor.name === 'AttributeModifier') {
+        const ancestorEntry = resolver.resolveTypeReference(ancestor)
+        if (ancestorEntry?.name === 'AttributeModifier') {
             return true
         }
-        const ancestorEntry = resolver.resolveTypeReference(ancestor)
         if (ancestorEntry && isModifier(ancestorEntry, resolver)) {
             return true
         }

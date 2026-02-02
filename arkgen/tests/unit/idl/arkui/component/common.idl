@@ -1,7 +1,7 @@
 package arkui.component.common;
 import arkui.component.units.Length as Length;
 import arkui.Graphics.DrawContext as _DrawContext;
-import arkui.check.modifiersModifier.CheckModifiersModifier as CheckModifiersModifier;
+import arkui.CheckModifiersModifier.CheckModifiersModifier as CheckModifiersModifier;
 typedef DrawContext = _DrawContext;
 
 // TBD: used in conf/ets-sdk.refs.json

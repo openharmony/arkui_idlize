@@ -451,7 +451,7 @@ class AccessorVisitor extends ModifierVisitor {
         const mDestroyPeer = createDestroyPeerMethod(clazz)
         const ctor = clazz.ctors.length > 0 ? clazz.ctors[0] : undefined
         const randomMethod = (mDestroyPeer ?? ctor ?? clazz.finalizer ?? 
-            clazz.methods[0] ?? throwException("Class should not be printed!"))
+            clazz.methods[0] ?? throwException(`Class ${clazz.className} should not be printed!`))
         const namespaceName = peerParentNamespaceName(this.library, clazz.decl, randomMethod)
         this.pushNamespace(namespaceName, false);
         [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {
