@@ -1,4 +1,5 @@
 package ohos.xml;
+
 [DefaultExport]
 namespace xml {
     [Entity=Class]
@@ -28,7 +29,7 @@ namespace xml {
     };
     [Entity=Class]
     interface XmlSerializer {
-        constructor((buffer or DataView) buffer, optional String encoding);
+        constructor((buffer or langlib.DataView_) buffer, optional String encoding);
         [Throws]
         void setAttributes(String name, String value);
         [Throws]
@@ -86,7 +87,7 @@ namespace xml {
     };
     [Entity=Class]
     interface XmlPullParser {
-        constructor((buffer or DataView) buffer, optional String encoding);
+        constructor((buffer or langlib.DataView_) buffer, optional String encoding);
         [Throws]
         void parseXml(ParseOptions option);
     };

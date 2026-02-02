@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-import { pointer, int32, Finalizable } from "@koalaui/interop"
+import { pointer, Finalizable } from "@koalaui/interop"
 import { ArkUINativeModule } from "#components"
 import { PeerNode } from "./PeerNode"
+import { int32 } from "@koalaui/common"
 
 export class NativePeerNode extends Finalizable {
     constructor(peer: PeerNode, ptr: pointer) {

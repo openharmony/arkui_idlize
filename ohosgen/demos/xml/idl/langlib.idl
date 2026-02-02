@@ -1,4 +1,5 @@
 package langlib;
 
-interface DataView {};
+// renamed from DataView, because that is builtin type in arkts that is not supported by generator
+interface DataView_ {};
 

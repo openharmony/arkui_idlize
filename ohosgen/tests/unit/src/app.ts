@@ -208,8 +208,8 @@ function checkEnum() {
   assertEQ(11, IntEnum.E1.valueOf())
   assertEQ(33, IntEnum.E3.valueOf())
   assertEQ(55, IntEnum.E5.valueOf())
-  assertEQ("e11", StringEnum.E1.valueOf())
-  assertEQ("e22", StringEnum.E2.valueOf())
+  assertEQ("e11", StringEnum.e1.valueOf())
+  assertEQ("e22", StringEnum.e2.valueOf())
 
   assertEQ(OrdinaryEnum.E3, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2))
   assertEQ(IntEnum.E5, checkIntEnums(IntEnum.E1, IntEnum.E3))
@@ -236,16 +236,13 @@ function checkEnum() {
   assertEQ(BigHexEnum.EFFFFFFFFAB, checkBigHexEnums(BigHexEnum.EFFFFFFFFFFCD, BigHexEnum.EFFFFFFFFFF))
 
   assertEQ(DuplicateIntEnum.THIRD, checkDuplicateIntEnums(DuplicateIntEnum.FIRST, DuplicateIntEnum.SECOND))
-  assertEQ(DuplicateIntEnum.LEGACY_THIRD.valueOf(),
-    checkDuplicateIntEnums(DuplicateIntEnum.LEGACY_FIRST, DuplicateIntEnum.LEGACY_SECOND).valueOf())
-  assertEQ(StringEnum.E3, checkStringEnums(StringEnum.E1, StringEnum.E2))
+  assertEQ(DuplicateIntEnum.third.valueOf(),
+    checkDuplicateIntEnums(DuplicateIntEnum.first, DuplicateIntEnum.second).valueOf())
+  assertEQ(StringEnum.e3, checkStringEnums(StringEnum.e1, StringEnum.e2))
 
-  assertEQ(StringEnum.E1, checkStringEnumOrdinal(StringEnum.E1, 0))
   assertEQ(StringEnum.e1, checkStringEnumOrdinal(StringEnum.e1, 0))
-  assertEQ(StringEnum.E2, checkStringEnumOrdinal(StringEnum.E2, 1))
   assertEQ(StringEnum.e2, checkStringEnumOrdinal(StringEnum.e2, 1))
   assertEQ(StringEnum.E_MIDDLE, checkStringEnumOrdinal(StringEnum.E_MIDDLE, 2))
-  assertEQ(StringEnum.E3, checkStringEnumOrdinal(StringEnum.E3, 3))
   assertEQ(StringEnum.e3, checkStringEnumOrdinal(StringEnum.e3, 3))
 }
 
