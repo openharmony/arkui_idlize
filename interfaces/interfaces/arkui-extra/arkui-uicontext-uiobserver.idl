@@ -18,6 +18,23 @@ import arkui.component.common.ClickEvent as ClickEvent;
 import arkui.component.gesture.GestureEvent as GestureEvent;
 import arkui.component.gesture.GestureRecognizer as GestureRecognizer;
 import arkui.FrameNode.FrameNode as FrameNode;
+import ohos.arkui.UIContext.GestureActionPhase as GestureActionPhase;
+import ohos.arkui.UIContext.GestureListenerType as GestureListenerType;
+
+[Entity=Class]
+interface InnerGestureTriggerInfo {
+    attribute GestureEvent event;
+    attribute GestureRecognizer current;
+    attribute GestureActionPhase currentPhase;
+};
+
+[Entity=Class]
+interface InnerGestureObserverConfigs {
+    attribute sequence<GestureActionPhase> actionPhases;
+};
+
+[Synthetic]
+callback UIObserver_GestureListenerCallback = void (InnerGestureTriggerInfo info, optional FrameNode frameNode);
 
 [Synthetic]
 callback UIObserver_PanListenerCallback = void (GestureEvent event, GestureRecognizer current, optional FrameNode node);
@@ -37,4 +54,6 @@ interface UIObserverGestureEventOps {
     static i32 setOnDidClick(i32 instanceId, UIObserver_ClickEventListenerCallback callback);
     static i32 setOnWillTap(i32 instanceId, UIObserver_GestureEventListenerCallback callback);
     static i32 setOnDidTap(i32 instanceId, UIObserver_GestureEventListenerCallback callback);
+
+    static i32 addGlobalGestureListener(GestureListenerType type, InnerGestureObserverConfigs option, UIObserver_GestureListenerCallback callback);
 };
