@@ -303,18 +303,11 @@ export class TsEnumEntityStatement implements LanguageStatement {
         writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
     }
     protected getMembers(): EnumMember[] {
-        const correctStyleNames: EnumMember[] = []
         const originalStyleNames: EnumMember[] = []
         this.enumEntity.elements.forEach((member, index) => {
             const initText = member.initializer ?? index
             const isTypeString = typeof initText !== "number"
             const originalName = idl.getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
-            correctStyleNames.push({
-                name: originalName ? member.name : `${member.name}_DUMMY`,
-                alias: undefined,
-                stringId: isTypeString ? initText : undefined,
-                numberId: isTypeString ? index : (initText as number)
-            })
             originalStyleNames.push({
                 name: originalName ?? member.name,
                 alias: undefined,
@@ -324,9 +317,6 @@ export class TsEnumEntityStatement implements LanguageStatement {
         })
 
         let members = originalStyleNames
-        if (this.enumEntity.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
-            members = members.concat(correctStyleNames)
-        }
         return members
     }
 }
