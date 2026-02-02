@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as lw from './lws'
+import * as lw from '../lws'
 
 export const E = {
   v: (name: string, hints: lw.Hint[] = []): lw.VariableExpression => ({
