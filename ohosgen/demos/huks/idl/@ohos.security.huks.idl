@@ -1,12 +1,12 @@
 package ohos.security.huks;
-[Entity=Interface, TypeParameters="T", TypeParametersDefaults="void"]
+[Entity=Interface, TypeParameters="T"]
 interface BusinessError {
     attribute number code;
     [Optional]
     attribute T data;
 };
-[TypeParameters="T,E", TypeParametersDefaults="void"]
-callback AsyncCallback = void ([TypeArguments="E"] BusinessError err, T data);
+[TypeParametersDefaults="void"]
+callback <T, E> AsyncCallback = void (BusinessError<E> err, T data);
 [DefaultExport]
 namespace huks {
     [Deprecated]

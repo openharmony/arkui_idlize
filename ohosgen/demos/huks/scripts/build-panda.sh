@@ -7,5 +7,5 @@ arkts_dir=$external_dir/incremental/tools/panda/arkts
 out_dir=build/panda
 
 mkdir -p $out_dir/out
-npx fast-arktsc --compiler $arkts_dir/ui2abc --link-name $out_dir/app.abc --config arktsconfig.json --simultaneous
+npx fast-arktsc --compiler $arkts_dir/ui2abc --link-name $out_dir/app.abc --config arktsconfig.json
 ninja -C $out_dir/out

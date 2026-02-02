@@ -2,7 +2,7 @@
 import { SerializerBase, DeserializerBase, } from "@koalaui/interop"
 
 
-export class LanglibDataViewSerializerImpl {
+export class LanglibDataView_SerializerImpl {
     public static write(buffer: SerializerBase, value: DataView): void {
         // TBD: serialize DataView
     }

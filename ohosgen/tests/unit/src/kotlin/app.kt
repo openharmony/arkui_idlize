@@ -118,22 +118,19 @@ fun checkEnum() {
     assertEQ(11.toUByte(), IntEnum.E1.value)
     assertEQ(33.toUByte(), IntEnum.E3.value)
     assertEQ(55.toUByte(), IntEnum.E5.value)
-    assertEQ("e11", StringEnum.E1.value)
-    assertEQ("e22", StringEnum.E2.value)
+    assertEQ("e11", StringEnum.e1.value)
+    assertEQ("e22", StringEnum.e2.value)
 
     assertEQ(OrdinaryEnum.E3, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2))
     assertEQ(IntEnum.E5, checkIntEnums(IntEnum.E1, IntEnum.E3))
     assertEQ(DuplicateIntEnum.THIRD, checkDuplicateIntEnums(DuplicateIntEnum.FIRST, DuplicateIntEnum.SECOND))
-    assertEQ(DuplicateIntEnum.LEGACY_THIRD.value,
-        checkDuplicateIntEnums(DuplicateIntEnum.LEGACY_FIRST, DuplicateIntEnum.LEGACY_SECOND).value)
-    assertEQ(StringEnum.E3, checkStringEnums(StringEnum.E1, StringEnum.E2))
+    assertEQ(DuplicateIntEnum.third.value,
+        checkDuplicateIntEnums(DuplicateIntEnum.first, DuplicateIntEnum.second).value)
+    assertEQ(StringEnum.e3, checkStringEnums(StringEnum.e1, StringEnum.e2))
 
-    assertEQ(StringEnum.E1, checkStringEnumOrdinal(StringEnum.E1, 0))
     assertEQ(StringEnum.e1, checkStringEnumOrdinal(StringEnum.e1, 0))
-    assertEQ(StringEnum.E2, checkStringEnumOrdinal(StringEnum.E2, 1))
     assertEQ(StringEnum.e2, checkStringEnumOrdinal(StringEnum.e2, 1))
     assertEQ(StringEnum.E_MIDDLE, checkStringEnumOrdinal(StringEnum.E_MIDDLE, 2))
-    assertEQ(StringEnum.E3, checkStringEnumOrdinal(StringEnum.E3, 3))
     assertEQ(StringEnum.e3, checkStringEnumOrdinal(StringEnum.e3, 3))
 }
 

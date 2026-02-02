@@ -3,22 +3,22 @@ package langlib;
 import koalaui.interop.SerializerBase
 import koalaui.interop.DeserializerBase
 
-public interface DataView {
+public interface DataView_ {
 }
 
-private class DataViewImpl : DataView {
+private class DataView_Impl : DataView_ {
 }
 
-public class LanglibDataViewSerializerImpl {
+public class LanglibDataView_SerializerImpl {
 
     companion object {
 
-        public fun write(buffer: SerializerBase, value: DataView) {
+        public fun write(buffer: SerializerBase, value: DataView_) {
             // TBD: serialize DataView
         }
-        public fun  read(buffer: DeserializerBase): DataView {
+        public fun  read(buffer: DeserializerBase): DataView_ {
             // TBD: deserialize DataView
-            return DataViewImpl()
+            return DataView_Impl()
         }
     }
 }

@@ -53,7 +53,7 @@ fun checkPerf3(count: Int): Unit {
 
 fun checkButton(): Unit {
     val peer = ArkButtonPeer.create(null)
-    checkResult("type", { peer.setTypeAttribute(ButtonType.CIRCLE) }, "setType(Ark_ButtonType(1))")
+    checkResult("type", { peer.setTypeAttribute(ButtonType.Circle) }, "setType(Ark_ButtonType(1))")
 }
 
 public fun main() {

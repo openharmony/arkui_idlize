@@ -1,13 +1,13 @@
 package xmldemo
 
 import ohos.xml.xml
-import synthetic_types.Union_Buffer_Langlib_DataView
+import synthetic_types.Union_Buffer_Langlib_DataView_
 
 public fun run() {
     val sampleXml = "<foo valOfFoo=\"xx\">Hello<bar>124</bar>World</foo>"
     println("PARSING ${sampleXml}")
     val buffer = encodeText(sampleXml)
-    val parser = xml.XmlPullParser(Union_Buffer_Langlib_DataView(buffer), "utf8")
+    val parser = xml.XmlPullParser(Union_Buffer_Langlib_DataView_(buffer), "utf8")
     parser.parseXml(
         object: xml.ParseOptions {
             override var supportDoctype: Boolean? = true

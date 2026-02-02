@@ -15,7 +15,8 @@
 
 import { IncrementalNode } from "arkui.incremental.runtime.tree.IncrementalNode"
 import { NativePeerNode } from "./NativePeerNode"
-import { pointer, int32 } from "@koalaui/interop"
+import { pointer } from "@koalaui/interop"
+import { int32 } from "@koalaui/common"
 
 export const PeerNodeType = 11
 export const RootPeerType = 33

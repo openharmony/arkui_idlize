@@ -20,7 +20,7 @@
 
 #include "interop-logging.h"
 
-OH_OHOS_XML_xml_XmlSerializerHandle xml_XmlSerializer_constructImpl(const OH_OHOS_XML_Union_Buffer_DataView* bufferOrDataView, const Opt_String* encoding) {
+OH_OHOS_XML_xml_XmlSerializerHandle xml_XmlSerializer_constructImpl(const OH_OHOS_XML_Union_Buffer_DataView_* bufferOrDataView, const Opt_String* encoding) {
     return {};
 }
 void xml_XmlSerializer_destructImpl(OH_OHOS_XML_xml_XmlSerializerHandle thiz) {
@@ -127,7 +127,7 @@ OH_Number xml_ParseInfo_getAttributeCountImpl(OH_NativePointer thisPtr) {
     return {};
 }
 
-OH_OHOS_XML_xml_XmlPullParserHandle xml_XmlPullParser_constructImpl(const OH_OHOS_XML_Union_Buffer_DataView* bufferOrDataView, const Opt_String* encoding) {
+OH_OHOS_XML_xml_XmlPullParserHandle xml_XmlPullParser_constructImpl(const OH_OHOS_XML_Union_Buffer_DataView_* bufferOrDataView, const Opt_String* encoding) {
     OH_Buffer buffer = bufferOrDataView->value0;
     const ExpatParser* parser = new ExpatParser(buffer);
     return (OH_OHOS_XML_xml_XmlPullParserHandle)parser;
