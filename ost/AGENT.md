@@ -1,4 +1,4 @@
-# OST (Object Syntax Tree) - Project Overview
+# OST (Output Syntax Tree) - Project Overview
 
 OST is a TypeScript library for building Abstract Syntax Trees (ASTs) and generating code in multiple programming languages. It provides a type-safe, extensible framework for cross-language code generation, part of the "idlizer" ecosystem.
 
