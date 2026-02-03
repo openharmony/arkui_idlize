@@ -23,8 +23,8 @@ import { callbackKindDeclaration, mergeStructs } from "./postprocess";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 
 export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    decls = mergeNamespaces(decls)
-    decls = mergeStructs(decls)
+    decls = mergeNamespaces(decls) ///kit
+    decls = mergeStructs(decls) ///kit
     decls = introduceCallbackCaller(decls)
     decls = introduceTypeChecker(decls)
     decls = loadNativeModule(decls)

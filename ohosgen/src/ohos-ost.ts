@@ -16,23 +16,16 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as idl from "@idlizer/core/idl"
+import * as ost from '@idlizer/ost'
 import { Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
-    MakeSelector,
     MANAGED_PREFIX,
     OutputFile,
-    producers,
-    T,
-    GeneratorContext,
     isManaged,
-    moduleLike,
     processNPrintArkTS,
-    lowLevelLike,
     processNPrintCXX,
-    roles,
     processNPrintTS,
-    createProducer,
     mapFileName,
     TargetFile,
     readLangTemplate,
@@ -43,19 +36,41 @@ import {
     BRIDGE_PREFIX,
     IMPL_PREFIX,
     readInteropTypesHeader
+    managedName,
 } from "@idlizer/libohos"
-import { forEachSeed, IDLFileLibrary, onlyFor, Seed, terminate } from '@idlizer/kit'
-import { D } from '@idlizer/ost'
+import { forEachSeed, IDLFileLibrary, lowLevelLike, moduleLike, onlyFor, Seed, terminate } from '@idlizer/kit'
 
-class DemoGenerationSeed extends Seed {
-  constructor(
-    public type: idl.IDLType
-  ) {
+class GenerationSeed extends Seed {
+  constructor(public node: idl.IDLNode) {
     super()
   }
   hash(): string {
-    return 'HASH' + idl.printType(this.type)
+    return 'hash:' + (idl.isType(this.node) ? idl.printType(this.node) : idl.getFQName(this.node))
   }
+}
+
+function convertPrimitiveType(type: idl.IDLPrimitiveType): ost.LWType {
+    switch (type) {
+        case idl.IDLAnyType: return ost.Ts.prim.object///
+        case idl.IDLBigintType: return ost.Ts.prim.bigint
+        case idl.IDLBooleanType: return ost.Ts.prim.boolean
+        case idl.IDLBufferType: return ost.Ts.prim.buffer
+        case idl.IDLF32Type: return ost.Ts.prim.f32
+        case idl.IDLF64Type: return ost.Ts.prim.f64
+        case idl.IDLI8Type: return ost.Ts.prim.i8
+        case idl.IDLI32Type: return ost.Ts.prim.i32
+        case idl.IDLI64Type: return ost.Ts.prim.i64
+        case idl.IDLNumberType: return ost.Ts.prim.number
+        case idl.IDLObjectType: return ost.Ts.prim.object
+        case idl.IDLPointerType: return ost.Ts.prim.pointer
+        case idl.IDLSerializerBuffer: return ost.Ts.prim.serializerBuffer
+        case idl.IDLStringType: return ost.Ts.prim.str
+        case idl.IDLU8Type: return ost.Ts.prim.u8
+        case idl.IDLU32Type: return ost.Ts.prim.u32
+        case idl.IDLU64Type: return ost.Ts.prim.u64
+        case idl.IDLVoidType: return ost.Ts.prim.void
+    }
+    throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
 }
 
 export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
@@ -69,31 +84,41 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
         context: library,
         begin: linearizeNamespaceMembers(library.files.flatMap(f => f.entries))
             .filter(e => idl.isInterface(e))
-            .map(e => new DemoGenerationSeed(idl.createReferenceType(e))),
+            .map(e => new GenerationSeed(e)),
         },
-        onlyFor(DemoGenerationSeed, (seed, ctx) => {
-            if (idl.isPrimitiveType(seed.type)) {
-                console.log('///prim', seed.type.name)
-                return { continuation: T.c(seed.type.name), declarations: [] }
+        onlyFor(GenerationSeed, (seed, ctx) => {
+            if (idl.isPrimitiveType(seed.node)) {
+                return { continuation: convertPrimitiveType(seed.node), declarations: [] }
             }
-            if (idl.isReferenceType(seed.type)) {
-                console.log('///ref', seed.type.name)
-                const decl = ctx.library.toDeclaration(seed.type)
-                if (idl.isInterface(decl)) {
+            if (idl.isInterface(seed.node)) {
                 return {
-                    continuation: T.c(decl.name),
+                    continuation: ost.T.c(seed.node.name),
                     declarations: [
-                    D.struct(decl.name,
-                        decl.properties.map(prop => ({
-                        name: prop.name,
-                        type: ctx.expectType(new DemoGenerationSeed(prop.type))
-                        }))
-                    )
+                        ost.D.struct(managedName(idl.getFQName(seed.node)),
+                            seed.node.properties.map(prop => ({
+                                name: prop.name,
+                                type: ctx.expectType(new GenerationSeed(prop.type))
+                            }))
+                        )
                     ]
                 }
-                }
             }
-            terminate("NOT SUPPORTED")
+            // if (idl.isReferenceType(seed.node)) {
+            //     const decl = ctx.library.toDeclaration(seed.node)
+            //     if (idl.isInterface(decl)) {
+            //         return {
+            //             continuation: T.c(decl.name),
+            //             declarations: [
+            //                 D.struct(managedName(decl.name),
+            //                     decl.properties.map(prop => ({
+            //                         name: prop.name,
+            //                         type: ctx.expectType(new GenerationSeed(prop.type))
+            //                     })))
+            //             ]
+            //         }
+            //     }
+            // }
+            terminate("NOT SUPPORTED " + seed.node.kind)
         })
     )
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
@@ -107,7 +132,7 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
     }, [[], []])
     return [
         dumpTsLike(managed, peerLibrary.language, new Set(knownPackages)),
-        dumpCLike(native, peerLibrary.name)
+        new Map() ///dumpCLike(native, peerLibrary.name)
     ]
 }
 
