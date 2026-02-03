@@ -6,7 +6,8 @@
     "types": "build/lib/src/index.d.ts",
     "files": [
         "build/lib/**/*.js",
-        "build/lib/**/*.d.ts"
+        "build/lib/**/*.d.ts",
+        "AGENT.md"
     ],
     "engines": {
         "npm": ">= 8",
