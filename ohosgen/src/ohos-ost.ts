@@ -16,7 +16,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as idl from "@idlizer/core/idl"
-import { Language, PeerLibrary } from "@idlizer/core"
+import { Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
     MakeSelector,
@@ -44,25 +44,69 @@ import {
     IMPL_PREFIX,
     readInteropTypesHeader
 } from "@idlizer/libohos"
+import { forEachSeed, IDLFileLibrary, idlizer, onlyFor, Seed, terminate } from '@idlizer/kit'
+import { D } from '@idlizer/ost'
+
+class DemoGenerationSeed extends Seed {
+  constructor(
+    public type: idl.IDLType
+  ) {
+    super()
+  }
+  hash(): string {
+    return 'HASH' + idl.printType(this.type)
+  }
+}
 
 export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
-    const selector = new MakeSelector()
-    for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
-        selector.register(p as any)
-
-    const ctx = new GeneratorContext(peerLibrary, selector)
     // ignore predefined / synthetic files
     const files = peerLibrary.files.filter(file =>
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
-    const declarations = ctx.generate(files)
+    const generated: LWDeclaration[] = []
 
+    idlizer({ name: 'demogen', version: '0.0.0', dryRun: true }, _ => {
+        // logger.info("Loading")
+        const library = new IDLFileLibrary(files)
+
+        // logger.info("Generating")
+        generated.push(...forEachSeed(
+            {
+            context: library,
+            begin: linearizeNamespaceMembers(library.files.flatMap(f => f.entries))
+                .filter(e => idl.isInterface(e))
+                .map(e => new DemoGenerationSeed(idl.createReferenceType(e))),
+            },
+            onlyFor(DemoGenerationSeed, (seed, ctx) => {
+                if (idl.isPrimitiveType(seed.type)) {
+                    return { continuation: T.c(seed.type.name), declarations: [] }
+                }
+                if (idl.isReferenceType(seed.type)) {
+                    const decl = ctx.library.toDeclaration(seed.type)
+                    if (idl.isInterface(decl)) {
+                    return {
+                        continuation: T.c(decl.name),
+                        declarations: [
+                        D.struct(decl.name,
+                            decl.properties.map(prop => ({
+                            name: prop.name,
+                            type: ctx.expectType(new DemoGenerationSeed(prop.type))
+                            }))
+                        )
+                        ]
+                    }
+                    }
+                }
+                terminate("NOT SUPPORTED")
+            })
+        ))
+    })
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
     const knownPackages = files
         .map(file => file.packageClause.length ? file.packageClause : [peerLibrary.name.toLowerCase()])
         .map(clause => [MANAGED_PREFIX, ...clause].join('.'))
         .concat(SPECIAL_PACKAGES)
-    const [managed, native] = declarations.reduce<[LWDeclaration[], LWDeclaration[]]>(([m, n], decl) => {
+    const [managed, native] = generated.reduce<[LWDeclaration[], LWDeclaration[]]>(([m, n], decl) => {
         (isManaged(decl.name) ? m : n).push(decl)
         return [m, n]
     }, [[], []])
