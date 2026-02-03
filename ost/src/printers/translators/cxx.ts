@@ -16,7 +16,7 @@
 import { IndentPrinter } from "../indent";
 import * as lw from "../../lws"
 import { Op, std } from "../../stdlib";
-import { S, T, utils } from "../../builder";
+import { S, T, utils } from "../../builders";
 
 const varMapping = new Map([
   [std.names.vars.base, 'base'],
