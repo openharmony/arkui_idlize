@@ -44,7 +44,7 @@ import {
     IMPL_PREFIX,
     readInteropTypesHeader
 } from "@idlizer/libohos"
-import { forEachSeed, IDLFileLibrary, idlizer, onlyFor, Seed, terminate } from '@idlizer/kit'
+import { forEachSeed, IDLFileLibrary, onlyFor, Seed, terminate } from '@idlizer/kit'
 import { D } from '@idlizer/ost'
 
 class DemoGenerationSeed extends Seed {
@@ -63,44 +63,39 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
     const files = peerLibrary.files.filter(file =>
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
-    const generated: LWDeclaration[] = []
-
-    idlizer({ name: 'demogen', version: '0.0.0', dryRun: true }, _ => {
-        // logger.info("Loading")
-        const library = new IDLFileLibrary(files)
-
-        // logger.info("Generating")
-        generated.push(...forEachSeed(
-            {
-            context: library,
-            begin: linearizeNamespaceMembers(library.files.flatMap(f => f.entries))
-                .filter(e => idl.isInterface(e))
-                .map(e => new DemoGenerationSeed(idl.createReferenceType(e))),
-            },
-            onlyFor(DemoGenerationSeed, (seed, ctx) => {
-                if (idl.isPrimitiveType(seed.type)) {
-                    return { continuation: T.c(seed.type.name), declarations: [] }
+    const library = new IDLFileLibrary(files)
+    const generated: LWDeclaration[] = forEachSeed(
+        {
+        context: library,
+        begin: linearizeNamespaceMembers(library.files.flatMap(f => f.entries))
+            .filter(e => idl.isInterface(e))
+            .map(e => new DemoGenerationSeed(idl.createReferenceType(e))),
+        },
+        onlyFor(DemoGenerationSeed, (seed, ctx) => {
+            if (idl.isPrimitiveType(seed.type)) {
+                console.log('///prim', seed.type.name)
+                return { continuation: T.c(seed.type.name), declarations: [] }
+            }
+            if (idl.isReferenceType(seed.type)) {
+                console.log('///ref', seed.type.name)
+                const decl = ctx.library.toDeclaration(seed.type)
+                if (idl.isInterface(decl)) {
+                return {
+                    continuation: T.c(decl.name),
+                    declarations: [
+                    D.struct(decl.name,
+                        decl.properties.map(prop => ({
+                        name: prop.name,
+                        type: ctx.expectType(new DemoGenerationSeed(prop.type))
+                        }))
+                    )
+                    ]
                 }
-                if (idl.isReferenceType(seed.type)) {
-                    const decl = ctx.library.toDeclaration(seed.type)
-                    if (idl.isInterface(decl)) {
-                    return {
-                        continuation: T.c(decl.name),
-                        declarations: [
-                        D.struct(decl.name,
-                            decl.properties.map(prop => ({
-                            name: prop.name,
-                            type: ctx.expectType(new DemoGenerationSeed(prop.type))
-                            }))
-                        )
-                        ]
-                    }
-                    }
                 }
-                terminate("NOT SUPPORTED")
-            })
-        ))
-    })
+            }
+            terminate("NOT SUPPORTED")
+        })
+    )
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
     const knownPackages = files
         .map(file => file.packageClause.length ? file.packageClause : [peerLibrary.name.toLowerCase()])
