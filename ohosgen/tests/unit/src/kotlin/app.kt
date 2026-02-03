@@ -118,8 +118,8 @@ fun checkEnum() {
     assertEQ(11, IntEnum.E1.value)
     assertEQ(33, IntEnum.E3.value)
     assertEQ(55, IntEnum.E5.value)
-    assertEQ("e11", StringEnum.E1.value)
-    assertEQ("e22", StringEnum.E2.value)
+    assertEQ("e11", StringEnum.e1.value)
+    assertEQ("e22", StringEnum.e2.value)
 
     assertEQ(OrdinaryEnum.E3, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2))
     assertEQ(IntEnum.E5, checkIntEnums(IntEnum.E1, IntEnum.E3))
