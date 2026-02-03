@@ -43,6 +43,7 @@ export class Package {
             execSync(`npm run compile`)
         } catch(e) {
             console.log(`cannot compile package: ${this.name()}`, e)
+            throw e
         }
     }
 

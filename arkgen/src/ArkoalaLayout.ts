@@ -92,6 +92,7 @@ export class TsLayout extends CommonLayoutBase {
     private tsInternalPaths = new Map<string, string>([
         ["SerializerBase", "@koalaui/interop"],
         ["DeserializerBase", "@koalaui/interop"],
+        ["resourceFinalizerRegister", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
         ["deserializeAndCallCallback", getGeneratedFilePath("peers/CallbackDeserializeCall")],
         ["CallbackTransformer", "./CallbackTransformer"],
@@ -137,6 +138,7 @@ export class ArkTsLayout extends CommonLayoutBase {
         ["TypeChecker", "#components"],
         ["SerializerBase", "@koalaui/interop"],
         ["DeserializerBase", "@koalaui/interop"],
+        ["resourceFinalizerRegister", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
         ["deserializeAndCallCallback", getGeneratedFilePath("peers/CallbackDeserializeCall")],
         ["checkArkoalaCallbacks", "./CallbacksChecker"],
