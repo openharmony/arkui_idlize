@@ -17,10 +17,10 @@ import { containerProducer } from "./containers";
 import { enumProducer } from "./enum";
 import { fileProducer } from "./file";
 import { nativeModuleConstructorProducer, nativeModuleFunctionProducer, nativeModuleMaterializedProducer } from "./nativeModule";
-import { primitiveProducer } from "./primitives";
+import { primitive } from "./primitives";
 import { referenceProducer } from "./references";
 import { serializerProducer } from "./serializer";
-import { structureProducer } from "./structure";
+import { structure } from "./structure";
 import { unionProducer } from "./union";
 import { callbackProducer } from "./callback";
 import { typedefProducer } from "./typedef";
@@ -31,8 +31,8 @@ export const producers = {
     enumProducer,
     functionProducer,
     constructorProducer,
-    structureProducer,
-    primitiveProducer,
+    structure,
+    primitive,
     referenceProducer,
     containerProducer,
     unionProducer,

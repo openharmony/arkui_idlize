@@ -55,9 +55,9 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
         },
         onlyFor(OhosSeed, (seed, ctx) => {
             if (idl.isPrimitiveType(seed.node))
-                return producers.managed.primitiveProducer(seed.node, ctx)
+                return producers.managed.primitive(seed.node, ctx)
             if (idl.isInterface(seed.node))
-                return producers.managed.structureProducer(seed.node, ctx)
+                return producers.managed.structure(seed.node, ctx)
             // if (idl.isReferenceType(seed.node)) {
             //     const decl = ctx.library.toDeclaration(seed.node)
             //     if (idl.isInterface(decl)) {

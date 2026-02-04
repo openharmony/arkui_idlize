@@ -15,10 +15,9 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Ts, lw } from "@idlizer/ost"
-import { ProducerContext } from "@idlizer/kit"
-import { PeerLibrary } from "@idlizer/core/*"
+import { OhosProducer } from "../../seed"
 
-function selectType(type:idl.IDLPrimitiveType): lw.LWType {
+function convertType(type: idl.IDLPrimitiveType): lw.LWType {
     switch (type) {
         case idl.IDLAnyType: return Ts.prim.object///
         case idl.IDLBigintType: return Ts.prim.bigint
@@ -42,6 +41,7 @@ function selectType(type:idl.IDLPrimitiveType): lw.LWType {
     throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
 }
 
-export function primitiveProducer(type: idl.IDLPrimitiveType, ctx: ProducerContext<PeerLibrary, undefined>) {
-  return { continuation: selectType(type), declarations: [] }
-}
+export const primitive: OhosProducer<idl.IDLPrimitiveType> = (type, _) => ({
+  continuation: convertType(type),
+  declarations: []
+})

@@ -15,34 +15,30 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, Hs, Md, T, Ts, lw } from "@idlizer/ost"
-import { AdvancedGeneratorContext, managedName } from "../common"
-import { capitalize, getSuperType, isMaterialized, PeerLibrary } from "@idlizer/core"
+import { managedName } from "../common"
+import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
 import { fqName } from "../../engine"
-import { ProducerContext, ProducerResult } from "@idlizer/kit"
-import { OhosSeed } from "../../seed"
+import { OhosProducer, OhosProducerContext, OhosSeed } from "../../seed"
+import { ProducerResult } from "@idlizer/kit"
 
-export function structureProducer(node: idl.IDLInterface, ctx: ProducerContext<PeerLibrary, undefined>): ProducerResult {
+export const structure: OhosProducer<idl.IDLInterface> = (node, ctx) => {
   const declName = managedName(idl.getFQName(node))
-  if (node.subkind === idl.IDLInterfaceSubkind.Tuple)
-    return makeTuple(node, declName, ctx)
-  const generator = isMaterialized(node, ctx.library) ? makeMaterialized : makeInterface
-  return {
-    continuation: T.c(declName),
-    declarations: generator(node, declName, ctx)
-  }
+  return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx) :
+    isMaterialized(node, ctx.library) ? materializedInterface(node, declName, ctx) :
+    dataInterface(node, declName, ctx)
 }
 
-function makeTuple(node: idl.IDLInterface, name: string, ctx: ProducerContext<PeerLibrary, undefined>): ProducerResult {
+const tuple: OhosProducer<idl.IDLInterface> = (node, ctx) => {
   return {
     continuation: Ts.intersection(node.properties.map(prop => ctx.expectType(new OhosSeed(prop.type)))),
     declarations: []
   }
 }
 
-function makeInterface(node: idl.IDLInterface, name: string, ctx: ProducerContext<PeerLibrary, undefined>): lw.LWDeclaration[] {
+function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
   ///node.methods.forEach(it => ctx.useManaged(it))
   const superType = getSuperType(node, ctx.library)
-  return [D.class(name,
+  const decl = D.class(name,
     node.properties.map(prop => {
       const modifiers = [
         ...prop.isOptional ? [Md.optional()] : [],
@@ -58,11 +54,15 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: ProducerContex
     [], {
     kind: idl.isClassSubkind(node) ? 'class' : 'interface',
     base: superType ? ctx.expectType(new OhosSeed(superType)) : undefined
-    })
-  ]
+    }
+  )
+  return {
+    continuation: T.c(name),
+    declarations: [decl]
+  }
 }
 
-function makeMaterialized(node: idl.IDLInterface, name: string, ctx: ProducerContext<PeerLibrary, undefined>): lw.LWDeclaration[] {
+function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
   const syntheticMethods = [
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
     ...node.properties.flatMap(prop => [
@@ -108,5 +108,8 @@ function makeMaterialized(node: idl.IDLInterface, name: string, ctx: ProducerCon
     // default constructor
     .ctor().param('ptr').type(Ts.prim.pointer).$().block()
       .call('setPeer').receiver('this').arg('ptr').$().$().$().$()
-  return [intClass, matClass]
+  return {
+    continuation: T.c(name),
+    declarations: [intClass, matClass]
+  }
 }

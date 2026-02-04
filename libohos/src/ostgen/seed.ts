@@ -14,13 +14,25 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Seed } from "@idlizer/kit";
+import { PeerLibrary } from "@idlizer/core";
+import { ProducerContext, ProducerResult, Seed } from "@idlizer/kit";
 
-export class OhosSeed extends Seed {///where does it belong?
-  constructor(public node: idl.IDLNode) {
+export type OhosProducerContext = ProducerContext<PeerLibrary, undefined>
+export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext) => ProducerResult
+
+type Role<T extends idl.IDLNode> =
+    T extends idl.IDLInterface ? 'interface' | 'managed-serde' | 'native-serde' :
+    T extends idl.IDLMethod ? 'method' | 'native-module' | 'bridge' | 'capi' | 'impl' :
+    never
+
+export class OhosSeed<T extends idl.IDLNode> extends Seed {///where does it belong?
+  constructor(
+    public node: T,
+    public role?: Role<T>,
+  ) {
     super()
   }
   hash(): string {
-    return 'hash:' + (idl.isType(this.node) ? idl.printType(this.node) : idl.getFQName(this.node))
+    return `hash:${idl.isType(this.node) ? idl.printType(this.node) : idl.getFQName(this.node)}:${this.role ?? ''}`
   }
 }
