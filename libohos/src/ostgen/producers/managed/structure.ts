@@ -13,52 +13,35 @@
  * limitations under the License.
  */
 
-import { Hs, D, E, Md, T, Ts, S } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import * as lw from "../../../ost";
-import { AdvancedGeneratorContext, createSpecialProducer, managedName, roles } from "../common";
-import { capitalize, getSuperType, isMaterialized } from "@idlizer/core";
-import { fqName, ProducerDescription } from "../../engine";
-import { Builders } from "../../../ost";
-import { argConvertor } from "../components/argConvertor";
+import { Builders, D, E, Hs, Md, T, Ts, lw } from "@idlizer/ost"
+import { AdvancedGeneratorContext, managedName } from "../common"
+import { capitalize, getSuperType, isMaterialized, PeerLibrary } from "@idlizer/core"
+import { fqName } from "../../engine"
+import { ProducerContext, ProducerResult } from "@idlizer/kit"
+import { OhosSeed } from "../../seed"
 
-export const structureProducer = createSpecialProducer(
-  { is: idl.isInterface, role: roles.managed },
-  (node, ctx) => {
-    if (node.subkind === idl.IDLInterfaceSubkind.Tuple)
-      return makeTuple(node, ctx)
-    const declName = managedName(idl.getFQName(node))
-    const generator = isMaterialized(node, ctx.base.library)
-      ? makeMaterialized
-      : makeInterface
-    return {
-      artifact: {
-        reference: T.c(declName),
-        implementationGenerator: () => {
-          ctx.useCApi(node)
-          return generator(node, declName, ctx)
-        }
-      }
-    }
-  }
-)
-
-function makeTuple(node: idl.IDLInterface, ctx: AdvancedGeneratorContext): ProducerDescription {
+export function structureProducer(node: idl.IDLInterface, ctx: ProducerContext<PeerLibrary, undefined>): ProducerResult {
+  const declName = managedName(idl.getFQName(node))
+  if (node.subkind === idl.IDLInterfaceSubkind.Tuple)
+    return makeTuple(node, declName, ctx)
+  const generator = isMaterialized(node, ctx.library) ? makeMaterialized : makeInterface
   return {
-    recursive: () => {///native
-      return {
-        artifact: {
-          reference: Ts.intersection(
-            node.properties.map(prop => ctx.useManaged(prop.type).reference()))
-        }
-      }
-    }
+    continuation: T.c(declName),
+    declarations: generator(node, declName, ctx)
   }
 }
 
-function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): lw.LWDeclaration[] {
-  node.methods.forEach(it => ctx.useManaged(it))
-  const superType = getSuperType(node, ctx.base.library)
+function makeTuple(node: idl.IDLInterface, name: string, ctx: ProducerContext<PeerLibrary, undefined>): ProducerResult {
+  return {
+    continuation: Ts.intersection(node.properties.map(prop => ctx.expectType(new OhosSeed(prop.type)))),
+    declarations: []
+  }
+}
+
+function makeInterface(node: idl.IDLInterface, name: string, ctx: ProducerContext<PeerLibrary, undefined>): lw.LWDeclaration[] {
+  ///node.methods.forEach(it => ctx.useManaged(it))
+  const superType = getSuperType(node, ctx.library)
   return [D.class(name,
     node.properties.map(prop => {
       const modifiers = [
@@ -68,17 +51,18 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGenera
       ]
       return {
         name: prop.name,
-        type: ctx.useManaged(prop.type).reference(),
+        type: ctx.expectType(new OhosSeed(prop.type)),
         modifiers,
       }
     }),
     [], {
     kind: idl.isClassSubkind(node) ? 'class' : 'interface',
-    base: superType ? ctx.useManaged(superType).reference() : undefined
-    })]
+    base: superType ? ctx.expectType(new OhosSeed(superType)) : undefined
+    })
+  ]
 }
 
-function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): lw.LWDeclaration[] {
+function makeMaterialized(node: idl.IDLInterface, name: string, ctx: ProducerContext<PeerLibrary, undefined>): lw.LWDeclaration[] {
   const syntheticMethods = [
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
     ...node.properties.flatMap(prop => [
@@ -92,15 +76,15 @@ function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGen
           { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
     ])
   ]
-  syntheticMethods.forEach(it => it.parent = node);
-  [
-    ...node.constructors,
-    ...node.methods,
-    ...syntheticMethods
-  ].forEach(it => ctx.useManaged(it))
+  // syntheticMethods.forEach(it => it.parent = node);
+  // [
+  //   ...node.constructors,
+  //   ...node.methods,
+  //   ...syntheticMethods
+  // ].forEach(it => ctx.useManaged(it))
 
   const peerType = Ts.union([T.c('Finalizable'), T.c('undefined')])
-  const thisType = ctx.useManaged(node).reference()
+  const thisType = ctx.expectType(new OhosSeed(node))
   const intClass = Builders.class(name + 'Internal')
     .method('fromPtr').static()
       .returns(thisType)
@@ -118,9 +102,9 @@ function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGen
           .arg('peerPtr')
           .arg().call('getFinalizer').receiver(E.v(name, [Hs.isType()])).$().$().$().$().$().$().$()
     // getFinalizer
-    .method('getFinalizer').static().returns(Ts.prim.pointer).block()
-      .return(Ts.prim.pointer).call(fqName(node, '_', '_getFinalizer'))
-        .receiver(ctx.useManagedNativeModule(node).name()).$().$().$().$()
+    // .method('getFinalizer').static().returns(Ts.prim.pointer).block()
+    //   .return(Ts.prim.pointer).call(fqName(node, '_', '_getFinalizer'))
+    //     .receiver(ctx.useManagedNativeModule(node).name()).$().$().$().$()
     // default constructor
     .ctor().param('ptr').type(Ts.prim.pointer).$().block()
       .call('setPeer').receiver('this').arg('ptr').$().$().$().$()

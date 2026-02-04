@@ -16,7 +16,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as idl from "@idlizer/core/idl"
-import * as ost from '@idlizer/ost'
 import { Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
@@ -37,72 +36,28 @@ import {
     IMPL_PREFIX,
     readInteropTypesHeader
     managedName,
+    OhosSeed,
+    producers,
 } from "@idlizer/libohos"
-import { forEachSeed, IDLFileLibrary, lowLevelLike, moduleLike, onlyFor, Seed, terminate } from '@idlizer/kit'
-
-class GenerationSeed extends Seed {
-  constructor(public node: idl.IDLNode) {
-    super()
-  }
-  hash(): string {
-    return 'hash:' + (idl.isType(this.node) ? idl.printType(this.node) : idl.getFQName(this.node))
-  }
-}
-
-function convertPrimitiveType(type: idl.IDLPrimitiveType): ost.LWType {
-    switch (type) {
-        case idl.IDLAnyType: return ost.Ts.prim.object///
-        case idl.IDLBigintType: return ost.Ts.prim.bigint
-        case idl.IDLBooleanType: return ost.Ts.prim.boolean
-        case idl.IDLBufferType: return ost.Ts.prim.buffer
-        case idl.IDLF32Type: return ost.Ts.prim.f32
-        case idl.IDLF64Type: return ost.Ts.prim.f64
-        case idl.IDLI8Type: return ost.Ts.prim.i8
-        case idl.IDLI32Type: return ost.Ts.prim.i32
-        case idl.IDLI64Type: return ost.Ts.prim.i64
-        case idl.IDLNumberType: return ost.Ts.prim.number
-        case idl.IDLObjectType: return ost.Ts.prim.object
-        case idl.IDLPointerType: return ost.Ts.prim.pointer
-        case idl.IDLSerializerBuffer: return ost.Ts.prim.serializerBuffer
-        case idl.IDLStringType: return ost.Ts.prim.str
-        case idl.IDLU8Type: return ost.Ts.prim.u8
-        case idl.IDLU32Type: return ost.Ts.prim.u32
-        case idl.IDLU64Type: return ost.Ts.prim.u64
-        case idl.IDLVoidType: return ost.Ts.prim.void
-    }
-    throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
-}
+import { forEachSeed, lowLevelLike, moduleLike, onlyFor, terminate } from '@idlizer/kit'
 
 export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
     // ignore predefined / synthetic files
     const files = peerLibrary.files.filter(file =>
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
-    const library = new IDLFileLibrary(files)
     const generated: LWDeclaration[] = forEachSeed(
         {
-        context: library,
-        begin: linearizeNamespaceMembers(library.files.flatMap(f => f.entries))
+        context: peerLibrary,
+        begin: linearizeNamespaceMembers(files.flatMap(f => f.entries))
             .filter(e => idl.isInterface(e))
-            .map(e => new GenerationSeed(e)),
+            .map(e => new OhosSeed(e)),
         },
-        onlyFor(GenerationSeed, (seed, ctx) => {
-            if (idl.isPrimitiveType(seed.node)) {
-                return { continuation: convertPrimitiveType(seed.node), declarations: [] }
-            }
-            if (idl.isInterface(seed.node)) {
-                return {
-                    continuation: ost.T.c(seed.node.name),
-                    declarations: [
-                        ost.D.struct(managedName(idl.getFQName(seed.node)),
-                            seed.node.properties.map(prop => ({
-                                name: prop.name,
-                                type: ctx.expectType(new GenerationSeed(prop.type))
-                            }))
-                        )
-                    ]
-                }
-            }
+        onlyFor(OhosSeed, (seed, ctx) => {
+            if (idl.isPrimitiveType(seed.node))
+                return producers.managed.primitiveProducer(seed.node, ctx)
+            if (idl.isInterface(seed.node))
+                return producers.managed.structureProducer(seed.node, ctx)
             // if (idl.isReferenceType(seed.node)) {
             //     const decl = ctx.library.toDeclaration(seed.node)
             //     if (idl.isInterface(decl)) {

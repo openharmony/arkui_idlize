@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-import { lw, Ts } from "../../../ost";
-import { createProducer } from "../../engine/context"
-import * as idl from "@idlizer/core/idl";
+import * as idl from "@idlizer/core/idl"
+import { Ts, lw } from "@idlizer/ost"
+import { ProducerContext } from "@idlizer/kit"
+import { PeerLibrary } from "@idlizer/core/*"
 
 function selectType(type:idl.IDLPrimitiveType): lw.LWType {
     switch (type) {
@@ -41,13 +42,6 @@ function selectType(type:idl.IDLPrimitiveType): lw.LWType {
     throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
 }
 
-export const primitiveProducer = createProducer(
-  { is: idl.isPrimitiveType },
-  node => {
-    return {
-      artifact: {
-        reference: selectType(node),
-      }
-    }
-  }
-)
+export function primitiveProducer(type: idl.IDLPrimitiveType, ctx: ProducerContext<PeerLibrary, undefined>) {
+  return { continuation: selectType(type), declarations: [] }
+}
