@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 import * as idl from "@idlizer/core/idl"
-import { AdvancedGeneratorContext, managedName, bridgeName } from "../common";
-import { ProducerDescription } from "../../engine/context";
-import { Hs, E, T, Ts } from "../../../ost";
+import { Builders, E, Hs, LWType, T, Ts } from "@idlizer/ost";
+import { managedName, bridgeName } from "../common";
 import { argConvertor } from "./argConvertor";
-import { Builders } from "../../../ost";
-import { LWType } from "../../../ost";
+import { OhosProducer, OhosProducerContext, OhosSeed } from "../../seed";
 
 function makeSerializerName(node: idl.IDLInterface, native: boolean) {
   const name = idl.getFQName(node) + 'Serializer'
@@ -32,27 +30,20 @@ function makeSerializerName(node: idl.IDLInterface, native: boolean) {
  * Native needs forward class declaration + separate method implementations.
  */
 export function makeSerializer(
-  ctx: AdvancedGeneratorContext,
+  ctx: OhosProducerContext,
   node: idl.IDLInterface,
   native: boolean
-): ProducerDescription {
-  return {
-    artifact: {
-      reference: E.v(makeSerializerName(node, native), [Hs.isType()]),
-      implementationGenerator: () => {
-        const valueType = (native ? ctx.useCApi(node) : ctx.useManaged(node)).reference()
-        const clazz = makeSerializerClass(node, valueType, native)
-        const write = makeSerializerWrite(ctx, node, valueType, native)
-        const read = makeSerializerRead(ctx, node, valueType, native)
-        if (native) {
-          return [clazz, write, read]
-        } else {
-          clazz.methods[0].body = write.body
-          clazz.methods[1].body = read.body
-          return [clazz]
-        }
-      }
-    }
+) {
+  const valueType = ctx.expectType(new OhosSeed(node))
+  const clazz = makeSerializerClass(node, valueType, native)
+  const write = makeSerializerWrite(ctx, node, valueType, native)
+  const read = makeSerializerRead(ctx, node, valueType, native)
+  if (native) {
+    return [clazz, write, read]
+  } else {
+    clazz.methods[0].body = write.body
+    clazz.methods[1].body = read.body
+    return [clazz]
   }
 }
 
@@ -68,7 +59,7 @@ function makeSerializerClass(node: idl.IDLInterface, type: LWType, native: boole
       .returns(type).$().$()
 }
 
-function makeSerializerWrite(ctx: AdvancedGeneratorContext, node: idl.IDLInterface, type: LWType, native: boolean) {
+function makeSerializerWrite(ctx: OhosProducerContext, node: idl.IDLInterface, type: LWType, native: boolean) {
   return Builders.func(makeSerializerName(node, native) + '::write')
     .param('serializer').type(Ts.ref(T.c('SerializerBase'))).$()
     .param('value').type(type).$()
@@ -79,7 +70,7 @@ function makeSerializerWrite(ctx: AdvancedGeneratorContext, node: idl.IDLInterfa
       ])).$().$()
 }
 
-function makeSerializerRead(ctx: AdvancedGeneratorContext, node: idl.IDLInterface, type: LWType, native: boolean) {
+function makeSerializerRead(ctx: OhosProducerContext, node: idl.IDLInterface, type: LWType, native: boolean) {
   const reads = node.properties.map(prop =>
     argConvertor(ctx, prop.type, prop.isOptional)
       .read(prop.name, E.v('deserializer'), native))

@@ -14,66 +14,50 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { AdvancedGeneratorContext, cApiName, createSpecialProducer, implName, roles } from "../common";
-import { E } from "../../../ost";
-import { Builders } from "../../../ost";
+import { Builders, E, LWType, Ts } from "@idlizer/ost";
+import { cApiName, implName } from "../common";
 import { fqName, modifierClassName } from "../../engine";
-import { Ts } from "../../../ost";
-import { LWType } from "../../../ost";
 import { argConvertor } from "../components/argConvertor";
+import { OhosProducer, OhosProducerContext, OhosSeed } from "../../seed";
 
-export const functionProducer = createSpecialProducer(
-  { is: idl.isMethod, role: roles.cApi },
-  (method, ctx) => {
-    const funcName = fqName(method);
-    return {
-      artifact: {
-        reference: E.v(funcName),
-        implementationGenerator: () => {
-          const returnType = ctx.useCApi(method.returnType).reference()
-          const params: [string, LWType][] = method.parameters.map(it =>
-            [it.name, wrapPtr(it.type, ctx)])
-          if (!method.isFree && !method.isStatic)
-            params.unshift(['thisPtr', Ts.prim.pointer])
-          return [
-            Builders.struct(cApiName(`modifier.${modifierClassName(method)}Modifier`))
-              .field(funcName)
-                .funcType()
-                .parameters(params)
-                .returns(returnType).$().$().$(),
-            generateImpl(method, ctx)
-          ]
-        }
-      }
-    }
+export const functionProducer: OhosProducer<idl.IDLMethod> = (method, ctx) => {
+  const funcName = fqName(method);
+  const returnType = ctx.expectType(new OhosSeed(method.returnType))
+  const params: [string, LWType][] = method.parameters.map(it =>
+    [it.name, wrapPtr(it.type, ctx)])
+  if (!method.isFree && !method.isStatic)
+    params.unshift(['thisPtr', Ts.prim.pointer])
+  return {
+    continuation: E.v(funcName),
+    declarations: [
+      Builders.struct(cApiName(`modifier.${modifierClassName(method)}Modifier`))
+        .field(funcName)
+          .funcType()
+          .parameters(params)
+          .returns(returnType).$().$().$(),
+      generateImpl(method, ctx)
+    ]
   }
-)
+}
 
-export const constructorProducer = createSpecialProducer(
-  { is: idl.isConstructor, role: roles.cApi },
-  (ctor, ctx) => {
-    const funcName = fqName(ctor)
-    return {
-      artifact: {
-        reference: E.v(funcName),
-        implementationGenerator: () => {
-          const params: [string, LWType][] = ctor.parameters.map(it => [it.name, wrapPtr(it.type, ctx)])
-          return [
-            Builders.struct(cApiName(`modifier.${modifierClassName(ctor)}Modifier`))
-              .field(funcName)
-                .funcType()
-                .parameters(params)
-                .returns(Ts.prim.pointer).$().$().$(),
-            generateImpl(ctor, ctx)
-          ]
-        }
-      }
-    }
+export const constructorProducer: OhosProducer<idl.IDLConstructor> = (ctor, ctx) => {
+  const funcName = fqName(ctor)
+  const params: [string, LWType][] = ctor.parameters.map(it => [it.name, wrapPtr(it.type, ctx)])
+  return {
+    continuation: E.v(funcName),
+    declarations: [
+      Builders.struct(cApiName(`modifier.${modifierClassName(ctor)}Modifier`))
+        .field(funcName)
+          .funcType()
+          .parameters(params)
+          .returns(Ts.prim.pointer).$().$().$(),
+      generateImpl(ctor, ctx)
+    ]
   }
-)
+}
 
-function generateImpl(method: idl.IDLMethod | idl.IDLConstructor, ctx: AdvancedGeneratorContext) {
-  const returnType = idl.isMethod(method) ? ctx.useCApi(method.returnType).reference() : Ts.prim.pointer
+function generateImpl(method: idl.IDLMethod | idl.IDLConstructor, ctx: OhosProducerContext) {
+  const returnType = idl.isMethod(method) ? ctx.expectType(new OhosSeed(method.returnType)) : Ts.prim.pointer
   const params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
   if (!idl.isConstructor(method) && !method.isFree && !method.isStatic)
     params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
@@ -82,7 +66,7 @@ function generateImpl(method: idl.IDLMethod | idl.IDLConstructor, ctx: AdvancedG
     .parameters(params).$()
 }
 
-function wrapPtr(type: idl.IDLType, ctx: AdvancedGeneratorContext): LWType {
-    const typeRef = ctx.useCApi(type).reference()
+function wrapPtr(type: idl.IDLType, ctx: OhosProducerContext): LWType {
+    const typeRef = ctx.expectType(new OhosSeed(type))
     return argConvertor(ctx, type).isPointer() ? Ts.const(Ts.ptr(typeRef)) : typeRef
 }

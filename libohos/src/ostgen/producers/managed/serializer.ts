@@ -14,10 +14,15 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { createSpecialProducer, roles } from "../common";
+import { E, Hs } from "@idlizer/ost";
+import { managedName } from "../common";
 import { makeSerializer } from "../components/serializer";
+import { OhosProducer } from "../../seed";
 
-export const serializerProducer = createSpecialProducer(
-  { is: idl.isInterface, role: roles.serializerManaged },
-  (node, ctx) => makeSerializer(ctx, node, false)
-)
+export const serializerProducer: OhosProducer<idl.IDLInterface> = (node, ctx) => {
+  const serializerName = managedName(idl.getFQName(node) + 'Serializer')
+  return {
+    continuation: E.v(serializerName, [Hs.isType()]),
+    declarations: makeSerializer(ctx, node, false)
+  }
+}

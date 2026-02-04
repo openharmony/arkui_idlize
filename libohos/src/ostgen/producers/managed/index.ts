@@ -18,7 +18,7 @@ import { enumProducer } from "./enum";
 import { fileProducer } from "./file";
 import { nativeModuleConstructorProducer, nativeModuleFunctionProducer, nativeModuleMaterializedProducer } from "./nativeModule";
 import { primitive } from "./primitives";
-import { referenceProducer } from "./references";
+import { reference } from "./references";
 import { serializerProducer } from "./serializer";
 import { structure } from "./structure";
 import { unionProducer } from "./union";
@@ -33,7 +33,7 @@ export const producers = {
     ctor,
     structure,
     primitive,
-    referenceProducer,
+    reference,
     containerProducer,
     unionProducer,
     callbackProducer,

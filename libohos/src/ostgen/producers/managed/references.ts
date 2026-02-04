@@ -13,23 +13,19 @@
  * limitations under the License.
  */
 
-import { createProducer } from "../../engine/context";
 import * as idl from "@idlizer/core/idl"
 import { warn } from "@idlizer/core";
+import { T } from "@idlizer/ost";
+import { OhosProducer } from "../../seed";
 
-export const referenceProducer = createProducer(
-    { is: idl.isReferenceType },
-    (ref, ctx, query) => {
-        let target: idl.IDLNode | undefined = ctx.resolver.toDeclaration(ref)
-        if (!target) {
-            warn("Unresolved reference " + ref.name)
-            target = idl.IDLObjectType
-        }
-        return {
-            redirectTo: {
-                node: target,
-                role: query.role
-            }
-        }
+export const reference: OhosProducer<idl.IDLReferenceType> = (type, ctx) => {
+    let target: idl.IDLNode | undefined = ctx.library.toDeclaration(type)
+    if (!target) {
+        warn("Unresolved reference " + type.name)
+        target = idl.IDLObjectType
     }
-)
+    return {
+        continuation: T.c(type.name),
+        declarations: []
+    }
+}

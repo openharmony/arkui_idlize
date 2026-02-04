@@ -14,10 +14,9 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Hs, E, lw, Op, S, std, Ts, T, Vs } from "../../../ost";
-import { AdvancedGeneratorContext, cApiName, managedName, typeNameExpr } from "../common";
 import { isMaterialized } from "@idlizer/core";
-import { Builders, LWExpression, LWStatement, LWType } from "../../../ost";
+import { Builders, E, Hs, LWExpression, LWStatement, LWType, lw, Op, S, std, T, Ts, Vs } from "@idlizer/ost";
+import { cApiName, managedName, typeNameExpr } from "../common";
 import { monoName } from "../../postprocess/postprocess";
 import { OhosProducerContext, OhosSeed } from "../../seed";
 
