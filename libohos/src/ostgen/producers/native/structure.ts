@@ -19,7 +19,7 @@ import { cApiName, implName, roles } from "../common"
 import { isMaterialized } from "@idlizer/core"
 import { Builders } from "@idlizer/ost"
 import { createProducer, fqName, modifierClassName } from "../../engine"
-import { OhosProducerContext, OhosSeed } from "../../seed"
+import { OhosProducerContext, OhosSeed } from "../common"
 
 export const structureProducer = createProducer(
   { is: idl.isInterface, role: roles.cApi },

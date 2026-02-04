@@ -19,7 +19,7 @@ import { Builders, E, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idli
 import { bridgeName, isDirectInteropType } from "../common"
 import { fqName, modifierClassName, moduleName } from "../../engine"
 import { argConvertor } from "../components/argConvertor"
-import { OhosProducer, OhosSeed } from "../../seed"
+import { OhosProducer, OhosSeed } from "../common"
 
 export const functionBridgeProducer: OhosProducer<idl.IDLMethod> = (method, ctx) => {
   const declName = bridgeName(fqName(method, 'modifier.impl_'))

@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl";
 import { E, Hs } from "@idlizer/ost";
 import { managedName } from "../common";
 import { makeSerializer } from "../components/serializer";
-import { OhosProducer } from "../../seed";
+import { OhosProducer } from "../common"
 
 export const serializerProducer: OhosProducer<idl.IDLInterface> = (node, ctx) => {
   const serializerName = managedName(idl.getFQName(node) + 'Serializer')

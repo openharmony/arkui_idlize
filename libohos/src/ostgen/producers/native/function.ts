@@ -18,7 +18,7 @@ import { Builders, E, LWType, Ts } from "@idlizer/ost";
 import { cApiName, implName } from "../common";
 import { fqName, modifierClassName } from "../../engine";
 import { argConvertor } from "../components/argConvertor";
-import { OhosProducer, OhosProducerContext, OhosSeed } from "../../seed";
+import { OhosProducer, OhosProducerContext, OhosSeed } from "../common"
 
 export const functionProducer: OhosProducer<idl.IDLMethod> = (method, ctx) => {
   const funcName = fqName(method);

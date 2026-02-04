@@ -17,7 +17,7 @@ import { D, T } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
 import { managedName, roles } from "../common";
 import { createProducer } from "../../engine";
-import { OhosSeed } from "../../seed";
+import { OhosSeed } from "../common"
 
 export const typedefProducer = createProducer(
   { is: idl.isTypedef, role: roles.managed },

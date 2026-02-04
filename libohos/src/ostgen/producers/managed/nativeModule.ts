@@ -18,7 +18,7 @@ import { Builders, E, Hs, Ts } from "@idlizer/ost";
 import { isDirectInteropType, managedName } from "../common";
 import { fqName, nativeModuleName } from "../../engine";
 import { argConvertor } from "../components/argConvertor";
-import { OhosProducer, OhosSeed } from "../../seed";
+import { OhosProducer, OhosSeed } from "../common"
 
 export const nativeModuleMaterializedProducer: OhosProducer<idl.IDLInterface> = (node, ctx) => {
   const methodName = fqName(node, '_', '_getFinalizer')

@@ -14,9 +14,9 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Hs, Ts } from "../../ost"
-import { E, lw } from "../../ost"
-import { createProducer, MakeSelectorPattern, MakeSelectorQuery, ProducerBox, ProducerDescription } from "../engine/context"
+import { PeerLibrary } from "@idlizer/core"
+import { E, Hs, Ts, lw } from "@idlizer/ost"
+import { ProducerContext, ProducerResult, Seed } from "@idlizer/kit"
 
 export const MANAGED_PREFIX = 'managed'
 export const C_API_PREFIX = 'capi'
@@ -101,4 +101,26 @@ export function typeNameExpr(typeName: string): lw.LWExpression {
 
 export function isDirectInteropType(type: lw.LWType) {
     return type !== Ts.prim.interopReturnBuffer
+}
+
+export type OhosProducerContext = ProducerContext<PeerLibrary, undefined>
+export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext) => ProducerResult
+
+type CommonRole = 'managed' | 'native'
+type SpecificRole<T extends idl.IDLNode> =
+  T extends idl.IDLInterface ? 'managed-serde' | 'native-serde' :
+  T extends idl.IDLMethod ? 'native-module' | 'bridge' | 'capi' | 'impl' :
+  never
+type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
+
+export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {///mv to common/context?
+  constructor(
+    public node: T,
+    public role?: Role<T>,
+  ) {
+    super()
+  }
+  hash(): string {
+    return `hash:${idl.isType(this.node) ? idl.printType(this.node) : idl.getFQName(this.node)}:${this.role ?? ''}`
+  }
 }

@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl";
 import { Builders, E, Md, S, T, lw } from "@idlizer/ost";
 import { managedName } from "../common";
 import { argConvertor } from "../components/argConvertor";
-import { OhosProducer, OhosSeed } from "../../seed";
+import { OhosSeed } from "../common"
 import { createProducer } from "../../engine";
 
 export const func = createProducer(
@@ -39,8 +39,7 @@ export const func = createProducer(
       Builders.decl(serializerName, T.c('SerializerBase'))
         .value().call('hold').receiver('SerializerBase').$().$().$(),
       ...method.parameters.flatMap(param =>
-        S.e(E.c('/// convertor write'))),
-        // argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
+        argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
       method.returnType === idl.IDLVoidType
         ? S.e(nativeModuleCall)
         : Builders.decl('retval').value(nativeModuleCall).$(),

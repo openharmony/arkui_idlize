@@ -16,7 +16,7 @@
 import { Ts } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
 import { createProducer } from "../../engine";
-import { OhosSeed } from "../../seed";
+import { OhosSeed } from "../common"
 
 export const unionProducer = createProducer(
   { is: idl.isUnionType },

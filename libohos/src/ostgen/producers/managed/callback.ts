@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { Builders, E, T } from "@idlizer/ost";
 import { managedName } from "../common";
 import { argConvertor } from "../components/argConvertor";
-import { OhosProducer, OhosSeed } from "../../seed";
+import { OhosProducer, OhosSeed } from "../common"
 
 export const callbackProducer: OhosProducer<idl.IDLCallback> = (callback, ctx) => {
   const generatedDeclName = managedName(idl.getFQName(callback))

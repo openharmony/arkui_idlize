@@ -14,9 +14,8 @@
  */
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, Hs, LWType, T, Ts } from "@idlizer/ost";
-import { managedName, bridgeName } from "../common";
+import { managedName, bridgeName, OhosProducerContext, OhosSeed } from "../common";
 import { argConvertor } from "./argConvertor";
-import { OhosProducer, OhosProducerContext, OhosSeed } from "../../seed";
 
 function makeSerializerName(node: idl.IDLInterface, native: boolean) {
   const name = idl.getFQName(node) + 'Serializer'

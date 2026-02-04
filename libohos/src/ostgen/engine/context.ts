@@ -17,8 +17,8 @@ import { PeerLibrary } from "@idlizer/core";
 import * as idl from "@idlizer/core/idl"
 import { lw } from "../../ost";
 import { HistoryTracker } from "./history";
-import { OhosProducer, OhosSeed } from "../seed";
 import { terminate } from "@idlizer/kit";
+import { OhosProducer, OhosSeed } from "../producers/common";
 
 export class IDLTypeResolver {
     constructor(private resolver: PeerLibrary) {}
