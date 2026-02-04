@@ -15,25 +15,22 @@
 
 import { D, T } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer, managedName, roles } from "../common";
+import { managedName, roles } from "../common";
+import { createProducer } from "../../engine";
 
-export const enumProducer = createSpecialProducer(
+export const enumProducer = createProducer(
   { is: idl.isEnum, role: roles.managed },
-  (node, ctx) => {
+  (node) => {
     const generatedDeclName = managedName(idl.getFQName(node))
     return {
-      artifact: {
-        reference: T.c(generatedDeclName),
-        implementationGenerator: () => {
-          return [D.enum(generatedDeclName,
-            node.elements.map(element => {
-              return {
-                name: element.name,
-                value: element.initializer
-              }
-            }))]
-        }
-      }
+      continuation: T.c(generatedDeclName),
+      declarations: [
+        D.enum(generatedDeclName,
+          node.elements.map(element => ({
+            name: element.name,
+            value: element.initializer
+          })))
+      ]
     }
   }
 )

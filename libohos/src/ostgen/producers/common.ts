@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { Hs, Ts } from "../../ost"
 import { E, lw } from "../../ost"
-import { createProducer, GeneratorContext, MakeSelectorPattern, MakeSelectorQuery, ProducerBox, ProducerDescription } from "../engine/context"
+import { createProducer, MakeSelectorPattern, MakeSelectorQuery, ProducerBox, ProducerDescription } from "../engine/context"
 
 export const MANAGED_PREFIX = 'managed'
 export const C_API_PREFIX = 'capi'
@@ -60,40 +60,40 @@ export function isBridge(name:string) {
 
 ///////////////////////////////////////////////////////////
 
-export class AdvancedGeneratorContext {
+// export class AdvancedGeneratorContext {
 
-    constructor(
-        public base: GeneratorContext
-    ) { }
+//     constructor(
+//         public base: GeneratorContext
+//     ) { }
 
-    useManaged(node:idl.IDLNode) {
-        return this.base.use({ node, role: roles.managed })
-    }
-    useCApi(node:idl.IDLNode) {
-        return this.base.use({ node, role: roles.cApi })
-    }
-    useManagedNativeModule(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor) {
-        return this.base.use({ node, role: roles.nativeModule })
-    }
-    useBridge(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor) {
-        return this.base.use({ node, role: roles.bridge })
-    }
+//     useManaged(node:idl.IDLNode) {
+//         return this.base.use({ node, role: roles.managed })
+//     }
+//     useCApi(node:idl.IDLNode) {
+//         return this.base.use({ node, role: roles.cApi })
+//     }
+//     useManagedNativeModule(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor) {
+//         return this.base.use({ node, role: roles.nativeModule })
+//     }
+//     useBridge(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor) {
+//         return this.base.use({ node, role: roles.bridge })
+//     }
 
-    useNativeSerializer(node:idl.IDLNode) {
-        return this.base.use({ node, role: roles.serializerNative })
-    }
-    useManagedSerializer(node:idl.IDLNode) {
-        return this.base.use({ node, role: roles.serializerManaged })
-    }
-}
-export interface AdvancedProducer<N extends idl.IDLNode = idl.IDLNode> {
-    (node: N, ctx: AdvancedGeneratorContext, query: MakeSelectorQuery): ProducerDescription
-}
-export function createSpecialProducer<N extends idl.IDLNode>(pattern: MakeSelectorPattern<N>, producer: AdvancedProducer<N>): ProducerBox<N> {
-    return createProducer(pattern, (n, ctx, query) => {
-        return producer(n, new AdvancedGeneratorContext(ctx), query)
-    })
-}
+//     useNativeSerializer(node:idl.IDLNode) {
+//         return this.base.use({ node, role: roles.serializerNative })
+//     }
+//     useManagedSerializer(node:idl.IDLNode) {
+//         return this.base.use({ node, role: roles.serializerManaged })
+//     }
+// }
+// export interface AdvancedProducer<N extends idl.IDLNode = idl.IDLNode> {
+//     (node: N, ctx: AdvancedGeneratorContext, query: MakeSelectorQuery): ProducerDescription
+// }
+// export function createSpecialProducer<N extends idl.IDLNode>(pattern: MakeSelectorPattern<N>, producer: AdvancedProducer<N>): ProducerBox<N> {
+//     return createProducer(pattern, (n, ctx, query) => {
+//         return producer(n, new AdvancedGeneratorContext(ctx), query)
+//     })
+// }
 
 export function typeNameExpr(typeName: string): lw.LWExpression {
     return E.v(managedName(typeName), [Hs.isType()])

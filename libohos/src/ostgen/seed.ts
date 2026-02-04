@@ -21,11 +21,11 @@ export type OhosProducerContext = ProducerContext<PeerLibrary, undefined>
 export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext) => ProducerResult
 
 type Role<T extends idl.IDLNode> =
-    T extends idl.IDLInterface ? 'interface' | 'managed-serde' | 'native-serde' :
-    T extends idl.IDLMethod ? 'method' | 'native-module' | 'bridge' | 'capi' | 'impl' :
-    never
+  T extends idl.IDLInterface ? 'interface' | 'managed-serde' | 'native-serde' :
+  T extends idl.IDLMethod ? 'method' | 'native-module' | 'bridge' | 'capi' | 'impl' :
+  never
 
-export class OhosSeed<T extends idl.IDLNode> extends Seed {///where does it belong?
+export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {///mv to common/context?
   constructor(
     public node: T,
     public role?: Role<T>,

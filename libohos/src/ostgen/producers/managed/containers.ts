@@ -15,32 +15,27 @@
 
 import { Ts } from "../../../ost";
 import * as idl from "@idlizer/core/idl";
-import { createSpecialProducer } from "../common";
+import { createProducer } from "../../engine";
+import { OhosSeed } from "../../seed";
 
-export const containerProducer = createSpecialProducer(
+export const containerProducer = createProducer(
   { is: idl.isContainerType },
-  (type, ctx, query) => {
-    return {
-      recursive: () => {
-        if (idl.IDLContainerUtils.isSequence(type)) {
-          const elemRef = ctx.base.use({ node: type.elementType[0], role: query.role }).reference()
-          return {
-            artifact: {
-              reference: Ts.array(elemRef)
-            }
-          }
-        }
-        if (idl.IDLContainerUtils.isRecord(type)) {
-          const keyRef = ctx.base.use({ node: type.elementType[0], role: query.role }).reference()
-          const valRef = ctx.base.use({ node: type.elementType[1], role: query.role }).reference()
-          return {
-            artifact: {
-              reference: Ts.map(keyRef, valRef)
-            }
-          }
-        }
-        throw new Error(`Unknown type "${idl.DebugUtils.debugPrintType(type)}"`)
+  (type, ctx) => {
+    if (idl.IDLContainerUtils.isSequence(type)) {
+      const elemRef = ctx.expectType(new OhosSeed(type.elementType[0]))
+      return {
+        continuation: Ts.array(elemRef),
+        declarations: []
       }
     }
+    if (idl.IDLContainerUtils.isRecord(type)) {
+      const keyRef = ctx.expectType(new OhosSeed(type.elementType[0]))
+      const valRef = ctx.expectType(new OhosSeed(type.elementType[1]))
+      return {
+        continuation: Ts.map(keyRef, valRef),
+        declarations: []
+      }
+    }
+    throw new Error(`Unknown type "${idl.DebugUtils.debugPrintType(type)}"`)
   }
 )

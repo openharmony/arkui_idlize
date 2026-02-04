@@ -15,18 +15,19 @@
 
 import { D, T } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer, managedName, roles } from "../common";
+import { managedName, roles } from "../common";
+import { createProducer } from "../../engine";
+import { OhosSeed } from "../../seed";
 
-export const typedefProducer = createSpecialProducer(
+export const typedefProducer = createProducer(
   { is: idl.isTypedef, role: roles.managed },
   (typedef, ctx) => {
     const generatedDeclName = managedName(idl.getFQName(typedef))
     return {
-      artifact: {
-        reference: T.c(generatedDeclName),
-        implementationGenerator: () =>
-          [D.type(generatedDeclName, ctx.useManaged(typedef.type).reference())]
-      }
+      continuation: T.c(generatedDeclName),
+      declarations: [
+        D.type(generatedDeclName, ctx.expectType(new OhosSeed(typedef.type)))
+      ]
     }
   }
 )

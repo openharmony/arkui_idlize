@@ -15,20 +15,13 @@
 
 import { Ts } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer } from "../common";
+import { createProducer } from "../../engine";
+import { OhosSeed } from "../../seed";
 
-export const unionProducer = createSpecialProducer(
+export const unionProducer = createProducer(
   { is: idl.isUnionType },
-  (type, ctx, query) => {
-    return {
-      recursive: () => {
-        return {
-          artifact: {
-            reference: Ts.union(
-              type.types.map(type => ctx.base.use({ node: type, role: query.role }).reference()))
-          }
-        }
-      }
-    }
-  }
+  (type, ctx) => ({
+    continuation: Ts.union(type.types.map(ty => ctx.expectType(new OhosSeed(ty)))),
+    declarations: []
+  })
 )

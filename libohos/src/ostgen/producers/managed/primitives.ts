@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Ts, lw } from "@idlizer/ost"
-import { OhosProducer } from "../../seed"
+import { createProducer } from "../../engine"
 
 function convertType(type: idl.IDLPrimitiveType): lw.LWType {
     switch (type) {
@@ -41,7 +41,10 @@ function convertType(type: idl.IDLPrimitiveType): lw.LWType {
     throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
 }
 
-export const primitive: OhosProducer<idl.IDLPrimitiveType> = (type, _) => ({
-  continuation: convertType(type),
-  declarations: []
-})
+export const primitive = createProducer(
+  { is: idl.isPrimitiveType },
+  (type, _) => ({
+    continuation: convertType(type),
+    declarations: []
+  })
+)

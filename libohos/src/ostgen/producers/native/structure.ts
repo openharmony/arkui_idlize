@@ -15,28 +15,26 @@
 
 import { D, Md, T, Ts } from "../../../ost"
 import * as idl from "@idlizer/core/idl"
-import { AdvancedGeneratorContext, cApiName, createSpecialProducer, implName, roles } from "../common"
+import { cApiName, implName, roles } from "../common"
 import { isMaterialized } from "@idlizer/core"
 import { Builders } from "@idlizer/ost"
-import { fqName, modifierClassName } from "../../engine"
+import { createProducer, fqName, modifierClassName } from "../../engine"
+import { OhosProducerContext, OhosSeed } from "../../seed"
 
-export const structureProducer = createSpecialProducer(
+export const structureProducer = createProducer(
   { is: idl.isInterface, role: roles.cApi },
   (node, ctx) => {
     const name = cApiName(idl.getFQName(node))
     return {
-      artifact: {
-        reference: T.c(name),
-        implementationGenerator: () =>
-          isMaterialized(node, ctx.base.library)
-            ? makeMaterialized(node, name)
-            : makeInterface(node, name, ctx)
-      }
+      continuation: T.c(name),
+      declarations: isMaterialized(node, ctx.library)
+        ? makeMaterialized(node, name)
+        : makeInterface(node, name, ctx)
     }
   }
 )
 
-function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext) {
+function makeInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext) {
   return [D.struct(name, node.properties.map(prop => {
     const modifiers = [
       ...prop.isOptional ? [Md.optional()] : [],
@@ -45,7 +43,7 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGenera
     ]
     return {
       name: prop.name,
-      type: ctx.useCApi(prop.type).reference(),
+      type: ctx.expectType(new OhosSeed(prop.type)),
       modifiers,
     }
   }))]

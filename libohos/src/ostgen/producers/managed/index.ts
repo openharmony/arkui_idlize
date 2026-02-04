@@ -15,7 +15,7 @@
 
 import { containerProducer } from "./containers";
 import { enumProducer } from "./enum";
-import { fileProducer } from "./file";
+// import { fileProducer } from "./file";
 import { nativeModuleConstructorProducer, nativeModuleFunctionProducer, nativeModuleMaterializedProducer } from "./nativeModule";
 import { primitive } from "./primitives";
 import { reference } from "./references";
@@ -27,7 +27,7 @@ import { typedefProducer } from "./typedef";
 import { ctor, func } from "./function";
 
 export const producers = {
-    fileProducer,
+    // fileProducer,
     enumProducer,
     func,
     ctor,

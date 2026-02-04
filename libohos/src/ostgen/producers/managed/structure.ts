@@ -17,16 +17,19 @@ import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, Hs, Md, T, Ts, lw } from "@idlizer/ost"
 import { managedName } from "../common"
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
-import { fqName } from "../../engine"
+import { createProducer, fqName } from "../../engine"
 import { OhosProducer, OhosProducerContext, OhosSeed } from "../../seed"
 import { ProducerResult } from "@idlizer/kit"
 
-export const structure: OhosProducer<idl.IDLInterface> = (node, ctx) => {
-  const declName = managedName(idl.getFQName(node))
-  return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx) :
-    isMaterialized(node, ctx.library) ? materializedInterface(node, declName, ctx) :
-    dataInterface(node, declName, ctx)
-}
+export const structure = createProducer(
+  { is: idl.isInterface },
+  (node, ctx) => {
+    const declName = managedName(idl.getFQName(node))
+    return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx) :
+      isMaterialized(node, ctx.library) ? materializedInterface(node, declName, ctx) :
+      dataInterface(node, declName, ctx)
+  }
+)
 
 const tuple: OhosProducer<idl.IDLInterface> = (node, ctx) => {
   return {

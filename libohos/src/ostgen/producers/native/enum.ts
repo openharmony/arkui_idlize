@@ -20,19 +20,16 @@ import { createProducer } from "../../engine/context"
 
 export const enumProducer = createProducer(
   { is: idl.isEnum, role: roles.cApi },
-  node => {
+  (node, _) => {
     const name = cApiName(idl.getFQName(node))
     return {
-      artifact: {
-        reference: T.c(name),
-        implementationGenerator: () =>
-          [D.enum(name, node.elements.map(element => {
-            return {
-              name: element.name,
-              value: element.initializer
-            }
-          }))]
-      }
+      continuation: T.c(name),
+      declarations: [
+        D.enum(name, node.elements.map(element => ({
+          name: element.name,
+          value: element.initializer
+        })))
+      ]
     }
   }
 )

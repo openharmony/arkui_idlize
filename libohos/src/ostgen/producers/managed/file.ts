@@ -17,19 +17,20 @@ import { createProducer } from "../../engine/context";
 import * as idl from "@idlizer/core/idl";
 import { roles } from "../common";
 
-export const fileProducer = createProducer(
-  { is: idl.isFile },
-  (node, ctx) => {
-    return {
-      go: () => {
-        idl.linearizeNamespaceMembers(node.entries)
-          .filter(node =>
-               !idl.isImport(node)
-            && !idl.isNamespace(node)
-            && !idl.isCallback(node)
-          )
-          .forEach(node => ctx.use({ node, role: roles.managed }))
-      }
-    }
-  }
-)
+// export const fileProducer = createProducer(
+//   { is: idl.isFile },
+//   (node, ctx) => {
+//     return {
+//       go: () => {
+//         idl.linearizeNamespaceMembers(node.entries)
+//           .filter(node =>
+//                !idl.isImport(node)
+//             && !idl.isNamespace(node)
+//             && !idl.isCallback(node)
+//           )
+//           .forEach(node => ctx.use({ node, role: roles.managed }))
+//       }
+//     }
+//   }
+// )
+///trigger each entry?

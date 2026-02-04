@@ -16,16 +16,19 @@
 import * as idl from "@idlizer/core/idl"
 import { warn } from "@idlizer/core";
 import { T } from "@idlizer/ost";
-import { OhosProducer } from "../../seed";
+import { createProducer } from "../../engine";
 
-export const reference: OhosProducer<idl.IDLReferenceType> = (type, ctx) => {
+export const reference = createProducer(
+  { is: idl.isReferenceType },
+  (type, ctx) => {
     let target: idl.IDLNode | undefined = ctx.library.toDeclaration(type)
     if (!target) {
-        warn("Unresolved reference " + type.name)
-        target = idl.IDLObjectType
+      warn("Unresolved reference " + type.name)
+      target = idl.IDLObjectType
     }
     return {
-        continuation: T.c(type.name),
-        declarations: []
+      continuation: T.c(type.name),
+      declarations: []
     }
-}
+  }
+)

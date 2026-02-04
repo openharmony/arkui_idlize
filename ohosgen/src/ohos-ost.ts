@@ -38,48 +38,26 @@ import {
     managedName,
     OhosSeed,
     producers,
+    MakeSelector,
 } from "@idlizer/libohos"
-import { forEachSeed, lowLevelLike, moduleLike, onlyFor, terminate } from '@idlizer/kit'
+import { forEachSeed, lowLevelLike, moduleLike, onlyFor } from '@idlizer/kit'
 
 export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
+    const selector = new MakeSelector()
+    for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
+        selector.register(p as any)
+
     // ignore predefined / synthetic files
     const files = peerLibrary.files.filter(file =>
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
-    const generated: LWDeclaration[] = forEachSeed(
-        {
+    const generated: LWDeclaration[] = forEachSeed({
         context: peerLibrary,
         begin: linearizeNamespaceMembers(files.flatMap(f => f.entries))
             .filter(e => idl.isInterface(e))
             .map(e => new OhosSeed(e)),
         },
-        onlyFor(OhosSeed, (seed, ctx) => {
-            ///clusterfuck
-            if (idl.isPrimitiveType(seed.node))
-                return producers.managed.primitive(seed.node, ctx)
-            if (idl.isInterface(seed.node))
-                return producers.managed.structure(seed.node, ctx)
-            if (idl.isMethod(seed.node))
-                return producers.managed.func(seed.node, ctx)
-            if (idl.isConstructor(seed.node))
-                return producers.managed.ctor(seed.node, ctx)
-            // if (idl.isReferenceType(seed.node)) {
-            //     const decl = ctx.library.toDeclaration(seed.node)
-            //     if (idl.isInterface(decl)) {
-            //         return {
-            //             continuation: T.c(decl.name),
-            //             declarations: [
-            //                 D.struct(managedName(decl.name),
-            //                     decl.properties.map(prop => ({
-            //                         name: prop.name,
-            //                         type: ctx.expectType(new GenerationSeed(prop.type))
-            //                     })))
-            //             ]
-            //         }
-            //     }
-            // }
-            terminate("NOT SUPPORTED " + seed.node.kind)
-        })
+        onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx))
     )
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
     const knownPackages = files
