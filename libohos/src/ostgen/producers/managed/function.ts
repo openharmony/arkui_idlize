@@ -14,83 +14,71 @@
  */
 
 import * as idl from "@idlizer/core/idl";
+import { Builders, E, Md, S, T, lw } from "@idlizer/ost";
 import { createSpecialProducer, managedName, roles } from "../common";
-import { E, S, T } from "../../../ost";
-import { Builders } from "../../../ost";
 import { argConvertor } from "../components/argConvertor";
-import { Md } from "../../../ost";
+import { OhosProducer, OhosSeed } from "../../seed";
 
-export const functionProducer = createSpecialProducer(
-  { is: idl.isMethod, role: roles.managed },
-  (method, ctx) => {
-    return {
-      artifact: {
-        reference: E.v(managedName(idl.getFQName(method))),
-        implementationGenerator: () => {
-          const declName = method.isFree
-            ? managedName(idl.getFQName(method))
-            : idl.getExtAttribute(method, idl.IDLExtendedAttributes.DtsName) ?? method.name
-          const serializerName = 'serializer'
-          const returnType = ctx.useManaged(method.returnType).reference()
-          const nativeModuleCall = Builders.call(ctx.useManagedNativeModule(method).name())
-            .arg().call('asBuffer').receiver(serializerName).$().$()
-            .arg().call('length').receiver(serializerName).$().$().$()
-          if (!method.isFree && !method.isStatic) {
-            nativeModuleCall.args.unshift(
-              Builders.access('ptr').receiver().access('peer').receiver('this').excl().$().$().$())
-          }
-          const body = [
-            Builders.decl(serializerName, T.c('SerializerBase'))
-              .value().call('hold').receiver('SerializerBase').$().$().$(),
-            ...method.parameters.flatMap(param =>
-              argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
-            method.returnType === idl.IDLVoidType
-              ? S.e(nativeModuleCall)
-              : Builders.decl('retval').value(nativeModuleCall).$(),
-            Builders.stmt().call('release').receiver(serializerName).$().$(),
-            ...argConvertor(ctx, method.returnType).returnFromInterop('retval', false)
-          ]
-          const funcDecl = Builders.func(declName)
-            .parameters(method.parameters.map(it => ({ name: it.name, type: ctx.useManaged(it.type).reference() })))
-            .returns(returnType)
-            .block().statements(body).$().$()
-          switch (idl.getExtAttribute(method, idl.IDLExtendedAttributes.Accessor)) {
-            case idl.IDLAccessorAttribute.Getter: funcDecl.modifiers.push(Md.getter()); break
-            case idl.IDLAccessorAttribute.Setter: funcDecl.modifiers.push(Md.setter()); break
-          }
-          if (method.isStatic)
-            funcDecl.modifiers.push(Md.static())
-          if (!method.isFree) {
-            const clazz = Builders.class(managedName(idl.getFQName(method.parent!))).$()
-            clazz.methods = [funcDecl]
-            return [clazz]
-          }
-          return [funcDecl]
-        }
-      }
-    }
+export const func: OhosProducer<idl.IDLMethod> = (method, ctx) => {
+  const declName = method.isFree
+    ? managedName(idl.getFQName(method))
+    : idl.getExtAttribute(method, idl.IDLExtendedAttributes.DtsName) ?? method.name
+  const serializerName = 'serializer'
+  const returnType = ctx.expectType(new OhosSeed(method.returnType))
+  const nativeModuleCall = Builders.call('__native_module_hole__')///ctx.useManagedNativeModule(method).name())
+    .arg().call('asBuffer').receiver(serializerName).$().$()
+    .arg().call('length').receiver(serializerName).$().$().$()
+  if (!method.isFree && !method.isStatic) {
+    nativeModuleCall.args.unshift(
+      Builders.access('ptr').receiver().access('peer').receiver('this').excl().$().$().$())
   }
-)
+  const body = [
+    Builders.decl(serializerName, T.c('SerializerBase'))
+      .value().call('hold').receiver('SerializerBase').$().$().$(),
+    ...method.parameters.flatMap(param =>
+      S.e(E.c('/// convertor write'))),
+      // argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
+    method.returnType === idl.IDLVoidType
+      ? S.e(nativeModuleCall)
+      : Builders.decl('retval').value(nativeModuleCall).$(),
+    Builders.stmt().call('release').receiver(serializerName).$().$(),
+    S.e(E.c('/// convertor from-interop')),
+    // ...argConvertor(ctx, method.returnType).returnFromInterop('retval', false)
+  ]
+  const funcDecl = Builders.func(declName)
+    .parameters(method.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type)) })))
+    .returns(returnType)
+    .block().statements(body).$().$()
+  switch (idl.getExtAttribute(method, idl.IDLExtendedAttributes.Accessor)) {
+    case idl.IDLAccessorAttribute.Getter: funcDecl.modifiers.push(Md.getter()); break
+    case idl.IDLAccessorAttribute.Setter: funcDecl.modifiers.push(Md.setter()); break
+  }
+  let decl: lw.LWDeclaration = funcDecl
+  if (method.isStatic)
+    funcDecl.modifiers.push(Md.static())
+  if (!method.isFree) {
+    const clazz = Builders.class(managedName(idl.getFQName(method.parent!))).$()
+    clazz.methods = [funcDecl]
+    decl = clazz
+  }
+  return {
+    continuation: E.v(managedName(idl.getFQName(method))),
+    declarations: [decl]
+  }
+}
 
-export const constructorProducer = createSpecialProducer(
-  { is: idl.isConstructor, role: roles.managed },
-  (ctor, ctx) => {
-    return {
-      artifact: {
-        reference: E.v(managedName(idl.getFQName(ctor))),
-        implementationGenerator: () => {
-          const className = managedName(idl.getFQName(ctor.parent!))
-          return [
-            Builders.class(className)
-              .ctor()
-                .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.useManaged(it.type).reference() })))
-                .block()
-                  .call('setPeer').receiver('this')
-                    .arg().call(ctx.useManagedNativeModule(ctor).name())
-                      .args(ctor.parameters.map(it => E.v(it.name))).$().$().$().$().$().$()
-          ]
-        }
-      }
-    }
+export const ctor: OhosProducer<idl.IDLConstructor> = (ctor, ctx) => {
+        // reference: E.v(managedName(idl.getFQName(ctor))),
+  const className = managedName(idl.getFQName(ctor.parent!))
+  return {
+    continuation: E.v(managedName(idl.getFQName(ctor.parent!))),
+    declarations: [
+      Builders.class(className).ctor()
+        .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type)) })))
+        .block()
+          .call('setPeer').receiver('this')
+            .arg().call('__native_module_hole__')///ctx.useManagedNativeModule(ctor).name())
+              .args(ctor.parameters.map(it => E.v(it.name))).$().$().$().$().$().$()
+    ]
   }
-)
+}

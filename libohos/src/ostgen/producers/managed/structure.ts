@@ -36,7 +36,6 @@ const tuple: OhosProducer<idl.IDLInterface> = (node, ctx) => {
 }
 
 function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
-  ///node.methods.forEach(it => ctx.useManaged(it))
   const superType = getSuperType(node, ctx.library)
   const decl = D.class(name,
     node.properties.map(prop => {
@@ -58,31 +57,11 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
   )
   return {
     continuation: T.c(name),
-    declarations: [decl]
+    declarations: [decl],
   }
 }
 
 function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
-  const syntheticMethods = [
-    ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
-    ...node.properties.flatMap(prop => [
-      idl.createMethod('get' + capitalize(prop.name), [], prop.type, undefined, {
-        extendedAttributes: [
-          { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Getter },
-          { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
-      idl.createMethod('set' + capitalize(prop.name), [idl.createParameter(prop.name, prop.type)], idl.IDLVoidType, undefined, {
-        extendedAttributes: [
-          { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter },
-          { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
-    ])
-  ]
-  // syntheticMethods.forEach(it => it.parent = node);
-  // [
-  //   ...node.constructors,
-  //   ...node.methods,
-  //   ...syntheticMethods
-  // ].forEach(it => ctx.useManaged(it))
-
   const peerType = Ts.union([T.c('Finalizable'), T.c('undefined')])
   const thisType = ctx.expectType(new OhosSeed(node))
   const intClass = Builders.class(name + 'Internal')
@@ -108,8 +87,27 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
     // default constructor
     .ctor().param('ptr').type(Ts.prim.pointer).$().block()
       .call('setPeer').receiver('this').arg('ptr').$().$().$().$()
+  const syntheticMethods = [
+    ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
+    ...node.properties.flatMap(prop => [
+      idl.createMethod('get' + capitalize(prop.name), [], prop.type, undefined, {
+        extendedAttributes: [
+          { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Getter },
+          { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
+      idl.createMethod('set' + capitalize(prop.name), [idl.createParameter(prop.name, prop.type)], idl.IDLVoidType, undefined, {
+        extendedAttributes: [
+          { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter },
+          { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
+    ])
+  ]
+  syntheticMethods.forEach(it => it.parent = node)
   return {
     continuation: T.c(name),
-    declarations: [intClass, matClass]
+    declarations: [intClass, matClass],
+    trigger: [
+      ...node.constructors,
+      ...node.methods,
+      ...syntheticMethods
+    ].map(it => new OhosSeed(it))
   }
 }

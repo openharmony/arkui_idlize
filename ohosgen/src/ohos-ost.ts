@@ -54,10 +54,15 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
             .map(e => new OhosSeed(e)),
         },
         onlyFor(OhosSeed, (seed, ctx) => {
+            ///clusterfuck
             if (idl.isPrimitiveType(seed.node))
                 return producers.managed.primitive(seed.node, ctx)
             if (idl.isInterface(seed.node))
                 return producers.managed.structure(seed.node, ctx)
+            if (idl.isMethod(seed.node))
+                return producers.managed.func(seed.node, ctx)
+            if (idl.isConstructor(seed.node))
+                return producers.managed.ctor(seed.node, ctx)
             // if (idl.isReferenceType(seed.node)) {
             //     const decl = ctx.library.toDeclaration(seed.node)
             //     if (idl.isInterface(decl)) {

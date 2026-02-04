@@ -24,13 +24,13 @@ import { structure } from "./structure";
 import { unionProducer } from "./union";
 import { callbackProducer } from "./callback";
 import { typedefProducer } from "./typedef";
-import { constructorProducer, functionProducer } from "./function";
+import { ctor, func } from "./function";
 
 export const producers = {
     fileProducer,
     enumProducer,
-    functionProducer,
-    constructorProducer,
+    func,
+    ctor,
     structure,
     primitive,
     referenceProducer,
