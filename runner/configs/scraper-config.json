@@ -4,6 +4,10 @@
         "arkui.AttributeUpdater",
         "arkui.ModifierState"
     ],
+    "banned": [
+        "ohos.inputMethod",
+        "ohos.request"
+    ],
     "main": {
         "additionalPackages": [
             "arkui.component.idlize",

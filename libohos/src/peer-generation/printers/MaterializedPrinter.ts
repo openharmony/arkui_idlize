@@ -35,7 +35,7 @@ import { ImportsCollector } from "../ImportsCollector"
 import { TargetFile } from "./TargetFile"
 import { IDLPointerType, IDLType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
 import { PrinterClass, PrinterResult } from '../LayoutManager';
 import { injectPatch } from '../common';
@@ -269,13 +269,13 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const seenTaggedMethods = new Set<string>()
         clazz.taggedMethods
             .filter(filter)
-            .map(it => methodFromTagged(it))
-            .filter(it => {
+            .map(it => [it, methodFromTagged(it)])
+            .filter(([tagged, it]) => {
                 if (seenTaggedMethods.has(it.name)) return false
                 seenTaggedMethods.add(it.name)
                 return true
             })
-            .forEach(method => {
+            .forEach(([tagged, method]) => {
                 // const method = methodFromTagged(taggedMethod)
                 const signature = new NamedMethodSignature(
                     method.returnType,
@@ -283,9 +283,27 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     method.parameters.map(it => it.name)
                 )
                 // TBD: Add tagged methods implementation
-                this.printer.writeMethodImplementation(new Method(getTaggedName(method)!, signature), writer => {
+                this.printer.writeMethodImplementation(new Method(method.name!, signature), writer => {
+                    const hook = getHookMethod(clazz.className, method.name!)
+                    if (hook) {
+                        const hookCall = writer.makeFunctionCall(hook.hookName, [writer.makeThis(), ...tagged.parameters.map(it => writer.makeString(it.name))])
+                        writer.addFeature(hook.hookName, this.library.layout.handwrittenPackage())
+                        if (hook.replaceImplementation) {
+                            writer.writeStatement(writer.makeReturn(hookCall))
+                            return
+                        } else {
+                            writer.writeExpressionStatement(hookCall)
+                        }
+                    }
+                    const taggedCall = writer.makeMethodCall('this', tagged.name, tagged.parameters.map(it => writer.makeString(it.name)))
+                    const conditions = idl.fetchSignatureTags(tagged).map(it => writer.makeNaryOp("==", [writer.makeString(it.name), writer.makeString(it.value)]))
+                    const condition = writer.makeNaryOp("||", conditions)
+                    const block = writer.makeBlock([
+                        writer.makeReturn(taggedCall)
+                    ])
+                    writer.writeStatement(writer.makeCondition(condition, block))
                     writer.writeStatement(
-                        writer.makeThrowError("Improve")
+                        writer.makeThrowError("Unrecognized tagged method")
                     )
                 })
             })
