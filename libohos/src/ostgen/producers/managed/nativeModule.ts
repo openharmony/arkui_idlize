@@ -15,55 +15,66 @@
 
 import * as idl from "@idlizer/core/idl";
 import { Builders, E, Hs, Ts } from "@idlizer/ost";
-import { isDirectInteropType, managedName } from "../common";
-import { fqName, nativeModuleName } from "../../engine";
+import { isDirectInteropType } from "../common";
+import { createProducer, fqName, nativeModuleName } from "../../engine";
 import { argConvertor } from "../components/argConvertor";
-import { OhosProducer, OhosSeed } from "../common"
+import { OhosSeed } from "../common"
 
-export const nativeModuleMaterializedProducer: OhosProducer<idl.IDLInterface> = (node, ctx) => {
-  const methodName = fqName(node, '_', '_getFinalizer')
-  const nativeModuleClassName = nativeModuleName()
-  return {
-    continuation: E.v(nativeModuleClassName, [Hs.isType()]),
-    declarations: [Builders.class(nativeModuleClassName)
+export const nativeModuleMaterializedProducer = createProducer(
+  { is: idl.isInterface, role: 'native-module' },
+  (node, ctx) => {///how to handle getFinalizer better?
+    const methodName = fqName(node, '_', '_getFinalizer')
+    const nativeModuleClassName = nativeModuleName()
+    return {
+      continuation: E.v(nativeModuleClassName, [Hs.isType()]),
+      declarations: [
+        Builders.class(nativeModuleClassName)
+          .method(methodName)
+            .native().static().annotation('ani.unsafe.Direct')
+            .returns(Ts.prim.pointer).$().$()
+      ]
+    }
+  }
+)
+
+export const nativeModuleFunctionProducer = createProducer(
+  { is: idl.isMethod, role: 'native-module' },
+  (method, ctx) => {
+    const methodName = fqName(method, '_')
+    const className = nativeModuleName();
+    const returnType = argConvertor(ctx, method.returnType).interopType(false)
+    const nativeModule = Builders.class(className)
       .method(methodName)
-        .native().static().annotation('ani.unsafe.Direct')
-        .returns(Ts.prim.pointer).$().$()
-    ]
+        .native().static()
+        ///no annotation for vmContext methods, see MethodUtils
+        .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
+        .param('buffer').type(Ts.prim.serializerBuffer).$()
+        .param('length').type(Ts.prim.i32).$()
+        .returns(returnType).$().$()
+    if (!method.isFree && !method.isStatic)
+      nativeModule.methods[0].parameters.unshift(
+        { name: 'ptr', type: Ts.prim.pointer })
+    return {
+      continuation: E.get(E.v(className, [Hs.isType()]), methodName),
+      declarations: [nativeModule]
+    }
   }
-}
+)
 
-export const nativeModuleFunctionProducer: OhosProducer<idl.IDLMethod> = (method, ctx) => {
-  const methodName = fqName(method, '_')
-  const className = nativeModuleName();
-  const returnType = argConvertor(ctx, method.returnType).interopType(false)
-  const nativeModule = Builders.class(className)
-    .method(methodName)
-      .native().static()
-      ///no annotation for vmContext methods, see MethodUtils
-      .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
-      .param('buffer').type(Ts.prim.serializerBuffer).$()
-      .param('length').type(Ts.prim.i32).$()
-      .returns(returnType).$().$()
-  if (!method.isFree && !method.isStatic)
-    nativeModule.methods[0].parameters.unshift(
-      { name: 'ptr', type: Ts.prim.pointer })
-  return {
-    continuation: E.get(E.v(className, [Hs.isType()]), methodName),
-    declarations: [nativeModule]
+export const nativeModuleConstructorProducer = createProducer(
+  { is: idl.isConstructor, role: 'native-module' },
+  (ctor, ctx) => {
+    const methodName = fqName(ctor.parent as idl.IDLInterface, '_', '_construct')
+    const nativeModuleClassName = nativeModuleName();
+    return {
+      continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), methodName),
+      declarations: [
+        Builders.class(nativeModuleClassName)
+          .method(methodName)
+          .native().static().annotation('ani.unsafe.Direct')
+          .returns(Ts.prim.pointer)
+          .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type)) }))).$().$()
+      ]
+    }
   }
-}
-
-export const nativeModuleConstructorProducer: OhosProducer<idl.IDLConstructor> = (ctor, ctx) => {
-  const methodName = fqName(ctor.parent as idl.IDLInterface, '_', '_construct')
-  const nativeModuleClassName = nativeModuleName();
-  const nativeModule = Builders.class(nativeModuleClassName)
-    .method(methodName)
-      .native().static().annotation('ani.unsafe.Direct')
-      .returns(Ts.prim.pointer)
-      .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type)) }))).$().$()
-  return {
-    continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), methodName),
-    declarations: [nativeModule]
-  }
-}
+)

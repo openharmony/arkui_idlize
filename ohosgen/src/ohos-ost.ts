@@ -55,7 +55,7 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
         context: peerLibrary,
         begin: linearizeNamespaceMembers(files.flatMap(f => f.entries))
             .filter(e => idl.isInterface(e))
-            .map(e => new OhosSeed(e)),
+            .map(e => new OhosSeed(e, 'managed')),
         },
         onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx))
     )

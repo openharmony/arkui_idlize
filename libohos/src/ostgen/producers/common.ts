@@ -106,10 +106,11 @@ export function isDirectInteropType(type: lw.LWType) {
 export type OhosProducerContext = ProducerContext<PeerLibrary, undefined>
 export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext) => ProducerResult
 
-type CommonRole = 'managed' | 'native'
+type CommonRole = 'managed' | 'capi'
 type SpecificRole<T extends idl.IDLNode> =
-  T extends idl.IDLInterface ? 'managed-serde' | 'native-serde' :
-  T extends idl.IDLMethod ? 'native-module' | 'bridge' | 'capi' | 'impl' :
+  T extends idl.IDLReferenceType ? 'managed-serde' | 'native-serde' :
+  T extends idl.IDLInterface ? 'native-module' :
+  T extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'impl' :
   never
 type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
@@ -124,3 +125,5 @@ export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {///mv t
     return `hash:${idl.isType(this.node) ? idl.printType(this.node) : idl.getFQName(this.node)}:${this.role ?? ''}`
   }
 }
+
+/// npm -C ../.. run compile:self && node ../.. --language arkts --idl2peer --use-ost --input-dir test_ost/idl

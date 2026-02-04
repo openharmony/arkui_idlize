@@ -22,7 +22,7 @@ import { OhosProducer, OhosProducerContext, OhosSeed } from "../common"
 import { ProducerResult } from "@idlizer/kit"
 
 export const structure = createProducer(
-  { is: idl.isInterface },
+  { is: idl.isInterface, role: 'managed' },
   (node, ctx) => {
     const declName = managedName(idl.getFQName(node))
     return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx) :
@@ -49,13 +49,13 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
       ]
       return {
         name: prop.name,
-        type: ctx.expectType(new OhosSeed(prop.type)),
+        type: ctx.expectType(new OhosSeed(prop.type, 'managed')),
         modifiers,
       }
     }),
     [], {
     kind: idl.isClassSubkind(node) ? 'class' : 'interface',
-    base: superType ? ctx.expectType(new OhosSeed(superType)) : undefined
+    base: superType ? ctx.expectType(new OhosSeed(superType, 'managed')) : undefined
     }
   )
   return {
@@ -66,7 +66,7 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
 
 function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
   const peerType = Ts.union([T.c('Finalizable'), T.c('undefined')])
-  const thisType = ctx.expectType(new OhosSeed(node))
+  const thisType = ctx.expectType(new OhosSeed(node, 'managed'))
   const intClass = Builders.class(name + 'Internal')
     .method('fromPtr').static()
       .returns(thisType)
@@ -111,6 +111,6 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
       ...node.constructors,
       ...node.methods,
       ...syntheticMethods
-    ].map(it => new OhosSeed(it))
+    ].map(it => new OhosSeed(it, 'managed'))
   }
 }

@@ -61,15 +61,15 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
         return [Builders.return().value(resultVarName).$()]
     }
-    protected getSerializer(node: idl.IDLNode, native: boolean) {
+    protected getSerializer(node: idl.IDLReferenceType, native: boolean) {
         return native
-            ? this.ctx.expectExpr(new OhosSeed(node))///role=native-serde
-            : this.ctx.expectExpr(new OhosSeed(node))///mgd-serde
+            ? this.ctx.expectExpr(new OhosSeed(node, 'native-serde'))
+            : this.ctx.expectExpr(new OhosSeed(node, 'managed-serde'))
     }
     protected convertType(type: idl.IDLType, native: boolean): lw.LWType {
         return native
-            ? this.ctx.expectType(new OhosSeed(type))///role==capi
-            : this.ctx.expectType(new OhosSeed(type))///role=mgd
+            ? this.ctx.expectType(new OhosSeed(type, 'capi'))
+            : this.ctx.expectType(new OhosSeed(type, 'managed'))
     }
 }
 
