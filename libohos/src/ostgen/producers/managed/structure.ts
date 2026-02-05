@@ -14,11 +14,10 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, D, E, Hs, Md, T, Ts, lw } from "@idlizer/ost"
-import { managedName } from "../common"
+import { Builders, D, E, Hs, Md, T, Ts } from "@idlizer/ost"
+import { managedName, OhosProducer, OhosProducerContext, OhosSeed } from "../common"
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
 import { createProducer, fqName } from "../../engine"
-import { OhosProducer, OhosProducerContext, OhosSeed } from "../common"
 import { ProducerResult } from "@idlizer/kit"
 
 export const structure = createProducer(

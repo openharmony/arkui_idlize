@@ -71,7 +71,9 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
         (isManaged(decl.name) ? m : n).push(decl)
         return [m, n]
     }, [[], []])
-    generated.sort((a, b) => a.name.localeCompare(b.name)).forEach(decl => console.log(decl.name))///
+    generated
+        .filter(decl => !decl.name.startsWith('managed'))
+        .sort((a, b) => a.name.localeCompare(b.name)).forEach(decl => console.log(decl.name))///
     console.log(`/// ${managed.length} managed, ${native.length} native`)
     return [
         dumpTsLike(managed, peerLibrary.language, new Set(knownPackages)),

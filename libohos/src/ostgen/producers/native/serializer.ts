@@ -17,12 +17,15 @@ import * as idl from "@idlizer/core/idl";
 import { E, Hs } from "@idlizer/ost";
 import { bridgeName } from "../common";
 import { makeSerializer } from "../components/serializer";
-import { OhosProducer } from "../common"
+import { createProducer } from "../../engine"
 
-export const serializerProducer: OhosProducer<idl.IDLInterface> = (node, ctx) => {
-  const serializerName = bridgeName(idl.getFQName(node) + 'Serializer')
-  return {
-    continuation: E.v(serializerName, [Hs.isType()]),
-    declarations: makeSerializer(ctx, node, true)
+export const serializerProducer = createProducer(
+  { is: idl.isInterface, role: 'native' },
+  (node, ctx) => {
+    const serializerName = bridgeName(idl.getFQName(node) + 'Serializer')
+    return {
+      continuation: E.v(serializerName, [Hs.isType()]),
+      declarations: makeSerializer(ctx, node, true)
+    }
   }
-}
+)

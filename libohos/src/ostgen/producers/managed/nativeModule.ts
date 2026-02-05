@@ -56,7 +56,8 @@ export const nativeModuleFunctionProducer = createProducer(
         { name: 'ptr', type: Ts.prim.pointer })
     return {
       continuation: E.get(E.v(className, [Hs.isType()]), methodName),
-      declarations: [nativeModule]
+      declarations: [nativeModule],
+      trigger: [new OhosSeed(method, 'bridge')]
     }
   }
 )
@@ -74,7 +75,8 @@ export const nativeModuleConstructorProducer = createProducer(
           .native().static().annotation('ani.unsafe.Direct')
           .returns(Ts.prim.pointer)
           .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) }))).$().$()
-      ]
+      ],
+      trigger: [new OhosSeed(ctor, 'bridge')]
     }
   }
 )

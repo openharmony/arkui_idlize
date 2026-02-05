@@ -21,7 +21,7 @@ import { createProducer, fqName, modifierClassName, moduleName } from "../../eng
 import { argConvertor } from "../components/argConvertor"
 
 export const functionBridgeProducer = createProducer(
-  { is: idl.isMethod, role: 'capi' },
+  { is: idl.isMethod, role: 'bridge' },
   (method, ctx) => {
     const declName = bridgeName(fqName(method, 'modifier.impl_'))
     const funcName = fqName(method, '_')
@@ -80,7 +80,7 @@ export const functionBridgeProducer = createProducer(
 )
 
 export const constructorBridgeProducer = createProducer(
-  { is: idl.isConstructor, role: 'capi' },
+  { is: idl.isConstructor, role: 'bridge' },
   (ctor, ctx) => {
     ///need to enumerate overloaded ctors somehow
     const declName = bridgeName(fqName(ctor, 'modifier.impl_'))
@@ -106,7 +106,7 @@ export const constructorBridgeProducer = createProducer(
 )
 
 export const materializedBridgeProducer = createProducer(
-  { is: idl.isInterface, role: 'capi' },
+  { is: idl.isInterface, role: 'bridge' },
   (node, ctx) => {
     const fqn = fqName(node)
     const finalizerName = fqn + '_getFinalizer'
