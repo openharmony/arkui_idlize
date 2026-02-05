@@ -44,8 +44,7 @@ export const func = createProducer(
         ? S.e(nativeModuleCall)
         : Builders.decl('retval').value(nativeModuleCall).$(),
       Builders.stmt().call('release').receiver(serializerName).$().$(),
-      S.e(E.c('/// convertor from-interop')),
-      // ...argConvertor(ctx, method.returnType).returnFromInterop('retval', false)
+      ...argConvertor(ctx, method.returnType).returnFromInterop('retval', false)
     ]
     const funcDecl = Builders.func(declName)
       .parameters(method.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) })))

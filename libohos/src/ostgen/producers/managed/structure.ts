@@ -84,9 +84,9 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
           .arg('peerPtr')
           .arg().call('getFinalizer').receiver(E.v(name, [Hs.isType()])).$().$().$().$().$().$().$()
     // getFinalizer
-    // .method('getFinalizer').static().returns(Ts.prim.pointer).block()
-    //   .return(Ts.prim.pointer).call(fqName(node, '_', '_getFinalizer'))
-    //     .receiver(ctx.useManagedNativeModule(node).name()).$().$().$().$()
+    .method('getFinalizer').static().returns(Ts.prim.pointer).block()
+      .return(Ts.prim.pointer).call(fqName(node, '_', '_getFinalizer'))
+        .receiver(ctx.expectExpr(new OhosSeed(node, 'native-module'))).$().$().$().$()
     // default constructor
     .ctor().param('ptr').type(Ts.prim.pointer).$().block()
       .call('setPeer').receiver('this').arg('ptr').$().$().$().$()

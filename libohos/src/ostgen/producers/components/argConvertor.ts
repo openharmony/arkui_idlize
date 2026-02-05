@@ -62,9 +62,10 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
         return [Builders.return().value(resultVarName).$()]
     }
     protected getSerializer(node: idl.IDLReferenceType, native: boolean) {
-        return native
-            ? this.ctx.expectExpr(new OhosSeed(node, 'native-serde')) ///rather seed declaration?
-            : this.ctx.expectExpr(new OhosSeed(node, 'managed-serde'))
+        return E.v('///serde')
+        // return native
+        //     ? this.ctx.expectExpr(new OhosSeed(node, 'native-serde')) ///rather seed declaration?
+        //     : this.ctx.expectExpr(new OhosSeed(node, 'managed-serde'))
     }
     protected convertType(type: idl.IDLType, native: boolean): lw.LWType {
         return native

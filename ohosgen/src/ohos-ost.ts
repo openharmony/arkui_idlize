@@ -54,7 +54,10 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
     const generated: LWDeclaration[] = forEachSeed({
         context: peerLibrary,
         begin: linearizeNamespaceMembers(files.flatMap(f => f.entries))
-            .filter(e => idl.isInterface(e))
+            .filter(e =>
+                !idl.isImport(e) &&
+                !idl.isNamespace(e) &&
+                !idl.isCallback(e))
             .map(e => new OhosSeed(e, 'managed')),
         },
         onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx))
@@ -68,9 +71,11 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
         (isManaged(decl.name) ? m : n).push(decl)
         return [m, n]
     }, [[], []])
+    generated.sort((a, b) => a.name.localeCompare(b.name)).forEach(decl => console.log(decl.name))///
+    console.log(`/// ${managed.length} managed, ${native.length} native`)
     return [
         dumpTsLike(managed, peerLibrary.language, new Set(knownPackages)),
-        new Map() ///dumpCLike(native, peerLibrary.name)
+        new Map()///dumpCLike(native, peerLibrary.name)
     ]
 }
 
