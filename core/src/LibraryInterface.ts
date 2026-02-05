@@ -15,6 +15,7 @@ export interface LibraryInterface extends ReferenceResolver {
     createTypeNameConvertor(language: Language): IdlNameConvertor
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType
     getCurrentContext(): string | undefined
+    isHandwritten(node: idl.IDLEntry | idl.IDLReferenceType): boolean
     layout: LayoutManager
     /**
      * todo: is it really needed?

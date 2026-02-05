@@ -44,7 +44,7 @@ import { ImportsCollector, ImportFeature } from '../ImportsCollector'
 import { convertDeclToFeature, collectDeclDependencies } from '../ImportsCollectorUtils'
 import { isModifier } from '../ModifiersCollector'
 import { collectAllProperties, getAllSuperProps } from '../propertyCollectors'
-import { isHandWritten } from '../idl/IdlPeerGeneratorVisitor'
+
 export interface InterfacesVisitor {
     printInterfaces(): PrinterResult[]
 }
@@ -624,7 +624,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
                 if (idl.isImport(entry) ||
                     idl.isNamespace(entry) ||
                     isInIdlizeInternal(entry) ||
-                    isHandWritten(entry, this.peerLibrary) ||
+                    this.peerLibrary.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     isInIdlizeStdlib(entry) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses
@@ -773,7 +773,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                 if (idl.isNamespace(entry) ||
                     idl.isImport(entry) ||
                     isInIdlizeInternal(entry) ||
-                    isHandWritten(entry, this.peerLibrary) ||
+                    this.peerLibrary.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     isInIdlizeStdlib(entry) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses ||
@@ -861,7 +861,7 @@ export class CJInterfacesVisitor implements InterfacesVisitor {
                 if (idl.isImport(entry) ||
                     idl.isNamespace(entry) ||
                     isInIdlizeInternal(entry) ||
-                    isHandWritten(entry, this.peerLibrary) ||
+                    this.peerLibrary.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
                 syntheticGenerator.convert(entry)
@@ -1210,6 +1210,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
         return idl.isInterface(entry) && isMaterialized(entry, this.peerLibrary)
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
+            || isModifier(entry, this.peerLibrary)
             || (idl.isTypedef(entry)|| idl.isCallback(entry) || idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
             || idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses
     }
@@ -1246,7 +1247,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
                 if (idl.isNamespace(entry) ||
                     idl.isImport(entry) ||
                     isInIdlizeInternal(entry) ||
-                    isHandWritten(entry, this.peerLibrary) ||
+                    this.peerLibrary.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     isInIdlizeStdlib(entry) //||
                 ) {

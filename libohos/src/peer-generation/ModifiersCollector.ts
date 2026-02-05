@@ -132,7 +132,7 @@ export function isModifier(entry: idl.IDLEntry, resolver: ReferenceResolver): bo
 
 export function isNonTrivialModifier(entry: idl.IDLEntry, library: PeerLibrary) {
     const modifierCollection = collectModifiers(library)
-    for (const [fileName, modifiers] of modifierCollection) {
+    for (const modifiers of modifierCollection.values()) {
         for (const modifier of modifiers) {
             if (modifier.modifier === entry) {
                 return (modifier.isTrivial === false)

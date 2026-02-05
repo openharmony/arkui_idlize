@@ -1,0 +1,8 @@
+package arkui.CheckTrivialModifierModifier;
+
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.check.modifiers.CheckTrivialModifierAttribute as CheckTrivialModifierAttribute;
+
+[Entity=Class, ComponentModifier]
+interface CheckTrivialModifierModifier: CheckTrivialModifierAttribute, AttributeModifier<CheckTrivialModifierAttribute> {
+};

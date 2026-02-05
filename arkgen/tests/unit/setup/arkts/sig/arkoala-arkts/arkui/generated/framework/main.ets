@@ -31,10 +31,11 @@ import {
     ArkCheckParentComponent,
     ArkCheckChildPeer,
     ArkCheckChildComponent,
+    CheckTrivialModifierModifier,
     MenuElement
 } from "./."
 
-import { CheckModifiersModifier } from "#handwritten"
+import { CheckCustomModifierModifier } from "#handwritten"
 
 import { InteropNativeModule } from "@koalaui/interop"
 
@@ -181,12 +182,14 @@ function checkHierarchy() {
         `setCommonMethodBoolean(true)`)
 }
 class SomeElement implements MenuElement {
-    modifierProp: CheckModifiersModifier | undefined
+    modifierProp: CheckCustomModifierModifier | undefined
+    trivialModifierProp: CheckTrivialModifierModifier | undefined
 }
 
 function checkModifiers() {
     const menuElement = new SomeElement()
-    menuElement.modifierProp = new CheckModifiersModifier(5)
+    menuElement.modifierProp = new CheckCustomModifierModifier(5)
+    menuElement.trivialModifierProp = new CheckTrivialModifierModifier()
     checkResult("modifier test", menuElement.modifierProp!.foo('Hello'), 10)
 }
 

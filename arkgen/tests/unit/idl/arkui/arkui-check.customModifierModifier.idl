@@ -1,0 +1,11 @@
+package arkui.CheckCustomModifierModifier;
+
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.check.modifiers.CheckCustomModifierAttribute as CheckCustomModifierAttribute;
+import arkui.component.check.modifiers.CheckTrivialModifierAttribute as CheckTrivialModifierAttribute;
+
+[Entity=Class, ComponentModifier]
+interface CheckCustomModifierModifier: CheckCustomModifierAttribute, AttributeModifier<CheckCustomModifierAttribute> {
+    constructor(number a);
+    number foo(String param);
+};
