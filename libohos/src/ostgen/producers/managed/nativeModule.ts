@@ -73,7 +73,7 @@ export const nativeModuleConstructorProducer = createProducer(
           .method(methodName)
           .native().static().annotation('ani.unsafe.Direct')
           .returns(Ts.prim.pointer)
-          .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type)) }))).$().$()
+          .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) }))).$().$()
       ]
     }
   }

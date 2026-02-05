@@ -16,105 +16,112 @@
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration } from "@idlizer/core"
 import { Builders, E, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
-import { bridgeName, isDirectInteropType } from "../common"
-import { fqName, modifierClassName, moduleName } from "../../engine"
+import { bridgeName, isDirectInteropType, OhosSeed } from "../common"
+import { createProducer, fqName, modifierClassName, moduleName } from "../../engine"
 import { argConvertor } from "../components/argConvertor"
-import { OhosProducer, OhosSeed } from "../common"
 
-export const functionBridgeProducer: OhosProducer<idl.IDLMethod> = (method, ctx) => {
-  const declName = bridgeName(fqName(method, 'modifier.impl_'))
-  const funcName = fqName(method, '_')
-  const params = [
-    { name: 'thisArray', type: Ts.prim.serializerBuffer },
-    { name: 'thisLength', type: Ts.prim.i32 },
-  ]
-  const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
-    const conv = argConvertor(ctx, it.type, it.isOptional)
-    const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
-    return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
-  })
-  const apiCallArgs = argReads.map(([_, expr]) => expr)
-  const macroName = ['KOALA_INTEROP_']
-  const macroArgs: (string | LWType)[] = [funcName]
-  const returnConv = argConvertor(ctx, method.returnType)
-  const interopReturnType = returnConv.interopType(true)
-  if (isDirectInteropType(interopReturnType))
-    macroName.push('DIRECT_')
-  if (interopReturnType === Ts.prim.void)
-    macroName.push('V')
-  else
-    macroArgs.push(interopReturnType)
-  if (!method.isFree && !method.isStatic) {
-    params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
-    apiCallArgs.unshift(E.v('thisPtr'))
-    macroArgs.push(Ts.prim.pointer)
-  }
-  macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
-
-  const apiCall = Builders.call(apiAccessor(method, funcName)).args(apiCallArgs).$()
-  const body = Builders.block()
-    .decl('deserializer', T.c('DeserializerBase')).mutable().value()
-      .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
-    .statements(argReads.flatMap(([stmts, _]) => stmts))
-  if (interopReturnType === Ts.prim.interopReturnBuffer) {
-    body
-      .decl('returnBuffer').value(apiCall).$()
-      .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
-      .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
-      .return().call('toReturnBuffer').receiver('returnSerializer').$().$()
-  } else {
-    body.return(interopReturnType).value(apiCall).$()
-  }
-  return {
-    continuation: E.v(declName),
-    declarations: [
-      Builders.func(declName)
-        .parameters(params)
-        .returns(interopReturnType)
-        .body(body.$())
-        .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+export const functionBridgeProducer = createProducer(
+  { is: idl.isMethod, role: 'capi' },
+  (method, ctx) => {
+    const declName = bridgeName(fqName(method, 'modifier.impl_'))
+    const funcName = fqName(method, '_')
+    const params = [
+      { name: 'thisArray', type: Ts.prim.serializerBuffer },
+      { name: 'thisLength', type: Ts.prim.i32 },
     ]
-  }
-}
+    const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
+      const conv = argConvertor(ctx, it.type, it.isOptional)
+      const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
+      return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
+    })
+    const apiCallArgs = argReads.map(([_, expr]) => expr)
+    const macroName = ['KOALA_INTEROP_']
+    const macroArgs: (string | LWType)[] = [funcName]
+    const returnConv = argConvertor(ctx, method.returnType)
+    const interopReturnType = returnConv.interopType(true)
+    if (isDirectInteropType(interopReturnType))
+      macroName.push('DIRECT_')
+    if (interopReturnType === Ts.prim.void)
+      macroName.push('V')
+    else
+      macroArgs.push(interopReturnType)
+    if (!method.isFree && !method.isStatic) {
+      params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
+      apiCallArgs.unshift(E.v('thisPtr'))
+      macroArgs.push(Ts.prim.pointer)
+    }
+    macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
 
-export const constructorBridgeProducer: OhosProducer<idl.IDLConstructor> = (ctor, ctx) => {
-  ///need to enumerate overloaded ctors somehow
-  const declName = bridgeName(fqName(ctor, 'modifier.impl_'))
-  const funcName = fqName(ctor, '_')
-  const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
-  const callArgs = ctor.parameters.map((it, i) =>
-    Builders.cast(Ts.ptr(ctx.expectType(new OhosSeed(it.type)))).value()
-      .unary(Op.ref).value(it.name).$().$().$());
-  return {
-    continuation: E.v(declName),
-    declarations: [Builders.func(declName)
-      .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
-      .returns(Ts.prim.pointer)
-      .block()
-        .return(Ts.prim.pointer)
-          .call(apiAccessor(ctor, funcName))
-          .args(callArgs).$().$().$()
-      .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
-      .$()
-    ]
+    const apiCall = Builders.call(apiAccessor(method, funcName)).args(apiCallArgs).$()
+    const body = Builders.block()
+      .decl('deserializer', T.c('DeserializerBase')).mutable().value()
+        .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
+      .statements(argReads.flatMap(([stmts, _]) => stmts))
+    if (interopReturnType === Ts.prim.interopReturnBuffer) {
+      body
+        .decl('returnBuffer').value(apiCall).$()
+        .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
+        .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
+        .return().call('toReturnBuffer').receiver('returnSerializer').$().$()
+    } else {
+      body.return(interopReturnType).value(apiCall).$()
+    }
+    return {
+      continuation: E.v(declName),
+      declarations: [
+        Builders.func(declName)
+          .parameters(params)
+          .returns(interopReturnType)
+          .body(body.$())
+          .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+      ]
+    }
   }
-}
+)
 
-
-export const materializedBridgeProducer: OhosProducer<idl.IDLInterface> = (node, ctx) => {
-  const fqn = fqName(node)
-  const finalizerName = fqn + '_getFinalizer'
-  const declName = bridgeName('modifier.impl_' + finalizerName)
-  return {
-    continuation: E.v(declName),
-    declarations: [
-      Builders.func(declName).returns(Ts.prim.pointer).block()
-        .return(Ts.prim.pointer)
-          .cast(Ts.prim.pointer).value(apiAccessor(node, fqn + '_destruct')).$().$().$()
-        .macro('KOALA_INTEROP_DIRECT_0', finalizerName, Ts.prim.pointer).$()
-    ]
+export const constructorBridgeProducer = createProducer(
+  { is: idl.isConstructor, role: 'capi' },
+  (ctor, ctx) => {
+    ///need to enumerate overloaded ctors somehow
+    const declName = bridgeName(fqName(ctor, 'modifier.impl_'))
+    const funcName = fqName(ctor, '_')
+    const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
+    const callArgs = ctor.parameters.map((it, i) =>
+      Builders.cast(Ts.ptr(ctx.expectType(new OhosSeed(it.type, 'capi')))).value()
+        .unary(Op.ref).value(it.name).$().$().$());
+    return {
+      continuation: E.v(declName),
+      declarations: [Builders.func(declName)
+        .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
+        .returns(Ts.prim.pointer)
+        .block()
+          .return(Ts.prim.pointer)
+            .call(apiAccessor(ctor, funcName))
+            .args(callArgs).$().$().$()
+        .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
+        .$()
+      ]
+    }
   }
-}
+)
+
+export const materializedBridgeProducer = createProducer(
+  { is: idl.isInterface, role: 'capi' },
+  (node, ctx) => {
+    const fqn = fqName(node)
+    const finalizerName = fqn + '_getFinalizer'
+    const declName = bridgeName('modifier.impl_' + finalizerName)
+    return {
+      continuation: E.v(declName),
+      declarations: [
+        Builders.func(declName).returns(Ts.prim.pointer).block()
+          .return(Ts.prim.pointer)
+            .cast(Ts.prim.pointer).value(apiAccessor(node, fqn + '_destruct')).$().$().$()
+          .macro('KOALA_INTEROP_DIRECT_0', finalizerName, Ts.prim.pointer).$()
+      ]
+    }
+  }
+)
 
 function apiAccessor(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, modifierName: string): LWExpression {
   return Builders

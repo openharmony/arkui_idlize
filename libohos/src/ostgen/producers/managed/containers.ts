@@ -19,18 +19,18 @@ import { createProducer } from "../../engine";
 import { OhosSeed } from "../common";
 
 export const containerProducer = createProducer(
-  { is: idl.isContainerType },
+  { is: idl.isContainerType, role: 'managed' },
   (type, ctx) => {
     if (idl.IDLContainerUtils.isSequence(type)) {
-      const elemRef = ctx.expectType(new OhosSeed(type.elementType[0]))
+      const elemRef = ctx.expectType(new OhosSeed(type.elementType[0], 'managed'))
       return {
         continuation: Ts.array(elemRef),
         declarations: []
       }
     }
     if (idl.IDLContainerUtils.isRecord(type)) {
-      const keyRef = ctx.expectType(new OhosSeed(type.elementType[0]))
-      const valRef = ctx.expectType(new OhosSeed(type.elementType[1]))
+      const keyRef = ctx.expectType(new OhosSeed(type.elementType[0], 'managed'))
+      const valRef = ctx.expectType(new OhosSeed(type.elementType[1], 'managed'))
       return {
         continuation: Ts.map(keyRef, valRef),
         declarations: []

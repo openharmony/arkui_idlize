@@ -19,9 +19,9 @@ import { createProducer } from "../../engine";
 import { OhosSeed } from "../common"
 
 export const unionProducer = createProducer(
-  { is: idl.isUnionType },
+  { is: idl.isUnionType, role: 'managed' },
   (type, ctx) => ({
-    continuation: Ts.union(type.types.map(ty => ctx.expectType(new OhosSeed(ty)))),
+    continuation: Ts.union(type.types.map(ty => ctx.expectType(new OhosSeed(ty, 'managed')))),
     declarations: []
   })
 )

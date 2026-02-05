@@ -43,7 +43,7 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
     ]
     return {
       name: prop.name,
-      type: ctx.expectType(new OhosSeed(prop.type)),
+      type: ctx.expectType(new OhosSeed(prop.type, 'capi')),
       modifiers,
     }
   }))]

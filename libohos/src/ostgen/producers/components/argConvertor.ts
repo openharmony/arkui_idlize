@@ -63,7 +63,7 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     }
     protected getSerializer(node: idl.IDLReferenceType, native: boolean) {
         return native
-            ? this.ctx.expectExpr(new OhosSeed(node, 'native-serde'))
+            ? this.ctx.expectExpr(new OhosSeed(node, 'native-serde')) ///rather seed declaration?
             : this.ctx.expectExpr(new OhosSeed(node, 'managed-serde'))
     }
     protected convertType(type: idl.IDLType, native: boolean): lw.LWType {
@@ -289,7 +289,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     ? Builders.binary(Op.eq)
                         .left().access('selector').receiver(accessor).$().$()
                         .right(i).$()
-                    : Builders.instanceof(this.ctx.expectType(new OhosSeed(ty))).value(accessor).$()///role=mgd-ser
+                    : Builders.instanceof(this.ctx.expectType(new OhosSeed(ty, 'managed'))).value(accessor).$()
                 const value = native
                     ? Builders.access('value' + i).receiver(accessor).$()
                     : accessor /// cast to `ty`
@@ -406,7 +406,7 @@ class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
         const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
         const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
         return [[
-            Builders.decl(name, this.ctx.expectType(new OhosSeed(this.type))).value()///role==capi
+            Builders.decl(name, this.ctx.expectType(new OhosSeed(this.type, 'capi'))).value()
                 .ctor().asStruct()
                     .arg().call('readCallbackResource').receiver(serializerName).$().$()
                     .arg().cast(T.fn(asyncParams, Ts.prim.void)).value()

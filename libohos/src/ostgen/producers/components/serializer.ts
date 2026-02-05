@@ -33,7 +33,8 @@ export function makeSerializer(
   node: idl.IDLInterface,
   native: boolean
 ) {
-  const valueType = ctx.expectType(new OhosSeed(node))
+  const role = native ? 'capi' : 'managed'
+  const valueType = ctx.expectType(new OhosSeed(node, role))
   const clazz = makeSerializerClass(node, valueType, native)
   const write = makeSerializerWrite(ctx, node, valueType, native)
   const read = makeSerializerRead(ctx, node, valueType, native)

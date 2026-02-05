@@ -29,8 +29,8 @@ export const callbackProducer = createProducer(
       continuation: T.c(generatedDeclName),
       declarations: [
         Builders.type(generatedDeclName).funcType()
-          .parameters(callback.parameters.map(it => [it.name, ctx.expectType(new OhosSeed(it.type))]))
-          .returns(ctx.expectType(new OhosSeed(callback.returnType))).$().$(),
+          .parameters(callback.parameters.map(it => [it.name, ctx.expectType(new OhosSeed(it.type, 'managed'))]))
+          .returns(ctx.expectType(new OhosSeed(callback.returnType, 'managed'))).$().$(),
         Builders.func(managedName('engine.deserializeAndCall' + callback.name))
           .param('deserializer').typeStr('DeserializerBase').$()
           .block()

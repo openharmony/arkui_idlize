@@ -33,7 +33,7 @@ export const structure = createProducer(
 
 const tuple: OhosProducer<idl.IDLInterface> = (node, ctx) => {
   return {
-    continuation: Ts.intersection(node.properties.map(prop => ctx.expectType(new OhosSeed(prop.type)))),
+    continuation: Ts.intersection(node.properties.map(prop => ctx.expectType(new OhosSeed(prop.type, 'managed')))),
     declarations: []
   }
 }

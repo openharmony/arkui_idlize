@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { PeerLibrary } from "@idlizer/core"
-import { E, Hs, Ts, lw } from "@idlizer/ost"
+import { E, Hs, LWType, Ts, lw } from "@idlizer/ost"
 import { ProducerContext, ProducerResult, Seed } from "@idlizer/kit"
 
 export const MANAGED_PREFIX = 'managed'
@@ -125,5 +125,3 @@ export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {///mv t
     return `hash:${idl.isType(this.node) ? idl.printType(this.node) : idl.getFQName(this.node)}:${this.role ?? ''}`
   }
 }
-
-/// npm -C ../.. run compile:self && node ../.. --language arkts --idl2peer --use-ost --input-dir test_ost/idl
