@@ -5,7 +5,6 @@ import arkui.component.navigation.NavPathStack as NavPathStack;
 import arkui.component.navigation.NavigationOptions as NavigationOptions;
 
 callback NavExtender_OnUpdateStack = void ();
-callback NavExtender_CreateNavDestination = pointer (i32 index);
 callback NavExtender_PageMapNodeBuilder = pointer (String url, optional Object params);
 
 [Entity=Class]
@@ -22,6 +21,7 @@ interface NavExtender {
   static sequence<String> getIdByName(NavPathStack pathStack, String name);
   static void popToIndex(NavPathStack pathStack, i32 index, boolean animated);
   static i32 popToName(NavPathStack pathStack, String name, boolean animated);
-  static void setCreateNavDestinationCallback(NavPathStack peer, NavExtender_CreateNavDestination callback);
+  static void setNavDestinationRouterMapBuilderCallback(pointer navigation, NavExtender_PageMapNodeBuilder callback);
   static sequence<String> getRouteMapInConfig(pointer context);
+  static void setSplitPlaceholder(pointer navigation, pointer placeholderNode);
 };

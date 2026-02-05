@@ -837,12 +837,20 @@
             }
         },
         "NavigationAttribute": {
-            "setNavigationOptions": {
-                "hookName": "hookSetNavigationOptions",
+            "setNavigationOptions0": {
+                "hookName": "hookSetNavigationOptions0",
+                "replaceImplementation": true
+            },
+            "setNavigationOptions1": {
+                "hookName": "hookSetNavigationOptions1",
                 "replaceImplementation": true
             },
             "navDestination": {
                 "hookName": "hookSetNavDestination",
+                "replaceImplementation": true
+            },
+            "splitPlaceholder": {
+                "hookName": "hookSplitPlaceholder",
                 "replaceImplementation": true
             }
         },
