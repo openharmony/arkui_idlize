@@ -3,6 +3,14 @@ import arkui.component.common.KeyEvent as KeyEvent;
 import arkui.component.Scroller as Scroller;
 
 [Entity=Class]
+interface Magnifier {
+    constructor();
+    void bind(String id);
+    void show(f64 x, f64 y);
+    void unbind();
+}
+
+[Entity=Class]
 interface IUIContext {
     static void freezeUINode(String id , boolean isFrozen );
     static void freezeUINode(i32 id , boolean isFrozen );
@@ -15,4 +23,5 @@ interface IUIContext {
     static void bindTabsToNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller scrollerchildScroller);
     static void unbindTabsFromNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
     static void setCustomKeyboardContinueFeature(CustomKeyboardContinueFeature feature);
+    Magnifier getMagnifier();
 };
