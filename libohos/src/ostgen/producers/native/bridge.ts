@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration } from "@idlizer/core"
 import { Builders, E, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
-import { bridgeName, isDirectInteropType, OhosSeed } from "../common"
+import { bridgeName, isDirectInteropType, OhosProducerContext, OhosSeed } from "../common"
 import { createProducer, fqName, modifierClassName, moduleName } from "../../engine"
 import { argConvertor } from "../components/argConvertor"
 
@@ -66,6 +66,7 @@ export const functionBridgeProducer = createProducer(
     } else {
       body.return(interopReturnType).value(apiCall).$()
     }
+    const trigger = method.isFree ? undefined : [new OhosSeed(method.parent!, 'capi')]///use holes
     return {
       continuation: E.v(declName),
       declarations: [
@@ -74,7 +75,8 @@ export const functionBridgeProducer = createProducer(
           .returns(interopReturnType)
           .body(body.$())
           .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
-      ]
+      ],
+      trigger
     }
   }
 )
@@ -100,7 +102,8 @@ export const constructorBridgeProducer = createProducer(
             .args(callArgs).$().$().$()
         .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
         .$()
-      ]
+      ],
+      trigger: [new OhosSeed(ctor.parent!, 'capi')]///use holes
     }
   }
 )
@@ -118,14 +121,26 @@ export const materializedBridgeProducer = createProducer(
           .return(Ts.prim.pointer)
             .cast(Ts.prim.pointer).value(apiAccessor(node, fqn + '_destruct')).$().$().$()
           .macro('KOALA_INTEROP_DIRECT_0', finalizerName, Ts.prim.pointer).$()
-      ]
+      ],
+      trigger: [new OhosSeed(node, 'capi')]///use holes
     }
   }
 )
 
-function apiAccessor(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, modifierName: string): LWExpression {
+function apiAccessor(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, modifierName: string): LWExpression {///rm  
   return Builders
     .access(modifierName).ptr().receiver().call().function()
       .access(modifierClassName(node)).ptr().receiver().call(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
         .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
 }
+
+// function api(method: idl.IDLMethod | idl.IDLConstructor, ctx: OhosProducerContext): LWExpression {///name
+//   const methodExpr = ctx.expectExpr(new OhosSeed(method, 'modifier'))
+//   const modifierExpr = method.parent && idl.isInterface(method.parent)
+//     ? ctx.expectExpr(new OhosSeed(method.parent, 'modifier'))
+//     : E.v(`GlobalScope`)///populate GS
+//   return Builders
+//     .access(methodExpr).ptr().receiver().call().function()
+//       .access(modifierExpr).ptr().receiver().call(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
+//         .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
+// }

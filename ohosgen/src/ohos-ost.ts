@@ -77,7 +77,7 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
     console.log(`/// ${managed.length} managed, ${native.length} native`)
     return [
         dumpTsLike(managed, peerLibrary.language, new Set(knownPackages)),
-        new Map()///dumpCLike(native, peerLibrary.name)
+        dumpCLike(native, peerLibrary.name)
     ]
 }
 

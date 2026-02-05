@@ -18,7 +18,7 @@ import { Builders, E, LWType, Ts } from "@idlizer/ost";
 import { cApiName, implName } from "../common";
 import { createProducer, fqName, modifierClassName } from "../../engine";
 import { argConvertor } from "../components/argConvertor";
-import { OhosProducer, OhosProducerContext, OhosSeed } from "../common"
+import { OhosProducerContext, OhosSeed } from "../common"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'capi' },

@@ -109,8 +109,8 @@ export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerCon
 type CommonRole = 'managed' | 'capi'
 type SpecificRole<T extends idl.IDLNode> =
   T extends idl.IDLReferenceType ? 'managed-serde' | 'native-serde' :
-  T extends idl.IDLInterface ? 'native-module' :
-  T extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'impl' :
+  T extends idl.IDLInterface ? 'native-module' | 'modifier' :
+  T extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'modifier' | 'impl' :
   never
 type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
@@ -122,6 +122,9 @@ export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {///mv t
     super()
   }
   hash(): string {
-    return `hash:${idl.isType(this.node) ? idl.printType(this.node) : idl.getFQName(this.node)}:${this.role ?? ''}`
+    const repr = idl.isType(this.node)
+        ? 'type:' + idl.printType(this.node)
+        : 'node:' + idl.getFQName(this.node)
+    return `${repr}:${this.role ?? ''}`
   }
 }
