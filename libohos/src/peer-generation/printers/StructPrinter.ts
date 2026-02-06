@@ -595,7 +595,7 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
 
 function enumBaseType(decl: idl.IDLEnum | idl.IDLEnumMember): string {
     if (!idl.isEnum(decl)) return ""
-    const binaryType = idl.enumBinaryRepresentation(decl)
+    const binaryType = idl.enumBinaryRepresentation(decl, true)
     switch (binaryType) {
         case idl.IDLU8Type: return ": InteropUInt8"
         case idl.IDLI8Type: return ": InteropInt8"

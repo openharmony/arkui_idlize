@@ -189,12 +189,13 @@ export function extremumOfOrdinals(enumEntry: IDLEnum): { low: number, high: num
     return { low, high }
 }
 
-export function enumBinaryRepresentation(enumEntry: IDLEnum): IDLPrimitiveType {
+// Using compact true requires adding and updating KUByte type in the interop
+export function enumBinaryRepresentation(enumEntry: IDLEnum, compact: boolean = false): IDLPrimitiveType {
     const { low, high } = extremumOfOrdinals(enumEntry)
-    // TBD: Add KUByte to interop to use byte and usigned byte
-    // types for enums with small elements values
-    // if (0 <= low && high <= 255) return IDLU8Type
-    // if (-128 <= low && high <= 127) return IDLI8Type
+    if (compact) {
+        if (0 <= low && high <= 255) return IDLU8Type
+        if (-128 <= low && high <= 127) return IDLI8Type
+    }
     if (low <= -0xFFFFFFFF || high >= 0xFFFFFFFF) return IDLI64Type
     return IDLI32Type
 }
