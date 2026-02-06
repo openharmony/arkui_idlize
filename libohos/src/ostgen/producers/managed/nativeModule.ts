@@ -57,7 +57,7 @@ export const nativeModuleFunctionProducer = createProducer(
     return {
       continuation: E.get(E.v(className, [Hs.isType()]), methodName),
       declarations: [nativeModule],
-      trigger: [new OhosSeed(method, 'bridge')]
+      trigger: [new OhosSeed(method, 'bridge')]///hole!
     }
   }
 )
@@ -76,7 +76,7 @@ export const nativeModuleConstructorProducer = createProducer(
           .returns(Ts.prim.pointer)
           .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) }))).$().$()
       ],
-      trigger: [new OhosSeed(ctor, 'bridge')]
+      trigger: [new OhosSeed(ctor, 'bridge')]///hole
     }
   }
 )

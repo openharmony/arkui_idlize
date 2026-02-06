@@ -61,11 +61,10 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
         return [Builders.return().value(resultVarName).$()]
     }
-    protected getSerializer(node: idl.IDLReferenceType, native: boolean) {
-        return E.v('///serde')
-        // return native
-        //     ? this.ctx.expectExpr(new OhosSeed(node, 'native-serde')) ///rather seed declaration?
-        //     : this.ctx.expectExpr(new OhosSeed(node, 'managed-serde'))
+    protected getSerializer(node: idl.IDLInterface, native: boolean) {
+        return native
+            ? this.ctx.expectExpr(new OhosSeed(node, 'native-serde'))
+            : this.ctx.expectExpr(new OhosSeed(node, 'managed-serde'))
     }
     protected convertType(type: idl.IDLType, native: boolean): lw.LWType {
         return native
@@ -90,7 +89,7 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
             if (idl.isInterface(decl)) {
                 return isMaterialized(decl, ctx.library)
                     ? new MaterializedConvertor(ctx, type)
-                    : new DataConvertor(ctx, type)
+                    : new DataConvertor(ctx, type, decl)
             }
             if (idl.isEnum(decl))
                 return new EnumConvertor(ctx, type)
@@ -223,10 +222,13 @@ abstract class StructConvertor<T extends idl.IDLType> extends ArgConvertor<T> {
 }
 
 class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
+    constructor(ctx: OhosProducerContext, type: idl.IDLReferenceType, protected decl: idl.IDLInterface) {
+        super(ctx, type)
+    }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         return [Builders.expr().call().function()
             .access('write')
-                .receiver(this.getSerializer(this.type, native))
+                .receiver(this.getSerializer(this.decl, native))
                 .static().$().$()
             .arg(serializerName).arg(accessor).$().$stmt()
         ]
@@ -236,7 +238,7 @@ class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
             [Builders.decl(name).value().call()
                 .function()
                     .access('read')
-                    .receiver(this.getSerializer(this.type, native))
+                    .receiver(this.getSerializer(this.decl, native))
                     .static().$().$()
                 .arg(serializerName).$().$().$()],
             E.v(name)

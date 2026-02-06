@@ -20,7 +20,7 @@ import { makeSerializer } from "../components/serializer";
 import { createProducer } from "../../engine"
 
 export const serializerProducer = createProducer(
-  { is: idl.isInterface, role: 'native' },
+  { is: idl.isInterface, role: 'native-serde' },
   (node, ctx) => {
     const serializerName = bridgeName(idl.getFQName(node) + 'Serializer')
     return {

@@ -20,7 +20,7 @@ import { makeSerializer } from "../components/serializer";
 import { createProducer } from "../../engine"
 
 export const serializerProducer = createProducer(
-  { is: idl.isInterface, role: 'managed' },
+  { is: idl.isInterface, role: 'managed-serde' },
   (node, ctx) => {
     const serializerName = managedName(idl.getFQName(node) + 'Serializer')
     return {
