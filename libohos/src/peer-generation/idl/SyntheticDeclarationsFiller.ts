@@ -9,7 +9,7 @@ import { generateSyntheticFunctionName, getInternalClassName, isMaterialized,
     LayoutManager,
     toDeclaration} from "@idlizer/core";
 import { componentToPeerClass } from '../printers/PeersPrinter';
-import { isComponentDeclaration } from '../ComponentsCollector';
+import { findComponentByDeclaration, isComponentDeclaration } from '../ComponentsCollector';
 import { NativeModule } from '../NativeModule';
 import { compareNodes } from '@idlizer/core';
 
@@ -267,7 +267,8 @@ function componentsPeersTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
     files.forEach(file => {
         file.entries.forEach(it => {
             if (isComponentDeclaration(library, it)) {
-                const peerName = componentToPeerClass(it.name.replace('Attribute', ''))
+                const component = findComponentByDeclaration(library, it as idl.IDLInterface)!
+                const peerName = componentToPeerClass(component.name)
                 syntheticDeclarations.push(idl.createInterface(peerName, idl.IDLInterfaceSubkind.Interface,
                     undefined, undefined, undefined, undefined, undefined, undefined, undefined,
                     { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]}

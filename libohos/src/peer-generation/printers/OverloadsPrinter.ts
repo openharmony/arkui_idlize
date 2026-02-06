@@ -352,7 +352,8 @@ export class OverloadsPrinter {
         const key = peer + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethodToPrint, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
-            const hookMethod = getHookMethod(methods[0].originalParentName, collapsedMethod.name)
+            const hookParentName = this.isComponent ? peer : methods[0].originalParentName
+            const hookMethod = getHookMethod(hookParentName, collapsedMethod.name)
             if (hookMethod) {
                 this.printHookedMethodBody(peer, collapsedMethod, hookMethod.hookName, writer)
                 if (hookMethod.replaceImplementation) {
