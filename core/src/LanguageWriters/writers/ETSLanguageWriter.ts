@@ -237,14 +237,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
         return `${value} instanceof ${withInsideInstanceof(true, () => {
-            let typeName = this.getNodeName(type)
-            if (idl.isReferenceType(type)) {
-                const decl = this.resolver.resolveTypeReference(type)
-                if (decl && idl.isInterface(decl) && decl.subkind == idl.IDLInterfaceSubkind.Tuple) {
-                    typeName = "Tuple"
-                }
-            }
-            return typeName
+            return this.getNodeName(type)
         })}`
     }
     override castToInt(value: string, bitness: 8 | 32): string {
