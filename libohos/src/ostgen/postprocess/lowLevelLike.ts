@@ -18,6 +18,7 @@ import { generatorConfiguration, zipStrip } from "@idlizer/core";
 import { callbackKindDeclaration, monoName } from "./postprocess";
 import { bridgeName, cApiName, implName } from "../producers/common";
 import { lowLevelLike } from "@idlizer/kit";
+import { mapPush } from "../engine";
 
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
     decls = introduceOptionalTypes(decls)
@@ -207,23 +208,27 @@ function makeApis(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     const modifiers = decls
         .filter(it => it.name.startsWith('capi.modifier'))
         .map(it => it as lw.StructureDeclaration)
+    const modifierNames = new Map<string, string[]>()
     const modifierImpls: lw.FunctionDeclaration[] = []
     const apiImpls: lw.LWExpression[] = []
-    modifiers.forEach(decl => {
+    modifiers.forEach(decl =>
+        decl.members.forEach(it => mapPush(modifierNames, decl.name, it.name)))
+    // API struct fields
+    modifierNames.forEach((impls, name) => {
+        const modifierImplName = implName(name + 'Impl')
+        const className = name.split('.').pop()!.replace(/Modifier$/, '')
         // modifier field in the API struct
-        const className = decl.name.split('.').pop()!.replace(/Modifier$/, '');
-        const modifierImplName = implName(decl.name + 'Impl');
         apiStruct.field(className)
-            .funcType().returns(Ts.const(Ts.ptr(T.c(decl.name)))).$().$()
+            .funcType().returns(Ts.const(Ts.ptr(T.c(name)))).$().$()
         // modifier implementation
-        const modifierImpl = Builders.func(modifierImplName)
-            .returns(Ts.const(Ts.ptr(T.c(decl.name))))
-            .block()
-                .decl('instance', T.c(decl.name)).static().value()
-                    .ctor().asStruct().args(
-                        decl.members.map(it => E.unary(Op.ref, E.v(it.name + 'Impl')))).$().$().$()
-                .return().value(E.unary(Op.ref, E.v('instance'))).$().$().$()
-        modifierImpls.push(modifierImpl)
+        modifierImpls.push(
+            Builders.func(modifierImplName)
+                .returns(Ts.const(Ts.ptr(T.c(name))))
+                .block()
+                    .decl('instance', T.c(name)).static().value()
+                        .ctor().asStruct().args(
+                            impls.map(it => E.unary(Op.ref, E.v(it + 'Impl')))).$().$().$()
+                    .return().value(E.unary(Op.ref, E.v('instance'))).$().$().$())
         // modifier implementation pointer in the API implementation struct
         apiImpls.push(E.unary(Op.ref, E.v(modifierImplName, [Hs.isType()])))
     })
