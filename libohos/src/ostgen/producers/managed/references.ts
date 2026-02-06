@@ -15,21 +15,19 @@
 
 import * as idl from "@idlizer/core/idl"
 import { warn } from "@idlizer/core";
-import { T } from "@idlizer/ost";
 import { createProducer } from "../../engine";
-import { cApiName, managedName } from "../common";
+import { OhosSeed } from "../common";
 
 export const reference = createProducer(
   { is: idl.isReferenceType },
   (type, ctx, role) => {
-    let target: idl.IDLNode | undefined = ctx.library.toDeclaration(type)
-    if (!target) {
+    let decl = ctx.library.toDeclaration(type)
+    if (!decl) {
       warn("Unresolved reference " + type.name)
-      target = idl.IDLObjectType
+      decl = idl.IDLObjectType
     }
-    const nameFunc = role === 'managed' ? managedName : cApiName
     return {
-      continuation: T.c(nameFunc(type.name)),
+      continuation: ctx.expectType(new OhosSeed(decl, role)),
       declarations: []
     }
   }
