@@ -8,7 +8,7 @@ interface Magnifier {
     void bind(String id);
     void show(f64 x, f64 y);
     void unbind();
-}
+};
 
 [Entity=Class]
 interface IUIContext {
