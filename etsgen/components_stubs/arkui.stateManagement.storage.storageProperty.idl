@@ -1,6 +1,0 @@
-package arkui.stateManagement.storage.storageProperty;
-
-dictionary ColorMode {
-    number LIGHT = 0;
-    number DARK = 1;
-};

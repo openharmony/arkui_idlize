@@ -1,3 +1,0 @@
-package arkui.stateManagement.decorators.decoratorConsume;
-
-interface ConsumeDecoratedVariable {};

@@ -1,4 +1,0 @@
-package arkui.stateManagement.decorators.decoratorProvide;
-
-[Entity=Class]
-interface ProvideDecoratedVariable {};

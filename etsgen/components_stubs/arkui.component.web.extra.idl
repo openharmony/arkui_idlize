@@ -1,7 +1,0 @@
-package arkui.component.web;
-
-[Entity=Class]
-interface WebCookie {
-    void setCookie();
-    void saveCookie();
-};

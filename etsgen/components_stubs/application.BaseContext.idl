@@ -1,6 +1,0 @@
-package application.BaseContext;
-
-[Entity=Class]
-interface BaseContext {
-    constructor();
-};
