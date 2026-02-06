@@ -19,6 +19,12 @@ import {
     DatebookType,
     ArkDatebookPeer,
     ArkDatebookComponent,
+    EnumUByte,
+    EnumByte,
+    EnumInt,
+    EnumLong,
+    ArkCheckEnumPeer,
+    ArkCheckEnumComponent,
     ArkCheckHooksPeer,
     ArkCheckHooksComponent,
     ArkCheckExceptionPeer,
@@ -80,6 +86,17 @@ function checkDatebook() {
     comp.setPeer(peer)
     checkResult("type", () => comp.type(DatebookType.EGYPTIAN), `setType({.tag=INTEROP_TAG_OBJECT, .value=Ark_DatebookType(0)})`)
     checkResult("text", () => comp.text("Hello, Datebook!"), `setText({.tag=INTEROP_TAG_OBJECT, .value={.chars="Hello, Datebook!", .length=16}})`)
+}
+
+function checkEnums() {
+    let peer = ArkCheckEnumPeer.create()
+    const comp = new ArkCheckEnumComponent()
+    comp.setPeer(peer)
+    checkResult("Enum UByte 1", () => comp.enumUByte(EnumUByte.E1), `setEnumUByte(Ark_EnumUByte(1))`)
+    checkResult("Enum UByte 255", () => comp.enumUByte(EnumUByte.E255), `setEnumUByte(Ark_EnumUByte(255))`)
+    checkResult("Enum Byte -127", () => comp.enumByte(EnumByte.EN127), `setEnumByte(Ark_EnumByte(-127))`)
+    checkResult("Enum Int 512", () => comp.enumInt(EnumInt.E512), `setEnumInt(Ark_EnumInt(512))`)
+    checkResult("Enum Long 0xFFFFFFFFA", () => comp.enumLong(EnumLong.EFFFFFFFFA), `setEnumLong(Ark_EnumLong(68719476730))`)
 }
 
 function checkHooks() {
@@ -188,6 +205,7 @@ export function main(): void {
     initNatives()
 
     checkDatebook()
+    checkEnums()
     checkHooks()
     checkExceptions()
     checkOptional()

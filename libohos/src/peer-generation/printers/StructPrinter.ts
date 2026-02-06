@@ -455,7 +455,10 @@ inline void WriteToString(std::string* result, const ${name}* value) {
             printer.print(`inline void WriteToString(std::string* result, const ${name} value) {`)
             printer.pushIndent()
             printer.print(`result->append("${name}(");`)
-            printer.print(`WriteToString(result, static_cast<${PrimitiveTypesInstance.Int32.getText()}>(value));`)
+            const type = idl.enumBinaryRepresentation(target) == idl.IDLI64Type
+                ? PrimitiveTypesInstance.Int64
+                : PrimitiveTypesInstance.Int32
+            printer.print(`WriteToString(result, static_cast<${type.getText()}>(value));`)
             printer.print(`result->append(")");`)
             printer.popIndent()
             printer.print(`}`)
