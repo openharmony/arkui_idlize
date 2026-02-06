@@ -66,7 +66,6 @@ export const functionBridgeProducer = createProducer(
     } else {
       body.return(interopReturnType).value(apiCall).$()
     }
-    const trigger = method.isFree ? undefined : [new OhosSeed(method.parent!, 'capi')]///use holes
     return {
       continuation: E.v(declName),
       declarations: [
@@ -76,7 +75,7 @@ export const functionBridgeProducer = createProducer(
           .body(body.$())
           .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
       ],
-      trigger
+      trigger: [new OhosSeed(method, 'capi')]///use holes
     }
   }
 )
@@ -103,7 +102,7 @@ export const constructorBridgeProducer = createProducer(
         .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
         .$()
       ],
-      trigger: [new OhosSeed(ctor.parent!, 'capi')]///use holes
+      trigger: [new OhosSeed(ctor, 'capi')]///use holes
     }
   }
 )
