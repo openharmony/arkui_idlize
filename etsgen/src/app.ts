@@ -22,12 +22,11 @@ import {
 import { generateFromSts } from "./generate"
 import { join, resolve } from "node:path"
 import { cpSync } from "node:fs"
-import { ETSGEN_ROOT, etsgenDefaultConfigurationPath, loadEtsgenConfiguration } from "./config"
+import { ETSGEN_ROOT, loadEtsgenConfiguration } from "./config"
 
 export function etsgen(argv:string[]) {
     const program = createCommand()
         .option('--ets2idl', 'Convert .d.ts to IDL definitions')
-        .option('--use-component-stubs', 'Add components stubs to produced idl files')
         .option('--input-dir <path>', 'Path to input dir(s), comma separated')
         .option('--exclude <patterns>', 'Paths to exclude from input-dir scan')
         .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
@@ -69,17 +68,9 @@ export function etsgen(argv:string[]) {
             etsConfigPath: options.etsConfig,
             traceStatus: options.traceStatus,
             config: loadEtsgenConfiguration([
-                ...(options.ignoreDefaultConfig ? [] : [etsgenDefaultConfigurationPath()]),
                 ...(options.optionsFile ?? [])
             ])
         })
-        if (options.useComponentStubs) {
-            cpSync(
-                join(ETSGEN_ROOT, 'components_stubs'),
-                options.outputDir,
-                { recursive: true }
-            )
-        }
        return
     }
 
@@ -91,7 +82,6 @@ export function etsgen(argv:string[]) {
             etsConfigPath: options.etsConfig,
             traceStatus: options.traceStatus,
             config: loadEtsgenConfiguration([
-                ...(options.ignoreDefaultConfig ? [] : [etsgenDefaultConfigurationPath()]),
                 ...(options.optionsFile ?? [])
             ]),
             plotDeps: true

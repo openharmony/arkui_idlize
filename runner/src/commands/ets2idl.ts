@@ -21,7 +21,8 @@ import { execSync } from "node:child_process"
 export interface Ets2IdlConfig {
     etsgen: string
     sdkPath: string
-    configPath?: string
+    optionsFile: string
+    arktsConfigPath?: string
     traceStatus?: string
 }
 export interface Ets2IdlResult {
@@ -30,7 +31,8 @@ export interface Ets2IdlResult {
 export function ets2idl({
     etsgen,
     sdkPath,
-    configPath,
+    optionsFile,
+    arktsConfigPath,
     traceStatus,
 }: Ets2IdlConfig):Ets2IdlResult {
     const sdkApiPath = join(sdkPath, 'api')
@@ -41,8 +43,10 @@ export function ets2idl({
         ['--output-dir', GENERATED_IDL_DIR],
         ['--base-dir', sdkApiPath],
         ['--input-files', files],
-        over(configPath, path => ['--ets-config', path]),
+        over(arktsConfigPath, path => ['--ets-config', path]),
         over(traceStatus, st => ['--trace-status', st]),
+        ['--ignore-default-config'],
+        ['--options-file', optionsFile],
     ]))
     return {
         idlPaths: GENERATED_IDL_DIR

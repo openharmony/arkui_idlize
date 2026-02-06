@@ -15,7 +15,7 @@
 
 import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { Command } from "commander"
-import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CONFIG, SCRAPER_CWD, WORKING_DIR } from "./shared"
+import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CWD, WORKING_DIR } from "./shared"
 import { commands } from "./commands"
 import { join, resolve } from "node:path"
 import { transformBuilderFunctions } from "./tools/builderFuncsTransformer"
@@ -39,6 +39,7 @@ function setup() {
 interface PrepareSdkOptions {
     etsgen: string
     sdkStage: string
+    etsgenOptionsFile: string
 }
 
 interface ArkgenOptions extends PrepareSdkOptions {
@@ -48,6 +49,8 @@ interface ArkgenOptions extends PrepareSdkOptions {
     language: string
     scraperConfig?: string
     arkgenOptionsFile: string
+    arkgenInteropTypes: string
+    scraperOptionsFile: string
 }
 
 function sdk2idl(sdkPath: string, options: PrepareSdkOptions): Ets2IdlResult {
@@ -63,7 +66,8 @@ function sdk2idl(sdkPath: string, options: PrepareSdkOptions): Ets2IdlResult {
             idlPaths = commands.ets2idl({
                 etsgen: options.etsgen,
                 sdkPath,
-                configPath,
+                arktsConfigPath: configPath,
+                optionsFile: options.etsgenOptionsFile
             }).idlPaths
         }
         case "idl": {
@@ -82,7 +86,7 @@ function m3(sdkPath: string, idlFiles: string[], options: ArkgenOptions) {
     const { scrapedIDLs, arkuiConfig } = commands.scrape({
         idlDirectory: idlPaths,
         extraIdlPaths: idlFiles,
-        configPath: options.scraperConfig ?? SCRAPER_CONFIG,
+        configPath: options.scraperOptionsFile,
     })
     const { peersPath } = commands.idl2peer({
         arkgen: options.arkgen,
@@ -90,6 +94,7 @@ function m3(sdkPath: string, idlFiles: string[], options: ArkgenOptions) {
         language: options.language,
         optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
         idlPaths: [scrapedIDLs, ...idlFiles],
+        interopTypes: options.arkgenInteropTypes
     })
 
     if (formatArkts({
@@ -133,6 +138,9 @@ interface TrackerOptions {
     sdkStatus: string
     trackerStatus: string
     arkgenOptionsFile: string
+    arkgenInteropTypes: string
+    etsgenOptionsFile: string
+    scraperOptionsFile: string
     arkgen: string
     etsgen: string
     output: string
@@ -144,13 +152,14 @@ function tracker(sdkPathInput: string, idlFiles: string[], options: TrackerOptio
     const { idlPaths } = commands.ets2idl({
         etsgen: options.etsgen,
         sdkPath: sdkPathInput,
-        configPath:  undefined,
+        arktsConfigPath: undefined,
         traceStatus: options.sdkStatus,
+        optionsFile: options.etsgenOptionsFile,
     })
     const { scrapedIDLs, arkuiConfig } = commands.scrape({
         idlDirectory: idlPaths,
         extraIdlPaths: idlFiles,
-        configPath: SCRAPER_CONFIG,
+        configPath: options.scraperOptionsFile,
     })
     const { peersPath } = commands.idl2peer({
         arkgen: options.arkgen,
@@ -159,6 +168,7 @@ function tracker(sdkPathInput: string, idlFiles: string[], options: TrackerOptio
         optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
         idlPaths: [scrapedIDLs, ...idlFiles],
         trackerStatus: options.trackerStatus,
+        interopTypes: options.arkgenInteropTypes,
     })
     commands.install({sourceDir: peersPath, installPath: options.output})
 }
@@ -208,6 +218,9 @@ function main(argv: string[]) {
         .requiredOption('--output <path>', 'path to output files')
         .requiredOption('--sdk-stage <stage>', 'original | prepared | idl')
         .requiredOption('--arkgen-options-file <file>', 'arkgen config file')
+        .requiredOption('--arkgen-interop-types <file>', 'path to interop-types.h file')
+        .requiredOption('--scraper-options-file <file>', 'scraper config file')
+        .option('--etsgen-options-file <file>', 'etsgen config file')
         .option('--etsgen <executable>', 'etsgen executable. Not used if --sdk-stage=idl', 'npx etsgen')
         .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
         .option('--target <target>', 'sig | libace | all', 'sig')
@@ -230,6 +243,9 @@ function main(argv: string[]) {
         .requiredOption('--tracker-status <file>', 'tracker status')
         .requiredOption('--output <path>', 'path to out dir')
         .requiredOption('--arkgen-options-file <file>', 'arkgen config file')
+        .requiredOption('--arkgen-interop-types <file>', 'path to interop-types.h file')
+        .requiredOption('--scraper-options-file <file>', 'scraper config file')
+        .requiredOption('--etsgen-options-file <file>', 'etsgen config file')
         .option('--etsgen <executable>', 'etsgen executable', 'npx etsgen')
         .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
         .action(tracker)

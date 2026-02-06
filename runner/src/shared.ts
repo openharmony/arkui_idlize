@@ -37,5 +37,4 @@ export const ADDITIONAL_FILES = [
     ['global', 'resource.d.ets']
 ]
 export const SCRAPER_CWD = join(WORKING_DIR, 'scraper')
-export const SCRAPER_CONFIG = join(CONFIGS_DIR, 'scraper-config.json')
 export const CONFIG_RESULT_DIR = join(WORKING_DIR, 'configs')

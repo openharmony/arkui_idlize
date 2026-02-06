@@ -36,13 +36,13 @@ import {
     mapFileName,
     TargetFile,
     readLangTemplate,
-    getInteropRootPath,
     peerGeneratorConfiguration,
     readTemplate,
     libraryDeclaration,
     C_API_PREFIX,
     BRIDGE_PREFIX,
-    IMPL_PREFIX
+    IMPL_PREFIX,
+    readInteropTypesHeader
 } from "@idlizer/libohos"
 
 export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
@@ -95,9 +95,7 @@ function dumpTsLike(decls: LWDeclaration[], language: Language, packages: Set<st
 function dumpCLike(decls: LWDeclaration[], moduleName: string): Map<TargetFile, string> {
     const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls)
     ///copied from OhosNativeVisitor
-    const interopRootPath = getInteropRootPath()
-    const interopTypesPath = path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h')
-    const interopTypesContent = fs.readFileSync(interopTypesPath, 'utf-8')
+    const interopTypesContent = readInteropTypesHeader()
     const h = [
         readLangTemplate('ohos_api_prologue.h', Language.CPP),
         readTemplate('any_api.h'),
