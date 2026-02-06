@@ -2,11 +2,7 @@
 set -e
 shopt -s globstar # to make **/*.abc recursive
 
-external_dir=../../../external
-arkts_dir=$external_dir/incremental/tools/panda/arkts
-out_dir=build/panda
+node_modules_dir=../../../node_modules
 
-bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc:$out_dir/app.abc
-
-LD_LIBRARY_PATH=$PWD/$out_dir:$external_dir/interop/build:$LD_LIBRARY_PATH \
-    $arkts_dir/ark $out_dir/app.abc --ark-boot-files $bootfiles --ark-entry-point @context.src.panda.main.ETSGLOBAL::main
+LD_LIBRARY_PATH=$node_modules_dir/@koalaui/interop/build:./build/panda:$LD_LIBRARY_PATH \
+    npx smart-arkts run

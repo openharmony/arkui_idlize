@@ -2,8 +2,20 @@
 
     "name": "@idlizer/arkgen-tests-template-arkts",
     "private": true,
+    "arkts": {
+        "exports": {
+            "arkui.incremental.annotation": "src/arkui.incremental.annotation",
+            "arkui.incremental.runtime.memo.node": "src/arkui.incremental.runtime.memo.node",
+            "arkui.incremental.runtime.memo.remember": "src/arkui.incremental.runtime.memo.remember",
+            "arkui.incremental.runtime.tree.IncrementalNode": "src/arkui.incremental.runtime.tree.IncrementalNode"
+        },
+        "bin": "out/all.abc"
+    },
     "scripts": {
         "clean": "rimraf out",
-        "build": "fast-arktsc --config ./ui2abcconfig.json --link-name ./out/all.abc --compiler ../../../external/incremental/tools/panda/arkts/ui2abc --simultaneous && ninja -C ./out -f build.ninja"
+        "build": "smart-arkts compile --link-name ./out/all.abc --simultaneous"
+    },
+    "devDependencies": {
+        "@koalaui/smart-arkts": "panda-next"
     }
 }

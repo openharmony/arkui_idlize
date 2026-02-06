@@ -14,8 +14,8 @@ is_cj = get_option('target_vm') == 'cangjie'
 
 message(f'Builds test case "@cur_test_case@" with virtual machine "@cur_target_vm@".')
 
-external_interop_build_dir = meson.current_source_dir() / '../../../external/interop/build'
-external_interop_dir = '../../../external/interop/src/cpp'
+external_interop_build_dir = meson.current_source_dir() / '../../../node_modules/@koalaui/interop/build'
+external_interop_dir = '../../../node_modules/@koalaui/interop/src/cpp'
 
 cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []

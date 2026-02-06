@@ -27,11 +27,6 @@ template("npm_cmd") {
             sources = invoker.sources
         }
         deps = []
-        if (!defined(invoker.install)) {
-            deps += [
-                "$idlize_root:npm_install_all(${host_toolchain})"
-            ]
-        }
         if (defined(invoker.deps)) {
             deps += invoker.deps
         }

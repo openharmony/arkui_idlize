@@ -1,8 +1,17 @@
 {
     "name": "demo-xml",
     "private": true,
+    "arkts": {
+        "bin": "build/panda/app.abc",
+        "entryPoint": "@xml.src.panda.main.ETSGLOBAL::main"
+    },
+    "dependencies": {
+        "@koalaui/common": "panda-next",
+        "@koalaui/compat": "panda-next",
+        "@koalaui/interop": "panda-next"
+    },
     "devDependencies": {
-        "@koalaui/fast-arktsc": "1.7.14",
+        "@koalaui/smart-arkts": "panda-next",
         "@rollup/plugin-inject": "^5.0.5",
         "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-typescript": "^11.1.6",
@@ -22,16 +31,13 @@
         "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
         "generate:kt": "TARGET=kt npm run generate",
 
-        "build": "npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET} && npm run compile:${TARGET}",
+        "build": "npm run compile:native:${TARGET} && npm run compile:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
-        "build:kt": "TARGET=kt npm run build",
+        "build:kt": "npm run compile:interop:native:kt && TARGET=kt npm run build",
 
-        "compile:interop:native": "npm run compile:native-${TARGET}-host --prefix ../../../external/interop",
-        "compile:interop:native:ts": "TARGET=node npm run compile:interop:native",
-        "compile:interop:native:arkts": "TARGET=panda npm run compile:interop:native",
-        "compile:interop:native:kt": "TARGET=kotlin npm run compile:interop:native && npm run compile:kotlin:interop --prefix ../../../external/interop",
+        "compile:interop:native:kt": "npm run compile:native-kotlin-host --prefix ../../../external/interop && npm run compile:kotlin:interop --prefix ../../../external/interop",
 
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",
@@ -54,8 +60,5 @@
         "check:arkts": "TARGET=arkts npm run check",
         "check:cj": "TARGET=cj npm run check",
         "check:kt": "TARGET=kt npm run check"
-    },
-    "dependencies": {
-        "@koalaui/common": "latest"
     }
 }

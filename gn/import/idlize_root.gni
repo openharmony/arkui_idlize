@@ -14,7 +14,7 @@ if (!defined(idlize_ws)) {
 
 if (!defined(koala_mr)) {
     if (idlize_ws == "idlize") {
-        assert(false, "in `idlize` workspace koala_mr must be defined with BUILDCONFIG.gn file")
+        # koala_mr does not required in idlize workspace
     } else if (idlize_ws == "ohos") {
         koala_mr = {
             root_path = "//developtools/ace_ets2bundle/ets1.2"

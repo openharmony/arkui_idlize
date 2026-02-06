@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "package": "@test-package",
+        "package": "@dummy",
         "baseUrl": ".",
         "outDir": "build/panda/out",
         "paths": {
@@ -8,5 +8,5 @@
             "#components": ["./src/panda/components"]
         }
     },
-    "include": ["src/panda/**/*.ts", "generated/arkts/**/*.ts"]
+    "include": ["src/app.ts", "src/panda/**/*.ts", "generated/arkts/**/*.ts"]
 }

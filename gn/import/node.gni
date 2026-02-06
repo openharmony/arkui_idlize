@@ -40,7 +40,7 @@ template("node_cmd") {
       outputs = invoker.outputs
     }
 
-    deps = [ "$idlize_root:npm_install_all(${host_toolchain})" ]
+    deps = []
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }

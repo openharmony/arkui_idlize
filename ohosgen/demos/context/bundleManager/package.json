@@ -1,0 +1,16 @@
+{
+    "name": "@idlizer/ohosgen-demos-context-bundleManager",
+    "private": true,
+    "arkts": {
+        "exports": {
+            "@bundleManager": "generated/arkts",
+            "@bundleManager.ApplicationInfo": "generated/arkts/ApplicationInfo",
+            "@bundleManager.bundleManager.INTERNAL": "generated/arkts/bundleManager.INTERNAL"
+        }
+    },
+    "dependencies": {
+        "@koalaui/compat": "panda-next",
+        "@koalaui/common": "panda-next",
+        "@koalaui/interop": "panda-next"
+    }
+}

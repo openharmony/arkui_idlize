@@ -95,8 +95,8 @@ template("dummy_test") {
         deps = [
             ":$test_target_name:generate",
             ":${test_target_name}:generate:cp",
-            "${koala_mr.root_path}/libarkts:libarkts",
-            "${koala_mr.root_path}/incremental:incremental_abc",
+            "${idlize_root}:external_libarkts",
+            "${idlize_root}:external_incremental_panda",
         ]
     }
 
@@ -104,7 +104,8 @@ template("dummy_test") {
     lib_name = "DUMMYNativeModule"
 
     shared_library("${test_target_name}:compile:native") {
-        _external_interop_dir = "${koala_mr.root_path}/interop/src/cpp"
+        _interop_dir = "${idlize_root}/node_modules/@koalaui/interop/src/cpp"
+        _interop_build_dir = "${idlize_root}/node_modules/@koalaui/interop/build"
         sources = [
             "$target_gen_dir/$language/generated/native/dummy.cpp",
             "$target_gen_dir/$language/generated/native/dummyApiImpl_temp.cpp",
@@ -115,8 +116,8 @@ template("dummy_test") {
         include_dirs = [
             "$target_gen_dir/$language/generated/native",
             "src/cpp",
-            _external_interop_dir,
-            "$_external_interop_dir/types",
+            _interop_dir,
+            "$_interop_dir/types",
         ]
 
         if (target_os == "win") {
@@ -146,10 +147,10 @@ template("dummy_test") {
 
         if (test_vm == "node") {
             sources += [
-                "${_external_interop_dir}/napi/convertors-napi.cpp"
+                "${_interop_dir}/napi/convertors-napi.cpp"
             ]
             if (target_os == "win") {
-                sources += [ "${_external_interop_dir}/napi/win-dynamic-node.cpp" ]
+                sources += [ "${_interop_dir}/napi/win-dynamic-node.cpp" ]
             }
 
             cflags += [
@@ -157,18 +158,17 @@ template("dummy_test") {
                 "-DKOALA_NAPI",
                 "-DINTEROP_LIBRARY_NAME=${lib_name}"
             ]
-            _external_interop_build_dir = "${koala_mr.root_path}/interop/build"
-            ldflags += [ rebase_path("${_external_interop_build_dir}/InteropNativeModule.node") ]
+            ldflags += [ rebase_path("${_interop_build_dir}/InteropNativeModule.node") ]
             _node_api_headers = "${idlize_root}/node_modules/node-api-headers"
             include_dirs += [
                 "${_node_api_headers}/include",
-                "${_external_interop_dir}/napi"
+                "${_interop_dir}/napi"
             ]
             output_extension = "node"
         } else if (test_vm == "panda") {
             sources += [
-                "${_external_interop_dir}/ani/convertors-ani.cpp",
-                "${_external_interop_dir}/types/signatures.cpp"
+                "${_interop_dir}/ani/convertors-ani.cpp",
+                "${_interop_dir}/types/signatures.cpp"
             ]
             cflags += [
                 "-DKOALA_USE_PANDA_VM",
@@ -176,37 +176,36 @@ template("dummy_test") {
                 "-DINTEROP_LIBRARY_NAME=${lib_name}",
                 "-DETS_MODULE_CLASSPATH_PREFIX=@dummy.generated.arkts.dummy.INTERNAL.",
             ]
-            _external_interop_build_dir = "${koala_mr.root_path}/interop/build"
-            ldflags += [ rebase_path("${_external_interop_build_dir}/libInteropNativeModule.so") ]
+            ldflags += [ rebase_path("${_interop_build_dir}/libInteropNativeModule.so") ]
             include_dirs += [
-                "${_external_interop_dir}/ani",
-                "${_external_interop_dir}/ani/panda",
+                "${_interop_dir}/ani",
+                "${_interop_dir}/ani/panda",
             ]
         } else if (test_vm == "cangjie") {
             sources += [
-                "${_external_interop_dir}/cangjie/convertors-cj.cpp",
-                "${_external_interop_dir}/types/signatures.cpp"
+                "${_interop_dir}/cangjie/convertors-cj.cpp",
+                "${_interop_dir}/types/signatures.cpp"
             ]
             cflags += [
                 "-DKOALA_CJ",
                 "-DINTEROP_LIBRARY_NAME=${lib_name}",
             ]
             include_dirs += [
-                "${_external_interop_dir}/cangjie",
+                "${_interop_dir}/cangjie",
             ]
         }
         output_name = lib_name
         output_dir = _output_dir
         output_prefix_override = (test_vm == "node")
         deps = [
-            "${koala_mr.root_path}/interop:interop_abc",
-            "${koala_mr.root_path}/interop:interop_compile",
+            "${idlize_root}:external_interop_panda",
+            "${idlize_root}:external_interop_node",
             ":$test_target_name:generate"
         ]
         if (test_vm == "node") {
-            deps += [ "${koala_mr.root_path}/interop:interop_native:node" ]
+            deps += [ "${idlize_root}:external_interop_native_node" ]
         } else {
-            deps += [ "${koala_mr.root_path}/interop:interop_native:panda" ]
+            deps += [ "${idlize_root}:external_interop_native_panda" ]
         }
     }
     

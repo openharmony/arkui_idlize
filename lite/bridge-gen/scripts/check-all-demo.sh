@@ -1,4 +1,3 @@
-export PANDA_SDK_PATH="$PWD/../../external/incremental/tools/panda/node_modules/@panda/sdk"
 npm run compile
 echo "RUNTIME (GENERATE + RUN)"
 cd demos/runtime/native && node ../../.. && LD_LIBRARY_PATH='./bin' node test/main.cjs && cd ../../..
