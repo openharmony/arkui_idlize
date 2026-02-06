@@ -14,17 +14,17 @@
  */
 
 import { snakeCaseToCamelCase } from "@idlizer/core";
-import { Builders } from "../../ost";
+import { Builders } from "@idlizer/ost";
 import { D, E, Hs, IdentityTransformer, lw, std, T, utils } from "../../ost";
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
 import { mapFileName, moduleName, nativeModuleName } from "../engine/utils";
 import { managedName } from "../producers/common";
-import { callbackKindDeclaration, mergeStructs } from "./postprocess";
+import { callbackKindDeclaration } from "./postprocess";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { moduleLike } from "@idlizer/kit";
 
 export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    decls = mergeNamespaces(decls) ///kit
-    decls = mergeStructs(decls) ///kit
+    decls = moduleLike.postprocess(decls)
     decls = introduceCallbackCaller(decls)
     decls = introduceTypeChecker(decls)
     decls = loadNativeModule(decls)
@@ -71,34 +71,6 @@ function loadNativeModule(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
         Builders.func(std.names.members.staticCtor).static().block()
             .call('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$())
     return decls
-}
-
-function mergeNamespaces(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    const index = new Map<string, lw.NamespaceDeclaration[]>()
-    const others: lw.LWDeclaration[] = []
-    decls.forEach(decl => {
-        if (decl.kind !== lw.LWKind.NamespaceDeclaration) {
-            others.push(decl)
-            return
-        }
-        if (!index.has(decl.name)) {
-            index.set(decl.name, [])
-        }
-        index.get(decl.name)?.push(decl)
-    })
-
-    const result: lw.LWDeclaration[] = others
-    index.forEach((records, name) => {
-        if (records.length === 0) {
-            return
-        }
-        if (records.length === 1) {
-            result.push(records[0])
-            return
-        }
-        result.push(D.ns(name, mergeNamespaces(records.map(r => r.members).flat())))
-    })
-    return result
 }
 
 /////////////////////////////////////////////////////

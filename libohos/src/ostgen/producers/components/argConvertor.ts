@@ -109,6 +109,8 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
                 return Ts.prim.interopNumber
             case idl.IDLStringType:
                 return native ? Ts.const(Ts.ref(Ts.prim.interopString)) : Ts.prim.interopString
+            case idl.IDLVoidType:
+                return Ts.prim.void
             default:
                 return this.convertType(this.type, native)
         }
@@ -403,8 +405,8 @@ class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        const callbackName = this.convertType(this.type, native)///monoName(...)
-        const kindName = E.v(`KIND_BROKEN///`)///${callbackName.toUpperCase()}`)
+        const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
+        const kindName = E.v('KIND_' + callbackName.toUpperCase())
         const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
         const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
         const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]

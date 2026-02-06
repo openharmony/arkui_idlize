@@ -32,7 +32,8 @@ export const nativeModuleMaterializedProducer = createProducer(
           .method(methodName)
             .native().static().annotation('ani.unsafe.Direct')
             .returns(Ts.prim.pointer).$().$()
-      ]
+      ],
+      trigger: [new OhosSeed(node, 'bridge')]///hole!
     }
   }
 )

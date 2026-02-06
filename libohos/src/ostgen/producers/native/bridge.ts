@@ -23,8 +23,8 @@ import { argConvertor } from "../components/argConvertor"
 export const functionBridgeProducer = createProducer(
   { is: idl.isMethod, role: 'bridge' },
   (method, ctx) => {
-    const declName = bridgeName(fqName(method, 'modifier.impl_'))
-    const funcName = fqName(method, '_')
+    const funcName = fqName(method)
+    const declName = bridgeName('modifier.impl_' + funcName)
     const params = [
       { name: 'thisArray', type: Ts.prim.serializerBuffer },
       { name: 'thisLength', type: Ts.prim.i32 },
@@ -85,8 +85,8 @@ export const constructorBridgeProducer = createProducer(
   { is: idl.isConstructor, role: 'bridge' },
   (ctor, ctx) => {
     ///need to enumerate overloaded ctors somehow
-    const declName = bridgeName(fqName(ctor, 'modifier.impl_'))
-    const funcName = fqName(ctor, '_')
+    const funcName = fqName(ctor)
+    const declName = bridgeName('modifier.impl_' + funcName)
     const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
     const callArgs = ctor.parameters.map((it, i) =>
       Builders.cast(Ts.ptr(ctx.expectType(new OhosSeed(it.type, 'capi')))).value()

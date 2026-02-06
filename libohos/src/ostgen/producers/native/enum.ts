@@ -15,11 +15,11 @@
 
 import { D, T } from "../../../ost"
 import * as idl from "@idlizer/core/idl"
-import { cApiName, roles } from "../common"
+import { cApiName } from "../common"
 import { createProducer } from "../../engine/context"
 
 export const enumProducer = createProducer(
-  { is: idl.isEnum, role: roles.cApi },
+  { is: idl.isEnum, role: 'capi' },
   (node, _) => {
     const name = cApiName(idl.getFQName(node))
     return {

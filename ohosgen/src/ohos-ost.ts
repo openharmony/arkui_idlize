@@ -39,8 +39,10 @@ import {
     OhosSeed,
     producers,
     MakeSelector,
+    moduleLike,
+    lowLevelLike,
 } from "@idlizer/libohos"
-import { forEachSeed, lowLevelLike, moduleLike, onlyFor } from '@idlizer/kit'
+import { forEachSeed, onlyFor } from '@idlizer/kit'
 
 export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
     const selector = new MakeSelector()
@@ -60,7 +62,7 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
                 !idl.isCallback(e))
             .map(e => new OhosSeed(e, 'managed')),
         },
-        onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx))
+        onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role))
     )
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
     const knownPackages = files

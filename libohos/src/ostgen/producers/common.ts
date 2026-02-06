@@ -23,14 +23,14 @@ export const C_API_PREFIX = 'capi'
 export const BRIDGE_PREFIX = 'bridge'
 export const IMPL_PREFIX = 'impl'
 
-export const roles = {
-    managed: MANAGED_PREFIX,
-    cApi: C_API_PREFIX,
-    bridge: BRIDGE_PREFIX,
-    nativeModule: MANAGED_PREFIX + ".nativeModule",
-    serializerManaged: MANAGED_PREFIX + ".serializer",
-    serializerNative: BRIDGE_PREFIX + ".serializer",
-}
+// export const roles = {
+//     managed: MANAGED_PREFIX,
+//     cApi: C_API_PREFIX,
+//     bridge: BRIDGE_PREFIX,
+//     nativeModule: MANAGED_PREFIX + ".nativeModule",
+//     serializerManaged: MANAGED_PREFIX + ".serializer",
+//     serializerNative: BRIDGE_PREFIX + ".serializer",
+// }
 
 export function managedName(name:string) {
     return MANAGED_PREFIX + '.' + name
@@ -104,11 +104,11 @@ export function isDirectInteropType(type: lw.LWType) {
 }
 
 export type OhosProducerContext = ProducerContext<PeerLibrary, undefined>
-export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext) => ProducerResult
+export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext, role?: Role<T>) => ProducerResult
 
 type CommonRole = 'managed' | 'capi'
 type SpecificRole<T extends idl.IDLNode> =
-  T extends idl.IDLInterface ? 'native-module' | 'modifier' | 'managed-serde' | 'native-serde' :
+  T extends idl.IDLInterface ? 'native-module' | 'bridge' | 'modifier' | 'managed-serde' | 'native-serde' :
   T extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'modifier' | 'impl' :
   never
 type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>

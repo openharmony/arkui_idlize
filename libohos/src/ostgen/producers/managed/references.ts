@@ -17,17 +17,19 @@ import * as idl from "@idlizer/core/idl"
 import { warn } from "@idlizer/core";
 import { T } from "@idlizer/ost";
 import { createProducer } from "../../engine";
+import { cApiName, managedName } from "../common";
 
 export const reference = createProducer(
   { is: idl.isReferenceType },
-  (type, ctx) => {
+  (type, ctx, role) => {
     let target: idl.IDLNode | undefined = ctx.library.toDeclaration(type)
     if (!target) {
       warn("Unresolved reference " + type.name)
       target = idl.IDLObjectType
     }
+    const nameFunc = role === 'managed' ? managedName : cApiName
     return {
-      continuation: T.c(type.name),
+      continuation: T.c(nameFunc(type.name)),
       declarations: []
     }
   }

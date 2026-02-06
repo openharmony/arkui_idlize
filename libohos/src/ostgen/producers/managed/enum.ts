@@ -15,11 +15,11 @@
 
 import { D, T } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import { managedName, roles } from "../common";
+import { managedName } from "../common";
 import { createProducer } from "../../engine";
 
 export const enumProducer = createProducer(
-  { is: idl.isEnum, role: roles.managed },
+  { is: idl.isEnum, role: 'managed' },
   (node) => {
     const generatedDeclName = managedName(idl.getFQName(node))
     return {

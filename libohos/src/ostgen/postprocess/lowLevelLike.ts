@@ -15,19 +15,17 @@
 
 import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts, utils } from "../../ost";
 import { generatorConfiguration, zipStrip } from "@idlizer/core";
-import { callbackKindDeclaration, mergeEnums, mergeStructs, monoName } from "./postprocess";
+import { callbackKindDeclaration, monoName } from "./postprocess";
 import { bridgeName, cApiName, implName } from "../producers/common";
+import { lowLevelLike } from "@idlizer/kit";
 
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
-    decls = mergeStructs(decls) ///kit
-    decls = mergeEnums(decls) ///kit
     decls = introduceOptionalTypes(decls)
     decls = introduceCallbackCaller(decls)
     decls = monomorphizeGenerics(decls)
     decls = monomorphizeAlgebraicTypes(decls)
     decls = makeApis(decls)
-    decls = makeForwardDeclarations(decls) ///kit
-    return aliasTypes(decls) ///kit
+    return lowLevelLike.postprocess(decls)
 }
 
 class MakeOptional extends IdentityTransformer {
@@ -242,133 +240,4 @@ function makeApis(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
                 .then().return().value('nullptr').$().$().$()
             .return().value(E.unary(Op.ref, E.v('api'))).$().$().$()
     return [...decls, apiStruct.$(), ...modifierImpls, apiImpl]
-}
-
-function makeForwardDeclarations(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    const [forward, typedefs, structs] = decls.reduce<[lw.LWDeclaration[], lw.LWDeclaration[], lw.LWDeclaration[]]>(
-        ([fwd, tdef, str], decl) => {
-            if (decl.kind == lw.LWKind.StructureDeclaration) {
-                str.push(decl)
-                fwd.push(D.type(decl.name, Ts.struct(T.c(decl.name))))
-            } else {
-                tdef.push(decl)
-            }
-            return [fwd, tdef, str]
-        }, [[], [], []])
-    return [...forward, ...typedefs, ...structs]
-}
-
-class TypeAliasing extends IdentityTransformer {
-    private readonly ShortPrefix = generatorConfiguration().TypePrefix
-    private readonly LongPrefix = this.ShortPrefix + generatorConfiguration().moduleName.toUpperCase() + '_'
-    private conflicts: Set<string> = new Set()
-
-    private goTypeName(name: string): string {
-        const p = (typeName: string) => this.ShortPrefix + typeName
-        switch (name) {
-            case std.names.types.auto: return 'auto'
-            case std.names.types.bigint: return p('Int64')
-            case std.names.types.boolean: return p('Boolean')
-            case std.names.types.buffer: return p('Buffer')
-            case std.names.types.f32: return p('Float32')
-            case std.names.types.f64: return p('Float64')
-            case std.names.types.i8: return p('Int8')
-            case std.names.types.i32: return p('Int32')
-            case std.names.types.i64: return p('Int64')
-            case std.names.types.number: return p('Number')
-            case std.names.types.nativePointer: return p('NativePointer')
-            case std.names.types.object: return p('Object')
-            case std.names.types.serializerBuffer: return 'KSerializerBuffer'
-            case std.names.types.string: return p('String')
-            case std.names.types.u8: return p('UInt8')
-            case std.names.types.u32: return p('UInt32')
-            case std.names.types.u64: return p('UInt64')
-            case std.names.types.tag: return p('Tag')
-            case std.names.types.void: return 'void'
-            case std.names.types.interopNumber: return 'KInteropNumber'
-            case std.names.types.interopString: return 'KStringPtr'
-            case std.names.types.interopReturnBuffer: return 'KInteropReturnBuffer'
-            default:
-                if (name.startsWith('@'))
-                    throw new Error('Unhandled builtin type: ' + name)
-        }
-        const path = name.split('.')
-        if (path.length === 1)
-            return name
-        const prefix = path.shift()
-        const typeName = this.conflicts.has(name)
-            ? path.join('_')
-            : path[path.length - 1]
-        return prefix === 'capi' ? this.LongPrefix + typeName : typeName
-    }
-    override goValueType(type: lw.ValueType): lw.LWType {
-        return type.args.length === 0
-            ? T.c(this.goTypeName(type.name))
-            : super.goValueType(type)
-    }
-    override goEnumDeclaration(decl: lw.EnumDeclaration): lw.EnumDeclaration {
-        decl = super.goEnumDeclaration(decl)
-        decl.name = this.goTypeName(decl.name)
-        return decl
-    }
-    override goStructureDeclaration(decl: lw.StructureDeclaration): lw.StructureDeclaration {
-        decl = super.goStructureDeclaration(decl)
-        decl.name = this.goTypeName(decl.name)
-        return decl
-    }
-    override goClassDeclaration(decl: lw.ClassDeclaration): lw.ClassDeclaration {
-        decl = super.goClassDeclaration(decl)
-        decl.name = this.goTypeName(decl.name)
-        return decl
-    }
-    override goTypedefDeclaration(decl: lw.TypedefDeclaration): lw.TypedefDeclaration {
-        decl = super.goTypedefDeclaration(decl)
-        decl.name = this.goTypeName(decl.name)
-        return decl
-    }
-    override goFunctionDeclaration(decl: lw.FunctionDeclaration): lw.FunctionDeclaration {
-        decl = super.goFunctionDeclaration(decl)
-        decl.name = this.goTypeName(decl.name)
-        return decl
-    }
-    override goVariableExpression(expr: lw.VariableExpression): lw.VariableExpression {
-        expr = super.goVariableExpression(expr) as lw.VariableExpression
-        expr.name = utils.hasHint(expr, std.names.hints.isType)
-            ? this.goTypeName(expr.name)
-            : expr.name
-        return expr
-    }
-    go(decls: lw.LWDeclaration[]) {
-        const seenNames: Map<string, string[]> = new Map()
-        decls.forEach(decl => {
-            const path = decl.name.split('.')
-            let name = path[path.length - 1]
-            const conflictingNames = seenNames.get(name)
-            if (conflictingNames) {
-                if (!conflictingNames.includes(decl.name))
-                    conflictingNames.push(decl.name)
-            } else {
-                seenNames.set(name, [decl.name])
-            }
-        })
-        this.conflicts = new Set(
-            Array.from(seenNames.entries())
-                .filter(([_, names]) => names.length > 1)
-                .flatMap(([_, names]) => names))
-        const files: Map<string, lw.LWDeclaration[]> = new Map()
-        decls.forEach(decl => {
-            const file = decl.name.split('.').shift()!
-            const content = files.get(file)
-            const image = this.goDeclaration(decl)
-            if (!content)
-                files.set(file, [image])
-            else
-                content.push(image)
-        })
-        return files
-    }
-}
-
-function aliasTypes(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
-    return new TypeAliasing().go(decls)
 }
