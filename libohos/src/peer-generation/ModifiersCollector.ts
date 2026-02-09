@@ -16,6 +16,7 @@ import * as idl from "@idlizer/core/idl"
 import { PeerClass, PeerLibrary } from "@idlizer/core"
 import { getSuperComponent } from './ComponentsCollector'
 import { collectPeers } from './PeersCollector'
+import { peerGeneratorConfiguration } from "../DefaultConfiguration"
 
 export class ModifierInfo {
     constructor(
@@ -33,7 +34,8 @@ export function collectModifiers(library: PeerLibrary): Map<idl.IDLFile, Modifie
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (!idl.isInterface(entry) ||
                 idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component) ||
-                idl.isHandwritten(entry)) {
+                idl.isHandwritten(entry) ||
+                peerGeneratorConfiguration().isHandWritten(entry.name)) {
                 continue
             }
             if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier) ||
