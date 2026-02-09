@@ -99,3 +99,11 @@ dictionary IntEnumNegative129 {
     number E1 = -1;
     number E128 = -129;
 };
+
+dictionary LongEnumMinPositive {
+    number E = 0x80000000;
+};
+
+dictionary LongEnumMaxNegative {
+    number E = -0x80000001;
+};

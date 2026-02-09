@@ -197,7 +197,7 @@ export function enumBinaryRepresentation(enumEntry: IDLEnum, compact: boolean = 
         if (0 <= low && high <= 255) return IDLU8Type
         if (-128 <= low && high <= 127) return IDLI8Type
     }
-    if (low <= -0xFFFFFFFF || high >= 0xFFFFFFFF) return IDLI64Type
+    if (low < -0x80000000 || high > 0x7FFFFFFF) return IDLI64Type
     return IDLI32Type
 }
 
