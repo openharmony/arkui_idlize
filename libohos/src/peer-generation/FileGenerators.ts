@@ -233,9 +233,11 @@ export function setInteropTypesHeaderPath(path: string) {
     interopTypesPath = path
 }
 export function readInteropTypesHeader() {
-    const interopRootPath = interopTypesPath ?? getInteropRootPath()
+    if (interopTypesPath) {
+        return fs.readFileSync(interopTypesPath, 'utf-8')
+    }
     return fs.readFileSync(
-        path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h'),
+        path.resolve(getInteropRootPath(), 'src', 'cpp', 'interop-types.h'),
         'utf-8'
     )
 }
