@@ -1,5 +1,0 @@
-package ohos.arkui.node;
-
-interface NodeController {
-
-};

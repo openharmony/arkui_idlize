@@ -48,6 +48,7 @@ import { loadPeerConfiguration,
     peerGeneratorConfiguration,
     NativeModule,
     syntheticTransformer,
+    setInteropTypesHeaderPath,
 } from "@idlizer/libohos"
 import {
     generateArkoalaFromIdl,
@@ -91,6 +92,7 @@ export function arkgen(argv:string[]) {
         .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
         .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
         .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
+        .option('--interop-types <path>', 'Path to interop-types.h file')
 
     const options = command
         .parse(argv, { from: 'user' })
@@ -106,6 +108,10 @@ export function arkgen(argv:string[]) {
     if (options.interopBridges) {
         console.log(makeInteropBridges(options.interopBridges))
         didJob = true
+    }
+
+    if (options.interopTypes) {
+        setInteropTypesHeaderPath(options.interopTypes)
     }
 
     let apiVersion = options.apiVersion ?? 9999

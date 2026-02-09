@@ -1,3 +1,0 @@
-package arkui.stateManagement.decorators.decoratorWatch;
-
-interface WatchFuncType {};

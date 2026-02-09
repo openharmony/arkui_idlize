@@ -41,8 +41,4 @@ export function loadEtsgenConfiguration(configurationFiles: string[]) {
     return parseConfigFiles(ETSConfigScheme, configurationFiles)
 }
 
-export function etsgenDefaultConfigurationPath(): string {
-    return join(ETSGEN_ROOT, 'generator-config.json')
-}
-
 export const ETSGEN_ROOT = join(dirname(require.resolve('@idlizer/etsgen')), '../../..')

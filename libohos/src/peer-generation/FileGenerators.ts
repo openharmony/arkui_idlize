@@ -222,10 +222,22 @@ export function readTemplate(name: string): string {
     return template
 }
 
+
+function getInteropRootPath() {
+    const interopPackagePath = require.resolve('@koalaui/interop')
+    return path.resolve(interopPackagePath, '..', '..', '..', '..', '..')
+}
+
+let interopTypesPath: string | undefined
+export function setInteropTypesHeaderPath(path: string) {
+    interopTypesPath = path
+}
 export function readInteropTypesHeader() {
-    const interopRootPath = getInteropRootPath()
+    if (interopTypesPath) {
+        return fs.readFileSync(interopTypesPath, 'utf-8')
+    }
     return fs.readFileSync(
-        path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h'),
+        path.resolve(getInteropRootPath(), 'src', 'cpp', 'interop-types.h'),
         'utf-8'
     )
 }
@@ -248,11 +260,6 @@ export function maybeReadLangTemplate(name: string, lang: Language): string | un
     if (!fs.existsSync(file))
         return undefined
     return fs.readFileSync(file, 'utf8')
-}
-
-export function getInteropRootPath() {
-    const interopPackagePath = require.resolve('@koalaui/interop')
-    return path.resolve(interopPackagePath, '..', '..', '..', '..', '..')
 }
 
 export function copyDir(from: string, to: string, recursive: boolean) {

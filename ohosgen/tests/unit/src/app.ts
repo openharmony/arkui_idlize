@@ -624,6 +624,7 @@ async function checkThrowException() {
     if (value === 1)
       throw new Error("Test exception")
     console.error(`expected to have value 1 in parameter, got ${value}`)
+    return value
   }), "Exception for ThrowableCallbackI32_withParameter was not thrown")
   assertEQ(true, checkCallbackExceptions.checkThrowableCallbackVoid((): void => {
     throw new Error("Test exception")
