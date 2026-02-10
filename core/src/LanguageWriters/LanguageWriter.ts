@@ -228,7 +228,7 @@ export class TryCatchStatement implements LanguageStatement {
         tryStatement: LanguageStatement,
         catchStatement: LanguageStatement | undefined,
         finallyStatement: LanguageStatement | undefined,
-        protected options: { catchName: string }
+        protected options: { catchName: string, errorType?: string }
     ) {
         if (catchStatement === undefined && finallyStatement === undefined)
             throw new Error("Either catch or finally statement must be defined")
@@ -242,8 +242,9 @@ export class TryCatchStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         writer.print(`try`)
         this.tryStatement.write(writer)
+        const errType = this.options.errorType ? `: ${this.options.errorType}` : ``
         if (this.catchStatement) {
-            writer.printer.appendLastString(` catch (${this.options.catchName}) `)
+            writer.printer.appendLastString(` catch (${this.options.catchName}${errType}) `)
             this.catchStatement.write(writer)
         }
         if (this.finallyStatement) {
@@ -719,7 +720,7 @@ export abstract class LanguageWriter {
     makeRuntimeTypeDefinedCheck(runtimeType: string): LanguageExpression {
         return this.makeRuntimeTypeCondition(runtimeType, false, RuntimeType.UNDEFINED)
     }
-    makeTryCatch(tryStatement: LanguageStatement, catchStatement: LanguageStatement, finallyStatement?: LanguageStatement, options?: { catchName?: string }) {
+    makeTryCatch(tryStatement: LanguageStatement, catchStatement: LanguageStatement, finallyStatement?: LanguageStatement, options?: { catchName?: string, errorType: string }) {
         return new TryCatchStatement(tryStatement, catchStatement, finallyStatement, {
             catchName: options?.catchName ?? "error",
         })

@@ -296,7 +296,7 @@ class DeserializeCallbacksVisitor {
                                 ], true, false),
                                 writer.makeStatement(writer.makeFunctionCall(`continuationResult`, [exceptionExpression])),
                                 undefined,
-                                { catchName: `error: ${errorType}` },
+                                { catchName: `error`, errorType: errorType },
                             ))
                         })
                     } else {
