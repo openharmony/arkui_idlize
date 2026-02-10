@@ -1,13 +1,13 @@
 package arkui.component;
 
 // TBD: Used in dummy_impl.cpp
-dictionary ColorMode {
+enum ColorMode {
     number LIGHT = 0;
     number DARK = 1;
 };
 
 // TBD: Used in dummy_impl.cpp
-dictionary LayoutDirection {
+enum LayoutDirection {
     number LTR = 0;
     number RTL = 1;
     [OriginalEnumMemberName=Auto]

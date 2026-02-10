@@ -189,7 +189,7 @@ namespace huks {
         attribute sequence<String> keyAliases;
     };
     [Deprecated]
-    dictionary HuksErrorCode {
+    enum HuksErrorCode {
         [Deprecated]
         number HUKS_SUCCESS = 0;
         [Deprecated]
@@ -325,7 +325,7 @@ namespace huks {
         [Deprecated]
         number HUKS_ERROR_UNKNOWN_ERROR = -1000;
     };
-    dictionary HuksExceptionErrCode {
+    enum HuksExceptionErrCode {
         number HUKS_ERR_CODE_PERMISSION_FAIL = 201;
         number HUKS_ERR_CODE_NOT_SYSTEM_APP = 202;
         number HUKS_ERR_CODE_ILLEGAL_ARGUMENT = 401;
@@ -349,7 +349,7 @@ namespace huks {
         number HUKS_ERR_CODE_KEY_ALREADY_EXIST = 12000017;
         number HUKS_ERR_CODE_INVALID_ARGUMENT = 12000018;
     };
-    dictionary HuksKeyPurpose {
+    enum HuksKeyPurpose {
         number HUKS_KEY_PURPOSE_ENCRYPT = 1;
         number HUKS_KEY_PURPOSE_DECRYPT = 2;
         number HUKS_KEY_PURPOSE_SIGN = 4;
@@ -360,7 +360,7 @@ namespace huks {
         number HUKS_KEY_PURPOSE_MAC = 128;
         number HUKS_KEY_PURPOSE_AGREE = 256;
     };
-    dictionary HuksKeyDigest {
+    enum HuksKeyDigest {
         number HUKS_DIGEST_NONE = 0;
         number HUKS_DIGEST_MD5 = 1;
         number HUKS_DIGEST_SM3 = 2;
@@ -370,7 +370,7 @@ namespace huks {
         number HUKS_DIGEST_SHA384 = 13;
         number HUKS_DIGEST_SHA512 = 14;
     };
-    dictionary HuksKeyPadding {
+    enum HuksKeyPadding {
         number HUKS_PADDING_NONE = 0;
         number HUKS_PADDING_OAEP = 1;
         number HUKS_PADDING_PSS = 2;
@@ -380,7 +380,7 @@ namespace huks {
         number HUKS_PADDING_ISO_IEC_9796_2 = 6;
         number HUKS_PADDING_ISO_IEC_9797_1 = 7;
     };
-    dictionary HuksCipherMode {
+    enum HuksCipherMode {
         number HUKS_MODE_ECB = 1;
         number HUKS_MODE_CBC = 2;
         number HUKS_MODE_CTR = 3;
@@ -389,7 +389,7 @@ namespace huks {
         number HUKS_MODE_CCM = 31;
         number HUKS_MODE_GCM = 32;
     };
-    dictionary HuksKeySize {
+    enum HuksKeySize {
         number HUKS_RSA_KEY_SIZE_512 = 512;
         number HUKS_RSA_KEY_SIZE_768 = 768;
         number HUKS_RSA_KEY_SIZE_1024 = 1024;
@@ -415,7 +415,7 @@ namespace huks {
         number HUKS_3DES_KEY_SIZE_128 = 128;
         number HUKS_3DES_KEY_SIZE_192 = 192;
     };
-    dictionary HuksKeyAlg {
+    enum HuksKeyAlg {
         number HUKS_ALG_RSA = 1;
         number HUKS_ALG_ECC = 2;
         number HUKS_ALG_DSA = 3;
@@ -434,22 +434,22 @@ namespace huks {
         number HUKS_ALG_3DES = 161;
         number HUKS_ALG_CMAC = 162;
     };
-    dictionary HuksUnwrapSuite {
+    enum HuksUnwrapSuite {
         number HUKS_UNWRAP_SUITE_X25519_AES_256_GCM_NOPADDING = 1;
         number HUKS_UNWRAP_SUITE_ECDH_AES_256_GCM_NOPADDING = 2;
     };
-    dictionary HuksKeyGenerateType {
+    enum HuksKeyGenerateType {
         number HUKS_KEY_GENERATE_TYPE_DEFAULT = 0;
         number HUKS_KEY_GENERATE_TYPE_DERIVE = 1;
         number HUKS_KEY_GENERATE_TYPE_AGREE = 2;
     };
-    dictionary HuksKeyFlag {
+    enum HuksKeyFlag {
         number HUKS_KEY_FLAG_IMPORT_KEY = 1;
         number HUKS_KEY_FLAG_GENERATE_KEY = 2;
         number HUKS_KEY_FLAG_AGREE_KEY = 3;
         number HUKS_KEY_FLAG_DERIVE_KEY = 4;
     };
-    dictionary HuksKeyStorageType {
+    enum HuksKeyStorageType {
         [Deprecated]
         number HUKS_STORAGE_TEMP = 0;
         [Deprecated]
@@ -457,57 +457,57 @@ namespace huks {
         number HUKS_STORAGE_ONLY_USED_IN_HUKS = 2;
         number HUKS_STORAGE_KEY_EXPORT_ALLOWED = 3;
     };
-    dictionary HuksImportKeyType {
+    enum HuksImportKeyType {
         number HUKS_KEY_TYPE_PUBLIC_KEY = 0;
         number HUKS_KEY_TYPE_PRIVATE_KEY = 1;
         number HUKS_KEY_TYPE_KEY_PAIR = 2;
     };
-    dictionary HuksRsaPssSaltLenType {
+    enum HuksRsaPssSaltLenType {
         number HUKS_RSA_PSS_SALT_LEN_DIGEST = 0;
         number HUKS_RSA_PSS_SALT_LEN_MAX = 1;
     };
-    dictionary HuksUserAuthType {
+    enum HuksUserAuthType {
         number HUKS_USER_AUTH_TYPE_FINGERPRINT = 1;
         number HUKS_USER_AUTH_TYPE_FACE = 2;
         number HUKS_USER_AUTH_TYPE_PIN = 4;
         number HUKS_USER_AUTH_TYPE_TUI_PIN = 32;
     };
-    dictionary HuksAuthAccessType {
+    enum HuksAuthAccessType {
         number HUKS_AUTH_ACCESS_INVALID_CLEAR_PASSWORD = 1;
         number HUKS_AUTH_ACCESS_INVALID_NEW_BIO_ENROLL = 2;
         number HUKS_AUTH_ACCESS_ALWAYS_VALID = 4;
     };
-    dictionary HuksUserAuthMode {
+    enum HuksUserAuthMode {
         number HUKS_USER_AUTH_MODE_LOCAL = 0;
         number HUKS_USER_AUTH_MODE_COAUTH = 1;
     };
-    dictionary HuksAuthStorageLevel {
+    enum HuksAuthStorageLevel {
         number HUKS_AUTH_STORAGE_LEVEL_DE = 0;
         number HUKS_AUTH_STORAGE_LEVEL_CE = 1;
         number HUKS_AUTH_STORAGE_LEVEL_ECE = 2;
     };
-    dictionary HuksChallengeType {
+    enum HuksChallengeType {
         number HUKS_CHALLENGE_TYPE_NORMAL = 0;
         number HUKS_CHALLENGE_TYPE_CUSTOM = 1;
         number HUKS_CHALLENGE_TYPE_NONE = 2;
     };
-    dictionary HuksChallengePosition {
+    enum HuksChallengePosition {
         number HUKS_CHALLENGE_POS_0 = 0;
         number HUKS_CHALLENGE_POS_1 = 1;
         number HUKS_CHALLENGE_POS_2 = 2;
         number HUKS_CHALLENGE_POS_3 = 3;
     };
-    dictionary HuksSecureSignType {
+    enum HuksSecureSignType {
         number HUKS_SECURE_SIGN_WITH_AUTHINFO = 1;
     };
-    dictionary HuksSendType {
+    enum HuksSendType {
         number HUKS_SEND_TYPE_ASYNC = 0;
         number HUKS_SEND_TYPE_SYNC = 1;
     };
-    dictionary HuksKeyWrapType {
+    enum HuksKeyWrapType {
         number HUKS_KEY_WRAP_TYPE_HUK_BASED = 2;
     };
-    dictionary HuksTagType {
+    enum HuksTagType {
         number HUKS_TAG_TYPE_INVALID = 0;
         number HUKS_TAG_TYPE_INT = 268435456;
         number HUKS_TAG_TYPE_UINT = 536870912;
@@ -515,7 +515,7 @@ namespace huks {
         number HUKS_TAG_TYPE_BOOL = 1073741824;
         number HUKS_TAG_TYPE_BYTES = 1342177280;
     };
-    dictionary HuksTag {
+    enum HuksTag {
         [Deprecated]
         number HUKS_TAG_INVALID = 0;
         number HUKS_TAG_ALGORITHM = 536870913;

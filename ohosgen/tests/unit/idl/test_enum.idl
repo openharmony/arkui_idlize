@@ -1,29 +1,29 @@
 package test_enum;
-dictionary OrdinaryEnum {
+enum OrdinaryEnum {
     number E1;
     number E2;
     number E3;
 };
-dictionary IntEnum {
+enum IntEnum {
     number E1 = 11;
     number E3 = 33;
     number E5 = 55;
 };
 
-dictionary IntEnumNegative {
+enum IntEnumNegative {
     number E1 = -1;
     number E3 = -3;
     number E15 = -15;
 };
 
-dictionary BinEnum {
+enum BinEnum {
     number E0 = 0b0;
     number E1 = 0b1;
     number E101 = 0b101;
     number E10010 = 0b10010;
 };
 
-dictionary HexEnum {
+enum HexEnum {
     number E0 = 0x0;
     number E1 = 0X1;
     number E4 = 0x4;
@@ -31,7 +31,7 @@ dictionary HexEnum {
     number ECD = 0XCD;
 };
 
-dictionary BigHexEnum {
+enum BigHexEnum {
     number E0 = 0x0;
     number E1 = 0X1;
     number EFFFFFFFF = 0xFFFFFFFF;
@@ -40,7 +40,7 @@ dictionary BigHexEnum {
     number EFFFFFFFFFFCD = 0xFFFFFFFFFFCD;
 };
 
-dictionary DuplicateIntEnum {
+enum DuplicateIntEnum {
     number FIRST = 0;
     [OriginalEnumMemberName=first]
     number LEGACY_FIRST = 0;
@@ -51,7 +51,7 @@ dictionary DuplicateIntEnum {
     [OriginalEnumMemberName=third]
     number LEGACY_THIRD = 2;
 };
-dictionary StringEnum {
+enum StringEnum {
     [OriginalEnumMemberName=e1]
     String E1 = "e11";
     [OriginalEnumMemberName=e2]
@@ -70,40 +70,40 @@ DuplicateIntEnum checkDuplicateIntEnums(DuplicateIntEnum value1, DuplicateIntEnu
 StringEnum checkStringEnums(StringEnum value1, StringEnum value2);
 StringEnum checkStringEnumOrdinal(StringEnum value, i32 expectedOrdinal);
 
-dictionary IntEnum255 {
+enum IntEnum255 {
     number E1 = 1;
     number E255 = 255;
 };
 
-dictionary IntEnum256 {
+enum IntEnum256 {
     number E1 = 1;
     number E256 = 256;
 };
 
-dictionary IntEnum257 {
+enum IntEnum257 {
     number E1 = 1;
     number E257 = 257;
 };
 
-dictionary IntEnumNegative127 {
+enum IntEnumNegative127 {
     number E1 = -128;
     number E127 = 127;
 };
 
-dictionary IntEnumNegative128 {
+enum IntEnumNegative128 {
     number E1 = -1;
     number E127 = 128;
 };
 
-dictionary IntEnumNegative129 {
+enum IntEnumNegative129 {
     number E1 = -1;
     number E128 = -129;
 };
 
-dictionary LongEnumMinPositive {
+enum LongEnumMinPositive {
     number E = 0x80000000;
 };
 
-dictionary LongEnumMaxNegative {
+enum LongEnumMaxNegative {
     number E = -0x80000001;
 };

@@ -1,6 +1,6 @@
 package test_inheritance;
 
-dictionary GestureType {
+enum GestureType {
     number First;
     number Second;
 };

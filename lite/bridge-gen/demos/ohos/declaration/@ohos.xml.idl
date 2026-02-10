@@ -30,7 +30,7 @@ namespace xml {
         void setText(String text);
         void setDocType(String text);
     };
-    dictionary EventType {
+    enum EventType {
         number START_DOCUMENT = 0;
         number END_DOCUMENT = 1;
         number START_TAG = 2;

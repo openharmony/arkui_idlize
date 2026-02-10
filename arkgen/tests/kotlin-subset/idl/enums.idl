@@ -1,6 +1,6 @@
 package arkui.component;
 
-dictionary Color {
+enum Color {
     [OriginalEnumMemberName=White]
     number WHITE = 0;
     [OriginalEnumMemberName=Black]

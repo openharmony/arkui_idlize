@@ -1,6 +1,6 @@
 package huks_with_class;
 
-dictionary HuksTag {
+enum HuksTag {
     number HUKS_TAG_INVALID = 0;
     number HUKS_TAG_ALGORITHM = 536870913;
     number HUKS_TAG_PURPOSE = 536870914;

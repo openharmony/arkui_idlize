@@ -34,7 +34,7 @@ node . --dts2idl --input-dir ./interface_sdk-js/api,./interface_sdk-js/api/\@int
 For example `RectWidthStyle` declaration is placed in the file `@ohos.graphics.text.idl`:
 ```
 [Namespace=text]
-dictionary RectWidthStyle {
+enum RectWidthStyle {
     number TIGHT;
     number MAX;
 };
@@ -43,7 +43,7 @@ dictionary RectWidthStyle {
 - comment out the namespace if it exists
 ```
 /*[Namespace=text]*/
-dictionary RectWidthStyle {
+enum RectWidthStyle {
     number TIGHT;
     number MAX;
 };

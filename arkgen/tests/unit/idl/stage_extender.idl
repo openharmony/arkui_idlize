@@ -2,13 +2,13 @@ package arkui.component.stage_extender;
 
 
 // TBD: Used in dummy_impl.cpp
-dictionary PageTransitionType {
+enum PageTransitionType {
     number ENTER = 0;
     number EXIT = 1;
 };
 
 // TBD: Used in dummy_impl.cpp
-dictionary RouteType {
+enum RouteType {
     [OriginalEnumMemberName=None]
     number NONE = 0;
     [OriginalEnumMemberName=Push]
