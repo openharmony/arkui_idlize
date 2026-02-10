@@ -24,15 +24,6 @@ export const C_API_PREFIX = 'capi'
 export const BRIDGE_PREFIX = 'bridge'
 export const IMPL_PREFIX = 'impl'
 
-// export const roles = {
-//     managed: MANAGED_PREFIX,
-//     cApi: C_API_PREFIX,
-//     bridge: BRIDGE_PREFIX,
-//     nativeModule: MANAGED_PREFIX + ".nativeModule",
-//     serializerManaged: MANAGED_PREFIX + ".serializer",
-//     serializerNative: BRIDGE_PREFIX + ".serializer",
-// }
-
 export function managedName(name:string) {
     return MANAGED_PREFIX + '.' + name
 }
@@ -58,43 +49,6 @@ export function isCApi(name:string) {
 export function isBridge(name:string) {
     return is(BRIDGE_PREFIX, name)
 }
-
-///////////////////////////////////////////////////////////
-
-// export class AdvancedGeneratorContext {
-
-//     constructor(
-//         public base: GeneratorContext
-//     ) { }
-
-//     useManaged(node:idl.IDLNode) {
-//         return this.base.use({ node, role: roles.managed })
-//     }
-//     useCApi(node:idl.IDLNode) {
-//         return this.base.use({ node, role: roles.cApi })
-//     }
-//     useManagedNativeModule(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor) {
-//         return this.base.use({ node, role: roles.nativeModule })
-//     }
-//     useBridge(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor) {
-//         return this.base.use({ node, role: roles.bridge })
-//     }
-
-//     useNativeSerializer(node:idl.IDLNode) {
-//         return this.base.use({ node, role: roles.serializerNative })
-//     }
-//     useManagedSerializer(node:idl.IDLNode) {
-//         return this.base.use({ node, role: roles.serializerManaged })
-//     }
-// }
-// export interface AdvancedProducer<N extends idl.IDLNode = idl.IDLNode> {
-//     (node: N, ctx: AdvancedGeneratorContext, query: MakeSelectorQuery): ProducerDescription
-// }
-// export function createSpecialProducer<N extends idl.IDLNode>(pattern: MakeSelectorPattern<N>, producer: AdvancedProducer<N>): ProducerBox<N> {
-//     return createProducer(pattern, (n, ctx, query) => {
-//         return producer(n, new AdvancedGeneratorContext(ctx), query)
-//     })
-// }
 
 export function typeNameExpr(typeName: string): lw.LWExpression {
     return E.v(managedName(typeName), [Hs.isType()])

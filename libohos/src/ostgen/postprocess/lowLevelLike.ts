@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from "../../ost";
+import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from "@idlizer/ost"
 import { generatorConfiguration, zipStrip } from "@idlizer/core";
 import { callbackKindDeclaration, monoName } from "./postprocess";
 import { bridgeName, cApiName, implName } from "../producers/common";

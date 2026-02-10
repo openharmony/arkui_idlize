@@ -14,8 +14,7 @@
  */
 
 import { snakeCaseToCamelCase } from "@idlizer/core";
-import { Builders } from "@idlizer/ost";
-import { D, E, Hs, IdentityTransformer, lw, std, T, utils } from "../../ost";
+import { Builders, D, E, Hs, IdentityTransformer, lw, std, T, utils } from "@idlizer/ost"
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
 import { mapFileName, moduleName } from "../engine/utils";
 import { managedName } from "../producers/common";

@@ -17,7 +17,6 @@ import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration } from "@idlizer/core"
 import { readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
-import { managedName } from "../producers/common"
 
 export function throwError(msg:string): never {
     throw new Error(msg)

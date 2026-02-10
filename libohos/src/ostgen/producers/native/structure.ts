@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { D, Md, T, Ts } from "../../../ost"
+import { D, Md, T, Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
 import { cApiName } from "../common"
 import { isMaterialized } from "@idlizer/core"

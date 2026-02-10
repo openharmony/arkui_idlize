@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Ts } from "../../../ost";
+import { Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl";
 import { createProducer } from "../../engine";
 import { OhosSeed } from "../common";
