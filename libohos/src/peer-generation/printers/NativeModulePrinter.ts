@@ -410,8 +410,7 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
     else if (library.language === Language.KOTLIN) {
         imports.addFeatures([
             "KBoolean",
-            // TBD: add Kotlin KUByte type to the interop
-            //"KUByte",
+            "KUByte",
             "KByte",
             "KInt",
             "KLong",
