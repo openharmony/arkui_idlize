@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs'
-import * as path from 'path'
 import * as idl from "@idlizer/core/idl"
 import { Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
@@ -34,8 +32,7 @@ import {
     C_API_PREFIX,
     BRIDGE_PREFIX,
     IMPL_PREFIX,
-    readInteropTypesHeader
-    managedName,
+    readInteropTypesHeader,
     OhosSeed,
     producers,
     MakeSelector,
