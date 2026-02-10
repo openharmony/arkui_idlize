@@ -17,17 +17,17 @@ import { snakeCaseToCamelCase } from "@idlizer/core";
 import { Builders } from "@idlizer/ost";
 import { D, E, Hs, IdentityTransformer, lw, std, T, utils } from "../../ost";
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
-import { mapFileName, moduleName, nativeModuleName } from "../engine/utils";
+import { mapFileName, moduleName } from "../engine/utils";
 import { managedName } from "../producers/common";
 import { callbackKindDeclaration } from "./postprocess";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { moduleLike } from "@idlizer/kit";
 
-export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
+export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string): lw.LWDeclaration[] {
     decls = moduleLike.postprocess(decls)
     decls = introduceCallbackCaller(decls)
     decls = introduceTypeChecker(decls)
-    decls = loadNativeModule(decls)
+    decls = loadNativeModule(decls, nativeModuleName)
     return decls
 }
 
@@ -64,9 +64,8 @@ function introduceTypeChecker(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     return decls.concat(Builders.class(managedName('engine.TypeChecker')).$())
 }
 
-function loadNativeModule(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    const name = nativeModuleName();
-    const nativeModule = decls.find(it => it.name == name) as lw.ClassDeclaration
+function loadNativeModule(decls: lw.LWDeclaration[], nativeModuleName: string): lw.LWDeclaration[] {
+    const nativeModule = decls.find(it => it.name == nativeModuleName) as lw.ClassDeclaration
     nativeModule.methods.unshift(
         Builders.func(std.names.members.staticCtor).static().block()
             .call('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$())

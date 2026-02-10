@@ -14,9 +14,10 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { PeerLibrary } from "@idlizer/core"
+import { generatorConfiguration, PeerLibrary } from "@idlizer/core"
 import { E, Hs, LWType, Ts, lw } from "@idlizer/ost"
 import { ProducerContext, ProducerResult, Seed } from "@idlizer/kit"
+import { moduleName } from "../engine"
 
 export const MANAGED_PREFIX = 'managed'
 export const C_API_PREFIX = 'capi'
@@ -104,7 +105,17 @@ export function isDirectInteropType(type: lw.LWType) {
 }
 
 export interface OhosEffect {
+    nativeModuleName: string,
+    apiFunctionName: string,
     modifiers: Map<string, string[]>
+}
+
+export function createOhosEffect() {
+    return {
+        nativeModuleName: managedName('engine.' + moduleName('NativeModule')), ///substitute name @ type aliasing time?
+        apiFunctionName: 'Get' + generatorConfiguration().TypePrefix + moduleName('_API'),
+        modifiers: new Map<string, string[]>()
+    }
 }
 
 export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>

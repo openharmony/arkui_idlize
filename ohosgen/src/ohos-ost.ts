@@ -42,6 +42,7 @@ import {
     moduleLike,
     lowLevelLike,
     OhosEffect,
+    createOhosEffect
 } from "@idlizer/libohos"
 import { continueWith, onlyFor } from '@idlizer/kit'
 
@@ -60,8 +61,8 @@ export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, M
             !idl.isNamespace(e) &&
             !idl.isCallback(e))
         .map(e => new OhosSeed(e, 'managed'))
-    const {effect: {modifiers}, declarations } = continueWith<OhosSeed, PeerLibrary, OhosEffect>({
-        createEffect: () => ({ modifiers: new Map<string, string[]>() }),
+    const {effect, declarations } = continueWith<OhosSeed, PeerLibrary, OhosEffect>({
+        createEffect: createOhosEffect,
         library,
         roots: { seeds }},
         onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
@@ -79,13 +80,13 @@ export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, M
         .sort((a, b) => a.name.localeCompare(b.name)).forEach(decl => console.log(decl.name))///
     console.log(`/// ${managed.length} managed, ${native.length} native`)
     return [
-        dumpTsLike(managed, library.language, new Set(knownPackages)),
-        dumpCLike(native, modifiers, library.name)
+        dumpTsLike(managed, effect, library.language, new Set(knownPackages)),
+        dumpCLike(native, effect, library.name)
     ]
 }
 
-function dumpTsLike(decls: LWDeclaration[], language: Language, packages: Set<string>): Map<string, OutputFile> {
-    decls = moduleLike.postprocess(decls)
+function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Language, packages: Set<string>): Map<string, OutputFile> {
+    decls = moduleLike.postprocess(decls, effect.nativeModuleName)
     const files = moduleLike.formFiles(packages, decls)
     const result: Map<string, OutputFile> = new Map()
     const printer = language === Language.ARKTS ? processNPrintArkTS : processNPrintTS
@@ -104,8 +105,8 @@ function dumpTsLike(decls: LWDeclaration[], language: Language, packages: Set<st
     return result
 }
 
-function dumpCLike(decls: LWDeclaration[], modifiers: Map<string, string[]>, moduleName: string): Map<TargetFile, string> {
-    const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls, modifiers)
+function dumpCLike(decls: LWDeclaration[], effect: OhosEffect, moduleName: string): Map<TargetFile, string> {
+    const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls, effect.modifiers)
     ///copied from OhosNativeVisitor
     const interopTypesContent = readInteropTypesHeader()
     const h = [

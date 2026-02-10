@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlizer/core/idl";
-import { Builders, E, Hs, Ts } from "@idlizer/ost";
-import { isDirectInteropType } from "../common";
-import { createProducer, fqName, nativeModuleName } from "../../engine";
-import { argConvertor } from "../components/argConvertor";
+import * as idl from "@idlizer/core/idl"
+import { Builders, E, Hs, Ts } from "@idlizer/ost"
+import { isDirectInteropType } from "../common"
+import { createProducer, fqName } from "../../engine"
+import { argConvertor } from "../components/argConvertor"
 import { OhosSeed } from "../common"
 
 export const nativeModuleMaterializedProducer = createProducer(
@@ -37,7 +37,7 @@ export const nativeModuleFunctionProducer = createProducer(
   { is: idl.isMethod, role: 'native-module' },
   (method, ctx) => {
     const methodName = fqName(method, '_')
-    const className = nativeModuleName();
+    const className = ctx.getEffect().nativeModuleName
     const returnType = argConvertor(ctx, method.returnType).interopType(false)
     const nativeModule = Builders.class(className)
       .method(methodName)
@@ -62,7 +62,7 @@ export const nativeModuleConstructorProducer = createProducer(
   { is: idl.isConstructor, role: 'native-module' },
   (ctor, ctx) => {
     const methodName = fqName(ctor.parent as idl.IDLInterface, '_', '_construct')
-    const nativeModuleClassName = nativeModuleName();
+    const nativeModuleClassName = ctx.getEffect().nativeModuleName
     return {
       continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), methodName),
       declarations: [

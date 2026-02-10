@@ -53,10 +53,6 @@ export function fqName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstruct
   return (prefix ?? '') + fqn.split('.').join('_') + (postfix ?? '')
 }
 
-export function nativeModuleName(): string {
-  return managedName('engine.' + moduleName('NativeModule'))///substitute name @type aliasing step?
-}
-
 export function modifierClassName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor): string {
   return idl.isInterface(node)
     ? fqName(node)

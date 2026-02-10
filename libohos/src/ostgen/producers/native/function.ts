@@ -74,7 +74,7 @@ function apiAccessor(ctx: OhosProducerContext, modifierName: string, methodName:
   ctx.updateEffect(e => mapPush(e.modifiers, modifierName, methodName))
   return Builders
     .access(methodName).ptr().receiver().call().function()
-      .access(modifierName).ptr().receiver().call(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
+      .access(modifierName).ptr().receiver().call(ctx.getEffect().apiFunctionName)
         .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
 }
 
