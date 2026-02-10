@@ -385,7 +385,9 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
     return collectDeclarationTargets(library)
         .map(it => it)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
-        .filter(it => !idl.isHandwritten(it) && !isInIdlizeInternal(it) && !peerGeneratorConfiguration().components.custom.includes(it.name) && !peerGeneratorConfiguration().isHandWritten(it.name))
+        .filter(it => !library.isHandwritten(it)
+            && !isInIdlizeInternal(it)
+            && !peerGeneratorConfiguration().components.custom.includes(it.name))
         .filter(it => !peerGeneratorConfiguration().ignoreEntry(it.name, language))
         .filter(it => !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)))
         .filter(it => !it.typeParameters?.length

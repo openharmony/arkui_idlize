@@ -186,6 +186,17 @@ export class PeerLibrary implements LibraryInterface {
         this.context = context
     }
 
+    isHandwritten(node: idl.IDLEntry | idl.IDLReferenceType): boolean {
+        if (idl.isEntry(node)) {
+            return idl.isHandwritten(node)
+        }
+        const entry = this.resolveTypeReference(node)
+        if (entry) {
+            return this.isHandwritten(entry)
+        }
+        return false
+    }
+
     findFileByOriginalFilename(filename: string): idl.IDLFile | undefined {
         return this.files.find(it => it.fileName === filename)
     }

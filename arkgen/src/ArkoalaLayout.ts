@@ -16,7 +16,7 @@
 import * as path from 'node:path'
 import { Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary, getSyntheticTypesFileName } from '@idlizer/core'
 import * as idl from '@idlizer/core'
-import { isComponentDeclaration, NativeModule, peerGeneratorConfiguration } from '@idlizer/libohos'
+import { NativeModule, peerGeneratorConfiguration } from '@idlizer/libohos'
 
 const BASE_PATH = 'framework'
 const getGeneratedFilePath = (p:string) => path.join(BASE_PATH, p)
@@ -102,7 +102,7 @@ export class TsLayout extends CommonLayoutBase {
             return this.tsInternalPaths.get(target.node.name)!
         if (target.node.name === NativeModule.Generated.name)
             return getGeneratedFilePath(`peers/${NativeModule.Generated.name}`)
-        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
+        if (this.library.isHandwritten(target.node)) {
             return HandwrittenModule(this.library.language)
         }
 
@@ -158,15 +158,15 @@ export class ArkTsLayout extends CommonLayoutBase {
         if (this.arkTSInternalPaths.has(target.node.name))
             return this.arkTSInternalPaths.get(target.node.name)!
 
-        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
+        if (this.library.isHandwritten(target.node)) {
             return HandwrittenModule(this.library.language, this.isSdk)
         }
-        const packageName = idl.getPackageNameSafe(target.node)
 
         const moduleImport = getModuleImport(target.node, target.role, Language.ARKTS)
         if (moduleImport) return moduleImport
 
         let customPath: string | undefined
+        const packageName = idl.getPackageNameSafe(target.node)
         if (packageName && idl.isInCurrentModule(target.node) && (customPath = customPathSuggestion(packageName))) {
             return customPath
         }
@@ -202,7 +202,7 @@ export class CJLayout extends CommonLayoutBase {
     resolve(target: idl.LayoutTargetDescription): string {
         if (this.CJInternalPaths.has(target.node.name))
             return this.CJInternalPaths.get(target.node.name)!
-        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
+        if (this.library.isHandwritten(target.node)) {
             return HandwrittenModule(this.library.language)
         }
         if (idl.isSyntheticEntry(target.node)) {
@@ -233,7 +233,7 @@ export class KotlinLayout extends CommonLayoutBase {
         if (this.KotlinInternalPaths.has(target.node.name)) {
             return this.KotlinInternalPaths.get(target.node.name)!
         }
-        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
+        if (this.library.isHandwritten(target.node)) {
             return HandwrittenModule(this.library.language)
         }
         if (idl.isSyntheticEntry(target.node)) {

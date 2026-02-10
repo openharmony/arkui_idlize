@@ -101,7 +101,7 @@ export function runScraper(root: string, extraPaths: string[], configPath:string
     const files = [...library, ...interfacesLibrary]
     const resolver = createAlgotithmicReferenceResolver(files)
 
-    const roots = findRootFiles(library, options.target, options).concat(interfacesLibrary)
+    const roots = findRootFiles(library, options.target, options.exclude).concat(interfacesLibrary)
     const marked = new Set<string>()
     const fileNames = new Set<string>()
 
@@ -156,7 +156,7 @@ export function runScraper(root: string, extraPaths: string[], configPath:string
         }
         if (options.banned.some(t => packageName.startsWith(t))) {
             result.others.push(record)
-        } else if (options.target.some(t => packageName?.startsWith(t))) {
+        } else if (options.target.some(t => RegExp(t).test(packageName))) {
             result.module.push(record)
         } else {
             result.externalNames.push(record.fileName)
@@ -392,10 +392,12 @@ function findTsLikePackage(record: SummaryResultRecord, options: AppConfig): str
     return tsLikePackage
 }
 
-function findRootFiles(library: IDLFile[], targets: string[], options:AppConfig) {
+function findRootFiles(library: IDLFile[], targets: string[], excludes: string[]) {
+    const patterns = targets.map(target => RegExp(target))
+    const excludePatterns = excludes.map(target => RegExp(target))
     return library.filter(file => {
         const clause = file.packageClause.join('.')
-        return targets.some(target => clause.startsWith(target))
-            && !options.exclude.some(exclude => clause.startsWith(exclude))
+        return patterns.some(pattern => pattern.test(clause))
+            && !excludePatterns.some(pattern => pattern.test(clause))
     })
 }

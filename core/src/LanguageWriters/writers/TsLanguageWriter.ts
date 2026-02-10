@@ -482,7 +482,13 @@ export class TSLanguageWriter extends LanguageWriter {
             this.makeString(`[${fields.map(it=> `${it}!`).join(",")}]`), false)
     }
     get supportedModifiers(): MethodModifier[] {
-        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.PROTECTED, MethodModifier.STATIC]
+        return [
+            MethodModifier.PUBLIC,
+            MethodModifier.PRIVATE,
+            MethodModifier.PROTECTED,
+            MethodModifier.STATIC,
+            MethodModifier.ABSTRACT
+        ]
     }
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]

@@ -4,7 +4,7 @@ import { Language } from "../Language";
 import { LibraryInterface } from "../LibraryInterface";
 
 const findTopLevelConflicts_cache = new Map<LibraryInterface, Map<Language, string[]>>()
-export function findTopLevelConflicts(library: LibraryInterface, language: Language): string[] {
+function findTopLevelConflicts(library: LibraryInterface, language: Language): string[] {
     if (!findTopLevelConflicts_cache.has(library))
         findTopLevelConflicts_cache.set(library, new Map)
     const libraryCache = findTopLevelConflicts_cache.get(library)!

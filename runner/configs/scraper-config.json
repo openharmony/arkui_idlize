@@ -1,8 +1,9 @@
 {
     "target": [
-        "arkui.component",
-        "arkui.AttributeUpdater",
-        "arkui.ModifierState"
+        "^arkui\\.component",
+        "^arkui\\.AttributeUpdater",
+        "^arkui\\.ModifierState",
+        "^arkui\\..*Modifier$"
     ],
     "banned": [
         "ohos.inputMethod",

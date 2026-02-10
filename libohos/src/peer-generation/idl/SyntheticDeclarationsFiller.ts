@@ -257,7 +257,18 @@ function createLibraryFromFiles(files: idl.IDLFile[]): LibraryInterface {
             if (!idl.isType(type) && !idl.isEntry(type))
                 throw new Error("toDeclaration can be performed only on types or entries!")
             return toDeclaration(type, this)
+        },
+        isHandwritten(node: idl.IDLEntry | idl.IDLReferenceType): boolean {
+            if (idl.isEntry(node)) {
+                return idl.isHandwritten(node)
+            }
+            const entry = this.resolveTypeReference(node)
+            if (entry) {
+                return this.isHandwritten(entry)
+            }
+            return false
         }
+
     }
 }
 

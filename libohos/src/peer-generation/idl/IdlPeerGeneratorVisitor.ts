@@ -33,14 +33,12 @@ import {
     createOutArgConvertor,
     getExtendsChain
 } from '@idlizer/core'
-import { ArgConvertor, PeerLibrary } from "@idlizer/core"
+import { PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { getInternalClassName, MaterializedClass, MaterializedField, MaterializedMethod } from "@idlizer/core"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
-import { isMaterialized } from "@idlizer/core";
-import { ImportFeature } from "../ImportsCollector"
-import { convertDeclToFeature } from "../ImportsCollectorUtils"
-import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
+import { isMaterialized } from "@idlizer/core"
+import { isComponentDeclaration } from "../ComponentsCollector"
 import { ReferenceResolver } from "@idlizer/core"
 import * as path from "path"
 
@@ -123,7 +121,7 @@ export class IdlPeerProcessor {
         if (!isInCurrentModule(decl)) {
             return
         }
-        if (peerGeneratorConfiguration().isHandWritten(decl.name)) {
+        if (this.library.isHandwritten(decl)) {
             return
         }
         const fullCName = qualifiedName(decl, "_", "namespace.name")
@@ -357,7 +355,9 @@ export class IdlPeerProcessor {
         console.log(curConfig.LibraryPrefix, curPeerConfig.LibraryPrefix)
 
         for (const dep of allDeclarations) {
-            if (peerGeneratorConfiguration().ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language) || idl.isHandwritten(dep) || isInIdlizeInternal(dep))
+            if (peerGeneratorConfiguration().ignoreEntry(dep.name, this.library.language) ||
+                this.ignoreDeclaration(dep, this.library.language) || this.library.isHandwritten(dep) ||
+                isInIdlizeInternal(dep))
                 continue
             const isPeerDecl = idl.isInterface(dep) && isComponentDeclaration(this.library, dep)
             if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {

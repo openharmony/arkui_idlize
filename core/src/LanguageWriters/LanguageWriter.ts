@@ -400,6 +400,7 @@ export enum MethodModifier {
     FORCE_CONTEXT, // If method implementation will need VM context, synthetic
     OVERRIDE,
     OPEN,
+    ABSTRACT,
 }
 
 export const METHOD_ACCESS_MODIFIERS = new Set([
@@ -557,7 +558,7 @@ export abstract class LanguageWriter {
     }
     abstract get interopModule(): string
 
-    abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport?: boolean): void
+    abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isAbstract?: boolean): void
     abstract writeEnum(name: string, members: EnumMember[], options: { isExport: boolean, isDeclare?: boolean }, op?: (writer: this) => void): void
     abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void

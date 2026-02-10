@@ -1,7 +1,12 @@
 package arkui.component.check.modifiers;
 
 [Component]
-interface CheckModifiersAttribute: Root {
+interface CheckCustomModifierAttribute: Root {
+    attribute number prop;
+};
+
+[Component]
+interface CheckTrivialModifierAttribute: Root {
     attribute number prop;
 };
 

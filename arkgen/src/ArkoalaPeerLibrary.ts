@@ -31,7 +31,7 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
 import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor } from './ArkoalaArgConvertors';
 import { ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
 import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType';
-import { peerGeneratorConfiguration } from '@idlizer/libohos';
+import { isNonTrivialModifier, peerGeneratorConfiguration } from '@idlizer/libohos';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {
     override createLanguageWriter(language?: Language): LanguageWriter {
@@ -80,5 +80,16 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
             }
         }
         return super.declarationConvertor(param, type, declaration)
+    }
+
+    override isHandwritten(node: idl.IDLEntry | idl.IDLReferenceType): boolean {
+        if (idl.isEntry(node)) {
+            return super.isHandwritten(node) || peerGeneratorConfiguration().isHandWritten(node.name) ||
+                isNonTrivialModifier(node, this)
+        }
+        const entry = this.resolveTypeReference(node)
+        if (entry)
+            return this.isHandwritten(entry)
+        return false
     }
 }

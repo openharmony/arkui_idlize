@@ -1,7 +1,8 @@
 package arkui.component.common;
 import arkui.component.units.Length as Length;
 import arkui.Graphics.DrawContext as _DrawContext;
-import arkui.check.modifiersModifier.CheckModifiersModifier as CheckModifiersModifier;
+import arkui.CheckCustomModifierModifier.CheckCustomModifierModifier as CheckCustomModifierModifier;
+import arkui.CheckTrivialModifierModifier.CheckTrivialModifierModifier as CheckTrivialModifierModifier;
 typedef DrawContext = _DrawContext;
 
 // TBD: used in conf/ets-sdk.refs.json
@@ -38,5 +39,6 @@ interface DrawModifier {
 };
 
 interface MenuElement {
-    optional attribute CheckModifiersModifier modifierProp;
+    optional attribute CheckCustomModifierModifier modifierProp;
+    optional attribute CheckTrivialModifierModifier trivialModifierProp;
 };

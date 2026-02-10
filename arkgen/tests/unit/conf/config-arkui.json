@@ -17,7 +17,23 @@
         "arkui": {
             "name": "arkui",
             "packages": [
-                "arkui",
+                "arkui.AttributeUpdater",
+                "arkui.AttributeUpdaterFlag",
+                "arkui.Graphics",
+                "arkui.component.check.exeception",
+                "arkui.component.check.hierarchy",
+                "arkui.component.check.hooks",
+                "arkui.component.check.modifiers",
+                "arkui.component.check.optional",
+                "arkui.component.check.transform",
+                "arkui.component.common",
+                "arkui.component.datebook",
+                "arkui.component.units",
+                "arkui.CheckCustomModifierModifier",
+                "arkui.CheckTrivialModifierModifier",
+                "arkui.ModifierState",
+                "arkui.component.stage_extender",
+                "arkui.component",
                 "synthetic_types"
             ]
         },
