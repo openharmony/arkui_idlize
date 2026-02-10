@@ -37,6 +37,7 @@ import {
     NamespaceOptions,
     ObjectArgs,
     ReturnStatement,
+    TryCatchStatement,
     TsEnumEntityStatement,
 } from "../LanguageWriter"
 import { ArgConvertor } from "../ArgConvertors"
@@ -665,6 +666,16 @@ export class KotlinLanguageWriter extends LanguageWriter {
             const op = equals ? "==" : "!="
             return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`${typeVarName}`)])
         }
+    }
+    override makeTryCatch(
+        tryStatement: LanguageStatement,
+        catchStatement: LanguageStatement,
+        finallyStatement?: LanguageStatement,
+        options?: { catchName?: string; errorType: string; }): TryCatchStatement {
+        return new TryCatchStatement(tryStatement, catchStatement, finallyStatement, {
+            catchName: options?.catchName ?? "error",
+            errorType: options?.errorType
+        })
     }
     getTagType(): idl.IDLType {
         return idl.createReferenceType("Tag")
