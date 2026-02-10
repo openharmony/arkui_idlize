@@ -23,26 +23,23 @@ import { callbackKindDeclaration } from "./postprocess";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { moduleLike } from "@idlizer/kit";
 
-export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string): lw.LWDeclaration[] {
+export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string, callbacks: string[]): lw.LWDeclaration[] {
     decls = moduleLike.postprocess(decls)
-    decls = introduceCallbackCaller(decls)
+    decls = introduceCallbackCaller(decls, callbacks)
     decls = introduceTypeChecker(decls)
     decls = loadNativeModule(decls, nativeModuleName)
     return decls
 }
 
-function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    const callers = decls
-        .filter(it => it.name.startsWith(managedName('engine.deserializeAndCall')))
-        .map(it => it.name.replace(/^.*deserializeAndCall/, '')) ///where to take callback name from?
-    const callbackKindEnum = callbackKindDeclaration(callers, s => managedName('engine.' + s))
+function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[]): lw.LWDeclaration[] {
+    const callbackKindEnum = callbackKindDeclaration(callbacks, s => managedName('engine.' + s))
     const caller = Builders.func(managedName('engine.deserializeAndCallCallback'))
         .param('deserializer').typeStr('DeserializerBase').$()
         .block()
             .decl('kind').value().call('readInt32').receiver('deserializer').$().$().$()
             .switch()
                 .selector().call('fromValue').receiver('CallbackKind').arg('kind').$().$()
-                .cases(callers.map(it => { return {
+                .cases(callbacks.map(it => { return {
                     value: E.c(`CallbackKind.KIND_${it.toUpperCase()}`),
                     body: [
                         Builders.return().call(E.v('deserializeAndCall' + it, [Hs.isType()])).arg('deserializer').$().$()

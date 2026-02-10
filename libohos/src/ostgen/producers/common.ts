@@ -107,14 +107,16 @@ export function isDirectInteropType(type: lw.LWType) {
 export interface OhosEffect {
     nativeModuleName: string,
     apiFunctionName: string,
-    modifiers: Map<string, string[]>
+    modifiers: Map<string, string[]>,
+    callbacks: string[]
 }
 
 export function createOhosEffect() {
     return {
         nativeModuleName: managedName('engine.' + moduleName('NativeModule')), ///substitute name @ type aliasing time?
         apiFunctionName: 'Get' + generatorConfiguration().TypePrefix + moduleName('_API'),
-        modifiers: new Map<string, string[]>()
+        modifiers: new Map<string, string[]>(),
+        callbacks: []
     }
 }
 

@@ -86,7 +86,7 @@ export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, M
 }
 
 function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Language, packages: Set<string>): Map<string, OutputFile> {
-    decls = moduleLike.postprocess(decls, effect.nativeModuleName)
+    decls = moduleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
     const files = moduleLike.formFiles(packages, decls)
     const result: Map<string, OutputFile> = new Map()
     const printer = language === Language.ARKTS ? processNPrintArkTS : processNPrintTS
@@ -106,7 +106,7 @@ function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Langua
 }
 
 function dumpCLike(decls: LWDeclaration[], effect: OhosEffect, moduleName: string): Map<TargetFile, string> {
-    const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls, effect.modifiers)
+    const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls, effect.modifiers, effect.callbacks)
     ///copied from OhosNativeVisitor
     const interopTypesContent = readInteropTypesHeader()
     const h = [

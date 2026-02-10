@@ -23,6 +23,7 @@ import { createProducer } from "../../engine";
 export const callbackProducer = createProducer(
   { is: idl.isCallback, role: 'managed' },
   (callback, ctx) => {
+    ctx.updateEffect(e => e.callbacks.push(callback.name))
     const generatedDeclName = managedName(idl.getFQName(callback))
     const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), false))
     return {

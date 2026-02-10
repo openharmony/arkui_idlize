@@ -19,9 +19,9 @@ import { callbackKindDeclaration, monoName } from "./postprocess";
 import { bridgeName, cApiName, implName } from "../producers/common";
 import { lowLevelLike } from "@idlizer/kit";
 
-export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>): Map<string, lw.LWDeclaration[]> {
+export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>, callbacks: string[]): Map<string, lw.LWDeclaration[]> {
     decls = introduceOptionalTypes(decls)
-    decls = introduceCallbackCaller(decls)
+    decls = introduceCallbackCaller(decls, callbacks)
     decls = monomorphizeGenerics(decls)
     decls = monomorphizeAlgebraicTypes(decls)
     decls = makeApis(decls, modifiers)
@@ -45,18 +45,15 @@ function introduceOptionalTypes(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     return new MakeOptional().go(decls)
 }
 
-function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    const callers = decls
-        .filter(it => it.name.startsWith(bridgeName('CallManaged')))
-        .map(it => it.name.replace(/^.*CallManaged/, '')) ///where to take callback name from?
-    if (callers.length) {
-        const callbackKindEnum = callbackKindDeclaration(callers, bridgeName)
+function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[]): lw.LWDeclaration[] {
+    if (callbacks.length) {
+        const callbackKindEnum = callbackKindDeclaration(callbacks, bridgeName)
         const caller = Builders.func(bridgeName('getManagedCallbackCaller'))
             .param('kind').typeStr('CallbackKind').$()
             .returns(Ts.prim.pointer)
             .block()
                 .switch().selector().var('kind').$()
-                    .cases(callers.map(it => { return {
+                    .cases(callbacks.map(it => { return {
                         value: E.c(`KIND_${it.toUpperCase()}`),
                         body: [Builders.return().cast(Ts.prim.pointer).value('CallManaged' + it).$().$()]
                     }})).$()
@@ -66,7 +63,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] 
             .returns(Ts.prim.pointer)
             .block()
                 .switch().selector().var('kind').$()
-                    .cases(callers.map(it => { return {
+                    .cases(callbacks.map(it => { return {
                         value: E.c(`KIND_${it.toUpperCase()}`),
                         body: [Builders.return().cast(Ts.prim.pointer).value('SyncCallManaged' + it).$().$()]
                     }})).$()
