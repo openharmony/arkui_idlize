@@ -6,7 +6,8 @@
     "types": "build/lib/src/index.d.ts",
     "files": [
         "build/lib/**/*.js",
-        "build/lib/**/*.d.ts"
+        "build/lib/**/*.d.ts",
+        "AGENT.md"
     ],
     "engines": {
         "npm": ">= 8",
@@ -21,6 +22,9 @@
     "scripts": {
         "clean": "rimraf -g build",
         "compile:self": "tsc -b .",
-        "compile": "npm run compile:self"
+        "compile": "npm run compile:self",
+        "test:compile": "tsc -b test/tsconfig.json",
+        "test:run": "node --enable-source-maps build/test/test/run-all.js",
+        "test": "npm run test:compile && npm run test:run"
     }
 }

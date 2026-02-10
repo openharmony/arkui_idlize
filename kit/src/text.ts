@@ -40,6 +40,7 @@ limitations under the License.
         if (dotsSize > 0) {
             result += '.'.repeat(dotsSize)
         }
+        result += ' '
         result += content
         return result
     }
@@ -59,8 +60,8 @@ limitations under the License.
  |___________________________|
 
  ${makeDotLine('Generator', name, 29)}
- ${makeDotLine('Generator', version, 29)}
- ${makeDotLine('Generator', commit, 29)}
+ ${makeDotLine('Version', version, 29)}
+ ${makeDotLine('Commit', commit, 29)}
 `
     }
 

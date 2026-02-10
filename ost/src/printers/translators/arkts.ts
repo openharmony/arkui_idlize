@@ -15,7 +15,7 @@
 
 import * as lw from "../../lws"
 import { std } from "../../stdlib";
-import { T } from "../../builder";
+import { T } from "../../builders";
 import { ConvertTSTypes, TSPrinter } from "./typescript";
 
 export class ConvertArkTSTypes extends ConvertTSTypes {

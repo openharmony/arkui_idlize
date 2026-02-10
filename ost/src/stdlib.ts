@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { E, T } from "./builder"
+import { E, T } from "./builders"
 import { Hint, DecoratorKind, LWType, Modifier } from "./lws"
 
 const knownHints = {

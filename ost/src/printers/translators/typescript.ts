@@ -17,7 +17,7 @@ import { IndentPrinter } from "../indent";
 import * as lw from "../../lws"
 import { std } from "../../stdlib";
 import { IdentityTransformer } from "../../visitors/identity";
-import { T, utils } from "../../builder";
+import { T, utils } from "../../builders";
 
 const varMapping = new Map([
   [std.names.vars.base, 'super'],
