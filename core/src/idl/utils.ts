@@ -176,8 +176,9 @@ export function linearizeNamespaceMembers(entries: IDLEntry[]) {
 }
 
 export function extremumOfOrdinals(enumEntry: IDLEnum): { low: number, high: number } {
-    let low: number = 0
-    let high: number = 0
+    if (enumEntry.elements.length == 0) return { low: 0, high: 0 }
+    let low: number = Number.POSITIVE_INFINITY
+    let high: number = Number.NEGATIVE_INFINITY
     enumEntry.elements.forEach((member, index) => {
         let value = index
         if ((typeof member.initializer === 'number') && !isStringEnum(enumEntry)) {
@@ -189,11 +190,14 @@ export function extremumOfOrdinals(enumEntry: IDLEnum): { low: number, high: num
     return { low, high }
 }
 
-export function enumBinaryRepresentation(enumEntry: IDLEnum): IDLPrimitiveType {
+// Using compact true requires adding and updating KUByte type in the interop
+export function enumBinaryRepresentation(enumEntry: IDLEnum, compact: boolean = false): IDLPrimitiveType {
     const { low, high } = extremumOfOrdinals(enumEntry)
-    if (0 <= low && high <= 255) return IDLU8Type
-    if (-128 <= low && high <= 127) return IDLI8Type
-    if (low <= -0xFFFFFFFF || high >= 0xFFFFFFFF) return IDLI64Type
+    if (compact) {
+        if (0 <= low && high <= 255) return IDLU8Type
+        if (-128 <= low && high <= 127) return IDLI8Type
+    }
+    if (low < -0x80000000 || high > 0x7FFFFFFF) return IDLI64Type
     return IDLI32Type
 }
 

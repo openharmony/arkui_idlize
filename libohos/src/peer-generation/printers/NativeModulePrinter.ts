@@ -410,6 +410,7 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
     else if (library.language === Language.KOTLIN) {
         imports.addFeatures([
             "KBoolean",
+            "KUByte",
             "KByte",
             "KInt",
             "KLong",

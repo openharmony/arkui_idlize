@@ -115,14 +115,20 @@ fun checkForceCallback() {
 }
 
 fun checkEnum() {
-    assertEQ(11.toUByte(), IntEnum.E1.value)
-    assertEQ(33.toUByte(), IntEnum.E3.value)
-    assertEQ(55.toUByte(), IntEnum.E5.value)
+    assertEQ(11, IntEnum.E1.value)
+    assertEQ(33, IntEnum.E3.value)
+    assertEQ(55, IntEnum.E5.value)
     assertEQ("e11", StringEnum.e1.value)
     assertEQ("e22", StringEnum.e2.value)
 
     assertEQ(OrdinaryEnum.E3, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2))
     assertEQ(IntEnum.E5, checkIntEnums(IntEnum.E1, IntEnum.E3))
+
+    assertEQ(-1, IntEnumNegative.E1.value)
+    assertEQ(-3, IntEnumNegative.E3.value)
+    assertEQ(-15, IntEnumNegative.E15.value)
+    assertEQ(IntEnumNegative.E15, checkIntNegativeEnums(IntEnumNegative.E1, IntEnumNegative.E3))
+
     assertEQ(DuplicateIntEnum.THIRD, checkDuplicateIntEnums(DuplicateIntEnum.FIRST, DuplicateIntEnum.SECOND))
     assertEQ(DuplicateIntEnum.third.value,
         checkDuplicateIntEnums(DuplicateIntEnum.first, DuplicateIntEnum.second).value)

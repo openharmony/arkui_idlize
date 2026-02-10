@@ -365,9 +365,25 @@ OH_UNIT_OrdinaryEnum GlobalScope_checkOrdinaryEnumsImpl(OH_UNIT_OrdinaryEnum val
 OH_UNIT_IntEnum GlobalScope_checkIntEnumsImpl(OH_UNIT_IntEnum value1, OH_UNIT_IntEnum value2) {
     // printf("value2: %d, expected: %d\n", value2, OH_UNIT_INT_ENUM_E3);
     if (value2 != OH_UNIT_INT_ENUM_E3) {
-        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_INT_ENUM_E3: %d", value1, OH_UNIT_INT_ENUM_E3);
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_INT_ENUM_E3: %d", value2, OH_UNIT_INT_ENUM_E3);
     }
     return OH_UNIT_INT_ENUM_E5;
+}
+
+OH_UNIT_IntEnumNegative GlobalScope_checkIntNegativeEnumsImpl(OH_UNIT_IntEnumNegative value1, OH_UNIT_IntEnumNegative value2) {
+    if (OH_UNIT_INT_ENUM_NEGATIVE_E1 != -1) {
+        INTEROP_FATAL("Enum OH_UNIT_INT_ENUM_NEGATIVE_E1 %d does not equal to: %d", OH_UNIT_INT_ENUM_NEGATIVE_E1, -1);
+    }
+    if (OH_UNIT_INT_ENUM_NEGATIVE_E3 != -3) {
+        INTEROP_FATAL("Enum OH_UNIT_INT_ENUM_NEGATIVE_E3 %d does not equal to: %d", OH_UNIT_INT_ENUM_NEGATIVE_E3, -3);
+    }
+    if (value1 != OH_UNIT_INT_ENUM_NEGATIVE_E1) {
+        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_INT_ENUM_NEGATIVE_E1: %d", value1, OH_UNIT_INT_ENUM_NEGATIVE_E1);
+    }
+    if (value2 != OH_UNIT_INT_ENUM_NEGATIVE_E3) {
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_INT_ENUM_NEGATIVE_E3: %d", value2, OH_UNIT_INT_ENUM_NEGATIVE_E3);
+    }
+    return OH_UNIT_INT_ENUM_NEGATIVE_E15;
 }
 
 OH_UNIT_HexEnum GlobalScope_checkHexEnumsImpl(OH_UNIT_HexEnum value1, OH_UNIT_HexEnum value2) {

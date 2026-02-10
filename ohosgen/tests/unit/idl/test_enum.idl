@@ -10,6 +10,12 @@ dictionary IntEnum {
     number E5 = 55;
 };
 
+dictionary IntEnumNegative {
+    number E1 = -1;
+    number E3 = -3;
+    number E15 = -15;
+};
+
 dictionary BinEnum {
     number E0 = 0b0;
     number E1 = 0b1;
@@ -56,6 +62,7 @@ dictionary StringEnum {
 };
 OrdinaryEnum checkOrdinaryEnums(OrdinaryEnum value1, OrdinaryEnum value2);
 IntEnum checkIntEnums(IntEnum value1, IntEnum value2);
+IntEnumNegative checkIntNegativeEnums(IntEnumNegative value1, IntEnumNegative value2);
 BinEnum checkBinEnums(BinEnum value1, BinEnum value2);
 HexEnum checkHexEnums(HexEnum value1, HexEnum value2);
 BigHexEnum checkBigHexEnums(BigHexEnum value1, BigHexEnum value2);
@@ -78,11 +85,6 @@ dictionary IntEnum257 {
     number E257 = 257;
 };
 
-dictionary IntEnumNegative {
-    number E1 = -1;
-    number E15 = -15;
-};
-
 dictionary IntEnumNegative127 {
     number E1 = -128;
     number E127 = 127;
@@ -96,4 +98,12 @@ dictionary IntEnumNegative128 {
 dictionary IntEnumNegative129 {
     number E1 = -1;
     number E128 = -129;
+};
+
+dictionary LongEnumMinPositive {
+    number E = 0x80000000;
+};
+
+dictionary LongEnumMaxNegative {
+    number E = -0x80000001;
 };

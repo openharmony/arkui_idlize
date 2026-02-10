@@ -30,6 +30,7 @@ export {
 export {
     OrdinaryEnum,
     IntEnum,
+    IntEnumNegative,
     BinEnum,
     HexEnum,
     BigHexEnum,
@@ -37,6 +38,7 @@ export {
     StringEnum,
     checkOrdinaryEnums,
     checkIntEnums,
+    checkIntNegativeEnums,
     checkBinEnums,
     checkHexEnums,
     checkBigHexEnums,
