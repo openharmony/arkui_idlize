@@ -14,10 +14,9 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration } from "@idlizer/core"
 import { Builders, E, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
-import { bridgeName, isDirectInteropType, OhosProducerContext, OhosSeed } from "../common"
-import { createProducer, fqName, modifierClassName, moduleName } from "../../engine"
+import { bridgeName, isDirectInteropType, OhosSeed } from "../common"
+import { createProducer, fqName } from "../../engine"
 import { argConvertor } from "../components/argConvertor"
 
 export const functionBridgeProducer = createProducer(

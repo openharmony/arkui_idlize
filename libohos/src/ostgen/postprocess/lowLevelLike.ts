@@ -13,19 +13,18 @@
  * limitations under the License.
  */
 
-import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts, utils } from "../../ost";
+import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from "../../ost";
 import { generatorConfiguration, zipStrip } from "@idlizer/core";
 import { callbackKindDeclaration, monoName } from "./postprocess";
 import { bridgeName, cApiName, implName } from "../producers/common";
 import { lowLevelLike } from "@idlizer/kit";
-import { mapPush } from "../engine";
 
-export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
+export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>): Map<string, lw.LWDeclaration[]> {
     decls = introduceOptionalTypes(decls)
     decls = introduceCallbackCaller(decls)
     decls = monomorphizeGenerics(decls)
     decls = monomorphizeAlgebraicTypes(decls)
-    decls = makeApis(decls)
+    decls = makeApis(decls, modifiers)
     return lowLevelLike.postprocess(decls)
 }
 
@@ -201,22 +200,16 @@ function monomorphizeAlgebraicTypes(decls: lw.LWDeclaration[]): lw.LWDeclaration
     return new AlgebraicMonomorphizer(decls).go()
 }
 
-function makeApis(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
+function makeApis(decls: lw.LWDeclaration[], modifierNames: Map<string, string[]>): lw.LWDeclaration[] {
     const apiStructName = cApiName('modifier.API')
     const apiStruct = Builders.struct(apiStructName)
         .field('version').type(Ts.prim.i32).$()
-    const modifiers = decls
-        .filter(it => it.name.startsWith('capi.modifier'))
-        .map(it => it as lw.StructureDeclaration)
-    const modifierNames = new Map<string, string[]>()
     const modifierImpls: lw.FunctionDeclaration[] = []
     const apiImpls: lw.LWExpression[] = []
-    modifiers.forEach(decl =>
-        decl.members.forEach(it => mapPush(modifierNames, decl.name, it.name)))
     // API struct fields
-    modifierNames.forEach((impls, name) => {
+    modifierNames.forEach((impls, className) => {
+        const name = cApiName(className + 'Modifier')
         const modifierImplName = implName(name + 'Impl')
-        const className = name.split('.').pop()!.replace(/Modifier$/, '')
         // modifier field in the API struct
         apiStruct.field(className)
             .funcType().returns(Ts.const(Ts.ptr(T.c(name)))).$().$()

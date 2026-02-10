@@ -15,10 +15,9 @@
 
 import { D, Md, T, Ts } from "../../../ost"
 import * as idl from "@idlizer/core/idl"
-import { cApiName, implName } from "../common"
+import { cApiName } from "../common"
 import { isMaterialized } from "@idlizer/core"
-import { Builders } from "@idlizer/ost"
-import { createProducer, fqName, modifierClassName } from "../../engine"
+import { createProducer } from "../../engine"
 import { OhosProducerContext, OhosSeed } from "../common"
 
 export const structureProducer = createProducer(
@@ -50,15 +49,7 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
 }
 
 function makeMaterialized(node: idl.IDLInterface, name: string) {
-  const destructorName = fqName(node, '', '_destruct')
   return [
     D.type(name, Ts.ptr(Ts.prim.void)),
-    Builders.struct(cApiName(`modifier.${modifierClassName(node)}Modifier`))
-      .field(destructorName)
-        .funcType()
-        .param('thisPtr').type(Ts.prim.pointer).$()
-        .returns(Ts.prim.void).$().$().$(),
-    Builders.func(implName(destructorName + 'Impl'))///mv out?
-      .param('thisPtr').type(Ts.prim.pointer).$().$()
   ]
 }

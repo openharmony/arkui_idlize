@@ -41,45 +41,46 @@ import {
     MakeSelector,
     moduleLike,
     lowLevelLike,
+    OhosEffect,
 } from "@idlizer/libohos"
-import { forEachSeed, onlyFor } from '@idlizer/kit'
+import { continueWith, onlyFor } from '@idlizer/kit'
 
-export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
+export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
     const selector = new MakeSelector()
     for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
         selector.register(p as any)
 
     // ignore predefined / synthetic files
-    const files = peerLibrary.files.filter(file =>
+    const files = library.files.filter(file =>
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
-    const generated: LWDeclaration[] = forEachSeed({
-        context: peerLibrary,
-        begin: linearizeNamespaceMembers(files.flatMap(f => f.entries))
-            .filter(e =>
-                !idl.isImport(e) &&
-                !idl.isNamespace(e) &&
-                !idl.isCallback(e))
-            .map(e => new OhosSeed(e, 'managed')),
-        },
-        onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role))
-    )
+    const seeds = linearizeNamespaceMembers(files.flatMap(f => f.entries))
+        .filter(e =>
+            !idl.isImport(e) &&
+            !idl.isNamespace(e) &&
+            !idl.isCallback(e))
+        .map(e => new OhosSeed(e, 'managed'))
+    const {effect: {modifiers}, declarations } = continueWith<OhosSeed, PeerLibrary, OhosEffect>({
+        createEffect: () => ({ modifiers: new Map<string, string[]>() }),
+        library,
+        roots: { seeds }},
+        onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
     const knownPackages = files
-        .map(file => file.packageClause.length ? file.packageClause : [peerLibrary.name.toLowerCase()])
+        .map(file => file.packageClause.length ? file.packageClause : [library.name.toLowerCase()])
         .map(clause => [MANAGED_PREFIX, ...clause].join('.'))
         .concat(SPECIAL_PACKAGES)
-    const [managed, native] = generated.reduce<[LWDeclaration[], LWDeclaration[]]>(([m, n], decl) => {
+    const [managed, native] = declarations.reduce<[LWDeclaration[], LWDeclaration[]]>(([m, n], decl) => {
         (isManaged(decl.name) ? m : n).push(decl)
         return [m, n]
     }, [[], []])
-    generated
+    declarations
         .filter(decl => !decl.name.startsWith('managed'))
         .sort((a, b) => a.name.localeCompare(b.name)).forEach(decl => console.log(decl.name))///
     console.log(`/// ${managed.length} managed, ${native.length} native`)
     return [
-        dumpTsLike(managed, peerLibrary.language, new Set(knownPackages)),
-        dumpCLike(native, peerLibrary.name)
+        dumpTsLike(managed, library.language, new Set(knownPackages)),
+        dumpCLike(native, modifiers, library.name)
     ]
 }
 
@@ -103,8 +104,8 @@ function dumpTsLike(decls: LWDeclaration[], language: Language, packages: Set<st
     return result
 }
 
-function dumpCLike(decls: LWDeclaration[], moduleName: string): Map<TargetFile, string> {
-    const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls)
+function dumpCLike(decls: LWDeclaration[], modifiers: Map<string, string[]>, moduleName: string): Map<TargetFile, string> {
+    const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls, modifiers)
     ///copied from OhosNativeVisitor
     const interopTypesContent = readInteropTypesHeader()
     const h = [

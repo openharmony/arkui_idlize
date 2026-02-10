@@ -103,7 +103,11 @@ export function isDirectInteropType(type: lw.LWType) {
     return type !== Ts.prim.interopReturnBuffer
 }
 
-export type OhosProducerContext = ProducerContext<PeerLibrary, undefined>
+export interface OhosEffect {
+    modifiers: Map<string, string[]>
+}
+
+export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>
 export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext, role?: Role<T>) => ProducerResult
 
 type CommonRole = 'managed' | 'capi'
@@ -113,7 +117,7 @@ type SpecificRole<T extends idl.IDLNode> =
   never
 type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
-export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {///mv to common/context?
+export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {
   constructor(
     public node: T,
     public role?: Role<T>,
