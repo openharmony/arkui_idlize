@@ -14,9 +14,10 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Builders, E, LWType, Ts } from "@idlizer/ost";
+import { generatorConfiguration } from "@idlizer/core"
+import { Builders, E, LWExpression, LWType, Ts } from "@idlizer/ost"
 import { cApiName, implName } from "../common";
-import { createProducer, fqName, modifierClassName } from "../../engine";
+import { createProducer, fqName, modifierClassName, moduleName } from "../../engine"
 import { argConvertor } from "../components/argConvertor";
 import { OhosProducerContext, OhosSeed } from "../common"
 
@@ -30,7 +31,7 @@ export const functionProducer = createProducer(
     if (!method.isFree && !method.isStatic)
       params.unshift(['thisPtr', Ts.prim.pointer])
     return {
-      continuation: E.v(funcName),
+      continuation: apiAccessor(method, funcName),
       declarations: [
         Builders.struct(cApiName(`modifier.${modifierClassName(method)}Modifier`))
           .field(funcName)
@@ -49,7 +50,7 @@ export const constructorProducer = createProducer(
     const funcName = fqName(ctor)
     const params: [string, LWType][] = ctor.parameters.map(it => [it.name, wrapPtr(it.type, ctx)])
     return {
-      continuation: E.v(funcName),
+      continuation: apiAccessor(ctor, funcName),
       declarations: [
         Builders.struct(cApiName(`modifier.${modifierClassName(ctor)}Modifier`))
           .field(funcName)
@@ -62,6 +63,18 @@ export const constructorProducer = createProducer(
   }
 )
 
+function wrapPtr(type: idl.IDLType, ctx: OhosProducerContext): LWType {
+    const typeRef = ctx.expectType(new OhosSeed(type, 'capi'))
+    return argConvertor(ctx, type).isPointer() ? Ts.const(Ts.ptr(typeRef)) : typeRef
+}
+
+function apiAccessor(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, modifierName: string): LWExpression {
+  return Builders
+    .access(modifierName).ptr().receiver().call().function()
+      .access(modifierClassName(node)).ptr().receiver().call(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
+        .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
+}
+
 function generateImpl(method: idl.IDLMethod | idl.IDLConstructor, ctx: OhosProducerContext) {
   const returnType = idl.isMethod(method) ? ctx.expectType(new OhosSeed(method.returnType, 'capi')) : Ts.prim.pointer
   const params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
@@ -70,9 +83,4 @@ function generateImpl(method: idl.IDLMethod | idl.IDLConstructor, ctx: OhosProdu
   return Builders.func(implName(fqName(method, 'modifier.', 'Impl')))
     .returns(returnType)
     .parameters(params).$()
-}
-
-function wrapPtr(type: idl.IDLType, ctx: OhosProducerContext): LWType {
-    const typeRef = ctx.expectType(new OhosSeed(type, 'capi'))
-    return argConvertor(ctx, type).isPointer() ? Ts.const(Ts.ptr(typeRef)) : typeRef
 }

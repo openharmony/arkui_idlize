@@ -22,18 +22,13 @@ import { OhosSeed } from "../common"
 
 export const nativeModuleMaterializedProducer = createProducer(
   { is: idl.isInterface, role: 'native-module' },
-  (node, ctx) => {///how to handle getFinalizer better?
-    const methodName = fqName(node, '_', '_getFinalizer')
-    const nativeModuleClassName = nativeModuleName()
+  (node, ctx) => {
+    const getFinalizer = idl.createMethod('_getFinalizer', [], idl.IDLPointerType, {
+      isStatic: true, isAsync: false, isOptional: false, isFree: false})
+    getFinalizer.parent = node
     return {
-      continuation: E.v(nativeModuleClassName, [Hs.isType()]),
-      declarations: [
-        Builders.class(nativeModuleClassName)
-          .method(methodName)
-            .native().static().annotation('ani.unsafe.Direct')
-            .returns(Ts.prim.pointer).$().$()
-      ],
-      trigger: [new OhosSeed(node, 'bridge')]///hole!
+      continuation: ctx.expectExpr(new OhosSeed(getFinalizer, 'native-module')),
+      declarations: []
     }
   }
 )

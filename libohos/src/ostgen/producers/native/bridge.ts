@@ -52,7 +52,16 @@ export const functionBridgeProducer = createProducer(
     }
     macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
 
-    const apiCall = Builders.call(apiAccessor(method, funcName)).args(apiCallArgs).$()
+    // rewrite `getFinalizer` to call `destruct`
+    let capiMethod = method
+    let makeApiCall: (expr: LWExpression) => LWExpression = expr => Builders.call(expr).args(apiCallArgs).$()
+    if (method.name === 'getFinalizer') {
+      capiMethod = idl.createMethod('destruct', [], idl.IDLVoidType)
+      capiMethod.parent = method.parent
+      makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
+    }
+    const apiCall = makeApiCall(ctx.expectExpr(new OhosSeed(capiMethod, 'capi')))
+
     const body = Builders.block()
       .decl('deserializer', T.c('DeserializerBase')).mutable().value()
         .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
@@ -74,8 +83,7 @@ export const functionBridgeProducer = createProducer(
           .returns(interopReturnType)
           .body(body.$())
           .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
-      ],
-      trigger: [new OhosSeed(method, 'capi')]///use holes
+      ]
     }
   }
 )
@@ -97,49 +105,11 @@ export const constructorBridgeProducer = createProducer(
         .returns(Ts.prim.pointer)
         .block()
           .return(Ts.prim.pointer)
-            .call(apiAccessor(ctor, funcName))
+            .call(ctx.expectExpr(new OhosSeed(ctor, 'capi')))
             .args(callArgs).$().$().$()
         .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
         .$()
-      ],
-      trigger: [new OhosSeed(ctor, 'capi')]///use holes
+      ]
     }
   }
 )
-
-export const materializedBridgeProducer = createProducer(
-  { is: idl.isInterface, role: 'bridge' },
-  (node, ctx) => {
-    const fqn = fqName(node)
-    const finalizerName = fqn + '_getFinalizer'
-    const declName = bridgeName('modifier.impl_' + finalizerName)
-    return {
-      continuation: E.v(declName),
-      declarations: [
-        Builders.func(declName).returns(Ts.prim.pointer).block()
-          .return(Ts.prim.pointer)
-            .cast(Ts.prim.pointer).value(apiAccessor(node, fqn + '_destruct')).$().$().$()
-          .macro('KOALA_INTEROP_DIRECT_0', finalizerName, Ts.prim.pointer).$()
-      ],
-      trigger: [new OhosSeed(node, 'capi')]///use holes
-    }
-  }
-)
-
-function apiAccessor(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, modifierName: string): LWExpression {///rm  
-  return Builders
-    .access(modifierName).ptr().receiver().call().function()
-      .access(modifierClassName(node)).ptr().receiver().call(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
-        .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
-}
-
-// function api(method: idl.IDLMethod | idl.IDLConstructor, ctx: OhosProducerContext): LWExpression {///name
-//   const methodExpr = ctx.expectExpr(new OhosSeed(method, 'modifier'))
-//   const modifierExpr = method.parent && idl.isInterface(method.parent)
-//     ? ctx.expectExpr(new OhosSeed(method.parent, 'modifier'))
-//     : E.v(`GlobalScope`)///populate GS
-//   return Builders
-//     .access(methodExpr).ptr().receiver().call().function()
-//       .access(modifierExpr).ptr().receiver().call(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
-//         .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
-// }

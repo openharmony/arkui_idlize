@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, Hs, Md, T, Ts } from "@idlizer/ost"
 import { managedName, OhosProducer, OhosProducerContext, OhosSeed } from "../common"
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
-import { createProducer, fqName } from "../../engine"
+import { createProducer } from "../../engine"
 import { ProducerResult } from "@idlizer/kit"
 
 export const structure = createProducer(
@@ -82,15 +82,16 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
         .right().ctor('Finalizable')
           .arg('peerPtr')
           .arg().call('getFinalizer').receiver(E.v(name, [Hs.isType()])).$().$().$().$().$().$().$()
-    // getFinalizer
-    .method('getFinalizer').static().returns(Ts.prim.pointer).block()
-      .return(Ts.prim.pointer).call(fqName(node, '_', '_getFinalizer'))
-        .receiver(ctx.expectExpr(new OhosSeed(node, 'native-module'))).$().$().$().$()
     // default constructor
     .ctor().param('ptr').type(Ts.prim.pointer).$().block()
       .call('setPeer').receiver('this').arg('ptr').$().$().$().$()
   const syntheticMethods = [
+    // getFinalizer
+    idl.createMethod('getFinalizer', [], idl.IDLPointerType, {
+      isStatic: true, isAsync: false, isOptional: false, isFree: false}),
+    // client constructors
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
+    // property getters + setters
     ...node.properties.flatMap(prop => [
       idl.createMethod('get' + capitalize(prop.name), [], prop.type, undefined, {
         extendedAttributes: [
@@ -106,7 +107,7 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
   return {
     continuation: T.c(name),
     declarations: [intClass, matClass],
-    trigger: [
+    trigger: [///holes?
       ...node.constructors,
       ...node.methods,
       ...syntheticMethods
