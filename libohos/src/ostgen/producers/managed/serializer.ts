@@ -14,18 +14,10 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { E, Hs } from "@idlizer/ost";
-import { managedName } from "../common";
-import { makeSerializer } from "../components/serializer";
+import { produceSerializer } from "../components/serializer";
 import { createProducer } from "../../engine"
 
 export const serializerProducer = createProducer(
   { is: idl.isInterface, role: 'managed-serde' },
-  (node, ctx) => {
-    const serializerName = managedName(idl.getFQName(node) + 'Serializer')
-    return {
-      continuation: E.v(serializerName, [Hs.isType()]),
-      declarations: makeSerializer(ctx, node, false)
-    }
-  }
+  produceSerializer(false)
 )
