@@ -19,7 +19,7 @@
  * Use `ExpressionBuilders`, `StatementBuilders`, `TypeBuilders`, `createDeclarationBuilder`,
  * or the aliases `VE`, `VS`, `VT`, `VD`, `VDD` (mirroring original E, S, T, D, DD).
  */
-import * as lw from '../lws'
+import * as lw from '../lws.js'
 
 export const ExpressionBuilders = {
   /**

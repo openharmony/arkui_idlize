@@ -335,6 +335,8 @@ export interface ClassDeclaration {
     type: LWType
     /** Field modifiers (e.g., private, static, readonly) */
     modifiers?: Modifier[]
+    /** Field initialization expression */
+    expression?: LWExpression
   }[]
   /** Class methods */
   methods: FunctionDeclaration[]

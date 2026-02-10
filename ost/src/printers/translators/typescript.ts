@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { IndentPrinter } from "../indent";
-import * as lw from "../../lws"
-import { std } from "../../stdlib";
-import { IdentityTransformer } from "../../visitors/identity";
-import { T, utils } from "../../builders";
+import { IndentPrinter } from "../indent.js";
+import * as lw from "../../lws.js"
+import { std } from "../../stdlib.js";
+import { IdentityTransformer } from "../../visitors/identity.js";
+import { T, utils } from "../../builders/index.js";
 
 const varMapping = new Map([
   [std.names.vars.base, 'super'],
@@ -446,7 +446,7 @@ export class TSPrinter {
     }
   }
 
-  private printField(name: string, type: lw.LWType, modifiers?: lw.Modifier[], initializer?: string) {
+  private printField(name: string, type: lw.LWType, modifiers?: lw.Modifier[], initializer?: lw.LWExpression) {
     modifiers
       ?.filter(it => it.name !== std.names.modifiers.optional)
       .forEach(it => this.p.put(it.name, ' '))
@@ -455,8 +455,10 @@ export class TSPrinter {
       this.p.put('?')
     this.p.put(':', ' ')
     this.printType(type)
-    if (initializer)
-      this.p.put(' ', '=', ' ', initializer)
+    if (initializer) {
+      this.p.put(' ', '=', ' ')
+      this.printExpression(initializer)
+    }
   }
   private printGeneric(generic: lw.GenericDescriptor) {
     this.p.put(generic.name)
@@ -537,7 +539,7 @@ export class TSPrinter {
         this.p.inc()
         declaration.fields.forEach((field, i) => {
           this.p.newline()
-          this.printField(field.name, field.type, field.modifiers)
+          this.printField(field.name, field.type, field.modifiers, field.expression)
         })
         declaration.methods.forEach((method, i) => {
           this.p.newline()

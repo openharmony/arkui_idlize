@@ -2,6 +2,7 @@
     "name": "@idlizer/ost",
     "version": "2.2.2+devel",
     "description": "",
+    "type": "module",
     "main": "build/lib/src/index.js",
     "types": "build/lib/src/index.d.ts",
     "files": [

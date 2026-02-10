@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-export * from "./builders"
-export * from "./stdlib"
+export * from "./builders/index.js"
+export * from "./stdlib.js"
 
-export { processNPrintCJ } from "./printers/translators/cangjie"
-export { processNPrintTS } from "./printers/translators/typescript"
-export { processNPrintCXX } from "./printers/translators/cxx"
-export { processNPrintJava } from "./printers/translators/java"
-export { processNPrintArkTS } from "./printers/translators/arkts"
-export { dumpToString } from "./printers/dump"
+export { processNPrintCJ } from "./printers/translators/cangjie.js"
+export { processNPrintTS } from "./printers/translators/typescript.js"
+export { processNPrintCXX } from "./printers/translators/cxx.js"
+export { processNPrintJava } from "./printers/translators/java.js"
+export { processNPrintArkTS } from "./printers/translators/arkts.js"
+export { dumpToString } from "./printers/dump.js"
 
-export * as lw from "./lws"
-export * from "./lws"
+export * as lw from "./lws.js"
+export * from "./lws.js"
 
-export { IdentityTransformer, transformer } from "./visitors/identity"
+export { IdentityTransformer, transformer } from "./visitors/identity.js"

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { E, T } from "./builders"
-import { Hint, DecoratorKind, LWType, Modifier } from "./lws"
+import { E, T } from "./builders/index.js"
+import { Hint, DecoratorKind, LWType, Modifier } from "./lws.js"
 
 const knownHints = {
     ptrVal: 'ptrVal',

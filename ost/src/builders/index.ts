@@ -13,6 +13,6 @@
  * limitations under the License.
  */
 
-export * from './advanced'
-export * from './original'
-export * from './verbose'
+export * from './advanced.js'
+export * from './original.js'
+export * from './verbose.js'

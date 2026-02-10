@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { D, DD, E, S, T } from "./original"
+import { D, DD, E, S, T } from "./original.js"
 import {
     AccessorExpression, Hint, BinaryExpression, CallExpression, ClassDeclaration,
     ConstructorExpression, DeclarationStatement, ExpressionStatement, FunctionDeclaration,
@@ -21,8 +21,8 @@ import {
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
     EnumDeclaration, SwitchStatement
-} from "../lws"
-import { Hs, Md, std, Ts } from "../stdlib";
+} from "../lws.js"
+import { Hs, Md, std, Ts } from "../stdlib.js";
 
 /**
  * Advanced fluent builder API for constructing AST nodes.
