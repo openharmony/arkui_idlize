@@ -18,7 +18,7 @@ import * as idl from "@idlizer/core/idl"
 import { lw } from "../../ost";
 import { HistoryTracker } from "./history";
 import { terminate } from "@idlizer/kit";
-import { OhosProducer, OhosSeed } from "../producers/common";
+import { OhosProducer, OhosSeed, Role } from "../producers/common";
 
 export class IDLTypeResolver {
     constructor(private resolver: PeerLibrary) {}
@@ -148,7 +148,7 @@ export interface MakeSelectorQuery {
 }
 export interface MakeSelectorPattern<N extends idl.IDLNode> {
     is: (node: idl.IDLNode) => node is N,
-    role?: string
+    role?: Role<N>
 }
 
 // export class SelectError extends Error {}

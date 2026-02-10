@@ -14,7 +14,6 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { generatorConfiguration } from "@idlizer/core"
 import { Builders, LWExpression, LWType, Ts } from "@idlizer/ost"
 import { cApiName, implName } from "../common";
 import { createProducer, fqName, mapPush, modifierClassName, moduleName } from "../../engine"

@@ -128,7 +128,7 @@ type SpecificRole<T extends idl.IDLNode> =
   T extends idl.IDLInterface ? 'native-module' | 'bridge' | 'modifier' | 'managed-serde' | 'native-serde' :
   T extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'modifier' | 'impl' :
   never
-type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
+export type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
 export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {
   constructor(
