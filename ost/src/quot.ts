@@ -14,7 +14,7 @@
  */
 
 import { ClassDeclaration, LWDeclaration, LWExpression, LWStatement, LWType } from "./lws.js";
-import { E, S, T, D } from "./builders/index.js";
+import { E, S, T, D, DD } from "./builders/index.js";
 import { Vs, Md } from "./stdlib.js";
 
 enum TokenType {
@@ -65,6 +65,13 @@ enum TokenType {
   FIELD = 'FIELD',
   FUNCTION = 'FUNCTION',
   PRIVATE = 'PRIVATE',
+  GET = 'GET',
+  SET = 'SET',
+  NATIVE = 'NATIVE',
+  OPTIONAL = 'OPTIONAL',
+  READONLY = 'READONLY',
+  DECLARE = 'DECLARE',
+  EXTERNC = 'EXTERNC',
 
   // Literals
   NUMBER = 'NUMBER',
@@ -105,6 +112,13 @@ function tokenize(input: string): Token[] {
     'field': TokenType.FIELD,
     'function': TokenType.FUNCTION,
     'private': TokenType.PRIVATE,
+    'get': TokenType.GET,
+    'set': TokenType.SET,
+    'native': TokenType.NATIVE,
+    'optional': TokenType.OPTIONAL,
+    'readonly': TokenType.READONLY,
+    'declare': TokenType.DECLARE,
+    'externC': TokenType.EXTERNC,
   };
 
   while (position < input.length) {
@@ -618,11 +632,35 @@ class LWParser {
       return false
     }
     const modifiers: any[] = [];
-    while (this.peek().type === TokenType.PRIVATE || this.peek().type === TokenType.STATIC) {
+    while (
+      this.peek().type === TokenType.PRIVATE ||
+      this.peek().type === TokenType.STATIC ||
+      this.peek().type === TokenType.GET ||
+      this.peek().type === TokenType.SET ||
+      this.peek().type === TokenType.NATIVE ||
+      this.peek().type === TokenType.OPTIONAL ||
+      this.peek().type === TokenType.READONLY ||
+      this.peek().type === TokenType.DECLARE ||
+      this.peek().type === TokenType.EXTERNC
+    ) {
       if (this.match(TokenType.PRIVATE)) {
         modifiers.push(Md.private());
       } else if (this.match(TokenType.STATIC)) {
         modifiers.push(Md.static());
+      } else if (this.match(TokenType.GET)) {
+        modifiers.push(Md.getter());
+      } else if (this.match(TokenType.SET)) {
+        modifiers.push(Md.setter());
+      } else if (this.match(TokenType.NATIVE)) {
+        modifiers.push(Md.native());
+      } else if (this.match(TokenType.OPTIONAL)) {
+        modifiers.push(Md.optional());
+      } else if (this.match(TokenType.READONLY)) {
+        modifiers.push(Md.readonly());
+      } else if (this.match(TokenType.DECLARE)) {
+        modifiers.push(Md.declare());
+      } else if (this.match(TokenType.EXTERNC)) {
+        modifiers.push(Md.externC());
       }
     }
 
@@ -646,7 +684,7 @@ class LWParser {
 
     const body = this.parseStatement();
 
-    methods.push(D.func(funcName, params, returnType, body));
+    methods.push(DD({ modifiers }).func(funcName, params, returnType, body));
 
     this.match(TokenType.COMMA); // optional comma
     return true
@@ -658,11 +696,35 @@ class LWParser {
       return false
     }
     const modifiers: any[] = [];
-    while (this.peek().type === TokenType.PRIVATE || this.peek().type === TokenType.STATIC) {
+    while (
+      this.peek().type === TokenType.PRIVATE ||
+      this.peek().type === TokenType.STATIC ||
+      this.peek().type === TokenType.GET ||
+      this.peek().type === TokenType.SET ||
+      this.peek().type === TokenType.NATIVE ||
+      this.peek().type === TokenType.OPTIONAL ||
+      this.peek().type === TokenType.READONLY ||
+      this.peek().type === TokenType.DECLARE ||
+      this.peek().type === TokenType.EXTERNC
+    ) {
       if (this.match(TokenType.PRIVATE)) {
         modifiers.push(Md.private());
       } else if (this.match(TokenType.STATIC)) {
         modifiers.push(Md.static());
+      } else if (this.match(TokenType.GET)) {
+        modifiers.push(Md.getter());
+      } else if (this.match(TokenType.SET)) {
+        modifiers.push(Md.setter());
+      } else if (this.match(TokenType.NATIVE)) {
+        modifiers.push(Md.native());
+      } else if (this.match(TokenType.OPTIONAL)) {
+        modifiers.push(Md.optional());
+      } else if (this.match(TokenType.READONLY)) {
+        modifiers.push(Md.readonly());
+      } else if (this.match(TokenType.DECLARE)) {
+        modifiers.push(Md.declare());
+      } else if (this.match(TokenType.EXTERNC)) {
+        modifiers.push(Md.externC());
       }
     }
 

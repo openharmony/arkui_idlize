@@ -1,6 +1,6 @@
 import { assertEquals, describe, runTestSuite } from "./test-utils.js";
 import { quot } from "../src/quot.js"
-import { D, E, S, T } from "../src/builders/index.js";
+import { D, E, S, T, DD } from "../src/builders/index.js";
 import { Md, Vs } from "../src/stdlib.js";
 import { processNPrintTS } from "../src/printers/translators/typescript.js";
 
@@ -19,6 +19,10 @@ const quotTest = describe('Quot OST builder', [
             assertEquals(
                 quot.E`(+ 2 (* x 8))`,
                 E.bin('+', E.c(2), E.bin('*', E.v('x'), E.c(8)))
+            )
+            assertEquals(
+                quot.E`(- 1 2)`,
+                E.bin('-', E.c(1), E.c(2))
             )
             assertEquals(
                 quot.E`($ (x->foo) [1, y])`,
@@ -70,7 +74,7 @@ const quotTest = describe('Quot OST builder', [
                 quot.D`class User { field private name:string, function static create(name:string): User { return (new User [name]) } }`,
                 D.class('User',
                     [{ name: 'name', type: T.c('string'), modifiers: [Md.private()] }],
-                    [D.func('create', [{ name: 'name', type: T.c('string') }], T.c('User'), S.block([S.return(E.instance2(T.c('User'), [E.v('name')]))]))]
+                    [DD({ modifiers: [Md.static()] }).func('create', [{ name: 'name', type: T.c('string') }], T.c('User'), S.block([S.return(E.instance2(T.c('User'), [E.v('name')]))]))]
                 )
             )
             assertEquals(
