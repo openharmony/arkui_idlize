@@ -40,12 +40,6 @@ set_defaults("source_set") {
 }
 set_default_toolchain("//gn/toolchain:clang")
 
-koala_mr = {
-    root_path = "//external"
-    panda_sdk_path = "$root_path/incremental/tools/panda/node_modules/@panda/sdk"
-    is_rri = true
-}
-
 host_toolchain = "//gn/toolchain:clang"
 
 is_linux = host_os == "linux" && current_os == "linux" && target_os == "linux"

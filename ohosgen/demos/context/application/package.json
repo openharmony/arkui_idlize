@@ -1,0 +1,19 @@
+{
+    "name": "@idlizer/ohosgen-demos-context-application",
+    "private": true,
+    "arkts": {
+        "exports": {
+            "@application": "generated/arkts",
+            "@application.ApplicationContext": "generated/arkts/ApplicationContext",
+            "@application.BaseContext": "generated/arkts/BaseContext",
+            "@application.Context": "generated/arkts/Context",
+            "@application.application.INTERNAL": "generated/arkts/application.INTERNAL"
+        }
+    },
+    "dependencies": {
+        "@idlizer/ohosgen-demos-context-bundleManager": "file:../bundleManager",
+        "@koalaui/compat": "panda-next",
+        "@koalaui/common": "panda-next",
+        "@koalaui/interop": "panda-next"
+    }
+}

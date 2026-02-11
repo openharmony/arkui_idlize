@@ -26,7 +26,7 @@
         "typescript": "^4.9.5"
     },
     "devDependencies": {
-        "@koalaui/fast-arktsc": "1.7.14",
+        "@koalaui/smart-arkts": "panda-next",
         "@rollup/plugin-commonjs": "^26.0.1",
         "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-terser": "^0.4.4",
@@ -34,15 +34,13 @@
         "@types/chai": "^4.3.1",
         "@types/node": "^18.19.127",
         "source-map-support": "^0.5.21",
-        "@koalaui/interop": "1.7.14",
+        "@koalaui/interop": "panda-next",
         "rimraf": "^6.0.1"
     },
     "scripts": {
         "clean": "rimraf lib .rollup.cache build",
         "compile:self": "tsc && rollup -c",
         "compile": "npm run --prefix ../dtsgen compile && npm run --prefix ../libohos compile && npm run compile:self",
-        "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",
-        "panda:sdk:check-install": "npm run panda:sdk:check-install --prefix ../external/incremental/tools/panda",
         "compile:all": "npm run compile && npm run compile -C ../etsgen",
         "run:xml:ts": "npm run compile:all && node . --idl2peer --input-dir ./demos/xml/idl --output-dir ./demos/xml --options-file ./demos/xml/conf/config.json",
         "run:xml:arkts": "npm run compile:all && node . --idl2peer --input-dir ./demos/xml/idl --output-dir ./demos/xml --language=arkts --options-file ./demos/xml/conf/config.json",

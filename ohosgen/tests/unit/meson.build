@@ -8,9 +8,13 @@ is_panda = get_option('target_vm') == 'panda'
 is_cj = get_option('target_vm') == 'cangjie'
 is_kt = get_option('target_vm') == 'kotlin'
 
-external_interop_build_dir = meson.current_source_dir() / '../../../external/interop/build'
-external_interop_dir = '../../../external/interop/src/cpp'
-
+if is_kt
+    external_interop_build_dir = meson.current_source_dir() / '../../../external/interop/build'
+    external_interop_dir = '../../../external/interop/src/cpp'
+else
+    external_interop_build_dir = meson.current_source_dir() / '../../../node_modules/@koalaui/interop/build'
+    external_interop_dir = '../../../node_modules/@koalaui/interop/src/cpp'
+endif
 cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []
 

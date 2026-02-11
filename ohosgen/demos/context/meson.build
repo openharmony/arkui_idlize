@@ -7,8 +7,8 @@ is_node = get_option('target_vm') == 'node'
 is_panda = get_option('target_vm') == 'panda'
 is_cj = get_option('target_vm') == 'cangjie'
 
-external_interop_build_dir = meson.current_source_dir() / '../../../external/interop/build'
-external_interop_dir = '../../../external/interop/src/cpp'
+external_interop_build_dir = meson.current_source_dir() / '../../../node_modules/@koalaui/interop/build'
+external_interop_dir = '../../../node_modules/@koalaui/interop/src/cpp'
 
 cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []

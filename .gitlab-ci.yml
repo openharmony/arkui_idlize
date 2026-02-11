@@ -44,9 +44,6 @@ gn:
     - koala-ci
   needs: []
   script:
-    - !reference [.npmrc, script]
-    - cd external 
-    - bash ./tools/utils/gni/gen_gni_mirror.sh .
-    - cd ..
+    - !reference [.npm, script]
     - gn gen out/dir
     - ninja -C out/dir :all

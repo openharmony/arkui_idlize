@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.5",
-    "@koalaui/harness": "1.7.12",
+    "@koalaui/harness": "panda-next",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "eslint": "^8.55.0",

@@ -5,7 +5,6 @@ dtsgen golden:
     - koala-ci
   needs:
   - build idlize
-  - build external
   before_script:
     - !reference [.npm, script]
     - cd $CI_PROJECT_DIR/dtsgen

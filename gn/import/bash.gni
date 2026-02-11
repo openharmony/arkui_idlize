@@ -47,7 +47,7 @@ template("bash_cmd") {
     }
 
     # Maybe must be removed, but actually installing packages often is required
-    deps = [ "$idlize_root:npm_install_all(${host_toolchain})" ]
+    deps = []
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }

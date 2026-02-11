@@ -5,7 +5,6 @@ check generated XML demo:
       - koala-ci
     needs:
     - build idlize
-    - build external
     before_script:
       - !reference [.npm, script]
       - !reference [.panda, script]
@@ -37,7 +36,6 @@ check ohos unit tests:
     - koala-ci
   needs:
     - build idlize
-    - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
@@ -59,7 +57,6 @@ check ohos demos:
     - koala-ci
   needs:
   - build idlize
-  - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
@@ -82,7 +79,6 @@ check ohos system tests:
     - koala-ci
   needs:
     - build idlize
-    - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]

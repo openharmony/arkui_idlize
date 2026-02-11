@@ -14,13 +14,12 @@
         "lib/*.map",
         "generation-config/**/*",
         "config.json",
-        "generator-config.json",
-        "components_stubs/**/*"
+        "generator-config.json"
     ],
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
-        "@koalaui/libarkts": "file:../external/libarkts",
+        "@koalaui/libarkts": "panda-next",
         "commander": "^10.0.0"
     },
     "devDependencies": {
@@ -34,7 +33,6 @@
     },
     "scripts": {
         "clean": "rimraf -g build .rollup.cache lib out",
-        "libarkts:reinstall:regenerate": "cd ../external/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
         "compile:self": "tsc -b . && rollup -c",
         "compile": "npm run -C ../core compile && npm run compile:self",
         "plot:deps": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api && dot -T svg ./out/idl/deps.dot -o ./out/deps.svg",

@@ -97,11 +97,11 @@ function checkEnums() {
     let peer = ArkCheckEnumPeer.create()
     const comp = new ArkCheckEnumComponent()
     comp.setPeer(peer)
-    checkResult("Enum UByte 1", () => comp.enumUByte(EnumUByte.E1), `setEnumUByte(Ark_EnumUByte(1))`)
-    checkResult("Enum UByte 255", () => comp.enumUByte(EnumUByte.E255), `setEnumUByte(Ark_EnumUByte(255))`)
-    checkResult("Enum Byte -127", () => comp.enumByte(EnumByte.EN127), `setEnumByte(Ark_EnumByte(-127))`)
-    checkResult("Enum Int 512", () => comp.enumInt(EnumInt.E512), `setEnumInt(Ark_EnumInt(512))`)
-    checkResult("Enum Long 0xFFFFFFFFA", () => comp.enumLong(EnumLong.EFFFFFFFFA), `setEnumLong(Ark_EnumLong(68719476730))`)
+    checkNativeLog("Enum UByte 1", () => comp.enumUByte(EnumUByte.E1), `setEnumUByte(Ark_EnumUByte(1))`)
+    checkNativeLog("Enum UByte 255", () => comp.enumUByte(EnumUByte.E255), `setEnumUByte(Ark_EnumUByte(255))`)
+    checkNativeLog("Enum Byte -127", () => comp.enumByte(EnumByte.EN127), `setEnumByte(Ark_EnumByte(-127))`)
+    checkNativeLog("Enum Int 512", () => comp.enumInt(EnumInt.E512), `setEnumInt(Ark_EnumInt(512))`)
+    checkNativeLog("Enum Long 0xFFFFFFFFA", () => comp.enumLong(EnumLong.EFFFFFFFFA), `setEnumLong(Ark_EnumLong(68719476730))`)
 }
 
 function checkHooks() {

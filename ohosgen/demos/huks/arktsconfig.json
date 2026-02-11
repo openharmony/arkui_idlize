@@ -7,11 +7,7 @@
             "#compat": ["./src/panda/compat"],
             "#components": ["./generated/arkts"],
             "@ohos.security.huks": ["./generated/arkts/@ohos.security.huks"],
-            "@ohos.base": ["./generated/arkts/@ohos.base"],
-            "@koalaui/interop": ["../../../external/interop/src/arkts"],
-            "@koalaui/common": ["../../../external/common/src"],
-            "@koalaui/compat": ["../../../external/compat/src/arkts"],
-            "@koalaui/runtime": ["../../../external/incremental/runtime/src"]
+            "@ohos.base": ["./generated/arkts/@ohos.base"]
         }
     },
     "include": ["src/app.ts", "src/panda/**/*.ts", "generated/arkts/**/*.ts"]

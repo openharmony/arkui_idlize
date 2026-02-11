@@ -29,3 +29,5 @@ node_modules
 *.log
 /out/
 *.pyc
+*.smart-arkts.json
+*.ninja_log

@@ -1,8 +1,17 @@
 {
     "name": "unit-tests",
     "private": true,
+    "arkts": {
+        "bin": "build/panda/app.abc",
+        "entryPoint": "@unit.src.panda.main.ETSGLOBAL::main"
+    },
+    "dependencies": {
+        "@koalaui/compat": "panda-next",
+        "@koalaui/common": "panda-next",
+        "@koalaui/interop": "panda-next"
+    },
     "devDependencies": {
-        "@koalaui/fast-arktsc": "1.7.14",
+        "@koalaui/smart-arkts": "panda-next",
         "@rollup/plugin-inject": "^5.0.5",
         "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-typescript": "^11.1.6",
@@ -26,23 +35,20 @@
         "compile:cj": "",
         "compile:kt": "bash scripts/build-kotlin.sh",
 
-        "compile:interop:native": "npm run compile:native-${TARGET_VM}-host --prefix ../../../external/interop",
-        "compile:interop:native:ts": "TARGET_VM=node npm run compile:interop:native",
-        "compile:interop:native:arkts": "TARGET_VM=panda npm run compile:interop:native",
-        "compile:interop:native:kt": "TARGET_VM=kotlin npm run compile:interop:native && npm run compile:kotlin:interop --prefix ../../../external/interop",
+        "compile:interop:native:kt": "npm run compile:native-kotlin-host --prefix ../../../external/interop && npm run compile:kotlin:interop --prefix ../../../external/interop",
 
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
-        "compile:native:kt": "TARGET_VM=kotlin npm run compile:native",
+        "compile:native:kt": "npm run compile:interop:native:kt && TARGET_VM=kotlin npm run compile:native",
 
         "start:ts": "bash scripts/run-ts.sh",
         "start:arkts": "bash scripts/run-panda.sh",
         "start:cj": "bash scripts/run-cj.sh",
         "start:kt": "bash scripts/run-kt.sh",
 
-        "build": "npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET} && npm run compile:${TARGET}",
+        "build": "npm run compile:native:${TARGET} && npm run compile:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
@@ -53,8 +59,5 @@
         "check:arkts": "TARGET=arkts npm run check",
         "check:cj": "TARGET=cj npm run check",
         "check:kt": "TARGET=kt npm run check"
-    },
-    "dependencies": {
-        "@koalaui/common": "latest"
     }
 }

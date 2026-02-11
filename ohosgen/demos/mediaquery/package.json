@@ -1,8 +1,17 @@
 {
     "name": "demo-mediaquery",
     "private": true,
+    "arkts": {
+        "bin": "build/panda/app.abc",
+        "entryPoint": "@mediaquery.src.panda.main.ETSGLOBAL::main"
+    },
+    "dependencies": {
+        "@koalaui/compat": "panda-next",
+        "@koalaui/common": "panda-next",
+        "@koalaui/interop": "panda-next"
+    },
     "devDependencies": {
-        "@koalaui/fast-arktsc": "1.7.14",
+        "@koalaui/smart-arkts": "panda-next",
         "@rollup/plugin-inject": "^5.0.5",
         "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-typescript": "^11.1.6",
@@ -20,12 +29,8 @@
         "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
 
         "compile:ts": "rollup -c",
-        "compile:arkts": "bash scripts/build-panda.sh",
+        "compile:arkts": "smart-arkts compile --config arktsconfig.json",
         "compile:cj": "",
-
-        "compile:interop:native": "npm run compile:native-${TARGET_VM}-host --prefix ../../../external/interop",
-        "compile:interop:native:ts": "TARGET_VM=node npm run compile:interop:native",
-        "compile:interop:native:arkts": "TARGET_VM=panda npm run compile:interop:native",
 
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",
@@ -37,7 +42,7 @@
         "start-aot:arkts": "bash scripts/run-panda-aot.sh",
         "start:cj": "bash scripts/run-cj.sh",
 
-        "build": "npm run compile:${TARGET} && npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET}",
+        "build": "npm run compile:${TARGET} && npm run compile:native:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
@@ -48,8 +53,5 @@
         "check:arkts": "TARGET=arkts npm run check",
         "check-aot:arkts": "TARGET=arkts npm run check-aot",
         "check:cj": "TARGET=cj npm run check"
-    },
-    "dependencies": {
-        "@koalaui/common": "latest"
     }
 }
