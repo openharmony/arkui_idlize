@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, Op, T, Ts } from "@idlizer/ost";
-import { bridgeName, cApiName, OhosSeed } from "../common";
+import { bridgeName, cApiName, expectType } from "../common";
 import { argConvertor } from "../components/argConvertor";
 import { createProducer } from "../../engine";
 
@@ -23,7 +23,7 @@ export const callbackProducer = createProducer(
   { is: idl.isCallback, role: 'capi' },
   (callback, ctx) => {
     const generatedDeclName = cApiName(idl.getFQName(callback))
-    const callbackParams = callback.parameters.map(p => ({name: p.name, type: Ts.const(ctx.expectType(new OhosSeed(p.type, 'capi')))}))
+    const callbackParams = callback.parameters.map(p => ({name: p.name, type: Ts.const(expectType(ctx, p.type, 'capi'))}))
     const callbackParamWrites = callback.parameters.flatMap(p => argConvertor(ctx, p.type).write(E.v(p.name), E.v('argsSerializer'), true))
     const asyncParams = [{name: 'resourceId', type: Ts.const(Ts.prim.i32)}, ...callbackParams]
     const syncParams = [{name: 'vmContext', type: T.c(cApiName('VMContext'))}, ...asyncParams]

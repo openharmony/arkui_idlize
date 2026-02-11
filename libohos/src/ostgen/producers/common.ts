@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration, PeerLibrary } from "@idlizer/core"
-import { E, Hs, LWType, Ts, lw } from "@idlizer/ost"
+import { E, Hs, LWExpression, LWType, Ts, lw } from "@idlizer/ost"
 import { ProducerContext, ProducerResult, Seed } from "@idlizer/kit"
 import { moduleName } from "../engine"
 
@@ -78,9 +78,9 @@ export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>
 export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext, role?: Role<T>) => ProducerResult
 
 type CommonRole = 'managed' | 'capi'
-type SpecificRole<T extends idl.IDLNode> =
-  T extends idl.IDLInterface ? 'native-module' | 'bridge' | 'modifier' | 'managed-serde' | 'native-serde' :
-  T extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'modifier' | 'impl' :
+type SpecificRole<N extends idl.IDLNode> =
+  N extends idl.IDLInterface ? 'native-module' | 'bridge' | 'modifier' | 'managed-serde' | 'native-serde' :
+  N extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'modifier' | 'impl' :
   never
 export type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
@@ -97,4 +97,12 @@ export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {
         : 'node:' + idl.getFQName(this.node)
     return `${repr}:${this.role ?? ''}`
   }
+}
+
+export function expectExpr<N extends idl.IDLNode>(ctx: OhosProducerContext, node: N, role: Role<N>): lw.LWExpression {
+    return ctx.expectExpr(new OhosSeed(node, role))
+}
+
+export function expectType<N extends idl.IDLNode>(ctx: OhosProducerContext, node: N, role: Role<N>): lw.LWType {
+    return ctx.expectType(new OhosSeed(node, role))
 }

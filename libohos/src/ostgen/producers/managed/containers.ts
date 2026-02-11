@@ -16,21 +16,21 @@
 import { Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl";
 import { createProducer } from "../../engine";
-import { OhosSeed } from "../common";
+import { expectType } from "../common";
 
 export const containerProducer = createProducer(
   { is: idl.isContainerType, role: 'managed' },
   (type, ctx) => {
     if (idl.IDLContainerUtils.isSequence(type)) {
-      const elemRef = ctx.expectType(new OhosSeed(type.elementType[0], 'managed'))
+      const elemRef = expectType(ctx, type.elementType[0], 'managed')
       return {
         continuation: Ts.array(elemRef),
         declarations: []
       }
     }
     if (idl.IDLContainerUtils.isRecord(type)) {
-      const keyRef = ctx.expectType(new OhosSeed(type.elementType[0], 'managed'))
-      const valRef = ctx.expectType(new OhosSeed(type.elementType[1], 'managed'))
+      const keyRef = expectType(ctx, type.elementType[0], 'managed')
+      const valRef = expectType(ctx, type.elementType[1], 'managed')
       return {
         continuation: Ts.map(keyRef, valRef),
         declarations: []

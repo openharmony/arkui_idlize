@@ -14,7 +14,7 @@
  */
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, Hs, LWType, T, Ts } from "@idlizer/ost"
-import { managedName, bridgeName, OhosProducerContext, OhosSeed, OhosProducer } from "../common"
+import { expectType, managedName, bridgeName, OhosProducerContext, OhosProducer } from "../common"
 import { argConvertor } from "./argConvertor"
 
 export function produceSerializer(native: boolean): OhosProducer<idl.IDLInterface> {
@@ -33,7 +33,7 @@ export function produceSerializer(native: boolean): OhosProducer<idl.IDLInterfac
  */
 function makeSerializer(ctx: OhosProducerContext, node: idl.IDLInterface, native: boolean, serializerName: string) {
   const role = native ? 'capi' : 'managed'
-  const valueType = ctx.expectType(new OhosSeed(node, role))
+  const valueType = expectType(ctx, node, role)
   const clazz = makeSerializerClass(node, valueType, native, serializerName)
   const write = makeSerializerWrite(ctx, node, valueType, native, serializerName)
   const read = makeSerializerRead(ctx, node, valueType, native, serializerName)

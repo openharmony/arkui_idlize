@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { isMaterialized } from "@idlizer/core"
 import { Builders, E, Hs, LWExpression, LWStatement, LWType, lw, Op, S, std, T, Ts, Vs } from "@idlizer/ost"
-import { cApiName, managedName, OhosProducerContext, OhosSeed, typeNameExpr } from "../common"
+import { cApiName, expectExpr, expectType, managedName, OhosProducerContext, typeNameExpr } from "../common"
 import { monoName } from "../../postprocess/postprocess"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
@@ -63,13 +63,13 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     }
     protected getSerializer(node: idl.IDLInterface, native: boolean) {
         return native
-            ? this.ctx.expectExpr(new OhosSeed(node, 'native-serde'))
-            : this.ctx.expectExpr(new OhosSeed(node, 'managed-serde'))
+            ? expectExpr(this.ctx, node, 'native-serde')
+            : expectExpr(this.ctx, node, 'managed-serde')
     }
     protected convertType(type: idl.IDLType, native: boolean): lw.LWType {
         return native
-            ? this.ctx.expectType(new OhosSeed(type, 'capi'))
-            : this.ctx.expectType(new OhosSeed(type, 'managed'))
+            ? expectType(this.ctx, type, 'capi')
+            : expectType(this.ctx, type, 'managed')
     }
 }
 
@@ -294,7 +294,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     ? Builders.binary(Op.eq)
                         .left().access('selector').receiver(accessor).$().$()
                         .right(i).$()
-                    : Builders.instanceof(this.ctx.expectType(new OhosSeed(ty, 'managed'))).value(accessor).$()
+                    : Builders.instanceof(expectType(this.ctx, ty, 'managed')).value(accessor).$()
                 const value = native
                     ? Builders.access('value' + i).receiver(accessor).$()
                     : accessor /// cast to `ty`
@@ -411,7 +411,7 @@ class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
         const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
         const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
         return [[
-            Builders.decl(name, this.ctx.expectType(new OhosSeed(this.type, 'capi'))).value()
+            Builders.decl(name, expectType(this.ctx, this.type, 'capi')).value()
                 .ctor().asStruct()
                     .arg().call('readCallbackResource').receiver(serializerName).$().$()
                     .arg().cast(T.fn(asyncParams, Ts.prim.void)).value()

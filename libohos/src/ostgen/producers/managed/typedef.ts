@@ -15,9 +15,8 @@
 
 import { D, T } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { managedName } from "../common";
+import { expectType, managedName } from "../common";
 import { createProducer } from "../../engine";
-import { OhosSeed } from "../common"
 
 export const typedefProducer = createProducer(
   { is: idl.isTypedef, role: 'managed' },
@@ -26,7 +25,7 @@ export const typedefProducer = createProducer(
     return {
       continuation: T.c(generatedDeclName),
       declarations: [
-        D.type(generatedDeclName, ctx.expectType(new OhosSeed(typedef.type, 'managed')))
+        D.type(generatedDeclName, expectType(ctx, typedef.type, 'managed'))
       ]
     }
   }

@@ -15,9 +15,8 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, T } from "@idlizer/ost";
-import { managedName } from "../common";
+import { expectType, managedName } from "../common";
 import { argConvertor } from "../components/argConvertor";
-import { OhosSeed } from "../common"
 import { createProducer } from "../../engine";
 
 export const callbackProducer = createProducer(
@@ -30,8 +29,8 @@ export const callbackProducer = createProducer(
       continuation: T.c(generatedDeclName),
       declarations: [
         Builders.type(generatedDeclName).funcType()
-          .parameters(callback.parameters.map(it => [it.name, ctx.expectType(new OhosSeed(it.type, 'managed'))]))
-          .returns(ctx.expectType(new OhosSeed(callback.returnType, 'managed'))).$().$(),
+          .parameters(callback.parameters.map(it => [it.name, expectType(ctx, it.type, 'managed')]))
+          .returns(expectType(ctx, callback.returnType, 'managed')).$().$(),
         Builders.func(managedName('engine.deserializeAndCall' + callback.name))
           .param('deserializer').typeStr('DeserializerBase').$()
           .block()

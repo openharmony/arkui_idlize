@@ -16,12 +16,12 @@
 import { Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
 import { createProducer } from "../../engine";
-import { OhosSeed } from "../common"
+import { expectType } from "../common"
 
 export const unionProducer = createProducer(
   { is: idl.isUnionType, role: 'managed' },
   (type, ctx) => ({
-    continuation: Ts.union(type.types.map(ty => ctx.expectType(new OhosSeed(ty, 'managed')))),
+    continuation: Ts.union(type.types.map(ty => expectType(ctx, ty, 'managed'))),
     declarations: []
   })
 )

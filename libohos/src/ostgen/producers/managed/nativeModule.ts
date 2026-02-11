@@ -15,10 +15,9 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, Hs, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
-import { bridgeName, isDirectInteropType } from "../common"
+import { bridgeName, expectExpr, expectType, isDirectInteropType } from "../common"
 import { createProducer, fqName } from "../../engine"
 import { argConvertor } from "../components/argConvertor"
-import { OhosSeed } from "../common"
 
 export const nativeModuleMaterializedProducer = createProducer(
   { is: idl.isInterface, role: 'native-module' },
@@ -27,7 +26,7 @@ export const nativeModuleMaterializedProducer = createProducer(
       isStatic: true, isAsync: false, isOptional: false, isFree: false})
     getFinalizer.parent = node
     return {
-      continuation: ctx.expectExpr(new OhosSeed(getFinalizer, 'native-module')),
+      continuation: expectExpr(ctx, getFinalizer, 'native-module'),
       declarations: []
     }
   }
@@ -86,7 +85,7 @@ export const nativeModuleFunctionProducer = createProducer(
       capiMethod.parent = method.parent
       makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
     }
-    const apiCall = makeApiCall(ctx.expectExpr(new OhosSeed(capiMethod, 'capi')))
+    const apiCall = makeApiCall(expectExpr(ctx, capiMethod, 'capi'))
 
     const body = Builders.block()
       .decl('deserializer', T.c('DeserializerBase')).mutable().value()
@@ -122,7 +121,7 @@ export const nativeModuleConstructorProducer = createProducer(
     const nativeModuleClassName = ctx.getEffect().nativeModuleName
     const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
     const callArgs = ctor.parameters.map(it =>
-      Builders.cast(Ts.ptr(ctx.expectType(new OhosSeed(it.type, 'capi')))).value()
+      Builders.cast(Ts.ptr(expectType(ctx, it.type, 'capi'))).value()
         .unary(Op.ref).value(it.name).$().$().$());
     return {
       continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), '_' + funcName),
@@ -132,14 +131,14 @@ export const nativeModuleConstructorProducer = createProducer(
           .method('_' + funcName)
           .native().static().annotation('ani.unsafe.Direct')
           .returns(Ts.prim.pointer)
-          .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) }))).$().$(),
+          .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') }))).$().$(),
         // bridge
         Builders.func(bridgeName('modifier.impl_' + funcName))
           .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
           .returns(Ts.prim.pointer)
           .block()
             .return(Ts.prim.pointer)
-              .call(ctx.expectExpr(new OhosSeed(ctor, 'capi')))
+              .call(expectExpr(ctx, ctor, 'capi'))
               .args(callArgs).$().$().$()
           .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
           .$()

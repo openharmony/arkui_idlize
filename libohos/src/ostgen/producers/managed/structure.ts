@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, Hs, Md, T, Ts } from "@idlizer/ost"
-import { managedName, OhosProducer, OhosProducerContext, OhosSeed } from "../common"
+import { expectType, managedName, OhosProducer, OhosProducerContext, OhosSeed } from "../common"
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine"
 import { ProducerResult } from "@idlizer/kit"
@@ -32,7 +32,7 @@ export const structure = createProducer(
 
 const tuple: OhosProducer<idl.IDLInterface> = (node, ctx) => {
   return {
-    continuation: Ts.intersection(node.properties.map(prop => ctx.expectType(new OhosSeed(prop.type, 'managed')))),
+    continuation: Ts.intersection(node.properties.map(prop => expectType(ctx, prop.type, 'managed'))),
     declarations: []
   }
 }
@@ -48,13 +48,13 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
       ]
       return {
         name: prop.name,
-        type: ctx.expectType(new OhosSeed(prop.type, 'managed')),
+        type: expectType(ctx, prop.type, 'managed'),
         modifiers,
       }
     }),
     [], {
     kind: idl.isClassSubkind(node) ? 'class' : 'interface',
-    base: superType ? ctx.expectType(new OhosSeed(superType, 'managed')) : undefined
+    base: superType ? expectType(ctx, superType, 'managed') : undefined
     }
   )
   return {
@@ -65,7 +65,7 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
 
 function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
   const peerType = Ts.union([T.c('Finalizable'), T.c('undefined')])
-  const thisType = ctx.expectType(new OhosSeed(node, 'managed'))
+  const thisType = expectType(ctx, node, 'managed')
   const intClass = Builders.class(name + 'Internal')
     .method('fromPtr').static()
       .returns(thisType)
@@ -107,7 +107,7 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
   return {
     continuation: T.c(name),
     declarations: [intClass, matClass],
-    trigger: [///holes?
+    trigger: [
       ...node.constructors,
       ...node.methods,
       ...syntheticMethods

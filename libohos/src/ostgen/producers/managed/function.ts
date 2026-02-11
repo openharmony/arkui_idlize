@@ -15,9 +15,8 @@
 
 import * as idl from "@idlizer/core/idl";
 import { Builders, E, Md, S, T, lw } from "@idlizer/ost";
-import { managedName } from "../common";
+import { expectExpr, expectType, managedName } from "../common";
 import { argConvertor } from "../components/argConvertor";
-import { OhosSeed } from "../common"
 import { createProducer } from "../../engine";
 
 export const func = createProducer(
@@ -27,8 +26,8 @@ export const func = createProducer(
       ? managedName(idl.getFQName(method))
       : idl.getExtAttribute(method, idl.IDLExtendedAttributes.DtsName) ?? method.name
     const serializerName = 'serializer'
-    const returnType = ctx.expectType(new OhosSeed(method.returnType, 'managed'))
-    const nativeModuleCall = Builders.call(ctx.expectExpr(new OhosSeed(method, 'native-module')))
+    const returnType = expectType(ctx, method.returnType, 'managed')
+    const nativeModuleCall = Builders.call(expectExpr(ctx, method, 'native-module'))
       .arg().call('asBuffer').receiver(serializerName).$().$()
       .arg().call('length').receiver(serializerName).$().$().$()
     if (!method.isFree && !method.isStatic) {
@@ -47,7 +46,7 @@ export const func = createProducer(
       ...argConvertor(ctx, method.returnType).returnFromInterop('retval', false)
     ]
     const funcDecl = Builders.func(declName)
-      .parameters(method.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) })))
+      .parameters(method.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') })))
       .returns(returnType)
       .block().statements(body).$().$()
     switch (idl.getExtAttribute(method, idl.IDLExtendedAttributes.Accessor)) {
@@ -77,10 +76,10 @@ export const ctor = createProducer(
       continuation: E.v(className),
       declarations: [
         Builders.class(className).ctor()
-          .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) })))///have ctx methods for diff roles
+          .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') })))
           .block()
             .call('setPeer').receiver('this')
-              .arg().call(ctx.expectExpr(new OhosSeed(ctor, 'native-module')))
+              .arg().call(expectExpr(ctx, ctor, 'native-module'))
                 .args(ctor.parameters.map(it => E.v(it.name))).$().$().$().$().$().$()
       ]
     }

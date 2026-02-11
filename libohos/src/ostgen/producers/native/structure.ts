@@ -18,7 +18,7 @@ import * as idl from "@idlizer/core/idl"
 import { cApiName } from "../common"
 import { isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine"
-import { OhosProducerContext, OhosSeed } from "../common"
+import { expectType, OhosProducerContext } from "../common"
 
 export const structureProducer = createProducer(
   { is: idl.isInterface, role: 'capi' },///type role = union
@@ -42,7 +42,7 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
     ]
     return {
       name: prop.name,
-      type: ctx.expectType(new OhosSeed(prop.type, 'capi')),
+      type: expectType(ctx, prop.type, 'capi'),
       modifiers,
     }
   }))]
