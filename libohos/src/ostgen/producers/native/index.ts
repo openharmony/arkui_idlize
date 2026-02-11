@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { constructorBridgeProducer, functionBridgeProducer } from "./bridge";
 import { callbackProducer } from "./callback";
 import { enumProducer } from "./enum";
 import { constructorProducer, functionProducer } from "./function";
@@ -26,7 +25,5 @@ export const producers = {
     callbackProducer,
     functionProducer,
     constructorProducer,
-    functionBridgeProducer,
-    constructorBridgeProducer,
     serializerProducer,
 }

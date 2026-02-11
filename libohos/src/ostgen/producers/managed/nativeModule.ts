@@ -14,8 +14,8 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, E, Hs, Ts } from "@idlizer/ost"
-import { isDirectInteropType } from "../common"
+import { Builders, D, E, Hs, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
+import { bridgeName, isDirectInteropType } from "../common"
 import { createProducer, fqName } from "../../engine"
 import { argConvertor } from "../components/argConvertor"
 import { OhosSeed } from "../common"
@@ -36,24 +36,81 @@ export const nativeModuleMaterializedProducer = createProducer(
 export const nativeModuleFunctionProducer = createProducer(
   { is: idl.isMethod, role: 'native-module' },
   (method, ctx) => {
-    const methodName = fqName(method, '_')
+    const funcName = fqName(method)
     const className = ctx.getEffect().nativeModuleName
-    const returnType = argConvertor(ctx, method.returnType).interopType(false)
-    const nativeModule = Builders.class(className)
-      .method(methodName)
+    const returnConv = argConvertor(ctx, method.returnType)
+    // native module
+    const returnType = returnConv.interopType(false)
+    const nativeModuleMethod = Builders.func('_' + funcName)
         .native().static()
         ///no annotation for vmContext methods, see MethodUtils
         .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
         .param('buffer').type(Ts.prim.serializerBuffer).$()
         .param('length').type(Ts.prim.i32).$()
-        .returns(returnType).$().$()
+        .returns(returnType).$()
     if (!method.isFree && !method.isStatic)
-      nativeModule.methods[0].parameters.unshift(
+      nativeModuleMethod.parameters.unshift(
         { name: 'ptr', type: Ts.prim.pointer })
+    // bridge
+    const params = [
+      { name: 'thisArray', type: Ts.prim.serializerBuffer },
+      { name: 'thisLength', type: Ts.prim.i32 },
+    ]
+    const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
+      const conv = argConvertor(ctx, it.type, it.isOptional)
+      const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
+      return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
+    })
+    const apiCallArgs = argReads.map(([_, expr]) => expr)
+    const macroName = ['KOALA_INTEROP_']
+    const macroArgs: (string | LWType)[] = [funcName]
+    const interopReturnType = returnConv.interopType(true)
+    if (isDirectInteropType(interopReturnType))
+      macroName.push('DIRECT_')
+    if (interopReturnType === Ts.prim.void)
+      macroName.push('V')
+    else
+      macroArgs.push(interopReturnType)
+    if (!method.isFree && !method.isStatic) {
+      params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
+      apiCallArgs.unshift(E.v('thisPtr'))
+      macroArgs.push(Ts.prim.pointer)
+    }
+    macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
+
+    // rewrite `getFinalizer` to call `destruct`
+    let capiMethod = method
+    let makeApiCall: (expr: LWExpression) => LWExpression = expr => Builders.call(expr).args(apiCallArgs).$()
+    if (method.name === 'getFinalizer') {
+      capiMethod = idl.createMethod('destruct', [], idl.IDLVoidType)
+      capiMethod.parent = method.parent
+      makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
+    }
+    const apiCall = makeApiCall(ctx.expectExpr(new OhosSeed(capiMethod, 'capi')))
+
+    const body = Builders.block()
+      .decl('deserializer', T.c('DeserializerBase')).mutable().value()
+        .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
+      .statements(argReads.flatMap(([stmts, _]) => stmts))
+    if (interopReturnType === Ts.prim.interopReturnBuffer) {
+      body
+        .decl('returnBuffer').value(apiCall).$()
+        .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
+        .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
+        .return().call('toReturnBuffer').receiver('returnSerializer').$().$()
+    } else {
+      body.return(interopReturnType).value(apiCall).$()
+    }
     return {
-      continuation: E.get(E.v(className, [Hs.isType()]), methodName),
-      declarations: [nativeModule],
-      trigger: [new OhosSeed(method, 'bridge')]///hole!
+      continuation: E.get(E.v(className, [Hs.isType()]), '_' + funcName),
+      declarations: [
+        D.class(className, [], [nativeModuleMethod]),
+        Builders.func(bridgeName('modifier.impl_' + funcName))
+          .parameters(params)
+          .returns(interopReturnType)
+          .body(body.$())
+          .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+      ]
     }
   }
 )
@@ -61,18 +118,32 @@ export const nativeModuleFunctionProducer = createProducer(
 export const nativeModuleConstructorProducer = createProducer(
   { is: idl.isConstructor, role: 'native-module' },
   (ctor, ctx) => {
-    const methodName = fqName(ctor.parent as idl.IDLInterface, '_', '_construct')
+    const funcName = fqName(ctor)
     const nativeModuleClassName = ctx.getEffect().nativeModuleName
+    const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
+    const callArgs = ctor.parameters.map(it =>
+      Builders.cast(Ts.ptr(ctx.expectType(new OhosSeed(it.type, 'capi')))).value()
+        .unary(Op.ref).value(it.name).$().$().$());
     return {
-      continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), methodName),
+      continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), '_' + funcName),
       declarations: [
+        // native module
         Builders.class(nativeModuleClassName)
-          .method(methodName)
+          .method('_' + funcName)
           .native().static().annotation('ani.unsafe.Direct')
           .returns(Ts.prim.pointer)
-          .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) }))).$().$()
-      ],
-      trigger: [new OhosSeed(ctor, 'bridge')]///hole
+          .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.expectType(new OhosSeed(it.type, 'managed')) }))).$().$(),
+        // bridge
+        Builders.func(bridgeName('modifier.impl_' + funcName))
+          .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
+          .returns(Ts.prim.pointer)
+          .block()
+            .return(Ts.prim.pointer)
+              .call(ctx.expectExpr(new OhosSeed(ctor, 'capi')))
+              .args(callArgs).$().$().$()
+          .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
+          .$()
+      ]
     }
   }
 )
