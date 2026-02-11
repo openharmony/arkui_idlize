@@ -23,10 +23,10 @@
         "clean:cj": "rm -rf generated/cangjie",
         "clean:native": "rm -rf generated/native",
 
-        "generate": "npm run run:huks:${TARGET} -C ../.. -- --output-dir demos/huks",
-        "generate:ts": "TARGET=ts npm run generate",
-        "generate:arkts": "TARGET=arkts npm run generate",
-        "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
+        "gen": "npm run run:huks:${TARGET} -C ../.. -- --output-dir demos/huks",
+        "gen:ts": "TARGET=ts npm run gen",
+        "gen:arkts": "TARGET=arkts npm run gen",
+        "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
 
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",
@@ -37,18 +37,18 @@
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
 
-        "start:ts": "node build/node/index.js",
-        "start:arkts": "bash scripts/run-panda.sh",
-        "start:cj": "bash scripts/run-cj.sh",
+        "exec:ts": "node build/node/index.js",
+        "exec:arkts": "bash scripts/run-panda.sh",
+        "exec:cj": "bash scripts/run-cj.sh",
 
         "build": "npm run compile:${TARGET} && npm run compile:native:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
 
-        "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
-        "check:ts": "TARGET=ts npm run check",
-        "check:arkts": "TARGET=arkts npm run check",
-        "check:cj": "TARGET=cj npm run check"
+        "all": "npm run clean:native && npm run clean:${TARGET} && npm run gen:${TARGET} && npm run build:${TARGET} && npm run exec:${TARGET}",
+        "all:ts": "TARGET=ts npm run all",
+        "all:arkts": "TARGET=arkts npm run all",
+        "all:cj": "TARGET=cj npm run all"
     }
 }

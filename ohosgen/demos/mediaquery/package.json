@@ -23,10 +23,10 @@
         "clean:cj": "rm -rf generated/cj",
         "clean:native": "rm -rf generated/native",
 
-        "generate": "npm run run:mediaquery:${TARGET} -C ../.. -- --output-dir demos/mediaquery",
-        "generate:ts": "TARGET=ts npm run generate",
-        "generate:arkts": "TARGET=arkts npm run generate",
-        "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
+        "gen": "npm run run:mediaquery:${TARGET} -C ../.. -- --output-dir demos/mediaquery",
+        "gen:ts": "TARGET=ts npm run gen",
+        "gen:arkts": "TARGET=arkts npm run gen",
+        "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
 
         "compile:ts": "rollup -c",
         "compile:arkts": "smart-arkts compile --config arktsconfig.json",
@@ -37,21 +37,21 @@
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
 
-        "start:ts": "bash scripts/run-ts.sh",
-        "start:arkts": "bash scripts/run-panda.sh",
-        "start-aot:arkts": "bash scripts/run-panda-aot.sh",
-        "start:cj": "bash scripts/run-cj.sh",
+        "exec:ts": "bash scripts/run-ts.sh",
+        "exec:arkts": "bash scripts/run-panda.sh",
+        "exec-aot:arkts": "bash scripts/run-panda-aot.sh",
+        "exec:cj": "bash scripts/run-cj.sh",
 
         "build": "npm run compile:${TARGET} && npm run compile:native:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
 
-        "check": "rm -rf build: npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
-        "check-aot": "rm -rf build: npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start-aot:${TARGET}",
-        "check:ts": "TARGET=ts npm run check",
-        "check:arkts": "TARGET=arkts npm run check",
-        "check-aot:arkts": "TARGET=arkts npm run check-aot",
-        "check:cj": "TARGET=cj npm run check"
+        "all": "rm -rf build: npm run clean:native && npm run clean:${TARGET} && npm run gen:${TARGET} && npm run build:${TARGET} && npm run exec:${TARGET}",
+        "all-aot": "rm -rf build: npm run clean:native && npm run clean:${TARGET} && npm run gen:${TARGET} && npm run build:${TARGET} && npm run exec-aot:${TARGET}",
+        "all:ts": "TARGET=ts npm run all",
+        "all:arkts": "TARGET=arkts npm run all",
+        "all-aot:arkts": "TARGET=arkts npm run all-aot",
+        "all:cj": "TARGET=cj npm run all"
     }
 }

@@ -25,11 +25,11 @@
         "clean:native": "rm -rf generated/native",
 
         "prepare" : "mkdir -p generated/idl && cp ./idl/*.idl ./generated/idl",
-        "generate": "npm run prepare && npm run run:xml:${TARGET} -C ../.. -- --output-dir demos/xml",
-        "generate:ts": "TARGET=ts npm run generate",
-        "generate:arkts": "TARGET=arkts npm run generate",
-        "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
-        "generate:kt": "TARGET=kt npm run generate",
+        "gen": "npm run prepare && npm run run:xml:${TARGET} -C ../.. -- --output-dir demos/xml",
+        "gen:ts": "TARGET=ts npm run gen",
+        "gen:arkts": "TARGET=arkts npm run gen",
+        "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
+        "gen:kt": "TARGET=kt npm run gen",
 
         "build": "npm run compile:native:${TARGET} && npm run compile:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
@@ -50,15 +50,15 @@
         "compile:native:cj": "TARGET=cangjie npm run compile:native",
         "compile:native:kt": "TARGET=kotlin npm run compile:native",
 
-        "start:ts": "bash scripts/run-ts.sh",
-        "start:arkts": "bash scripts/run-panda.sh",
-        "start:cj": "bash scripts/run-cj.sh",
-        "start:kt": "bash scripts/run-kt.sh",
+        "exec:ts": "bash scripts/run-ts.sh",
+        "exec:arkts": "bash scripts/run-panda.sh",
+        "exec:cj": "bash scripts/run-cj.sh",
+        "exec:kt": "bash scripts/run-kt.sh",
 
-        "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
-        "check:ts": "TARGET=ts npm run check",
-        "check:arkts": "TARGET=arkts npm run check",
-        "check:cj": "TARGET=cj npm run check",
-        "check:kt": "TARGET=kt npm run check"
+        "all": "npm run clean:native && npm run clean:${TARGET} && npm run gen:${TARGET} && npm run build:${TARGET} && npm run exec:${TARGET}",
+        "all:ts": "TARGET=ts npm run all",
+        "all:arkts": "TARGET=arkts npm run all",
+        "all:cj": "TARGET=cj npm run all",
+        "all:kt": "TARGET=kt npm run all"
     }
 }

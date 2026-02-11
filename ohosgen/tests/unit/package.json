@@ -24,11 +24,11 @@
         "clean:kt": "rm -rf generated/kotlin",
         "clean:native": "rm -rf generated/native",
 
-        "generate": "npm run run:unit:${TARGET} -C ../.. -- --output-dir tests/unit --options-file tests/unit/conf/config.json",
-        "generate:ts": "TARGET=ts npm run generate",
-        "generate:arkts": "TARGET=arkts npm run generate",
-        "generate:cj": "TARGET=cj npm run generate",
-        "generate:kt": "TARGET=kt npm run generate",
+        "gen": "npm run run:unit:${TARGET} -C ../.. -- --output-dir tests/unit --options-file tests/unit/conf/config.json",
+        "gen:ts": "TARGET=ts npm run gen",
+        "gen:arkts": "TARGET=arkts npm run gen",
+        "gen:cj": "TARGET=cj npm run gen",
+        "gen:kt": "TARGET=kt npm run gen",
 
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",
@@ -43,10 +43,10 @@
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
         "compile:native:kt": "npm run compile:interop:native:kt && TARGET_VM=kotlin npm run compile:native",
 
-        "start:ts": "bash scripts/run-ts.sh",
-        "start:arkts": "bash scripts/run-panda.sh",
-        "start:cj": "bash scripts/run-cj.sh",
-        "start:kt": "bash scripts/run-kt.sh",
+        "exec:ts": "bash scripts/run-ts.sh",
+        "exec:arkts": "bash scripts/run-panda.sh",
+        "exec:cj": "bash scripts/run-cj.sh",
+        "exec:kt": "bash scripts/run-kt.sh",
 
         "build": "npm run compile:native:${TARGET} && npm run compile:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
@@ -54,10 +54,10 @@
         "build:cj": "TARGET=cj npm run build",
         "build:kt": "TARGET=kt npm run build",
 
-        "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
-        "check:ts": "TARGET=ts npm run check",
-        "check:arkts": "TARGET=arkts npm run check",
-        "check:cj": "TARGET=cj npm run check",
-        "check:kt": "TARGET=kt npm run check"
+        "all": "npm run clean:native && npm run clean:${TARGET} && npm run gen:${TARGET} && npm run build:${TARGET} && npm run exec:${TARGET}",
+        "all:ts": "TARGET=ts npm run all",
+        "all:arkts": "TARGET=arkts npm run all",
+        "all:cj": "TARGET=cj npm run all",
+        "all:kt": "TARGET=kt npm run all"
     }
 }
