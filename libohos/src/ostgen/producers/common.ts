@@ -16,7 +16,8 @@
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration } from "@idlizer/core"
 import { E, Hs, LWExpression, LWType, Ts, lw } from "@idlizer/ost"
-import { moduleName, OhosProducerContext, OhosSeed, Role } from "../engine"
+import { MakeSelector, moduleName, OhosProducerContext, OhosSeed, Role } from "../engine"
+import { producers } from "."
 
 export const MANAGED_PREFIX = 'managed'
 export const C_API_PREFIX = 'capi'
@@ -72,4 +73,9 @@ export function expectExpr<N extends idl.IDLNode>(ctx: OhosProducerContext, node
 
 export function expectType<N extends idl.IDLNode>(ctx: OhosProducerContext, node: N, role: Role<N>): LWType {
     return ctx.expectType(new OhosSeed(node, role))
+}
+
+export function registerDefaultSelectors(selector: MakeSelector) {
+    for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
+        selector.register(p as any)
 }

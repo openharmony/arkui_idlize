@@ -74,8 +74,8 @@ export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerCon
 
 type CommonRole = 'managed' | 'capi'
 type SpecificRole<N extends idl.IDLNode> =
-  N extends idl.IDLInterface ? 'native-module' | 'bridge' | 'modifier' | 'managed-serde' | 'native-serde' :
-  N extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'modifier' | 'impl' :
+  N extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' :
+  N extends idl.IDLInterface ? 'native-module' | 'managed-serde' | 'native-serde' :
   never
 export type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 

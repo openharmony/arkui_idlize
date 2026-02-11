@@ -34,7 +34,7 @@ import {
     IMPL_PREFIX,
     readInteropTypesHeader,
     OhosSeed,
-    producers,
+    registerDefaultSelectors,
     MakeSelector,
     moduleLike,
     lowLevelLike,
@@ -45,8 +45,7 @@ import { continueWith, onlyFor } from '@idlizer/kit'
 
 export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
     const selector = new MakeSelector()
-    for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
-        selector.register(p as any)
+    registerDefaultSelectors(selector)
 
     // ignore predefined / synthetic files
     const files = library.files.filter(file =>
@@ -72,10 +71,6 @@ export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, M
         (isManaged(decl.name) ? m : n).push(decl)
         return [m, n]
     }, [[], []])
-    declarations
-        .filter(decl => !decl.name.startsWith('managed'))
-        .sort((a, b) => a.name.localeCompare(b.name)).forEach(decl => console.log(decl.name))///
-    console.log(`/// ${managed.length} managed, ${native.length} native`)
     return [
         dumpTsLike(managed, effect, library.language, new Set(knownPackages)),
         dumpCLike(native, effect, library.name)

@@ -22,7 +22,7 @@ import { expectType } from "../common"
 import { OhosProducerContext } from "../../engine"
 
 export const structureProducer = createProducer(
-  { is: idl.isInterface, role: 'capi' },///type role = union
+  { is: idl.isInterface, role: 'capi' },
   (node, ctx) => {
     const name = cApiName(idl.getFQName(node))
     return {

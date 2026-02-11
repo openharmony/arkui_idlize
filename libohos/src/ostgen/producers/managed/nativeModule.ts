@@ -14,9 +14,9 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, D, E, Hs, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
+import { Builders, D, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
 import { bridgeName, expectExpr, expectType, isDirectInteropType } from "../common"
-import { createProducer, fqName } from "../../engine"
+import { createProducer, fqName, OhosProducerContext } from "../../engine"
 import { argConvertor } from "../components/argConvertor"
 
 export const nativeModuleMaterializedProducer = createProducer(
@@ -37,9 +37,7 @@ export const nativeModuleFunctionProducer = createProducer(
   (method, ctx) => {
     const funcName = fqName(method)
     const className = ctx.getEffect().nativeModuleName
-    const returnConv = argConvertor(ctx, method.returnType)
-    // native module
-    const returnType = returnConv.interopType(false)
+    const returnType = argConvertor(ctx, method.returnType).interopType(false)
     const nativeModuleMethod = Builders.func('_' + funcName)
         .native().static()
         ///no annotation for vmContext methods, see MethodUtils
@@ -50,65 +48,11 @@ export const nativeModuleFunctionProducer = createProducer(
     if (!method.isFree && !method.isStatic)
       nativeModuleMethod.parameters.unshift(
         { name: 'ptr', type: Ts.prim.pointer })
-    // bridge
-    const params = [
-      { name: 'thisArray', type: Ts.prim.serializerBuffer },
-      { name: 'thisLength', type: Ts.prim.i32 },
-    ]
-    const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
-      const conv = argConvertor(ctx, it.type, it.isOptional)
-      const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
-      return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
-    })
-    const apiCallArgs = argReads.map(([_, expr]) => expr)
-    const macroName = ['KOALA_INTEROP_']
-    const macroArgs: (string | LWType)[] = [funcName]
-    const interopReturnType = returnConv.interopType(true)
-    if (isDirectInteropType(interopReturnType))
-      macroName.push('DIRECT_')
-    if (interopReturnType === Ts.prim.void)
-      macroName.push('V')
-    else
-      macroArgs.push(interopReturnType)
-    if (!method.isFree && !method.isStatic) {
-      params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
-      apiCallArgs.unshift(E.v('thisPtr'))
-      macroArgs.push(Ts.prim.pointer)
-    }
-    macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
-
-    // rewrite `getFinalizer` to call `destruct`
-    let capiMethod = method
-    let makeApiCall: (expr: LWExpression) => LWExpression = expr => Builders.call(expr).args(apiCallArgs).$()
-    if (method.name === 'getFinalizer') {
-      capiMethod = idl.createMethod('destruct', [], idl.IDLVoidType)
-      capiMethod.parent = method.parent
-      makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
-    }
-    const apiCall = makeApiCall(expectExpr(ctx, capiMethod, 'capi'))
-
-    const body = Builders.block()
-      .decl('deserializer', T.c('DeserializerBase')).mutable().value()
-        .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
-      .statements(argReads.flatMap(([stmts, _]) => stmts))
-    if (interopReturnType === Ts.prim.interopReturnBuffer) {
-      body
-        .decl('returnBuffer').value(apiCall).$()
-        .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
-        .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
-        .return().call('toReturnBuffer').receiver('returnSerializer').$().$()
-    } else {
-      body.return(interopReturnType).value(apiCall).$()
-    }
     return {
       continuation: E.get(E.v(className, [Hs.isType()]), '_' + funcName),
       declarations: [
         D.class(className, [], [nativeModuleMethod]),
-        Builders.func(bridgeName('modifier.impl_' + funcName))
-          .parameters(params)
-          .returns(interopReturnType)
-          .body(body.$())
-          .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+        makeBridge(funcName, method, ctx)
       ]
     }
   }
@@ -146,3 +90,61 @@ export const nativeModuleConstructorProducer = createProducer(
     }
   }
 )
+
+function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContext): FunctionDeclaration {
+  const params = [
+    { name: 'thisArray', type: Ts.prim.serializerBuffer },
+    { name: 'thisLength', type: Ts.prim.i32 },
+  ]
+  const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
+    const conv = argConvertor(ctx, it.type, it.isOptional)
+    const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
+    return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
+  })
+  const apiCallArgs = argReads.map(([_, expr]) => expr)
+  const macroName = ['KOALA_INTEROP_']
+  const macroArgs: (string | LWType)[] = [name]
+  const returnConv = argConvertor(ctx, method.returnType)
+  const interopReturnType = returnConv.interopType(true)
+  if (isDirectInteropType(interopReturnType))
+    macroName.push('DIRECT_')
+  if (interopReturnType === Ts.prim.void)
+    macroName.push('V')
+  else
+    macroArgs.push(interopReturnType)
+  if (!method.isFree && !method.isStatic) {
+    params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
+    apiCallArgs.unshift(E.v('thisPtr'))
+    macroArgs.push(Ts.prim.pointer)
+  }
+  macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
+
+  // rewrite `getFinalizer` to call `destruct`
+  let capiMethod = method
+  let makeApiCall: (expr: LWExpression) => LWExpression = expr => Builders.call(expr).args(apiCallArgs).$()
+  if (method.name === 'getFinalizer') {
+    capiMethod = idl.createMethod('destruct', [], idl.IDLVoidType)
+    capiMethod.parent = method.parent
+    makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
+  }
+  const apiCall = makeApiCall(expectExpr(ctx, capiMethod, 'capi'))
+
+  const body = Builders.block()
+    .decl('deserializer', T.c('DeserializerBase')).mutable().value()
+      .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
+    .statements(argReads.flatMap(([stmts, _]) => stmts))
+  if (interopReturnType === Ts.prim.interopReturnBuffer) {
+    body
+      .decl('returnBuffer').value(apiCall).$()
+      .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
+      .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
+      .return().call('toReturnBuffer').receiver('returnSerializer').$().$()
+  } else {
+    body.return(interopReturnType).value(apiCall).$()
+  }
+  return Builders.func(bridgeName('modifier.impl_' + name))
+    .parameters(params)
+    .returns(interopReturnType)
+    .body(body.$())
+    .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+}
