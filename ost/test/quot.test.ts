@@ -13,7 +13,7 @@ const quotTest = describe('Quot OST builder', [
                 E.c(42)
             )
             assertEquals(
-                quot.E`(= (@self.x) x)`,
+                quot.E`(= (@self->x) x)`,
                 E.bin('=', E.get(Vs.self, 'x'), E.v('x'))
             )
             assertEquals(
@@ -21,7 +21,7 @@ const quotTest = describe('Quot OST builder', [
                 E.bin('+', E.c(2), E.bin('*', E.v('x'), E.c(8)))
             )
             assertEquals(
-                quot.E`($ (x.foo) [1, y])`,
+                quot.E`($ (x->foo) [1, y])`,
                 E.call(E.get(E.v('x'), 'foo'), [E.c(1), E.v('y')])
             )
             assertEquals(
@@ -29,7 +29,7 @@ const quotTest = describe('Quot OST builder', [
                 E.instance2(T.c('A'), [E.v('x'), E.v('y')])
             )
             assertEquals(
-                quot.E`(static A).foo`,
+                quot.E`(static A)->foo`,
                 E.get(E.type(T.c('A')), 'foo')
             )
         }
@@ -107,9 +107,9 @@ const quotTest = describe('Quot OST builder', [
             quot.appendField(decl)`
                 field static BOLD:FontStyle.FontStyle =
                     (new FontStyle.FontStyle [
-                        (static FontWeight.FontWeight).BOLD,
-                        (static FontWidth.FontWidth).NORMAL,
-                        (static FontSlant.FontSlant).UPRIGHT
+                        (static FontWeight.FontWeight)->BOLD,
+                        (static FontWidth.FontWidth)->NORMAL,
+                        (static FontSlant.FontSlant)->UPRIGHT
                     ])
             `
             console.log(processNPrintTS(decl, '', new Set()))

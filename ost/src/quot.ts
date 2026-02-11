@@ -337,9 +337,9 @@ class LWParser {
   private parsePropertyAccess(): LWExpression {
     let expr = this.parsePrimary();
 
-    // Handle property access: .identifier
-    while (this.match(TokenType.DOT)) {
-      const property = this.consume(TokenType.IDENTIFIER, "Expected property name after '.'").lexeme;
+    // Handle property access: -> identifier
+    while (this.match(TokenType.ARROW)) {
+      const property = this.consume(TokenType.IDENTIFIER, "Expected property name after '->'").lexeme;
       expr = E.get(expr, property);
     }
 
@@ -398,9 +398,9 @@ class LWParser {
         const type = this.parseType();
         this.expect(TokenType.RIGHT_PAREN, "Expected ')' after static type");
 
-        // Expect property access: .identifier
-        this.expect(TokenType.DOT, "Expected '.' after static type expression");
-        const property = this.consume(TokenType.IDENTIFIER, "Expected property name after '.'").lexeme;
+        // Expect property access: -> identifier
+        this.expect(TokenType.ARROW, "Expected '->' after static type expression");
+        const property = this.consume(TokenType.IDENTIFIER, "Expected property name after '->'").lexeme;
         return E.get(E.type(type), property);
       }
 
@@ -466,7 +466,7 @@ class LWParser {
         }
       }
 
-      // Regular parenthesized expression or property access like (@self.x)
+      // Regular parenthesized expression or property access like (@self->x)
       const expr = this.parseExpression();
       this.expect(TokenType.RIGHT_PAREN, "Expected ')' after expression");
       return expr;
