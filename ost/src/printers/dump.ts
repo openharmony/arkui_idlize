@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { IndentPrinter } from "./indent";
-import * as lw from "../lws"
+import { IndentPrinter } from "./indent.js";
+import * as lw from "../lws.js"
 
 export class DumpPrinter {
   private readonly p = new IndentPrinter()

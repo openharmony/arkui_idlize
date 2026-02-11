@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as lw from "../../lws"
-import { std } from "../../stdlib";
-import { T } from "../../builders";
-import { ConvertTSTypes, TSPrinter } from "./typescript";
+import * as lw from "../../lws.js"
+import { std } from "../../stdlib.js";
+import { T } from "../../builders/index.js";
+import { ConvertTSTypes, TSPrinter } from "./typescript.js";
 
 export class ConvertArkTSTypes extends ConvertTSTypes {
   override goValueType(type: lw.ValueType): lw.ValueType {

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as lw from '../lws'
+import * as lw from '../lws.js'
 
 function over<T, U>(x: T | undefined, f: (x: T) => U): U | undefined {
   if (x === undefined) {
@@ -56,7 +56,8 @@ export class IdentityTransformer {
       fields: decl.fields.map(f => ({
         name: f.name,
         type: this.goType(f.type),
-        modifiers: f.modifiers
+        modifiers: f.modifiers,
+        expression: f.expression ? this.goExpression(f.expression) : undefined
       })),
       methods: decl.methods.map(m => this.goFunctionDeclaration(m)),
       oop: over(decl.oop, oop => ({

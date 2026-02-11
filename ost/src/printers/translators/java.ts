@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { IndentPrinter } from "../indent";
-import * as lw from "../../lws"
-import { std } from "../../stdlib";
-import { IdentityTransformer } from "../../visitors/identity";
-import { T } from "../../builders";
+import { IndentPrinter } from "../indent.js";
+import * as lw from "../../lws.js"
+import { std } from "../../stdlib.js";
+import { IdentityTransformer } from "../../visitors/identity.js";
+import { T } from "../../builders/index.js";
 
 const varMapping = new Map([
   [std.names.vars.base, 'base'],

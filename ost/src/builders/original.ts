@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as lw from '../lws'
+import * as lw from '../lws.js'
 
 /**
  * Original builder functions for constructing AST nodes.
