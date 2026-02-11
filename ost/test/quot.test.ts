@@ -1,7 +1,7 @@
-import { assertEquals, describe, runTestSuite } from "./test-utils";
-import { quot } from "../src/quot"
-import { D, E, S, T } from "../src/builders";
-import { Md, Vs } from "../src/stdlib";
+import { assertEquals, describe, runTestSuite } from "./test-utils.js";
+import { quot } from "../src/quot.js"
+import { D, E, S, T } from "../src/builders/index.js";
+import { Md, Vs } from "../src/stdlib.js";
 
 const quotTest = describe('Quot OST builder', [
     {

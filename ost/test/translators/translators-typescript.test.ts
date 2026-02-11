@@ -1,6 +1,6 @@
-import { E, S, T, D } from '../../src/builders/original';
-import { processNPrintTS } from '../../src/printers/translators/typescript';
-import { assertEquals, describe, runTestSuite } from '../test-utils';
+import { E, S, T, D } from '../../src/builders/original.js';
+import { processNPrintTS } from '../../src/printers/translators/typescript.js';
+import { assertEquals, describe, runTestSuite } from '../test-utils.js';
 
 // Test TypeScript translator
 const tsTranslatorTests = describe('TypeScript Translator Tests', [

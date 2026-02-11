@@ -3,9 +3,9 @@
  * Uses Node.js built-in modules only (no external dependencies).
  */
 
-import { readdirSync } from 'fs';
-import { join, extname } from 'path';
-import { execSync } from 'child_process';
+import { readdirSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { execSync } from 'node:child_process';
 
 function findTestFiles(dir: string): string[] {
   const files: string[] = [];
@@ -37,7 +37,7 @@ function runTestFile(filePath: string): boolean {
 
 function main() {
   // Find compiled test files in build/test
-  const testDir = join(__dirname, '.');
+  const testDir = resolve('.');
 
   if (!readdirSync(testDir, { withFileTypes: true }).length) {
     console.error('No test files found. Run npm run test:compile first.');
@@ -76,6 +76,4 @@ function main() {
   }
 }
 
-if (require.main === module) {
-  main();
-}
+main();

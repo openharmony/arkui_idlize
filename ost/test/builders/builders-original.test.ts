@@ -1,6 +1,6 @@
-import { E, S, T, D } from '../../src/builders/original';
-import { LWKind } from '../../src/lws';
-import { assertEquals, describe, runTestSuite } from '../test-utils';
+import { E, S, T, D } from '../../src/builders/original.js';
+import { LWKind } from '../../src/lws.js';
+import { assertEquals, describe, runTestSuite } from '../test-utils.js';
 
 // Test Expression builders (E)
 const expressionTests = describe('Expression Builders (E)', [
