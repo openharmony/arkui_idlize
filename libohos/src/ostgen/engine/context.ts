@@ -14,8 +14,13 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { terminate } from "@idlizer/kit";
-import { OhosProducer, OhosSeed, Role } from "../producers/common";
+import { PeerLibrary } from "@idlizer/core"
+import { ProducerContext, ProducerResult, Seed, terminate } from "@idlizer/kit"
+
+export interface MakeSelectorPattern<N extends idl.IDLNode> {
+    is: (node: idl.IDLNode) => node is N,
+    role?: Role<N>
+}
 
 export interface ProducerBox<N extends idl.IDLNode> {
     pattern: MakeSelectorPattern<N>
@@ -27,15 +32,6 @@ export function createProducer<N extends idl.IDLNode>(pattern: MakeSelectorPatte
         pattern,
         producer,
     }
-}
-
-export interface MakeSelectorQuery {
-    node: idl.IDLNode,
-    role?: string
-}
-export interface MakeSelectorPattern<N extends idl.IDLNode> {
-    is: (node: idl.IDLNode) => node is N,
-    role?: Role<N>
 }
 
 export class MakeSelector {
@@ -64,4 +60,36 @@ export class MakeSelector {
     static create() {
         return new MakeSelector()
     }
+}
+
+export interface OhosEffect {
+    nativeModuleName: string,
+    apiFunctionName: string,
+    modifiers: Map<string, string[]>,
+    callbacks: string[]
+}
+
+export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>
+export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext, role?: Role<T>) => ProducerResult
+
+type CommonRole = 'managed' | 'capi'
+type SpecificRole<N extends idl.IDLNode> =
+  N extends idl.IDLInterface ? 'native-module' | 'bridge' | 'modifier' | 'managed-serde' | 'native-serde' :
+  N extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' | 'bridge' | 'modifier' | 'impl' :
+  never
+export type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
+
+export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {
+  constructor(
+    public node: T,
+    public role?: Role<T>,
+  ) {
+    super()
+  }
+  hash(): string {
+    const repr = idl.isType(this.node)
+        ? 'type:' + idl.printType(this.node)
+        : 'node:' + idl.getFQName(this.node)
+    return `${repr}:${this.role ?? ''}`
+  }
 }

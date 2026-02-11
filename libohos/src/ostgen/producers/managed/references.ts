@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { warn } from "@idlizer/core";
 import { createProducer } from "../../engine";
-import { OhosSeed } from "../common";
+import { expectType } from "../common";
 
 export const reference = createProducer(
   { is: idl.isReferenceType },
@@ -27,7 +27,7 @@ export const reference = createProducer(
       decl = idl.IDLObjectType
     }
     return {
-      continuation: ctx.expectType(new OhosSeed(decl, role)),
+      continuation: expectType(ctx, decl, role!),
       declarations: []
     }
   }

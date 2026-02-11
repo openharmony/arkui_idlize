@@ -15,7 +15,8 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, Hs, Md, T, Ts } from "@idlizer/ost"
-import { expectType, managedName, OhosProducer, OhosProducerContext, OhosSeed } from "../common"
+import { expectType, managedName } from "../common"
+import { OhosProducer, OhosProducerContext, OhosSeed } from "../../engine"
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine"
 import { ProducerResult } from "@idlizer/kit"

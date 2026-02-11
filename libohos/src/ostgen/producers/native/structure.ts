@@ -18,7 +18,8 @@ import * as idl from "@idlizer/core/idl"
 import { cApiName } from "../common"
 import { isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine"
-import { expectType, OhosProducerContext } from "../common"
+import { expectType } from "../common"
+import { OhosProducerContext } from "../../engine"
 
 export const structureProducer = createProducer(
   { is: idl.isInterface, role: 'capi' },///type role = union
