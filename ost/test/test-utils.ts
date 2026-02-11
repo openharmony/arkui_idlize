@@ -26,7 +26,7 @@ export function assert(condition: boolean, message: string = 'Assertion failed')
  * @param expected - Expected value
  * @param message - Error message if values differ
  */
-export function assertEquals<T>(actual: T, expected: T, message: string = `Expected ${expected}, got ${actual}`): void {
+export function assertEquals<T>(actual: T, expected: T, message: string = `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
     throw new AssertionError(message);
   }

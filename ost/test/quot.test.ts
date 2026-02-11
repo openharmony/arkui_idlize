@@ -2,6 +2,7 @@ import { assertEquals, describe, runTestSuite } from "./test-utils.js";
 import { quot } from "../src/quot.js"
 import { D, E, S, T } from "../src/builders/index.js";
 import { Md, Vs } from "../src/stdlib.js";
+import { processNPrintTS } from "../src/printers/translators/typescript.js";
 
 const quotTest = describe('Quot OST builder', [
     {
@@ -82,6 +83,10 @@ const quotTest = describe('Quot OST builder', [
         name: 'Quot type',
         fn: () => {
             assertEquals(
+                quot.T`A.B.C`,
+                T.c('A.B.C')
+            )
+            assertEquals(
                 quot.T`int`,
                 T.c('int')
             )
@@ -93,6 +98,21 @@ const quotTest = describe('Quot OST builder', [
                 quot.T`(a:A, b:B) -> C`,
                 T.fn([['a', T.c('A')], ['b', T.c('B')]], T.c('C'))
             )
+        }
+    },
+    {
+        name: 'Special parsers',
+        fn: () => {
+            const decl = D.class('FontStyle.FontStyle', [], [])
+            quot.appendField(decl)`
+                field static BOLD:FontStyle.FontStyle =
+                    (new FontStyle.FontStyle [
+                        (static FontWeight.FontWeight).BOLD,
+                        (static FontWidth.FontWidth).NORMAL,
+                        (static FontSlant.FontSlant).UPRIGHT
+                    ])
+            `
+            console.log(processNPrintTS(decl, '', new Set()))
         }
     }
 ])

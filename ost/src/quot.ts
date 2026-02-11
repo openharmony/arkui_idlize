@@ -275,6 +275,17 @@ class LWParser {
     return this.consume(type, message);
   }
 
+  private parseQualifiedName(): string {
+    let name = this.consume(TokenType.IDENTIFIER, "Expected identifier").lexeme;
+
+    while (this.match(TokenType.DOT)) {
+      const next = this.consume(TokenType.IDENTIFIER, "Expected identifier after '.'").lexeme;
+      name += '.' + next;
+    }
+
+    return name;
+  }
+
   // Type parsing
   parseType(): LWType {
     // Try function type first: (params) -> returnType
@@ -298,7 +309,7 @@ class LWParser {
     }
 
     // Simple or generic type
-    const name = this.consume(TokenType.IDENTIFIER, "Expected type name").lexeme;
+    const name = this.parseQualifiedName();
 
     // Check for generic type arguments
     if (this.match(TokenType.LESS)) {
@@ -366,7 +377,7 @@ class LWParser {
       // Check for constructor: (new Type [args])
       if (next.type === TokenType.NEW) {
         this.position++; // consume 'new'
-        const typeName = this.consume(TokenType.IDENTIFIER, "Expected type name after 'new'").lexeme;
+        const type = this.parseType();
         this.expect(TokenType.LEFT_BRACKET, "Expected '[' after type name in constructor");
 
         const args: LWExpression[] = [];
@@ -378,7 +389,7 @@ class LWParser {
         }
 
         this.expect(TokenType.RIGHT_PAREN, "Expected ')' after constructor");
-        return E.instance2(T.c(typeName), args);
+        return E.instance2(type, args);
       }
 
       // Check for static type expression: (static Type)
@@ -435,7 +446,6 @@ class LWParser {
 
       if (operator !== null) {
         // Try to parse as binary expression
-        const tryPosition = this.position;
         this.position++; // consume operator
 
         try {
