@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { LWDeclaration, LWExpression, LWStatement, LWType } from "./lws.js";
+import { ClassDeclaration, LWDeclaration, LWExpression, LWStatement, LWType } from "./lws.js";
 import { E, S, T, D } from "./builders/index.js";
 import { Vs, Md } from "./stdlib.js";
 
@@ -535,6 +535,74 @@ class LWParser {
     return S.e(expression);
   }
 
+  parseClassMethod(methods: ClassDeclaration['methods']): boolean {
+    if (!this.match(TokenType.FUNCTION)) {
+      return false
+    }
+    const modifiers: any[] = [];
+    while (this.peek().type === TokenType.PRIVATE || this.peek().type === TokenType.STATIC) {
+      if (this.match(TokenType.PRIVATE)) {
+        modifiers.push(Md.private());
+      } else if (this.match(TokenType.STATIC)) {
+        modifiers.push(Md.static());
+      }
+    }
+
+    const funcName = this.consume(TokenType.IDENTIFIER, "Expected function name").lexeme;
+    this.expect(TokenType.LEFT_PAREN, "Expected '(' after function name");
+
+    const params: { name: string, type: LWType }[] = [];
+    if (!this.match(TokenType.RIGHT_PAREN)) {
+      do {
+        const paramName = this.consume(TokenType.IDENTIFIER, "Expected parameter name").lexeme;
+        this.expect(TokenType.COLON, "Expected ':' after parameter name");
+        const paramType = this.parseType();
+        params.push({ name: paramName, type: paramType });
+      } while (this.match(TokenType.COMMA));
+
+      this.expect(TokenType.RIGHT_PAREN, "Expected ')' after parameters");
+    }
+
+    this.expect(TokenType.COLON, "Expected ':' after function parameters");
+    const returnType = this.parseType();
+
+    const body = this.parseStatement();
+
+    methods.push(D.func(funcName, params, returnType, body));
+
+    this.match(TokenType.COMMA); // optional comma
+    return true
+  }
+
+  parseClassField(fields: ClassDeclaration['fields']): boolean {
+    // Field declaration
+    if (!this.match(TokenType.FIELD)) {
+      return false
+    }
+    const modifiers: any[] = [];
+    while (this.peek().type === TokenType.PRIVATE || this.peek().type === TokenType.STATIC) {
+      if (this.match(TokenType.PRIVATE)) {
+        modifiers.push(Md.private());
+      } else if (this.match(TokenType.STATIC)) {
+        modifiers.push(Md.static());
+      }
+    }
+
+    const fieldName = this.consume(TokenType.IDENTIFIER, "Expected field name").lexeme;
+    this.expect(TokenType.COLON, "Expected ':' after field name");
+    const fieldType = this.parseType();
+
+    let expression: LWExpression | undefined = undefined
+    if (this.match(TokenType.EQUAL)) {
+      expression = this.parseExpression()
+    }
+
+    fields.push({ name: fieldName, type: fieldType, modifiers, expression });
+
+    this.match(TokenType.COMMA); // optional comma
+    return true
+  }
+
   // Declaration parsing
   parseDeclaration(): LWDeclaration {
     // Struct declaration
@@ -566,60 +634,8 @@ class LWParser {
       const methods: any[] = [];
 
       while (!this.match(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
-        // Field declaration
-        if (this.match(TokenType.FIELD)) {
-          const modifiers: any[] = [];
-          while (this.peek().type === TokenType.PRIVATE || this.peek().type === TokenType.STATIC) {
-            if (this.match(TokenType.PRIVATE)) {
-              modifiers.push(Md.private());
-            } else if (this.match(TokenType.STATIC)) {
-              modifiers.push(Md.static());
-            }
-          }
-
-          const fieldName = this.consume(TokenType.IDENTIFIER, "Expected field name").lexeme;
-          this.expect(TokenType.COLON, "Expected ':' after field name");
-          const fieldType = this.parseType();
-
-          fields.push({ name: fieldName, type: fieldType, modifiers });
-
-          this.match(TokenType.COMMA); // optional comma
-        }
-        // Function declaration
-        else if (this.match(TokenType.FUNCTION)) {
-          const modifiers: any[] = [];
-          while (this.peek().type === TokenType.PRIVATE || this.peek().type === TokenType.STATIC) {
-            if (this.match(TokenType.PRIVATE)) {
-              modifiers.push(Md.private());
-            } else if (this.match(TokenType.STATIC)) {
-              modifiers.push(Md.static());
-            }
-          }
-
-          const funcName = this.consume(TokenType.IDENTIFIER, "Expected function name").lexeme;
-          this.expect(TokenType.LEFT_PAREN, "Expected '(' after function name");
-
-          const params: { name: string, type: LWType }[] = [];
-          if (!this.match(TokenType.RIGHT_PAREN)) {
-            do {
-              const paramName = this.consume(TokenType.IDENTIFIER, "Expected parameter name").lexeme;
-              this.expect(TokenType.COLON, "Expected ':' after parameter name");
-              const paramType = this.parseType();
-              params.push({ name: paramName, type: paramType });
-            } while (this.match(TokenType.COMMA));
-
-            this.expect(TokenType.RIGHT_PAREN, "Expected ')' after parameters");
-          }
-
-          this.expect(TokenType.COLON, "Expected ':' after function parameters");
-          const returnType = this.parseType();
-
-          const body = this.parseStatement();
-
-          methods.push(D.func(funcName, params, returnType, body));
-
-          this.match(TokenType.COMMA); // optional comma
-        } else {
+        const parsed = this.parseClassField(fields) || this.parseClassMethod(methods)
+        if (!parsed) {
           throw new Error(`Unexpected token in class body: ${this.peek().type}`);
         }
       }
@@ -657,21 +673,35 @@ class LWParser {
 }
 
 function quotType(template: TemplateStringsArray): LWType {
-    return LWParser.consume(template.join('')).parseType()
+  return LWParser.consume(template.join('')).parseType()
 }
 function quotExpression(template: TemplateStringsArray): LWExpression {
-    return LWParser.consume(template.join('')).parseExpression()
+  return LWParser.consume(template.join('')).parseExpression()
 }
 function quotStatement(template: TemplateStringsArray): LWStatement {
-    return LWParser.consume(template.join('')).parseStatement()
+  return LWParser.consume(template.join('')).parseStatement()
 }
 function quotDeclaration(template: TemplateStringsArray): LWDeclaration {
-    return LWParser.consume(template.join('')).parseDeclaration()
+  return LWParser.consume(template.join('')).parseDeclaration()
+}
+
+function quotClassField(decl:ClassDeclaration) {
+  return (template: TemplateStringsArray) => {
+    return LWParser.consume(template.join('')).parseClassField(decl.fields)
+  }
+}
+function quotClassMethod(decl:ClassDeclaration) {
+  return (template: TemplateStringsArray) => {
+    return LWParser.consume(template.join('')).parseClassMethod(decl.methods)
+  }
 }
 
 export const quot = {
-    T: quotType,
-    E: quotExpression,
-    S: quotStatement,
-    D: quotDeclaration,
+  T: quotType,
+  E: quotExpression,
+  S: quotStatement,
+  D: quotDeclaration,
+
+  appendField: quotClassField,
+  appendMethod: quotClassMethod,
 }
