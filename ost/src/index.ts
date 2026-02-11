@@ -14,6 +14,7 @@
  */
 
 export * from "./builders/index.js"
+export * from './quot.js'
 export * from "./stdlib.js"
 
 export { processNPrintCJ } from "./printers/translators/cangjie.js"
