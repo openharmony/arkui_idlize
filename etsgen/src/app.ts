@@ -81,10 +81,5 @@ export function etsgen(argv:string[]) {
         }
        return
     }
-
-    if (options.idl2sts) {
-        throw new Error("Not yet implemented")
-    }
-
     program.help()
 }
