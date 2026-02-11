@@ -40,6 +40,13 @@ enum TokenType {
   LESS = 'LESS',
   GREATER = 'GREATER',
   ARROW = 'ARROW',
+  BANG = 'BANG',
+  OR = 'OR',
+  AND = 'AND',
+  LESS_EQUAL = 'LESS_EQUAL',
+  GREATER_EQUAL = 'GREATER_EQUAL',
+  BANG_EQUAL = 'BANG_EQUAL',
+  EQUAL_EQUAL = 'EQUAL_EQUAL',
 
   // Keywords
   VAR = 'VAR',
@@ -153,8 +160,14 @@ function tokenize(input: string): Token[] {
         position++;
         continue;
       case '=':
-        tokens.push({ type: TokenType.EQUAL, lexeme: ch, position: start });
-        position++;
+        // Check for ==
+        if (position + 1 < input.length && input[position + 1] === '=') {
+          tokens.push({ type: TokenType.EQUAL_EQUAL, lexeme: '==', position: start });
+          position += 2;
+        } else {
+          tokens.push({ type: TokenType.EQUAL, lexeme: ch, position: start });
+          position++;
+        }
         continue;
       case '+':
         tokens.push({ type: TokenType.PLUS, lexeme: ch, position: start });
@@ -183,12 +196,52 @@ function tokenize(input: string): Token[] {
         position++;
         continue;
       case '<':
-        tokens.push({ type: TokenType.LESS, lexeme: ch, position: start });
-        position++;
+        // Check for <=
+        if (position + 1 < input.length && input[position + 1] === '=') {
+          tokens.push({ type: TokenType.LESS_EQUAL, lexeme: '<=', position: start });
+          position += 2;
+        } else {
+          tokens.push({ type: TokenType.LESS, lexeme: ch, position: start });
+          position++;
+        }
         continue;
       case '>':
-        tokens.push({ type: TokenType.GREATER, lexeme: ch, position: start });
-        position++;
+        // Check for >=
+        if (position + 1 < input.length && input[position + 1] === '=') {
+          tokens.push({ type: TokenType.GREATER_EQUAL, lexeme: '>=', position: start });
+          position += 2;
+        } else {
+          tokens.push({ type: TokenType.GREATER, lexeme: ch, position: start });
+          position++;
+        }
+        continue;
+      case '!':
+        // Check for !=
+        if (position + 1 < input.length && input[position + 1] === '=') {
+          tokens.push({ type: TokenType.BANG_EQUAL, lexeme: '!=', position: start });
+          position += 2;
+        } else {
+          tokens.push({ type: TokenType.BANG, lexeme: ch, position: start });
+          position++;
+        }
+        continue;
+      case '|':
+        // Check for ||
+        if (position + 1 < input.length && input[position + 1] === '|') {
+          tokens.push({ type: TokenType.OR, lexeme: '||', position: start });
+          position += 2;
+        } else {
+          throw new Error(`Unexpected character: | at position ${position}`);
+        }
+        continue;
+      case '&':
+        // Check for &&
+        if (position + 1 < input.length && input[position + 1] === '&') {
+          tokens.push({ type: TokenType.AND, lexeme: '&&', position: start });
+          position += 2;
+        } else {
+          throw new Error(`Unexpected character: & at position ${position}`);
+        }
         continue;
     }
 
@@ -439,27 +492,42 @@ class LWParser {
         operatorToken.type === TokenType.STAR ||
         operatorToken.type === TokenType.SLASH ||
         operatorToken.type === TokenType.LESS ||
-        operatorToken.type === TokenType.GREATER
+        operatorToken.type === TokenType.GREATER ||
+        operatorToken.type === TokenType.BANG ||
+        operatorToken.type === TokenType.OR ||
+        operatorToken.type === TokenType.AND ||
+        operatorToken.type === TokenType.LESS_EQUAL ||
+        operatorToken.type === TokenType.GREATER_EQUAL ||
+        operatorToken.type === TokenType.BANG_EQUAL ||
+        operatorToken.type === TokenType.EQUAL_EQUAL
       ) {
         operator = operatorToken.lexeme;
       }
 
       if (operator !== null) {
-        // Try to parse as binary expression
+        // Try to parse as unary or binary expression
         this.position++; // consume operator
 
         try {
-          const left = this.parseExpression();
-          const right = this.parseExpression();
+          const operand = this.parseExpression();
 
-          // Check if next token is RIGHT_PAREN
+          // Check if next token is RIGHT_PAREN (unary expression)
+          if (this.peek().type === TokenType.RIGHT_PAREN) {
+            this.expect(TokenType.RIGHT_PAREN, "Expected ')' after unary expression");
+            return E.unary(operator, operand);
+          }
+
+          // Not unary, try binary: parse second operand
+          const secondOperand = this.parseExpression();
+
+          // Check if next token is RIGHT_PAREN (binary expression)
           if (this.peek().type === TokenType.RIGHT_PAREN) {
             this.expect(TokenType.RIGHT_PAREN, "Expected ')' after binary expression");
-            return E.bin(operator, left, right);
-          } else {
-            // Not a binary expression, restore position
-            this.position = savedPosition;
+            return E.bin(operator, operand, secondOperand);
           }
+
+          // Neither unary nor binary, restore position
+          this.position = savedPosition;
         } catch (e) {
           // Parsing failed, restore position
           this.position = savedPosition;

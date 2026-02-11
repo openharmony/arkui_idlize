@@ -112,6 +112,16 @@ const quotTest = describe('Quot OST builder', [
                         (static FontSlant.FontSlant)->UPRIGHT
                     ])
             `
+            quot.appendMethod(decl)`
+                function intersects(other: Rect.Rect): boolean {
+                return (! (
+                    (|| (<= @self->right other->left)
+                    (|| (>= @self->left other->right)
+                    (|| (<= @self->bottom other->top)
+                        (>= @self->top other->bottom)
+                )))))
+                }
+            `
             console.log(processNPrintTS(decl, '', new Set()))
         }
     }
