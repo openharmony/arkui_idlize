@@ -77,7 +77,7 @@ export const nativeModuleConstructorProducer = createProducer(
           .returns(Ts.prim.pointer)
           .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') }))).$().$(),
         // bridge
-        Builders.func(bridgeName('modifier.impl_' + funcName))
+        Builders.func(bridgeName('impl_' + funcName))
           .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
           .returns(Ts.prim.pointer)
           .block()
@@ -123,7 +123,7 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
   let capiMethod = method
   let makeApiCall: (expr: LWExpression) => LWExpression = expr => Builders.call(expr).args(apiCallArgs).$()
   if (method.name === 'getFinalizer') {
-    capiMethod = idl.createMethod('destruct', [], idl.IDLVoidType)
+    capiMethod = idl.createMethod('_destruct', [], idl.IDLVoidType)
     capiMethod.parent = method.parent
     makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
   }
@@ -142,7 +142,7 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
   } else {
     body.return(interopReturnType).value(apiCall).$()
   }
-  return Builders.func(bridgeName('modifier.impl_' + name))
+  return Builders.func(bridgeName('impl_' + name))
     .parameters(params)
     .returns(interopReturnType)
     .body(body.$())

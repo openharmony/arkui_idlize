@@ -24,17 +24,16 @@ import { OhosProducerContext } from "../../engine"
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'capi' },
   (method, ctx) => {
-    const funcName = fqName(method)
-    const modifierName = modifierClassName(method)
+    const funcName = method.isFree ? fqName(method) : method.name
     const returnType = expectType(ctx, method.returnType, 'capi')
     const params: [string, LWType][] = method.parameters.map(it =>
       [it.name, wrapPtr(it.type, ctx)])
     if (!method.isFree && !method.isStatic)
       params.unshift(['thisPtr', Ts.prim.pointer])
     return {
-      continuation: apiAccessor(ctx, modifierName, funcName),
+      continuation: apiAccessor(method, funcName, ctx),
       declarations: [
-        Builders.struct(cApiName(`modifier.${modifierClassName(method)}Modifier`))
+        Builders.struct(cApiName(modifierClassName(method) + 'Modifier'))
           .field(funcName)
             .funcType()
             .parameters(params)
@@ -48,13 +47,12 @@ export const functionProducer = createProducer(
 export const constructorProducer = createProducer(
   { is: idl.isConstructor, role: 'capi' },
   (ctor, ctx) => {
-    const funcName = fqName(ctor)
-    const modifierName = modifierClassName(ctor)
+    const funcName = '_construct'
     const params: [string, LWType][] = ctor.parameters.map(it => [it.name, wrapPtr(it.type, ctx)])
     return {
-      continuation: apiAccessor(ctx, modifierName, funcName),
+      continuation: apiAccessor(ctor, funcName, ctx),
       declarations: [
-        Builders.struct(cApiName(`modifier.${modifierClassName(ctor)}Modifier`))
+        Builders.struct(cApiName(modifierClassName(ctor) + 'Modifier'))
           .field(funcName)
             .funcType()
             .parameters(params)
@@ -70,10 +68,11 @@ function wrapPtr(type: idl.IDLType, ctx: OhosProducerContext): LWType {
     return argConvertor(ctx, type).isPointer() ? Ts.const(Ts.ptr(typeRef)) : typeRef
 }
 
-function apiAccessor(ctx: OhosProducerContext, modifierName: string, methodName: string): LWExpression {
-  ctx.updateEffect(e => mapPush(e.modifiers, modifierName, methodName))
+function apiAccessor(method: idl.IDLMethod | idl.IDLConstructor, name: string, ctx: OhosProducerContext): LWExpression {
+  const modifierName = modifierClassName(method)
+  ctx.updateEffect(e => mapPush(e.modifiers, modifierName, fqName(method)))
   return Builders
-    .access(methodName).ptr().receiver().call().function()
+    .access(name).ptr().receiver().call().function()
       .access(modifierName).ptr().receiver().call(ctx.getEffect().apiFunctionName)
         .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
 }
@@ -83,7 +82,7 @@ function generateImpl(method: idl.IDLMethod | idl.IDLConstructor, ctx: OhosProdu
   const params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
   if (!idl.isConstructor(method) && !method.isFree && !method.isStatic)
     params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
-  return Builders.func(implName(fqName(method, 'modifier.', 'Impl')))
+  return Builders.func(implName(fqName(method) + 'Impl'))
     .returns(returnType)
     .parameters(params).$()
 }

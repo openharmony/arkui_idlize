@@ -18,7 +18,7 @@ import { warn } from "@idlizer/core";
 import { createProducer } from "../../engine";
 import { expectType } from "../common";
 
-export const reference = createProducer(
+export const referenceProducer = createProducer(
   { is: idl.isReferenceType },
   (type, ctx, role) => {
     let decl = ctx.library.toDeclaration(type)

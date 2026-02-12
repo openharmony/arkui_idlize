@@ -19,7 +19,7 @@ import { expectExpr, expectType, managedName } from "../common";
 import { argConvertor } from "../components/argConvertor";
 import { createProducer } from "../../engine";
 
-export const func = createProducer(
+export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'managed' },
   (method, ctx) => {
     const declName = method.isFree
@@ -68,7 +68,7 @@ export const func = createProducer(
   }
 )
 
-export const ctor = createProducer(
+export const constructorProducer = createProducer(
   { is: idl.isConstructor, role: 'managed' },
   (ctor, ctx) => {
     const className = managedName(idl.getFQName(ctor.parent!))

@@ -41,7 +41,7 @@ function convertType(type: idl.IDLPrimitiveType): lw.LWType {
     throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
 }
 
-export const primitive = createProducer(
+export const primitiveProducer = createProducer(
   { is: idl.isPrimitiveType },
   (type, _) => ({
     continuation: convertType(type),

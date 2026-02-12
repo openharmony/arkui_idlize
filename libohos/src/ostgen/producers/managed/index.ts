@@ -16,22 +16,22 @@
 import { containerProducer } from "./containers";
 import { enumProducer } from "./enum";
 import { nativeModuleConstructorProducer, nativeModuleFunctionProducer, nativeModuleMaterializedProducer } from "./nativeModule";
-import { primitive } from "./primitives";
-import { reference } from "./references";
+import { primitiveProducer } from "./primitives";
+import { referenceProducer } from "./references";
 import { serializerProducer } from "./serializer";
-import { structure } from "./structure";
+import { structureProducer } from "./structure";
 import { unionProducer } from "./union";
 import { callbackProducer } from "./callback";
 import { typedefProducer } from "./typedef";
-import { ctor, func } from "./function";
+import { constructorProducer, functionProducer } from "./function";
 
 export const producers = {
     enumProducer,
-    func,
-    ctor,
-    structure,
-    primitive,
-    reference,
+    functionProducer,
+    constructorProducer,
+    structureProducer,
+    primitiveProducer,
+    referenceProducer,
     containerProducer,
     unionProducer,
     callbackProducer,

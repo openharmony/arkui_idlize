@@ -21,7 +21,7 @@ import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine"
 import { ProducerResult } from "@idlizer/kit"
 
-export const structure = createProducer(
+export const structureProducer = createProducer(
   { is: idl.isInterface, role: 'managed' },
   (node, ctx) => {
     const declName = managedName(idl.getFQName(node))
@@ -87,9 +87,6 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
     .ctor().param('ptr').type(Ts.prim.pointer).$().block()
       .call('setPeer').receiver('this').arg('ptr').$().$().$().$()
   const syntheticMethods = [
-    // getFinalizer
-    idl.createMethod('getFinalizer', [], idl.IDLPointerType, {
-      isStatic: true, isAsync: false, isOptional: false, isFree: false}),
     // client constructors
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
     // property getters + setters
@@ -102,7 +99,10 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
         extendedAttributes: [
           { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter },
           { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
-    ])
+    ]),
+    // getFinalizer
+    idl.createMethod('getFinalizer', [], idl.IDLPointerType, {
+      isStatic: true, isAsync: false, isOptional: false, isFree: false}),
   ]
   syntheticMethods.forEach(it => it.parent = node)
   return {

@@ -47,7 +47,7 @@ export function fqName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstruct
   const fqn = idl.isConstructor(node)
     ? idl.getFQName(node.parent as idl.IDLInterface) + '_construct'
     : idl.isMethod(node) && node.parent && idl.isInterface(node.parent)
-      ? idl.getFQName(node.parent) + '_' + node.name
+      ? idl.getFQName(node.parent) + (node.name.startsWith('_') ? '' : '_') + node.name
       : idl.getFQName(node)
   return (prefix ?? '') + fqn.split('.').join('_') + (postfix ?? '')
 }
