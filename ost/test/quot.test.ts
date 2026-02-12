@@ -36,6 +36,10 @@ const quotTest = describe('Quot OST builder', [
                 quot.E`(static A)->foo`,
                 E.get(E.type(T.c('A')), 'foo')
             )
+            assertEquals(
+                quot.E`(+ 1 2 3)`,
+                E.bin('+', E.bin('+', E.c(1), E.c(2)), E.c(3))
+            )
         }
     },
     {

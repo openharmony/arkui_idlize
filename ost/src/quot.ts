@@ -523,25 +523,25 @@ class LWParser {
         this.position++; // consume operator
 
         try {
-          const operand = this.parseExpression();
-
-          // Check if next token is RIGHT_PAREN (unary expression)
-          if (this.peek().type === TokenType.RIGHT_PAREN) {
-            this.expect(TokenType.RIGHT_PAREN, "Expected ')' after unary expression");
-            return E.unary(operator, operand);
+          const operands: LWExpression[] = []
+          while (this.peek().type !== TokenType.RIGHT_PAREN) {
+            operands.push(this.parseExpression())
           }
+          this.expect(TokenType.RIGHT_PAREN, "Expected ')' after expression");
 
-          // Not unary, try binary: parse second operand
-          const secondOperand = this.parseExpression();
-
-          // Check if next token is RIGHT_PAREN (binary expression)
-          if (this.peek().type === TokenType.RIGHT_PAREN) {
-            this.expect(TokenType.RIGHT_PAREN, "Expected ')' after binary expression");
-            return E.bin(operator, operand, secondOperand);
+          if (operands.length === 0) {
+            throw new Error(`Unexpected token: ${this.peek().lexeme} (${this.peek().type}) at position ${this.peek().position}`)
           }
-
-          // Neither unary nor binary, restore position
-          this.position = savedPosition;
+          if (operands.length === 1) {
+            return E.unary(operator, operands[0])
+          }
+          let expression = E.bin(operator, operands[0], operands[1])
+          operands.shift()
+          operands.shift()
+          while (operands.length) {
+            expression = E.bin(operator, expression, operands.shift()!)
+          }
+          return expression
         } catch (e) {
           // Parsing failed, restore position
           this.position = savedPosition;
