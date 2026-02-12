@@ -599,6 +599,10 @@ export class TSPrinter {
             this.p.put(param.name)
             this.p.put(':', ' ')
             this.printType(param.type)
+            if (param.expression) {
+              this.p.put(' ', '=', ' ')
+              this.printExpression(param.expression)
+            }
           })
           this.p.put(')')
           if (!isCtor && !declaration.modifiers.find(it => it.name === std.names.modifiers.setter)) {

@@ -71,10 +71,10 @@ const quotTest = describe('Quot OST builder', [
                 D.struct('Point', [{ name: 'x', type: T.c('int') }, { name: 'y', type: T.c('int') }])
             )
             assertEquals(
-                quot.D`class User { field private name:string, function static create(name:string): User { return (new User [name]) } }`,
+                quot.D`class User { field private name:string, function static create(name:string = x): User { return (new User [name]) } }`,
                 D.class('User',
                     [{ name: 'name', type: T.c('string'), modifiers: [Md.private()] }],
-                    [DD({ modifiers: [Md.static()] }).func('create', [{ name: 'name', type: T.c('string') }], T.c('User'), S.block([S.return(E.instance2(T.c('User'), [E.v('name')]))]))]
+                    [DD({ modifiers: [Md.static()] }).func('create', [{ name: 'name', type: T.c('string'), expression: E.v('x') }], T.c('User'), S.block([S.return(E.instance2(T.c('User'), [E.v('name')]))]))]
                 )
             )
             assertEquals(

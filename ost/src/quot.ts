@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ClassDeclaration, LWDeclaration, LWExpression, LWStatement, LWType } from "./lws.js";
+import { ClassDeclaration, FunctionDeclaration, LWDeclaration, LWExpression, LWStatement, LWType } from "./lws.js";
 import { E, S, T, D, DD } from "./builders/index.js";
 import { Vs, Md } from "./stdlib.js";
 
@@ -667,13 +667,17 @@ class LWParser {
     const funcName = this.consume(TokenType.IDENTIFIER, "Expected function name").lexeme;
     this.expect(TokenType.LEFT_PAREN, "Expected '(' after function name");
 
-    const params: { name: string, type: LWType }[] = [];
+    const params: FunctionDeclaration['parameters'] = [];
     if (!this.match(TokenType.RIGHT_PAREN)) {
       do {
         const paramName = this.consume(TokenType.IDENTIFIER, "Expected parameter name").lexeme;
         this.expect(TokenType.COLON, "Expected ':' after parameter name");
         const paramType = this.parseType();
         params.push({ name: paramName, type: paramType });
+        if (this.match(TokenType.EQUAL)) {
+          const defaultExpression = this.parseExpression()
+          params.at(-1)!.expression = defaultExpression
+        }
       } while (this.match(TokenType.COMMA));
 
       this.expect(TokenType.RIGHT_PAREN, "Expected ')' after parameters");
