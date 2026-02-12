@@ -85,6 +85,15 @@ const tsTranslatorTests = describe('TypeScript Translator Tests', [
 }`;
       assertEquals(output.trim(), expected.trim());
     }
+  },
+  {
+    name: "Function with default parameters",
+    fn: () => {
+      const fnWithParams = D.func('foo', [{ name: 'x', type: T.c('int'), expression: E.c(42) }], T.c('void'), S.block([]))
+      const output = processNPrintTS(fnWithParams, '', new Set())
+      const expected = `export function foo(x: int = 42): void {\n  \n}`
+      assertEquals(output.trim(), expected.trim())
+    }
   }
 ]);
 
