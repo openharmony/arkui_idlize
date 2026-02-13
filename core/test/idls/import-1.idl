@@ -1,4 +1,0 @@
-package component.imp;
-
-import "iface_1";
-import "typedef_1";

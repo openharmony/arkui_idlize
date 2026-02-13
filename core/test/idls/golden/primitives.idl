@@ -1,0 +1,2 @@
+typedef extended_i32 = ([attributeName=attributeValue] i32);
+typedef extended_String = ([attributeName=attributeValue] String);
