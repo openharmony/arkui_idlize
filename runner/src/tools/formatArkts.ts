@@ -82,19 +82,21 @@ export function formatArkts(options: ArkTSFormatOptions) {
         console.log(`output-dir ${outputDir} does not exist`)
         return -1
     }
-    const files = fs.readdirSync(inputDir, {
-        recursive: true,
-        withFileTypes: true
-    })
-    for (const file of files) {
-        const fullPath = path.join((file as any/* support node<18 */).parentPath ?? file.path, file.name)
-        const relPath = path.relative(inputDir, fullPath)
-        const outputFilePath = path.join(outputDir, relPath)
-        if (fs.lstatSync(fullPath).isFile()) {
-            const dirName = path.dirname(outputFilePath)
-            fs.mkdirSync(dirName, { recursive: true })
-            processFile(fullPath, outputFilePath)
+    function walkDir(currentDir: string) {
+        const entries = fs.readdirSync(currentDir, { withFileTypes: true })
+        for (const entry of entries) {
+            const fullPath = path.join(currentDir, entry.name)
+            const relPath = path.relative(inputDir, fullPath)
+            const outputFilePath = path.join(outputDir, relPath)
+            if (entry.isFile()) {
+                const dirName = path.dirname(outputFilePath)
+                fs.mkdirSync(dirName, { recursive: true })
+                processFile(fullPath, outputFilePath)
+            } else if (entry.isDirectory()) {
+                walkDir(fullPath)
+            }
         }
     }
+    walkDir(inputDir)
     return 0
 }
