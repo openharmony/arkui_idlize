@@ -26,6 +26,7 @@
                 "arkui.component.check.modifiers",
                 "arkui.component.check.optional",
                 "arkui.component.check.transform",
+                "arkui.component.check.flattenUnions",
                 "arkui.component.common",
                 "arkui.component.datebook",
                 "arkui.component.units",
