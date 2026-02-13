@@ -53,7 +53,7 @@ export class MakeSelector {
             return it.pattern.role === queryRole
         })
         if (!record)
-            terminate(`Can not process "${idl.getFQName(seed.node)}", ${idl.IDLKind[seed.node.kind]}, ${seed.role}`)
+            terminate(`Missing producer for "${idl.getFQName(seed.node)}", ${idl.IDLKind[seed.node.kind]}, ${seed.role}`)
         return record.producer
     }
 

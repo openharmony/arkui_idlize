@@ -15,8 +15,8 @@
 
 import { IndentedPrinter } from "../IndentedPrinter.js"
 import { stringOrNone } from "../util.js"
-import { IDLNullTypeName, createPrimitiveType } from "./builders.js"
-import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute, isFile } from "./discriminators.js"
+import { IDLNullTypeName } from "./builders.js"
+import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute, isFile, isType, isProperty, isParameter, isCallback, isEnum, isTypedef } from "./discriminators.js"
 import { IDLKeywords } from "./keywords.js"
 import { IDLType, IDLInterface, IDLExtendedAttributes, IDLKind, IDLParameter, IDLConstructor, IDLVariable, IDLConstant, IDLProperty, IDLNode, IDLSignature, IDLTypedef, IDLReferenceType, IDLExtendedAttribute, IDLFunction, IDLMethod, IDLFile, IDLImport, IDLNamespace, IDLCallback, IDLEntry, IDLEnumMember, IDLEnum, IDLPrimitiveType } from "./node.js"
 
@@ -400,4 +400,28 @@ export const DebugUtils = {
         }
         return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}'${filename}]`
     },
+
+    debugPrintTrace: (node?: IDLNode): string => {
+        const result = []
+        while (node) {
+            if (isType(node))
+                result.push(DebugUtils.debugPrintType(node))
+            if (isProperty(node))
+                result.push('property ' + node.name)
+            if (isParameter(node))
+                result.push('parameter ' + node.name)
+            if (isInterface(node))
+                result.push('interface ' + node.name)
+            if (isCallback(node))
+                result.push('callback ' + node.name)
+            if (isEnum(node))
+                result.push('enum ' + node.name)
+            if (isTypedef(node))
+                result.push('typedef ' + node.name)
+            if (isFile(node))
+                result.push('file ' + node.fileName)
+            node = node.parent
+        }
+        return result.reduce((acc, it, i) => acc + ' '.repeat(i * 2) + it + '\n', '')
+    }
 }

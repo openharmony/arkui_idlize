@@ -22,32 +22,21 @@ import { monoName } from "../../postprocess/postprocess.js"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
-        case 'boolean':
-            return 'Boolean'
+        case 'boolean': return 'Boolean'
         case 'buffer':
-        case 'SerializerBuffer':
-            return 'Buffer'
+        case 'SerializerBuffer': return 'Buffer'
         case 'i8':
-        case 'u8':
-            return 'Int8'
+        case 'u8': return 'Int8'
         case 'i32':
-        case 'u32':
-            return 'Int32'
+        case 'u32': return 'Int32'
         case 'i64':
-        case 'u64':
-            return 'Int64'
-        case 'f32':
-            return 'Float32'
-        case 'f64':
-            return 'Float64'
-        case 'number':
-            return 'Number'
-        case 'pointer':
-            return 'Pointer'
-        case 'String':
-            return 'String'
-        default:
-            throw new Error(`Can not convert "${idl.DebugUtils.debugPrintType(type)}"`)
+        case 'u64': return 'Int64'
+        case 'f32': return 'Float32'
+        case 'f64': return 'Float64'
+        case 'number': return 'Number'
+        case 'pointer': return 'Pointer'
+        case 'String': return 'String'
+        default: throw new Error(`Missing primitive convertor for "${idl.DebugUtils.debugPrintType(type)}"`)
     }
 }
 function selectWriteName(type:idl.IDLPrimitiveType): string {
@@ -88,6 +77,8 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
 export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, optional?: boolean): ArgConvertor<idl.IDLType> {
     ///what can we cache here? Take optional props into account
     if (optional)
+        return new OptionalConvertor(ctx, idl.createOptionalType(type))
+    if (idl.isOptionalType(type))
         return new OptionalConvertor(ctx, type)
     if (idl.isPrimitiveType(type))
         return new PrimitiveConvertor(ctx, type)
@@ -109,7 +100,7 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
                 return new CallbackConvertor(ctx, type, decl)
         }
     }
-    throw new Error(`No convertor exists for "${idl.DebugUtils.debugPrintType(type)}"`)
+    throw new Error(`Missing convertor for "${idl.DebugUtils.debugPrintType(type)}"`)
 }
 
 class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
@@ -353,7 +344,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
     }
 }
 
-class OptionalConvertor extends StructConvertor<idl.IDLType> {
+class OptionalConvertor extends StructConvertor<idl.IDLOptionalType> {
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         if (native) {
             // TODO: implement
@@ -367,7 +358,7 @@ class OptionalConvertor extends StructConvertor<idl.IDLType> {
                 .call('writeInt8').receiver(serializerName).arg(this.runtimeType('UNDEFINED', native)).$().$().$()
             .else().block()
                 .call('writeInt8').receiver(serializerName).arg(this.runtimeType('OBJECT', native)).$()
-                .statements(argConvertor(this.ctx, this.type).write(accessor, serializerName, native)).$().$().$()
+                .statements(argConvertor(this.ctx, this.type.type).write(accessor, serializerName, native)).$().$().$()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
@@ -382,7 +373,7 @@ class OptionalConvertor extends StructConvertor<idl.IDLType> {
                     .right('INTEROP_TAG_UNDEFINED').$().$()
             ], E.v(name)]
         } else {
-            const [typeReads, typeValue] = argConvertor(this.ctx, this.type).read(`${name}Value`, serializerName, native)
+            const [typeReads, typeValue] = argConvertor(this.ctx, this.type.type).read(`${name}Value`, serializerName, native)
             return [[
                 Builders.decl(name, Ts.union([type, Ts.prim.undefined])).mutable().$(),
                 Builders.decl(`${name}RuntimeType`).value().call('readInt8').receiver(serializerName).$().$().$(),
