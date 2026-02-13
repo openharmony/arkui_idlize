@@ -33,7 +33,7 @@ import { injectPatch } from '../common';
 function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
     let returnType: idl.IDLType = collapseTypes(types)
     if (idl.isUnionType(returnType) && language && (language == Language.ARKTS || language == Language.TS)) {
-        let newTypes = returnType.types.map(it => idl.isVoidType(it) ? idl.IDLUndefinedType : it)
+        let newTypes = returnType.types.map(it => idl.isVoidType(it) ? idl.createPrimitiveType('undefined') : it)
         returnType = idl.createUnionType(newTypes)
     }
     return returnType
@@ -110,7 +110,7 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
         return collapsedType //, "%PROXY_BEFORE_PEER%")
     })
 
-    const returnType = collapseReturnTypes(methods.map(it => it.signature.returnType ?? idl.IDLVoidType), language)
+    const returnType = collapseReturnTypes(methods.map(it => it.signature.returnType ?? idl.createPrimitiveType('void')), language)
     return new Method(
         `${methods[0].name}${postfix}`,
         new NamedMethodSignature(
@@ -266,7 +266,7 @@ export class OverloadsPrinter {
     constructor(private library: PeerLibrary, private printer: LanguageWriter, private language: Language, private isComponent: boolean, private useMemoM3: boolean) {
         // TODO: UndefinedConvertor is not known during static initialization because of cyclic dependencies
         if (!OverloadsPrinter.undefinedConvertor) {
-            OverloadsPrinter.undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
+            OverloadsPrinter.undefinedConvertor = new UndefinedConvertor("OverloadsPrinter", idl.createPrimitiveType('undefined'))
         }
     }
 
@@ -302,11 +302,12 @@ export class OverloadsPrinter {
     private printCollapsedOverloads(peer: string, methods: PeerMethod[], interfaceDeclaration?: idl.IDLInterface) {
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language, this.posfix)
         let collapsedMethodToPrint = collapsedMethod
-        const methodReturnsThis = collapsedMethod.signature.returnType == idl.IDLThisType
-            || maybeRestoreThrows(collapsedMethod.signature.returnType, this.library) === idl.IDLThisType
+        const restoredType = maybeRestoreThrows(collapsedMethod.signature.returnType, this.library)
+        const methodReturnsThis = idl.isPrimitiveType(collapsedMethod.signature.returnType, 'this')
+            || (restoredType && idl.isPrimitiveType(restoredType, 'this'))
         if (methodReturnsThis && this.printer.language == Language.CJ) {
             // compiler clashes on memo methods returning this
-            collapsedMethod.signature.returnType = idl.IDLVoidType
+            collapsedMethod.signature.returnType = idl.createPrimitiveType('void')
         }
         if (this.printer.language == Language.KOTLIN) {
             if (methodReturnsThis) {
@@ -375,7 +376,7 @@ export class OverloadsPrinter {
         const hookCall = writer.makeFunctionCall(hookName, [
             writer.makeThis(), ...args.map(arg => writer.makeString(arg))
         ])
-        if (this.isComponent || method.signature.returnType === idl.IDLVoidType) {
+        if (this.isComponent || idl.isPrimitiveType(method.signature.returnType, 'void')) {
             writer.writeExpressionStatement(hookCall)
         } else {
             writer.writeStatement(writer.makeReturn(hookCall))
@@ -465,8 +466,9 @@ export class OverloadsPrinter {
             : this.isComponent ? `this.getPeer()` : `this`
         const namePostifx = this.isComponent ? "Attribute" : `${this.posfix}_serialize`
         const methodName = `${peerMethod.sig.name}${namePostifx}`
-        const methodReturnsThis = collapsedMethod.signature.returnType == idl.IDLThisType
-            || maybeRestoreThrows(collapsedMethod.signature.returnType, this.library) === idl.IDLThisType
+        const restoredType = maybeRestoreThrows(collapsedMethod.signature.returnType, this.library)
+        const methodReturnsThis = idl.isPrimitiveType(collapsedMethod.signature.returnType, 'this')
+            || (restoredType && idl.isPrimitiveType(restoredType, 'this'))
         if (methodReturnsThis) {
             if (this.printer.language == Language.CJ) {
                 if (isStatic) {
@@ -482,7 +484,7 @@ export class OverloadsPrinter {
                 this.printer.writeMethodCall("this", "applyOptionsFinish", [`"${peer}"`])
             }
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
-        } else if (collapsedMethod.signature.returnType === idl.IDLVoidType) {
+        } else if (idl.isPrimitiveType(collapsedMethod.signature.returnType, 'void')) {
             if (this.printer.language == Language.CJ) {
                 if (isStatic) {
                     this.printer.writeMethodCall(receiver, methodName, argsNames, false)
@@ -494,7 +496,7 @@ export class OverloadsPrinter {
                 this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
             }
             this.printer.writeStatement(this.printer.makeReturn())
-        } else if (peerMethod.returnType === idl.IDLVoidType && idl.isUnionType(collapsedMethod.signature.returnType)) {
+        } else if (idl.isPrimitiveType(peerMethod.returnType, 'void') && idl.isUnionType(collapsedMethod.signature.returnType)) {
             // handling case when there is two original functions:
             // foo(): boolean
             // foo(cb: (boolean) => void): void

@@ -704,7 +704,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
 
     convertEnumInitializer(expression: arkts.Expression | undefined): [idl.IDLPrimitiveType, number | undefined, string | number | undefined] {
         let initializer: string | number | undefined
-        let type = idl.IDLNumberType
+        let type = idl.createPrimitiveType('number')
         if (!expression) {
             return [type, undefined,  initializer]
         }
@@ -718,7 +718,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
         if (arkts.isStringLiteral(expression)) {
             initializer = expression.str
-            type = idl.IDLStringType
+            type = idl.createPrimitiveType('String')
         }
         return [type, decimalType, initializer]
     }
@@ -872,8 +872,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 this.entries.push(idl.createTypedef(
                     name,
                     idl.createUnionType([
-                        idl.IDLStringType,
-                        idl.IDLNumberType,
+                        idl.createPrimitiveType('String'),
+                        idl.createPrimitiveType('number'),
                         idl.createReferenceType('_Resource')
                     ]),
                     [],
@@ -1160,7 +1160,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 [],
                 [],
                 [],
-                [idl.createProperty('_stub', idl.IDLI32Type)],
+                [idl.createProperty('_stub', idl.createPrimitiveType('i32'))],
                 [],
                 [],
                 [],
@@ -1266,7 +1266,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 let ii = parameters.length - 1
                 while (ii >= 0) {
                     const last = parameters.at(-1)!
-                    if (last.type === idl.IDLUndefinedType || idl.isReferenceType(last.type) && last.type.name === idl.IDLNullTypeName) {
+                    if (idl.isUndefinedType(last.type) || idl.isReferenceType(last.type) && last.type.name === idl.IDLNullTypeName) {
                         parameters.pop()
                     } else {
                         break
@@ -1345,9 +1345,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
             return typeArgs
         })
         const orderedTrappedParams = Array.from(trappedParams)
-        const returnType = typeArgs?.at(0) ?? idl.IDLVoidType
+        const returnType = typeArgs?.at(0) ?? idl.createPrimitiveType('void')
         let paramsTypes = typeArgs?.slice(0, -1)
-        if (paramsTypes?.length === 1 && paramsTypes[0] === idl.IDLVoidType) {
+        if (paramsTypes?.length === 1 && idl.isPrimitiveType(paramsTypes[0], 'void')) {
             paramsTypes = []
         }
         const parameters = paramsTypes?.map((it, index) => idl.createParameter(`value${index}`, it)) ?? []
@@ -1362,19 +1362,19 @@ class IDLVisitor extends arkts.AbstractVisitor {
     }
 
     serializeType(type: arkts.AstNode | undefined): idl.IDLType {
-        if (!type) return idl.IDLVoidType
+        if (!type) return idl.createPrimitiveType('void')
         if (arkts.isTSAnyKeyword(type))
-            return idl.IDLAnyType
+            return idl.createPrimitiveType('any')
         if (arkts.isTSThisType(type))
-            return idl.IDLThisType
+            return idl.createPrimitiveType('this')
         if (arkts.isTSObjectKeyword(type))
-            return idl.IDLObjectType
+            return idl.createPrimitiveType('Object')
         if (arkts.isETSUndefinedType(type))
-            return idl.IDLUndefinedType
+            return idl.createPrimitiveType('undefined')
         if (arkts.isETSStringLiteralType(type))
-            return idl.IDLStringType
+            return idl.createPrimitiveType('String')
         if (arkts.isTSStringKeyword(type))
-            return idl.IDLStringType
+            return idl.createPrimitiveType('String')
         if (arkts.isETSNullType(type))
             return idl.createReferenceType(idl.IDLNullTypeName)
         if (arkts.isTSArrayType(type))
@@ -1419,30 +1419,30 @@ class IDLVisitor extends arkts.AbstractVisitor {
             const typeArgs = type.part?.typeParams?.params.map(it => this.serializeType(it))
             // special cases //
             switch (name) {
-                case 'Any': return idl.IDLAnyType
-                case 'string': return idl.IDLStringType
+                case 'Any': return idl.createPrimitiveType('any')
+                case 'string': return idl.createPrimitiveType('String')
                 case 'Promise': return idl.createContainerType('Promise', typeArgs ?? [] /* better check here? */)
                 case 'Record': return idl.createContainerType('record', typeArgs ?? [] /* better check here? */, { extendedAttributes: [{ name: idl.IDLExtendedAttributes.AsRecord }] })
                 case 'Map': return idl.createContainerType('record', typeArgs ?? [] /* better check here? */)
                 case 'Array': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
-                case 'Date': return idl.IDLDate
-                case 'date': return idl.IDLDate
-                case 'Partial': return idl.IDLObjectType
-                case 'Object': return idl.IDLObjectType
-                case 'object': return idl.IDLObjectType
-                case 'ArrayBuffer': return idl.IDLBufferType
-                case 'Uint8Array': return idl.IDLBufferType
-                case 'Uint8ClampedArray': return idl.IDLBufferType
-                case 'Boolean': return idl.IDLBooleanType
-                case 'Int32Array': return idl.createContainerType('sequence', [idl.IDLI32Type])
+                case 'Date': return idl.createPrimitiveType('date')
+                case 'date': return idl.createPrimitiveType('date')
+                case 'Partial': return idl.createPrimitiveType('Object')
+                case 'Object': return idl.createPrimitiveType('Object')
+                case 'object': return idl.createPrimitiveType('Object')
+                case 'ArrayBuffer': return idl.createPrimitiveType('buffer')
+                case 'Uint8Array': return idl.createPrimitiveType('buffer')
+                case 'Uint8ClampedArray': return idl.createPrimitiveType('buffer')
+                case 'Boolean': return idl.createPrimitiveType('boolean')
+                case 'Int32Array': return idl.createContainerType('sequence', [idl.createPrimitiveType('i32')])
                 case 'IterableIterator': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'ReadonlyArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'FixedArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
-                case 'number': return idl.IDLNumberType
+                case 'number': return idl.createPrimitiveType('number')
                 case 'Required':
                 case 'Readonly': return typeArgs![0]
                 case 'Optional': return idl.createOptionalType(typeArgs![0])
-                case 'ESValue': return idl.IDLObjectType
+                case 'ESValue': return idl.createPrimitiveType('Object')
                 case 'Intl.Locale': return idl.createReferenceType('idlize.stdlib.Intl.Locale')
                 case 'Error': return idl.createReferenceType('idlize.stdlib.Error')
                 case 'Type': return idl.createReferenceType('idlize.stdlib.Type')
@@ -1486,22 +1486,22 @@ class IDLVisitor extends arkts.AbstractVisitor {
             )
         }
         if (arkts.isETSKeyofType(type)) {
-            return idl.IDLStringType
+            return idl.createPrimitiveType('String')
         }
         throw new Error(`Failed type conversion for ${type ? this.printNode(type) : "undefined"}`)
     }
 
     serializePrimitive(type: arkts.Es2pandaPrimitiveType): idl.IDLType {
         switch (type) {
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_BYTE: return idl.IDLI8Type
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_INT: return idl.IDLI32Type
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_LONG: return idl.IDLI64Type
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_SHORT: return idl.IDLI16Type
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_FLOAT: return idl.IDLF32Type
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_DOUBLE: return idl.IDLF64Type
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_BOOLEAN: return idl.IDLBooleanType
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_CHAR: return idl.IDLU16Type
-            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_VOID: return idl.IDLVoidType
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_BYTE: return idl.createPrimitiveType('i8')
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_INT: return idl.createPrimitiveType('i32')
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_LONG: return idl.createPrimitiveType('i64')
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_SHORT: return idl.createPrimitiveType('i16')
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_FLOAT: return idl.createPrimitiveType('f32')
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_DOUBLE: return idl.createPrimitiveType('f64')
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_BOOLEAN: return idl.createPrimitiveType('boolean')
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_CHAR: return idl.createPrimitiveType('u16')
+            case arkts.Es2pandaPrimitiveType.PRIMITIVE_TYPE_VOID: return idl.createPrimitiveType('void')
             default: throw new Error(`Unknown primitive type ${type}`)
         }
     }
@@ -1874,13 +1874,13 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
         if (!initExpr) throw new Error(`Constant ${name} neither has type nor the initializer`)
         const value = initExpr.toString
-        if (arkts.isBooleanLiteral(initExpr)) return [idl.IDLBooleanType, value]
-        if (arkts.isNumberLiteral(initExpr)) return [idl.IDLNumberType, value]
-        if (arkts.isStringLiteral(initExpr)) return [idl.IDLStringType, `"${value}"`]
-        if (arkts.isBigIntLiteral(initExpr)) return [idl.IDLNumberType, value]
+        if (arkts.isBooleanLiteral(initExpr)) return [idl.createPrimitiveType('boolean'), value]
+        if (arkts.isNumberLiteral(initExpr)) return [idl.createPrimitiveType('number'), value]
+        if (arkts.isStringLiteral(initExpr)) return [idl.createPrimitiveType('String'), `"${value}"`]
+        if (arkts.isBigIntLiteral(initExpr)) return [idl.createPrimitiveType('number'), value]
         if (arkts.isETSNewClassInstanceExpression(initExpr)) return [this.serializeType(initExpr.typeRef), undefined]
         console.error(`Unknown initExpr type for constant: ${name} with value: ${value}`)
-        return [idl.IDLAnyType, undefined]
+        return [idl.createPrimitiveType('any'), undefined]
     }
 }
 

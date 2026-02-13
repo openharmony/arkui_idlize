@@ -323,7 +323,7 @@ export class TSLanguageWriter extends LanguageWriter {
             )
         }
         if (setter) {
-            const setSignature = new NamedMethodSignature(idl.IDLVoidType, [propType], [propName])
+            const setSignature = new NamedMethodSignature(idl.createPrimitiveType('void'), [propType], [propName])
             this.writeSetterImplementation(
                 new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC] : []),
                 setter ? setter!.op :
@@ -475,7 +475,7 @@ export class TSLanguageWriter extends LanguageWriter {
         return idl.createReferenceType("Tags")
     }
     getRuntimeType(): idl.IDLType {
-        return idl.IDLI32Type
+        return idl.createPrimitiveType('i32')
     }
     makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
         return this.makeAssign(receiver, undefined,

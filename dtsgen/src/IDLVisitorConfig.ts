@@ -174,7 +174,7 @@ export function expandIDLVisitorConfig(data:IDLVisitorConfigurationSchemaType): 
 
         TypeReplacementsFile: idl.createFile([]),
         ReplacedDeclarations: new Map<string, idl.IDLEntry>([
-            ["CustomBuilder", idl.createCallback("CustomBuilder", [], idl.IDLVoidType)],
+            ["CustomBuilder", idl.createCallback("CustomBuilder", [], idl.createPrimitiveType('void'))],
         ]),
     }
 }

@@ -15,28 +15,14 @@
 
 import {
     convertType,
-    IDLBooleanType,
     IDLContainerType,
-    IDLF32Type,
-    IDLF64Type,
-    IDLI16Type,
-    IDLI32Type,
-    IDLI64Type,
-    IDLI8Type,
     IDLImport,
     IDLOptionalType,
-    IDLPointerType,
     IDLPrimitiveType,
     IDLReferenceType,
-    IDLStringType,
     IDLType,
     IDLTypeParameterType,
-    IDLU32Type,
-    IDLU64Type,
-    IDLU8Type,
-    IDLUndefinedType,
     IDLUnionType,
-    IDLVoidType,
     isEnum,
     isTypedef,
     throwException,
@@ -78,21 +64,21 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
     }
 
     convertPrimitiveType(type: IDLPrimitiveType): T {
-        switch (type) {
-            case IDLI8Type: return this.conversions.i8(type)
-            case IDLU8Type: return this.conversions.iu8(type)
-            case IDLI16Type: return this.conversions.i16(type)
-            case IDLI32Type: return this.conversions.i32(type)
-            case IDLU32Type: return this.conversions.iu32(type)
-            case IDLU64Type: return this.conversions.iu64(type)
-            case IDLI64Type: return this.conversions.i64(type)
-            case IDLF32Type: return this.conversions.f32(type)
-            case IDLF64Type: return this.conversions.f64(type)
-            case IDLBooleanType: return this.conversions.boolean(type)
-            case IDLStringType: return this.conversions.string(type)
-            case IDLVoidType: return this.conversions.void(type)
-            case IDLPointerType: return this.conversions.pointer(type)
-            case IDLUndefinedType: return this.conversions.undefined(type)
+        switch (type.name) {
+            case 'i8': return this.conversions.i8(type)
+            case 'u8': return this.conversions.iu8(type)
+            case 'i16': return this.conversions.i16(type)
+            case 'i32': return this.conversions.i32(type)
+            case 'u32': return this.conversions.iu32(type)
+            case 'u64': return this.conversions.iu64(type)
+            case 'i64': return this.conversions.i64(type)
+            case 'f32': return this.conversions.f32(type)
+            case 'f64': return this.conversions.f64(type)
+            case 'boolean': return this.conversions.boolean(type)
+            case 'String': return this.conversions.string(type)
+            case 'void': return this.conversions.void(type)
+            case 'pointer': return this.conversions.pointer(type)
+            case 'undefined': return this.conversions.undefined(type)
         }
         throwException(`unsupported primitive type: ${JSON.stringify(type)}`)
     }

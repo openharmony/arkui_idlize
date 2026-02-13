@@ -14,7 +14,7 @@
  */
 
 import { InteropProducerTypeDescription, makeSingletonProducer, SelectResult } from "../../generator/builder";
-import { IDLBufferType, IDLPrimitiveType, IDLType } from "@idlizer/core/idl";
+import { IDLPrimitiveType, IDLType, isPrimitiveType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
 import { D, E, S, T } from "@idlizer/ost";
 import { KOALAUI_INTEROP_BUFFER } from "../../generator/names";
@@ -23,7 +23,7 @@ const [ohosBufferProducer, ohosBufferSeed] = makeSingletonProducer('capi.OH_Buff
 
 export const createOhosBufferProducer = (_: ColoredLibrary): InteropProducerTypeDescription<IDLPrimitiveType> => {
     return {
-        select: (type:IDLType) => type === IDLBufferType ? SelectResult.take(type as IDLPrimitiveType) : SelectResult.reject(),
+        select: (type:IDLType) => isPrimitiveType(type, 'buffer') ? SelectResult.take(type as IDLPrimitiveType) : SelectResult.reject(),
         onManagedDeclaration: () => {
             return {
                 continuation: T.c('ArrayBuffer'),

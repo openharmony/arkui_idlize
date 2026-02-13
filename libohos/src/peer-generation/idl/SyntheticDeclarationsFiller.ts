@@ -149,7 +149,7 @@ function continuationCallbacksTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
         const continuationParameters = createContinuationParameters(continuationType)
         const primarySyntheticName = generateSyntheticFunctionName(
             continuationParameters,
-            idl.IDLVoidType,
+            idl.createPrimitiveType('void'),
             { nameConvertor: structureNameConvertor }
         )
         const alternativeSyntheticName = `synthetic_${primarySyntheticName}`
@@ -169,7 +169,7 @@ function continuationCallbacksTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
             syntheticEntries.push(idl.createCallback(
                 syntheticName,
                 continuationParameters,
-                idl.IDLVoidType,
+                idl.createPrimitiveType('void'),
                 { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]},
             ))
         }
@@ -184,7 +184,7 @@ function continuationCallbacksTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
 function createContinuationParameters(continuationType: idl.IDLType): idl.IDLParameter[] {
     const continuationParameters: idl.IDLParameter[] = []
     if (idl.isContainerType(continuationType) && idl.IDLContainerUtils.isPromise(continuationType)) {
-        const errorType = idl.createOptionalType(idl.createContainerType("sequence", [idl.IDLStringType]))
+        const errorType = idl.createOptionalType(idl.createContainerType("sequence", [idl.createPrimitiveType('String')]))
         continuationParameters.push(idl.createParameter("error", errorType, true))
         const promise = continuationType as idl.IDLContainerType
         if (!idl.isVoidType(promise.elementType[0])) {

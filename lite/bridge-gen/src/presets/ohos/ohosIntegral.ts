@@ -14,13 +14,13 @@
  */
 
 import { D, E, LWType, S, T, Ts } from "@idlizer/ost"
-import { IDLBooleanType, IDLI32Type, IDLPointerType, IDLPrimitiveType, IDLU64Type, IDLU8Type, isPrimitiveType } from "@idlizer/core/idl"
+import { IDLPrimitiveTypeKind, isPrimitiveType } from "@idlizer/core/idl"
 import { InteropProducerTypeDescription, SelectResult } from "../../generator/builder"
 import { InputLibrary } from "../../library"
 import { KOALAUI_INTEROP_BOOLEAN, KOALAUI_INTEROP_INT32, KOALAUI_INTEROP_NATIVE_POINTER, KOALAUI_INTEROP_UINT64, KOALAUI_INTEROP_UINT8, KOALAUI_KBOOLEAN, KOALAUI_KINT32, KOALAUI_KPOINTER, KOALAUI_KUINT64, KOALAUI_KUINT8 } from "../../generator/names"
 
 interface TypeSpec {
-    idlType: IDLPrimitiveType,
+    idlTypeName: IDLPrimitiveTypeKind,
     managedType: LWType,
     capiType: [string, LWType],
     interopType: LWType,
@@ -35,7 +35,7 @@ function addOhosTrivialProducers(
             if (!isPrimitiveType(ref)) {
                 return SelectResult.reject()
             }
-            const found = types.find(record => record.idlType === ref)
+            const found = types.find(record => record.idlTypeName === ref.name)
             if (!found) {
                 return SelectResult.reject()
             }
@@ -95,35 +95,35 @@ function addOhosTrivialProducers(
 export const createOhosIntegralTypeProducer = (_: InputLibrary): InteropProducerTypeDescription<TypeSpec> => {
     return addOhosTrivialProducers([
         {
-            idlType: IDLBooleanType,
+            idlTypeName: 'boolean',
             managedType: Ts.prim.boolean,
             capiType: ['OH_Boolean', T.c(KOALAUI_INTEROP_BOOLEAN)],
             interopType: T.c(KOALAUI_KBOOLEAN),
             serializerFunctionSuffix: 'Boolean'
         },
         {
-            idlType: IDLU8Type,
+            idlTypeName: 'u8',
             managedType: Ts.prim.u8,
             capiType: ['OH_Uint8', T.c(KOALAUI_INTEROP_UINT8)],
             interopType: T.c(KOALAUI_KUINT8),
             serializerFunctionSuffix: 'UInt8'
         },
         {
-            idlType: IDLI32Type,
+            idlTypeName: 'i32',
             managedType: Ts.prim.i32,
             capiType: ['OH_Int32', T.c(KOALAUI_INTEROP_INT32)],
             interopType: T.c(KOALAUI_KINT32),
             serializerFunctionSuffix: 'Int32'
         },
         {
-            idlType: IDLU64Type,
+            idlTypeName: 'u64',
             managedType: Ts.prim.u64,
             capiType: ['OH_UInt64', T.c(KOALAUI_INTEROP_UINT64)],
             interopType: T.c(KOALAUI_KUINT64),
             serializerFunctionSuffix: 'UInt64'
         },
         {
-            idlType: IDLPointerType,
+            idlTypeName: 'pointer',
             managedType: T.c(KOALAUI_KPOINTER),
             capiType: ['OH_NativePointer', T.c(KOALAUI_INTEROP_NATIVE_POINTER)],
             interopType: T.c(KOALAUI_KPOINTER),
@@ -131,9 +131,3 @@ export const createOhosIntegralTypeProducer = (_: InputLibrary): InteropProducer
         }
     ])
 }
-
-// [IDLBooleanType, Ts.prim.boolean, 'Boolean'],
-// [IDLU8Type, Ts.prim.u8, 'UInt8'],
-// [IDLI32Type, Ts.prim.i32, 'Int32'],
-// [IDLU64Type, Ts.prim.u64, 'UInt64'],
-// [IDLPointerType, Ts.prim.pointer, 'Pointer'],

@@ -23,7 +23,7 @@ export class KotlinTypeComparator {
         if (!type1 || !type2)
             return false
         else if (idl.isPrimitiveType(type1) && idl.isPrimitiveType(type2))
-            return type1 === type2
+            return type1.name === type2.name
         else if (idl.isContainerType(type1) && idl.isContainerType(type2))
             return type1.containerKind === type2.containerKind &&
                 type1.elementType.length === type2.elementType.length &&

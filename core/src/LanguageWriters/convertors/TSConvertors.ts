@@ -130,8 +130,8 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             if (restoredThrow = maybeRestoreThrows(decl, this.library)) {
                 if (LanguageWriter.isManagedThrowsTypeUnwrapped)
                     return this.convert(restoredThrow)
-                if (restoredThrow === idl.IDLThisType)
-                    return this.convert(idl.createReferenceType(idl.IDLThrowsTypeName, [idl.IDLVoidType]))
+                if (idl.isPrimitiveType(restoredThrow, 'this'))
+                    return this.convert(idl.createReferenceType(idl.IDLThrowsTypeName, [idl.createPrimitiveType('void')]))
             }
 
             // FIXME: isEnumMember is not TYPE!
@@ -164,55 +164,55 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             }
             return `${type.name}${maybeTypeArguments}`
         }
-        return this.convert(idl.IDLCustomObjectType)
+        return this.convert(idl.createPrimitiveType('CustomObject'))
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
         return type.name
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLFunctionType: return 'Function'
+        switch (type.name) {
+            case 'Function': return 'Function'
 
-            case idl.IDLUnknownType:
-            case idl.IDLCustomObjectType: return 'any'
-            case idl.IDLThisType: return 'this'
-            case idl.IDLObjectType: return 'Object'
-            case idl.IDLAnyType: return 'any'
-            case idl.IDLUndefinedType: return 'undefined'
-            case idl.IDLPointerType: return 'KPointer'
-            case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
-            case idl.IDLVoidType: return 'void'
-            case idl.IDLBooleanType: return 'boolean'
+            case 'unknown':
+            case 'CustomObject': return 'any'
+            case 'this': return 'this'
+            case 'Object': return 'Object'
+            case 'any': return 'any'
+            case 'undefined': return 'undefined'
+            case 'pointer': return 'KPointer'
+            case 'SerializerBuffer': return 'KSerializerBuffer'
+            case 'void': return 'void'
+            case 'boolean': return 'boolean'
 
-            case idl.IDLI32Type:
+            case 'i32':
                 return 'int32'
-            case idl.IDLF32Type:
+            case 'f32':
                 return 'float32'
 
-            case idl.IDLI8Type:
-            case idl.IDLU8Type:
-            case idl.IDLI16Type:
-            case idl.IDLU16Type:
-            case idl.IDLU32Type:
-            case idl.IDLI64Type:
-            case idl.IDLU64Type:
-            case idl.IDLF64Type:
-            case idl.IDLNumberType:
+            case 'i8':
+            case 'u8':
+            case 'i16':
+            case 'u16':
+            case 'u32':
+            case 'i64':
+            case 'u64':
+            case 'f64':
+            case 'number':
                 return 'number'
 
-            case idl.IDLBigintType:
+            case 'bigint':
                 return 'bigint'
 
-            case idl.IDLStringType:
+            case 'String':
                 return 'string'
 
-            case idl.IDLDate:
+            case 'date':
                 return 'Date'
 
-            case idl.IDLBufferType:
+            case 'buffer':
                 return 'ArrayBuffer'
 
-            case idl.IDLInteropReturnBufferType:
+            case 'InteropReturnBuffer':
                 return `KInteropReturnBuffer`
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
@@ -282,10 +282,12 @@ export class TSInteropArgConvertor implements TypeConvertor<string> {
         return convertType(this, type)
     }
     convertContainer(type: idl.IDLContainerType): string {
-        switch (type.elementType[0]) {
-            case idl.IDLU8Type: return 'KUint8ArrayPtr'
-            case idl.IDLI32Type: return 'KInt32ArrayPtr'
-            case idl.IDLF32Type: return 'KFloat32ArrayPtr'
+        if (idl.isPrimitiveType(type.elementType[0])) {
+            switch (type.elementType[0].name) {
+                case 'u8': return 'KUint8ArrayPtr'
+                case 'i32': return 'KInt32ArrayPtr'
+                case 'f32': return 'KFloat32ArrayPtr'
+            }
         }
         throw new Error(`Cannot pass container types through interop`)
     }
@@ -296,29 +298,46 @@ export class TSInteropArgConvertor implements TypeConvertor<string> {
         return "KNativePointer"
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLI64Type: return "KLong"
-            case idl.IDLU64Type: return "KLong"
-            case idl.IDLI8Type: return "KInt"
-            case idl.IDLU8Type: return "KInt"
-            case idl.IDLI32Type: return "KInt"
-            case idl.IDLU32Type: return "KInt"
-            case idl.IDLF32Type: return "KFloat"
-            case idl.IDLF64Type: return "KDouble"
-            case idl.IDLNumberType: return 'number'
-            case idl.IDLBigintType: return 'bigint'
-            case idl.IDLBooleanType: return 'boolean'
-            case idl.IDLFunctionType: return 'KInt'
-            case idl.IDLStringType: return 'KStringPtr'
-            case idl.IDLBufferType: return 'ArrayBuffer'
-            case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
-            case idl.IDLInteropReturnBufferType: return `KInteropReturnBuffer`
-            case idl.IDLObjectType: return 'Object'
-            case idl.IDLAnyType: return "Object"
-            case idl.IDLDate: return 'number'
-            case idl.IDLVoidType: return 'void'
-            case idl.IDLUndefinedType:
-            case idl.IDLPointerType: return 'KPointer'
+        switch (type.name) {
+            case 'i64':
+            case 'u64':
+                return "KLong"
+            case 'i8':
+            case 'u8':
+            case 'i32':
+            case 'u32':
+                return "KInt"
+            case 'f32':
+                return "KFloat"
+            case 'f64':
+                return "KDouble"
+            case 'number':
+                return 'number'
+            case 'bigint':
+                return 'bigint'
+            case 'boolean':
+                return 'boolean'
+            case 'Function':
+                return 'KInt'
+            case 'String':
+                return 'KStringPtr'
+            case 'buffer':
+                return 'ArrayBuffer'
+            case 'SerializerBuffer':
+                return 'KSerializerBuffer'
+            case 'InteropReturnBuffer':
+                return `KInteropReturnBuffer`
+            case 'Object':
+                return 'Object'
+            case 'any':
+                return "Object"
+            case 'date':
+                return 'number'
+            case 'void':
+                return 'void'
+            case 'undefined':
+            case 'pointer':
+                return 'KPointer'
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
     }

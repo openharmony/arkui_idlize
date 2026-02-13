@@ -23,7 +23,7 @@ export const referenceProducer = createProducer(
         let target: idl.IDLNode | undefined = ctx.resolver.toDeclaration(ref)
         if (!target) {
             warn("Unresolved reference " + ref.name)
-            target = idl.IDLObjectType
+            target = idl.createPrimitiveType('Object')
         }
         return {
             redirectTo: {

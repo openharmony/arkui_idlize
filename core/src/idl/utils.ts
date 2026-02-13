@@ -15,8 +15,8 @@
 
 import { basename } from "node:path"
 import { capitalize, stringOrNone } from "../util"
-import { createOptionalType, createContainerType, createReferenceType, IDLVoidType, IDLStringType, IDLI64Type, IDLU8Type, IDLI32Type, IDLI8Type } from "./builders"
-import { isNamedNode, QNPattern, getQualifiedName, getFQName, isOptionalType, isContainerType, IDLContainerUtils, isNamespace, isInPackage, isType, isEntry, isTypeParameterType, isInterface, isTypedef, isCallback, isMethod, isCallable, getExtAttribute, hasExtAttribute, getNamespacesPathFor, getPackageName } from "./discriminators"
+import { createOptionalType, createContainerType, createReferenceType, createPrimitiveType } from "./builders"
+import { isNamedNode, isPrimitiveType, QNPattern, getQualifiedName, getFQName, isOptionalType, isContainerType, IDLContainerUtils, isNamespace, isInPackage, isType, isEntry, isTypeParameterType, isInterface, isTypedef, isCallback, isMethod, isCallable, getExtAttribute, hasExtAttribute, getNamespacesPathFor, getPackageName } from "./discriminators"
 import { IDLNode, IDLNamedNode, IDLKind, IDLExtendedAttributes, IDLType, IDLEntry, IDLReferenceType, IDLContainerType, IDLSignature, IDLParameter, IDLEnum, IDLFile, IDLPrimitiveType } from "./node"
 import { forEachChild, forEachFunction } from "./visitors"
 import { Language } from "../Language"
@@ -106,7 +106,7 @@ export function transformMethodsAsync2ReturnPromise(entry: IDLEntry) {
         if (function_.isAsync) {
             function_.isAsync = false
             if (!asPromise(function_.returnType))
-                function_.returnType = createContainerType("Promise", [function_.returnType ?? IDLVoidType])
+                function_.returnType = createContainerType("Promise", [function_.returnType ?? createPrimitiveType('void')])
         }
     })
 }
@@ -162,7 +162,7 @@ export function isHandwritten(decl: IDLEntry): boolean {
 }
 
 export function isStringEnum(decl: IDLEnum): boolean {
-    return decl.elements.some(e => e.type === IDLStringType)
+    return decl.elements.some(e => isPrimitiveType(e.type, 'String'))
 }
 
 export function linearizeNamespaceMembers(entries: IDLEntry[]) {
@@ -194,11 +194,11 @@ export function extremumOfOrdinals(enumEntry: IDLEnum): { low: number, high: num
 export function enumBinaryRepresentation(enumEntry: IDLEnum, compact: boolean = false): IDLPrimitiveType {
     const { low, high } = extremumOfOrdinals(enumEntry)
     if (compact) {
-        if (0 <= low && high <= 255) return IDLU8Type
-        if (-128 <= low && high <= 127) return IDLI8Type
+        if (0 <= low && high <= 255) return createPrimitiveType('u8')
+        if (-128 <= low && high <= 127) return createPrimitiveType('i8')
     }
-    if (low < -0x80000000 || high > 0x7FFFFFFF) return IDLI64Type
-    return IDLI32Type
+    if (low < -0x80000000 || high > 0x7FFFFFFF) return createPrimitiveType('i64')
+    return createPrimitiveType('i32')
 }
 
 export const PACKAGE_IDLIZE_INTERNAL = "idlize.internal"

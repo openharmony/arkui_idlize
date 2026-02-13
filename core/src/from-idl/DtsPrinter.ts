@@ -50,13 +50,9 @@ import {
     IDLAccessorAttribute,
     IDLFile,
     IDLImport,
-    IDLVoidType,
-    IDLStringType,
-    IDLUndefinedType,
     isCallable,
     IDLReferenceType,
     IDLCallable,
-    IDLAnyType,
     IDLContainerUtils,
     IDLContainerType,
     DebugUtils,
@@ -64,37 +60,17 @@ import {
     mixMethodParametersAndTags,
     SignatureTag,
     createReferenceType,
+    createPrimitiveType,
     transformMethodsAsync2ReturnPromise,
     linearizeNamespaceMembers,
     isNamedNode,
     IDLNode,
-    IDLThisType,
     isOptionalType,
     IDLVersion,
-    IDLI8Type,
-    IDLU8Type,
-    IDLI16Type,
-    IDLU16Type,
-    IDLI32Type,
-    IDLU32Type,
-    IDLI64Type,
-    IDLU64Type,
-    IDLF16Type,
-    IDLF32Type,
-    IDLF64Type,
-    IDLBufferType,
-    IDLUnknownType,
-    IDLBooleanType,
-    IDLNumberType,
-    IDLPointerType,
     IDLInterfaceSubkind,
     escapeIDLKeyword,
     getNamespacesPathFor,
-    IDLBigintType,
-    IDLDate,
-    IDLFunctionType,
     getQualifiedName,
-    IDLObjectType,
     isConstant,
     isInNamespace,
 } from "../idl"
@@ -269,7 +245,7 @@ export class CustomPrintVisitor {
         this.print(`${isInNamespace(node) ? "" : "declare "}enum ${node.name} {`)
         this.pushIndent()
         node.elements.forEach(it => {
-            const initializer = it.initializer ? (it.type === IDLStringType ? ` = "${it.initializer}"` : ` = ${it.initializer}`) : ""
+            const initializer = it.initializer ? (isPrimitiveType(it.type) && it.type.name === 'String' ? ` = "${it.initializer}"` : ` = ${it.initializer}`) : ""
             this.print(`${getName(it)}${initializer},`)
             let originalName = getExtAttribute(it, IDLExtendedAttributes.OriginalEnumMemberName)
             if (originalName && originalName != getName(it)) {
@@ -294,7 +270,7 @@ export class CustomPrintVisitor {
             // }
         }
         const text = isCallback(node) ? this.callback(node)
-            : hasExtAttribute(node, IDLExtendedAttributes.Import) ? IDLAnyType.name
+            : hasExtAttribute(node, IDLExtendedAttributes.Import) ? 'any'
             : this.printTypeForTS(node.type)
         const typeParams = node.typeParameters && node.typeParameters.length > 0 ? `<${node.typeParameters.join(",")}>` : ""
         this.print(`${isInNamespace(node) ? '' : 'declare '}type ${getName(node)}${typeParams} = ${text};`)
@@ -355,27 +331,27 @@ export class CustomPrintVisitor {
         type = maybeRestoreThrows(type, this.resolver) ?? type
         if (isOptionalType(type)) return `${this.printTypeForTS(type.type, undefinedToVoid, sequenceToArrayInterface)} | undefined`
         if (isPrimitiveType(type)) {
-            switch (type) {
-                case IDLU8Type: case IDLI8Type:
-                case IDLU16Type: case IDLI16Type:
-                case IDLU32Type: case IDLI32Type:
-                case IDLU64Type: case IDLI64Type:
-                case IDLF16Type: case IDLF32Type: case IDLF64Type:
-                case IDLNumberType:
+            switch (type.name) {
+                case 'u8': case 'i8':
+                case 'u16': case 'i16':
+                case 'u32': case 'i32':
+                case 'u64': case 'i64':
+                case 'f16': case 'f32': case 'f64':
+                case 'number':
                     return "number"
-                case IDLAnyType: return "any"
-                case IDLObjectType: return "Object"
-                case IDLUnknownType: return "unknown"
-                case IDLBufferType: return "ArrayBuffer"
-                case IDLBooleanType: return "boolean"
-                case IDLUndefinedType: return undefinedToVoid ? "void" : "undefined"
-                case IDLStringType: return "string"
-                case IDLVoidType: return "void"
-                case IDLThisType: return this.currentInterface!.name
-                case IDLBigintType:
-                case IDLPointerType: return "number|bigint"
-                case IDLDate: return "Date"
-                case IDLFunctionType: return "Function"
+                case 'any': return "any"
+                case 'Object': return "Object"
+                case 'unknown': return "unknown"
+                case 'buffer': return "ArrayBuffer"
+                case 'boolean': return "boolean"
+                case 'undefined': return undefinedToVoid ? "void" : "undefined"
+                case 'String': return "string"
+                case 'void': return "void"
+                case 'this': return this.currentInterface!.name
+                case 'bigint':
+                case 'pointer': return "number|bigint"
+                case 'date': return "Date"
+                case 'Function': return "Function"
                 default: throw new Error(`Unknown primitive type ${DebugUtils.debugPrintType(type)}`)
             }
         }
@@ -416,7 +392,7 @@ export class CustomPrintVisitor {
             }
         }
         if (hasExtAttribute(node, IDLExtendedAttributes.Import)) {
-            return IDLAnyType.name
+            return 'any'
         }
         let typeSpec = isNamedNode(node) ? node.name : "MISSING_TYPE_NAME"
         if ((isInterface(node) || isCallback(node) || isTypedef(node)) && node.typeParameters?.length)
@@ -446,7 +422,7 @@ export class CustomPrintVisitor {
 }
 
 export function idlToDtsString(name: string, content: string): string {
-    let printer = new CustomPrintVisitor({ resolveTypeReference: () => undefined, toDeclaration: () => IDLVoidType }, Language.TS)
+    let printer = new CustomPrintVisitor({ resolveTypeReference: () => undefined, toDeclaration: () => createPrimitiveType('void') }, Language.TS)
     const idlFile = parseIDLFile(name, content)
     printer.printPackage(idlFile)
     linearizeNamespaceMembers(idlFile.entries).forEach(it => {

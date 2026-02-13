@@ -23,9 +23,9 @@ function isDirectConvertedType(originalType: idl.IDLType|undefined, library: Pee
     const debug = false
     if (originalType == undefined) return true // TODO: is it correct?
     if (debug) console.log(`IDL type ${idl.DebugUtils.debugPrintType(originalType)}`)
-    if (originalType == idl.IDLInteropReturnBufferType) return false
-    if (originalType == idl.IDLThisType) return true /* Because this type for native is pointer, right? */
-    if (originalType == idl.IDLSerializerBuffer) return true
+    if (idl.isPrimitiveType(originalType, 'InteropReturnBuffer')) return false
+    if (idl.isPrimitiveType(originalType, 'this')) return true /* Because this type for native is pointer, right? */
+    if (idl.isPrimitiveType(originalType, 'SerializerBuffer')) return true
     let convertor = library.typeConvertor("x", originalType, false)
     // Resolve aliases.
     while (convertor instanceof TypeAliasConvertor) {
@@ -45,17 +45,17 @@ function isDirectConvertedType(originalType: idl.IDLType|undefined, library: Pee
     }
     let type = convertor.interopType()
     if (debug) console.log(`converted type ${idl.DebugUtils.debugPrintType(originalType)}`)
-    let result = type == idl.IDLI8Type || type == idl.IDLU8Type
-            || type == idl.IDLI16Type || type == idl.IDLU16Type
-            || type == idl.IDLI32Type || type == idl.IDLU32Type
-            || type == idl.IDLI64Type || type == idl.IDLU64Type
-            || type == idl.IDLF32Type || type == idl.IDLF64Type
-            || type == idl.IDLPointerType
-            || type == idl.IDLBooleanType
-            || type == idl.IDLVoidType
-            || type == idl.IDLUndefinedType
-            || type == idl.IDLSerializerBuffer
-            || type == idl.IDLNumberType
+    let result = idl.isPrimitiveType(type, 'i8') || idl.isPrimitiveType(type, 'u8')
+            || idl.isPrimitiveType(type, 'i16') || idl.isPrimitiveType(type, 'u16')
+            || idl.isPrimitiveType(type, 'i32') || idl.isPrimitiveType(type, 'u32')
+            || idl.isPrimitiveType(type, 'i64') || idl.isPrimitiveType(type, 'u64')
+            || idl.isPrimitiveType(type, 'f32') || idl.isPrimitiveType(type, 'f64')
+            || idl.isPrimitiveType(type, 'pointer')
+            || idl.isPrimitiveType(type, 'boolean')
+            || idl.isPrimitiveType(type, 'void')
+            || idl.isPrimitiveType(type, 'undefined')
+            || idl.isPrimitiveType(type, 'SerializerBuffer')
+            || idl.isPrimitiveType(type, 'number')
     if (!result && debug) console.log(`type ${idl.DebugUtils.debugPrintType(type)} is not direct`)
     return result
 }

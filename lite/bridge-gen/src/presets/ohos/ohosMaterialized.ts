@@ -14,7 +14,7 @@
  */
 
 import { Builders, D, DD, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWType, Md, S, std, T, Ts, Vs } from "@idlizer/ost";
-import { createMethod, getFQName, IDLInterface, IDLMethod, IDLPointerType, isClassSubkind, isInterface, isInterfaceSubkind, isReferenceType } from "@idlizer/core/idl";
+import { createMethod, createPrimitiveType, getFQName, IDLInterface, IDLMethod, isClassSubkind, isInterface, isInterfaceSubkind, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
 import { makeSeed, functionToMethod } from "@idlizer/kit";
 import { makeDeclarationProducer, InteropProducerTypeDescription, SelectResult } from "../../generator/builder";
@@ -36,7 +36,7 @@ const [materializedImplementationProducer, MaterializedImplementationSeed] = mak
         decl => `Generating implementation for materialized class. ` + showErrorForIDLNode(decl),
     ),
     decl => {
-        const finalizerMethod = createMethod('getFinalizer', [], IDLPointerType, { isStatic: true, isAsync: false, isFree: false, isOptional: false })
+        const finalizerMethod = createMethod('getFinalizer', [], createPrimitiveType('pointer'), { isStatic: true, isAsync: false, isFree: false, isOptional: false })
         finalizerMethod.parent = decl
         const name = getMaterializedImplementationName(decl)
         const peerType = Ts.union([T.c(KOALAUI_FINALIZABLE), Ts.prim.undefined])
