@@ -23,6 +23,7 @@ import { generateFromSts } from "./generate"
 import { join, resolve } from "node:path"
 import { cpSync } from "node:fs"
 import { ETSGEN_ROOT, loadEtsgenConfiguration } from "./config"
+import { resolveSymlinks } from "./utils"
 
 export function etsgen(argv:string[]) {
     const program = createCommand()
@@ -62,10 +63,10 @@ export function etsgen(argv:string[]) {
         validatePaths(inputDirs, 'dir')
         validatePaths(inputFiles, 'file')
         generateFromSts({
-            inputFiles: detsInputFiles.map(it => resolve(it)),
-            baseDir: resolve(options.baseDir),
+            inputFiles: detsInputFiles.map(it => resolveSymlinks(resolve(it))),
+            baseDir: resolveSymlinks(resolve(options.baseDir)),
             outDir: resolve(options.outputDir),
-            etsConfigPath: options.etsConfig,
+            etsConfigPath: resolveSymlinks(resolve(options.etsConfig)),
             traceStatus: options.traceStatus,
             config: loadEtsgenConfiguration([
                 ...(options.optionsFile ?? [])
