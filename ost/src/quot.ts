@@ -75,6 +75,7 @@ enum TokenType {
 
   // Literals
   NUMBER = 'NUMBER',
+  STRING = 'STRING',
   IDENTIFIER = 'IDENTIFIER',
 
   // Special
@@ -257,6 +258,37 @@ function tokenize(input: string): Token[] {
           throw new Error(`Unexpected character: & at position ${position}`);
         }
         continue;
+      case '"':
+        position++; // skip opening quote
+        let value = '';
+        while (position < input.length && input[position] !== '"') {
+          if (input[position] === '\\') {
+            // escape sequence
+            position++; // skip backslash
+            if (position >= input.length) {
+              throw new Error(`Unterminated string escape at position ${position}`);
+            }
+            const escapeChar = input[position];
+            if (escapeChar === '"' || escapeChar === '\\') {
+              value += escapeChar;
+              position++;
+            } else {
+              // unrecognized escape: treat backslash as literal and the following char as literal
+              value += '\\';
+              // do not consume escapeChar yet, it will be added in next iteration
+              // position stays pointing at escapeChar
+            }
+          } else {
+            value += input[position];
+            position++;
+          }
+        }
+        if (position >= input.length) {
+          throw new Error(`Unterminated string literal at position ${start}`);
+        }
+        position++; // skip closing quote
+        tokens.push({ type: TokenType.STRING, lexeme: value, position: start });
+        continue;
     }
 
     // Numbers
@@ -406,8 +438,15 @@ class LWParser {
 
     // Handle property access: -> identifier
     while (this.match(TokenType.ARROW)) {
-      const property = this.consume(TokenType.IDENTIFIER, "Expected property name after '->'").lexeme;
-      expr = E.get(expr, property);
+      if (this.peek().type === TokenType.NUMBER) {
+        expr = E.get(expr, E.c(this.consume(TokenType.NUMBER).lexeme))
+      } else if (this.match(TokenType.LEFT_PAREN)) {
+        expr = E.get(expr, this.parseExpression())
+        this.expect(TokenType.RIGHT_PAREN)
+      } else {
+        const property = this.consume(TokenType.IDENTIFIER, "Expected property name after '->'").lexeme;
+        expr = E.get(expr, property);
+      }
     }
 
     return expr;
@@ -417,6 +456,11 @@ class LWParser {
     if (this.match(TokenType.NUMBER)) {
       const value = parseInt(this.tokens[this.position - 1].lexeme, 10);
       return E.c(value);
+    }
+
+    if (this.match(TokenType.STRING)) {
+      const value = this.tokens[this.position - 1].lexeme;
+      return E.s(value);
     }
 
     if (this.match(TokenType.IDENTIFIER)) {
@@ -586,6 +630,7 @@ class LWParser {
         initializer = this.parseExpression();
       }
 
+      this.match(TokenType.SEMICOLON)
       return S.declaration(name, type, mutable, initializer);
     }
 

@@ -17,6 +17,10 @@ const quotTest = describe('Quot OST builder', [
                 E.bin('=', E.get(Vs.self, 'x'), E.v('x'))
             )
             assertEquals(
+                quot.E`(= @self->0 x)`,
+                E.bin('=', E.get(Vs.self, E.c(0)), E.v('x'))
+            )
+            assertEquals(
                 quot.E`(+ 2 (* x 8))`,
                 E.bin('+', E.c(2), E.bin('*', E.v('x'), E.c(8)))
             )
@@ -39,6 +43,22 @@ const quotTest = describe('Quot OST builder', [
             assertEquals(
                 quot.E`(+ 1 2 3)`,
                 E.bin('+', E.bin('+', E.c(1), E.c(2)), E.c(3))
+            )
+            assertEquals(
+                quot.E`(+ "a" "b" "\\\\n")`,
+                E.bin('+', E.bin('+', E.s('a'), E.s('b')), E.s('\\n'))
+            )
+            assertEquals(
+                quot.E`"hello"`,
+                E.s('hello')
+            )
+            assertEquals(
+                quot.E`"quote \\\" inside"`,
+                E.s('quote " inside')
+            )
+            assertEquals(
+                quot.E`"backslash \\\\ inside"`,
+                E.s('backslash \\ inside')
             )
         }
     },
