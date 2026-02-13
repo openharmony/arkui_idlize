@@ -35,6 +35,10 @@
     "build:kt": "bash ./scripts/compile-kotlin.sh",
     "build:kt:native": "cd ./../../native && meson setup -Dsource_set=unit-kotlin build-unit-kotlin && meson compile --verbose -C build-unit-kotlin && meson install -C build-unit-kotlin",
     "exec:kt": "LD_LIBRARY_PATH=./../../native ACE_LIBRARY_PATH=./../../native ./generated/bin/idlize_test.kexe",
-    "all:kt": "npm run -C ../../ compile && npm run init:kt && npm run gen:kt && npm run build:kt:interop && npm run build:kt:native && npm run build:kt && npm run exec:kt"
+    "all:kt": "npm run -C ../../ compile && npm run init:kt && npm run gen:kt && npm run build:kt:interop && npm run build:kt:native && npm run build:kt && npm run exec:kt",
+    "API GOLDEN TEST": "#-------------------",
+    "gen:golden": "npm run gen:arkts && mkdir -p generated/golden && cp -f generated/sig/arkoala-arkts/framework/native/src/generated/arkoala_api_generated.h generated/golden",
+    "exec:golden": "node ../../../tools/golden.mjs --input-dir ./generated/golden --golden-dir ./golden",
+    "all:golden": "npm run -C ../../ compile && npm run gen:golden && npm run exec:golden"
   }
 }

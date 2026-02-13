@@ -74,6 +74,8 @@ arkgen ArkTS unit:
     - npm run -C arkgen/tests/unit build:arkts
     - npm run -C arkgen/tests/unit build:arkts:native
     - npm run -C arkgen/tests/unit exec:arkts
+    - npm run -C arkgen/tests/unit gen:golden
+    - npm run -C arkgen/tests/unit exec:golden
   needs:
     - build idlize
 
