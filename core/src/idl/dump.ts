@@ -47,7 +47,15 @@ export function printType(type: IDLType | IDLInterface | undefined, options?: Pr
         else
             return `(${printType(type.type)} or undefined)`
     }
-    if (isPrimitiveType(type)) return type.name
+    if (isPrimitiveType(type)){
+        const maybeExtendedAttributes = type.extendedAttributes && type.extendedAttributes.length
+            ? `[${quoteAttributeValues(type.extendedAttributes)}] `
+            : ''
+        if (maybeExtendedAttributes.length) {
+            return `(${maybeExtendedAttributes}${type.name})`
+        }
+        return type.name
+    }
     if (isContainerType(type)) {
         const maybeExtendedAttributes = type.extendedAttributes && type.extendedAttributes.length
             ? `[${quoteAttributeValues(type.extendedAttributes)}] `

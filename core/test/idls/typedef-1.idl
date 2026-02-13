@@ -1,1 +1,0 @@
-typedef es2panda_variantDoubleCharArrayBool = (String or f64 or boolean);

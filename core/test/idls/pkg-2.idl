@@ -1,3 +1,0 @@
-package test.pkg.with.dots;
-
-interface Empty {};
