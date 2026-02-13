@@ -22,7 +22,7 @@ interface SizeTLengthMetrics {
 
 [Entity=Class]
 interface FrameNodeExtender {
-  static pointer constructorFrameNode();
+  static pointer constructorFrameNode(boolean supportMultiThread);
   static pointer getDestroy();
   static void destroyPeer(FrameNode peer);
   static boolean isModifiable(pointer peer);
@@ -81,7 +81,7 @@ interface FrameNodeExtender {
   static boolean cancelAnimations(FrameNode peer, sequence<AnimationPropertyType> properties);
   static sequence<f64> getNodePropertyValue(FrameNode peer, AnimationPropertyType property);
   static pointer getFrameNodePtr(FrameNode node);
-  static pointer createTypedFrameNode(String type);
+  static pointer createTypedFrameNode(String type, boolean supportMultiThread);
   static pointer createByRawPtr(pointer ptr);
   static pointer unWrapRawPtr(pointer ptr);
   static UICommonEvent getCommonEvent(pointer peer);
