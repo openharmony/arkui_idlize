@@ -381,7 +381,10 @@ class DeserializeCallbacksVisitor {
                 writer.popIndent()
                 writer.print(`}`)
             } else {
-                const castedKind = this.writer.makeCast(writer.makeString('kind'), idl.createReferenceType("idlize.internal.CallbackKind")).asString()
+                let castedKind = this.writer.makeCast(writer.makeString('kind'), idl.createReferenceType("idlize.internal.CallbackKind")).asString()
+                if (writer.language === Language.ARKTS) {
+                    castedKind = `CallbackKind.fromValue(kind)`
+                }
                 if (callbacks.length > 0) {
                     writer.print(`switch (${castedKind}) {`)
                     writer.pushIndent()
