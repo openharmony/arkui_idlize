@@ -22,6 +22,7 @@ import { monoName } from "../../postprocess/postprocess.js"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
+        case 'any': return '///any'
         case 'boolean': return 'Boolean'
         case 'buffer':
         case 'SerializerBuffer': return 'Buffer'
@@ -34,6 +35,7 @@ function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
         case 'f32': return 'Float32'
         case 'f64': return 'Float64'
         case 'number': return 'Number'
+        case 'Object': return '///Object'
         case 'pointer': return 'Pointer'
         case 'String': return 'String'
         default: throw new Error(`Missing primitive convertor for "${idl.DebugUtils.debugPrintType(type)}"`)
@@ -82,22 +84,32 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
         return new OptionalConvertor(ctx, type)
     if (idl.isPrimitiveType(type))
         return new PrimitiveConvertor(ctx, type)
-    if (idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type))
-        return new ArrayConvertor(ctx, type)
+    if (idl.isContainerType(type)) {
+        switch (type.containerKind) {
+            case 'sequence':
+                return new ArrayConvertor(ctx, type)
+            case 'record':
+                return new MapConvertor(ctx, type)
+            case 'Promise':
+                return new PromiseConvertor(ctx, type)
+        }
+    }
     if (idl.isUnionType(type))
         return new UnionConvertor(ctx, type)
     if (idl.isReferenceType(type)) {
-        const decl = ctx.library.toDeclaration(type)
-        if (decl) {
-            if (idl.isInterface(decl)) {
-                return isMaterialized(decl, ctx.library)
+        const resolved = ctx.library.toDeclaration(type)
+        if (resolved) {
+            if (idl.isType(resolved))
+                return argConvertor(ctx, resolved, optional)
+            if (idl.isInterface(resolved)) {
+                return isMaterialized(resolved, ctx.library)
                     ? new MaterializedConvertor(ctx, type)
-                    : new DataConvertor(ctx, type, decl)
+                    : new DataConvertor(ctx, type, resolved)
             }
-            if (idl.isEnum(decl))
+            if (idl.isEnum(resolved))
                 return new EnumConvertor(ctx, type)
-            if (idl.isCallback(decl))
-                return new CallbackConvertor(ctx, type, decl)
+            if (idl.isCallback(resolved))
+                return new CallbackConvertor(ctx, type, resolved)
         }
     }
     throw new Error(`Missing convertor for "${idl.DebugUtils.debugPrintType(type)}"`)
@@ -288,6 +300,64 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
                     .left().access().receiver(name).index('i').$().$()
                     .right(readValue).$().$().$().$()
         return [[lengthDecl, bufferDecl, loop], E.v(name)]
+    }
+}
+
+class MapConvertor extends StructConvertor<idl.IDLContainerType> {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            Builders.stmt().call('writeInt32').receiver(serializerName)
+                .arg().access('size').receiver(accessor).$().$().$().$(),
+            Builders.decl('entries').value().call('from').receiver('Array').arg().call('entries').receiver(accessor).$().$().$().$().$(),
+            Builders.loop()
+                .init().decl('i').mutable().value('0').$().$()
+                .cond().binary(Op.lt).left('i').right().access('length').receiver('entries').$().$().$().$()
+                .step().binary('=').left('i').right().binary(Op.add).left('i').right(1).$().$().$().$()
+                .body().block()
+                    .decl('key').value().access().receiver('entries').index('i').index(0).$().$().$()
+                    .decl('value').value().access().receiver('entries').index('i').index(1).$().$().$()
+                    .statements(
+                        argConvertor(this.ctx, this.type.elementType[0])
+                            .write(E.v('key'), serializerName, native))
+                    .statements(
+                        argConvertor(this.ctx, this.type.elementType[1])
+                            .write(E.v('value'), serializerName, native)).$().$().$()
+        ]
+    }
+
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const lengthDecl = Builders.decl(`${name}Length`).value()
+            .call('readInt32').receiver(serializerName).$().$().$()
+        const keyType = this.convertType(this.type.elementType[0], native);
+        const valueType = this.convertType(this.type.elementType[1], native);
+        const mapDecl = Builders.decl(name).value()
+            .ctor(std.names.types.map).typeArgs([keyType, valueType]).$().$().$()
+        const [keyReads, keyReadValue] = argConvertor(this.ctx, this.type.elementType[0])
+            .read('key', serializerName, native);
+        const [valueReads, valueReadValue] = argConvertor(this.ctx, this.type.elementType[1])
+            .read('value', serializerName, native);
+        const loop = Builders.loop()
+            .init().decl('i').mutable().value(0).$().$()
+            .cond().binary(Op.lt).left('i').right(name + 'Length').$().$()
+            .step().unary(Op.postinc).value('i').$().$()
+            .body().block()
+                .statements(keyReads)
+                .statements(valueReads)
+                .call('set').receiver(name).arg(keyReadValue).arg(valueReadValue).$().$()
+                .$().$()
+        return [[lengthDecl, mapDecl, loop], E.v(name)]
+    }
+}
+
+class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            Builders.decl('promise').value('/// argConvertor.PromiseConvertor: not implemented').$()
+        ]
+    }
+
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        return [[], E.c('/// argConvertor.PromiseConvertor: not implemented')]
     }
 }
 
