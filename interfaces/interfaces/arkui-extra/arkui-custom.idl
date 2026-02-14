@@ -51,7 +51,7 @@ interface SystemOps {
     static sequence<number> colorMetricsResourceColor(Resource color);
     static sequence<number> blendColorByColorMetrics(number color, number overlayColor);
     static LengthMetricsCustom resourceToLengthMetrics(Resource res);
-    static pointer createResourceObject(resource: Resource);
+    static pointer createResourceObject(Resource resource);
 };
 
 [Entity=Class]
