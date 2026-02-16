@@ -14,7 +14,7 @@
  */
 
 import { isDefined, stringOrNone } from "../util"
-import { IDLNode, IDLFile, IDLKind, IDLPrimitiveType, IDLContainerType, IDLReferenceType, IDLEnum, IDLEnumMember, IDLUnionType, IDLTypeParameterType, IDLInterface, IDLImport, IDLCallable, IDLMethod, IDLParameter, IDLConstructor, IDLProperty, IDLCallback, IDLInterfaceSubkind, IDLConstant, IDLTypedef, IDLType, IDLEntry, IDLNamespace, IDLExtendedAttributes, IDLOptionalType, IDLVersion, IDLNamedNode } from "./node"
+import { IDLNode, IDLFile, IDLKind, IDLPrimitiveType, IDLContainerType, IDLReferenceType, IDLEnum, IDLEnumMember, IDLUnionType, IDLTypeParameterType, IDLInterface, IDLImport, IDLCallable, IDLMethod, IDLParameter, IDLConstructor, IDLProperty, IDLCallback, IDLInterfaceSubkind, IDLConstant, IDLTypedef, IDLType, IDLEntry, IDLNamespace, IDLExtendedAttributes, IDLOptionalType, IDLVersion, IDLNamedNode, IDLPrimitiveTypeKind } from "./node"
 
 /////////////////////////////////////////////////////////////////
 // BASICS
@@ -23,8 +23,8 @@ export function isFile(node: IDLNode): node is IDLFile {
     return node.kind === IDLKind.File
 }
 
-export function isPrimitiveType(type: IDLNode): type is IDLPrimitiveType {
-    return type.kind == IDLKind.PrimitiveType
+export function isPrimitiveType(type: IDLNode, name?: IDLPrimitiveTypeKind): type is IDLPrimitiveType {
+    return type.kind == IDLKind.PrimitiveType && (name === undefined || (type as IDLPrimitiveType).name === name)
 }
 
 export function isContainerType(type: IDLNode): type is IDLContainerType {

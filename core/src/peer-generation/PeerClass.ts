@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { getFQName, IDLFile, IDLI32Type, IDLInterface, IDLPointerType, IDLProperty } from "../idl"
+import { getFQName, IDLFile, IDLInterface, IDLProperty, createPrimitiveType } from "../idl"
 import { NumericConvertor, PointerConvertor } from "../LanguageWriters/ArgConvertors"
 import { PeerMethod, PeerMethodArg, PeerMethodSignature } from "./PeerMethod"
 import { Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/LanguageWriter"
@@ -59,16 +59,16 @@ export function createConstructPeerMethod(clazz: PeerClass): PeerMethod {
         new PeerMethodSignature(
             PeerMethodSignature.CTOR,
             classFQN.concat(PeerMethodSignature.CTOR).join('_'),
-            [new PeerMethodArg('id', IDLI32Type), new PeerMethodArg('flags', IDLI32Type)],
-            IDLPointerType,
+            [new PeerMethodArg('id', createPrimitiveType('i32')), new PeerMethodArg('flags', createPrimitiveType('i32'))],
+            createPrimitiveType('pointer'),
         ),
         clazz.componentName,
-        IDLPointerType,
+        createPrimitiveType('pointer'),
         false,
         PeerMethodSignature.CTOR,
         new Method(
             'construct',
-            new NamedMethodSignature(IDLPointerType, [IDLI32Type, IDLI32Type], ['id', 'flags']),
+            new NamedMethodSignature(createPrimitiveType('pointer'), [createPrimitiveType('i32'), createPrimitiveType('i32')], ['id', 'flags']),
             [MethodModifier.STATIC]
         )
     )

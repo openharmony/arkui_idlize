@@ -92,7 +92,7 @@ class Checker {
         if (!base || !commit)
             return base === commit
         else if (idl.isPrimitiveType(base) && idl.isPrimitiveType(commit))
-            return base === commit
+            return base.name === commit.name
         else if (idl.isContainerType(base) && idl.isContainerType(commit))
             return base.containerKind === commit.containerKind &&
                 base.elementType.length === commit.elementType.length &&

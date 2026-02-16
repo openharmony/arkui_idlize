@@ -1,4 +1,3 @@
-
 interface StaticMaterialized {
     static void method(number valNumber, String valString);
 };

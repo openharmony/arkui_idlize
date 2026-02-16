@@ -34,10 +34,11 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
     maybeRestoreThrows,
 } from '@idlizer/core'
 import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils,
-    IDLCustomObjectType, IDLFunctionType, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType,
-    IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType,
-    isInterface, isOptionalType, IDLObjectType } from '@idlizer/core/idl'
+import {
+    IDLImport, IDLContainerType, IDLContainerUtils, IDLOptionalType, IDLPrimitiveType,
+    IDLReferenceType, IDLType, IDLTypeParameterType, IDLUnionType,
+    isInterface, isOptionalType
+} from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { collectOrderedPeers } from "../PeersCollector";
@@ -121,7 +122,7 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         }
         let restoredThrow: idl.IDLType | undefined
         if (restoredThrow = maybeRestoreThrows(decl, this.resolver)) {
-            if (restoredThrow === idl.IDLVoidType || restoredThrow === idl.IDLThisType)
+            if (idl.isPrimitiveType(restoredThrow) && (restoredThrow.name === 'void' || restoredThrow.name === 'this'))
                 return `{.hasException=false}`
             return `{.hasException=false, .value=${this.convert(restoredThrow)}}`
         }
@@ -143,17 +144,17 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         return '{}'
     }
     convertPrimitiveType(type: IDLPrimitiveType): string | undefined {
-        switch (type) {
-            case IDLUndefinedType: return undefined
-            case IDLBufferType: return this.mkObject()
-            case IDLStringType: return '{ .chars="", .length=0 }'
-            case IDLNumberType: return "{ .tag=INTEROP_TAG_INT32, .i32=0 }"
-            case IDLPointerType: return 'nullptr'
-            case IDLBooleanType: return '0'
-            case IDLAnyType: return "{}"
-            case IDLUnknownType: return "{}"
-            case IDLCustomObjectType: return "{}"
-            case IDLObjectType: return this.mkObject()
+        switch (type.name) {
+            case 'undefined': return undefined
+            case 'buffer': return this.mkObject()
+            case 'String': return '{ .chars="", .length=0 }'
+            case 'number': return "{ .tag=INTEROP_TAG_INT32, .i32=0 }"
+            case 'pointer': return 'nullptr'
+            case 'boolean': return '0'
+            case 'any': return "{}"
+            case 'unknown': return "{}"
+            case 'CustomObject': return "{}"
+            case 'Object': return this.mkObject()
         }
         return '0'
     }
@@ -277,7 +278,7 @@ export class ModifierVisitor {
             this.real.print(`auto frameNode = reinterpret_cast<FrameNode *>(node);`)
             this.real.print(`CHECK_NULL_VOID(frameNode);`)
             if (argConvertors.length === 1
-                && argConvertors.at(0)?.nativeType() === IDLStringType
+                && idl.isPrimitiveType(argConvertors[0].nativeType(), 'String')
             ) {
                 this.real.print(`CHECK_NULL_VOID(${
                     argConvertors.at(0)?.param
@@ -301,13 +302,13 @@ export class ModifierVisitor {
                     });`)
                 }
             } else if (argConvertors.length === 1 &&
-                argConvertors.at(0)?.nativeType() === IDLBooleanType) {
+                idl.isPrimitiveType(argConvertors[0].nativeType(), 'boolean')) {
                 this.real.print(`auto convValue = Converter::Convert<bool>(${
                     argConvertors.at(0)?.param
                 });`)
             } else if (this.commentedCode
                 && argConvertors.length === 1
-                && argConvertors.at(0)?.nativeType() === IDLFunctionType) {
+                && idl.isPrimitiveType(argConvertors[0].nativeType(), 'Function')) {
                 this.real.print(`//auto convValue = [frameNode](input values) { code }`)
             } else {
                 if (this.commentedCode) {
@@ -458,7 +459,7 @@ class AccessorVisitor extends ModifierVisitor {
             if (!method) return
             const hookMethod = getHookMethod(method.originalParentName, method.method.name)
             if (hookMethod && hookMethod.replaceImplementation) return
-            const returnType = idl.isTypeParameterType(method.returnType) ? idl.IDLVoidType : method.returnType
+            const returnType = idl.isTypeParameterType(method.returnType) ? idl.createPrimitiveType('void') : method.returnType
             this.accessors.print(`${namespaceName}::${peerImplName(method)},`)
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m, returnType), returnType)
             if (!peerGeneratorConfiguration().noDummyGeneration(clazz.className, method.sig.name)) {

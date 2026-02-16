@@ -209,10 +209,10 @@ export class CJEnumWithGetter implements LanguageStatement {
             })
 
             const value = 'value'
-            const intType = idl.IDLI32Type
+            const intType = idl.createPrimitiveType('i32')
             writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
 
-            const signature = new MethodSignature(idl.IDLVoidType, [intType])
+            const signature = new MethodSignature(idl.createPrimitiveType('void'), [intType])
             writer.writeConstructorImplementation(enumName, signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
@@ -562,7 +562,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return idl.createReferenceType("Tags")
     }
     getRuntimeType(): idl.IDLType {
-        return idl.IDLNumberType
+        return idl.createPrimitiveType('number')
     }
     makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
         return this.makeAssign(receiver, undefined,

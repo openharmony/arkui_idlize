@@ -39,7 +39,7 @@ export const functionProducer = createProducer(
         .value().call('hold').receiver('SerializerBase').$().$().$(),
       ...method.parameters.flatMap(param =>
         argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
-      method.returnType === idl.IDLVoidType
+      idl.isPrimitiveType(method.returnType, 'void')
         ? S.e(nativeModuleCall)
         : Builders.decl('retval').value(nativeModuleCall).$(),
       Builders.stmt().call('release').receiver(serializerName).$().$(),

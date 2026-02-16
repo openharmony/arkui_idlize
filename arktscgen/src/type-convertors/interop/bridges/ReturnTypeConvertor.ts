@@ -14,9 +14,9 @@
  */
 
 import {
+    createPrimitiveType,
     IDLContainerType,
     IDLOptionalType,
-    IDLPointerType,
     IDLPrimitiveType,
     IDLReferenceType,
     IDLType
@@ -29,8 +29,8 @@ export class ReturnTypeConvertor extends BaseTypeConvertor<IDLType> {
         typechecker: Typechecker,
     ) {
         super(typechecker, {
-            sequence: (type: IDLContainerType) => IDLPointerType,
-            string: (type: IDLPrimitiveType) => IDLPointerType,
+            sequence: (type: IDLContainerType) => createPrimitiveType('pointer'),
+            string: (type: IDLPrimitiveType) => createPrimitiveType('pointer'),
             enum: (type: IDLReferenceType) => type,
             reference: (type: IDLReferenceType) => type,
             optional: (type: IDLOptionalType) => type,

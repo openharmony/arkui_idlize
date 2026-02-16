@@ -167,18 +167,18 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
             PeerMethodSignature.DESTROY,
             '%NEVER_USED$',
             [],
-            idl.IDLVoidType,
+            idl.createPrimitiveType('void'),
             clazz.decl,
         ),
         idl.getQualifiedName(clazz.decl, "namespace.name").split('.').join('_'),
         clazz.getImplementationName(),
-        idl.IDLVoidType,
+        idl.createPrimitiveType('void'),
         false,
         PeerMethodSignature.DESTROY,
         new Method(
             PeerMethodSignature.DESTROY,
             new NamedMethodSignature(
-                idl.IDLVoidType,
+                idl.createPrimitiveType('void'),
                 [idl.createReferenceType(clazz.decl)],
                 ['peer']
             )

@@ -28,9 +28,9 @@ class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
         const one = (node: idl.IDLNode | idl.IDLType): idl.IDLNode => {
             if (idl.isType(node) && isOptional)
                 node = idl.maybeOptional(node, isOptional)
-            if (node === idl.IDLThisType)
+            if (idl.isPrimitiveType(node, 'this'))
                 // reason: Throws<this> is possible declaration and must be handled as Throws<void> for CPP
-                return idl.IDLVoidType
+                return idl.createPrimitiveType('void')
             return this.library.toDeclaration(node)
         }
 
@@ -199,7 +199,7 @@ export class DependencySorter {
         let result = new Set<idl.IDLNode>
         const namer = this.library.createTypeNameConvertor(Language.CPP)
         const filteredDependencies = Array.from(this.dependencies)
-            .filter(it => it !== idl.IDLThisType)
+            .filter(it => !idl.isPrimitiveType(it, 'this'))
         let input = sorted([...filteredDependencies], it => namer.convert(it))
         while (input.length) {
             let broken: idl.IDLNode[] = []

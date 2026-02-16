@@ -41,7 +41,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from "../LanguageWriters";
-import { createReferenceType, IDLType, IDLVoidType, IDLThisType } from '@idlizer/core'
+import { createReferenceType, IDLType } from '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
 
 export function componentToPeerClass(component: string) {
@@ -54,8 +54,8 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
     methodPostfix: string, ptr: string, returnTypeOverride?: IDLType, isOverridden?: boolean
 ) {
     let returnType = returnTypeOverride ?? method.sig.returnType
-    if (returnType === idl.IDLThisType) {
-        returnType = idl.IDLVoidType
+    if (isPrimitiveType(returnType) && returnType.name === 'this') {
+        returnType = idl.createPrimitiveType('void')
     }
     const hookMethod = getHookMethod(method.originalParentName, method.method.name)
     if (hookMethod && hookMethod.replaceImplementation) return
@@ -70,8 +70,9 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         new NamedMethodSignature(returnType, signature.args, signature.argsNames, signature.defaults, signature.argsModifiers),
         modifiers, method.method.generics
     )
-    if (maybeRestoreThrows(returnType, library) === idl.IDLThisType) {
-        peerMethod.signature.returnType = idl.IDLVoidType
+    const restoredType = maybeRestoreThrows(returnType, library)
+    if (restoredType && isPrimitiveType(restoredType) && restoredType.name === 'this') {
+        peerMethod.signature.returnType = idl.createPrimitiveType('void')
     }
     const argConvertors = method.argAndOutConvertors(library)
     printer.writeMethodImplementation(peerMethod, (writer) => {
@@ -138,7 +139,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
             `_${method.originalParentName}_${method.sig.name}`,
             params)
 
-        if (!returnValueFilledThroughOutArg && returnType != IDLVoidType && returnType !== IDLThisType) {
+        if (!returnValueFilledThroughOutArg && !isPrimitiveType(returnType, 'void') && !isPrimitiveType(returnType, 'this')) {
             writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
         } else {
             writer.writeStatement(writer.makeStatement(call))
@@ -150,7 +151,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
             writer.popIndent()
         })
         // TODO: refactor
-        if (returnType != IDLVoidType) {
+        if (!isPrimitiveType(returnType, 'void')) {
             let result: LanguageStatement[] = [writer.makeReturn(writer.makeString(returnValName))]
             if (returnValueFilledThroughOutArg) {
                 // keep result
@@ -163,7 +164,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                         ...constructMaterializedObject(writer, signature, "obj", returnValName),
                         writer.makeReturn(writer.makeString("obj"))
                     ]
-                } else if (returnType == idl.IDLAnyType) {
+                } else if (isPrimitiveType(returnType, 'any')) {
                     // Read as resource
                     // Change any return type to the serializer buffer in NativeModule
                     // result = makeDeserializedReturn(library, printer, returnType)
@@ -186,7 +187,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                                 ]
                         }
                     }
-                } else if (returnType === idl.IDLBufferType) {
+                } else if (isPrimitiveType(returnType, 'buffer')) {
                     const instance = makeDeserializerInstance(returnValName, writer.language)
                     result = [
                         writer.makeReturn(
@@ -222,7 +223,7 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     let resultAssigneer: (expr: LanguageExpression) => LanguageStatement = (expr) => writer.makeReturn(expr)
     if (isThrows(returnType, library)) {
         const restoredThrow = maybeRestoreThrows(returnType, library)!
-        const needReturn = restoredThrow !== idl.IDLVoidType && restoredThrow !== idl.IDLThisType
+        const needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
         resultAssigneer = (expr) => {
             return writer.makeBlock([
                 writer.makeAssign(`exceptionBuffer`, undefined, expr, true),
@@ -258,7 +259,7 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
 }
 
 function returnsThis(method: PeerMethod, returnType: IDLType) {
-    return !!method.sig.context && returnType === IDLThisType
+    return !!method.sig.context && isPrimitiveType(returnType, 'this')
 }
 
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,

@@ -663,8 +663,8 @@ export class Parser {
                 next = true
                 combinedTypes.push(this.parseType())
             }
-            const isNullable = this.seeAndSkip("?") || combinedTypes.includes(idl.IDLUndefinedType)
-            combinedTypes = combinedTypes.filter(x => x !== idl.IDLUndefinedType)
+            const isNullable = this.seeAndSkip("?") || combinedTypes.some(x => idl.isUndefinedType(x))
+            combinedTypes = combinedTypes.filter(x => !idl.isUndefinedType(x))
             const distilledType = combinedTypes.length == 1
                 ? combinedTypes[0]
                 : idl.createUnionType(combinedTypes, undefined, {extendedAttributes: ext, nodeLocation: sloc()})
@@ -700,7 +700,7 @@ export class Parser {
             if (genArgs.length > 0) {
                 UnexpectedGenericArguments.reportDiagnosticMessage([name.location])
             }
-            type = builtinTypes.get(name.value)!
+            type = idl.createPrimitiveType(name.value as idl.IDLPrimitiveTypeKind, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location})
         } else if (builtinGenericTypeNames.has(name.value)) {
             if (genArgs.length == 0) {
                 ExpectedGenericArguments.reportDiagnosticMessage([name.location])
@@ -851,8 +851,9 @@ export class Parser {
             type = this.parseType()
             name = maybeName.result
         } else {
-            type = builtinTypes.get(maybeName.result.value)
-                ?? idl.createReferenceType(maybeName.result.value, undefined, { extendedAttributes: [], nodeLocation: maybeName.result.location })
+            type = builtinTypes.has(maybeName.result.value as idl.IDLPrimitiveTypeKind)
+                ? idl.createPrimitiveType(maybeName.result.value as idl.IDLPrimitiveTypeKind, { extendedAttributes: [], nodeLocation: maybeName.result.location })
+                : idl.createReferenceType(maybeName.result.value, undefined, { extendedAttributes: [], nodeLocation: maybeName.result.location })
             name = this.parseSingleIdentifier()
             deprecatedSyntax = true
         }
@@ -904,7 +905,7 @@ export class Parser {
             next = true
             const ext = this.parseExtendedAttributes()
             const entry = this.parseLiteral()
-            const member = idl.createEnumMember(entry.value, undefined as any, idl.IDLNumberType, undefined, undefined, {extendedAttributes: ext, nodeLocation: entry.location, nameLocation: entry.location})
+            const member = idl.createEnumMember(entry.value, undefined as any, idl.createPrimitiveType('number'), undefined, undefined, {extendedAttributes: ext, nodeLocation: entry.location, nameLocation: entry.location})
             items.push(member)
         }
         return idl.createEnum(name.value, items, {extendedAttributes: ext, documentation: extractDocumentation(ext), nodeLocation: sloc(), nameLocation: name.location})
@@ -1130,15 +1131,7 @@ function extractTypeParameters(ext?: idl.IDLExtendedAttribute[]): string[] | und
     return ext?.find(x => x.name === LEGACY_TYPE_PARAMETERS_ATTRIBUTE)?.value?.split(",")?.map(sanitizeTypeParameter)
 }
 
-const builtinTypesList = [idl.IDLPointerType, idl.IDLVoidType, idl.IDLBooleanType, 
-    idl.IDLObjectType, idl.IDLI8Type, idl.IDLU8Type, idl.IDLI16Type, idl.IDLU16Type,
-    idl.IDLI32Type, idl.IDLU32Type, idl.IDLI64Type, idl.IDLU64Type, idl.IDLF32Type,
-    idl.IDLF64Type, idl.IDLBigintType, idl.IDLNumberType, idl.IDLStringType, idl.IDLAnyType,
-    idl.IDLUndefinedType, idl.IDLUnknownType, idl.IDLObjectType, idl.IDLThisType, idl.IDLDate,
-    idl.IDLBufferType, idl.IDLSerializerBuffer
-]
-
 // Better solution will be to make it registry in idl.ts
-const builtinTypes = new Map(builtinTypesList.map(x => [x.name, x]))
+const builtinTypes = new Set<string>(idl.IDLPrimitiveTypeNames)
 
 const builtinGenericTypeNames = new Set<string>(["sequence", "record", "Promise"])

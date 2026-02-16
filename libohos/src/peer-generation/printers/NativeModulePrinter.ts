@@ -89,8 +89,8 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
         if (language === Language.TS) {
             function patchType(type:idl.IDLType): idl.IDLType {
                 // TODO: do we need it?
-                if (type === idl.IDLBooleanType) {
-                    return idl.IDLNumberType
+                if (idl.isPrimitiveType(type, 'boolean')) {
+                    return idl.createPrimitiveType('number')
                 }
                 return type
             }
@@ -180,7 +180,7 @@ function writeNativeModuleEmptyImplementation(method: Method, writer: LanguageWr
             writer.writeStatement(writer.makeThrowError("default structure value is not implemented"))
             return
         }
-        if (method.signature.returnType !== undefined && method.signature.returnType !== idl.IDLVoidType) {
+        if (method.signature.returnType !== undefined && !idl.isPrimitiveType(method.signature.returnType, 'void')) {
             writer.writeStatement(writer.makeReturn(writer.makeString(getReturnValue(method.signature.returnType))))
         }
     })
@@ -238,9 +238,9 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
         }
         let resultVarName = 'result'
         let shouldReturn = false
-        if (signature.returnType === idl.IDLVoidType) {
+        if (idl.isPrimitiveType(signature.returnType, 'void')) {
             printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(printer.escapeKeyword(it)))).asString()}`)
-        } else if (signature.returnType === idl.IDLInteropReturnBufferType) {
+        } else if (idl.isPrimitiveType(signature.returnType, 'InteropReturnBuffer')) {
             printer.writeStatement(
                 printer.makeAssign(
                     resultVarName,
@@ -274,7 +274,7 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
         }
 
         if (shouldReturn) {
-            printer.writeStatement(printer.makeReturn(printer.makeString(resultVarName.concat(signature.returnType == idl.IDLStringType ? ".toString()" : ""))))
+            printer.writeStatement(printer.makeReturn(printer.makeString(resultVarName.concat(idl.isPrimitiveType(signature.returnType, 'String') ? ".toString()" : ""))))
         }
         printer.popIndent()
         printer.print('}')
@@ -447,7 +447,7 @@ function printNativeModuleRegistration(language: Language, module: NativeModuleT
             content.print("private static _isLoaded: boolean = false")
             content.writeMethodImplementation(new Method(
                 "_LoadOnce",
-                new MethodSignature(idl.IDLBooleanType, []),
+                new MethodSignature(idl.createPrimitiveType('boolean'), []),
                 [MethodModifier.PRIVATE, MethodModifier.STATIC]
             ), writer => {
                 writer.writeStatement(new IfStatement(
@@ -671,14 +671,14 @@ function makeInteropMethodInner(
     const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language)
     const interopReturnConvertor = options.interopReturnConvertor ?? new InteropReturnTypeConvertor(library)
     const interopParameters: ({name: string, type: idl.IDLType})[] = options.hasReceiver
-        ? [{ name: 'ptr', type: idl.IDLPointerType }] : []
+        ? [{ name: 'ptr', type: idl.createPrimitiveType('pointer') }] : []
     const argConvertors = idlParameters.map(it => library.typeConvertor(it.name, it.type, it.isOptional))
     const outArgConvertor = createOutArgConvertor(library, idlReturnType, idlParameters.map(it => it.name))
     let serializerArgCreated = false
     argConvertors.concat(outArgConvertor ?? []).forEach(it => {
         if (it.useArray) {
             if (!serializerArgCreated) {
-                interopParameters.push({ name: `thisArray`, type: idl.IDLSerializerBuffer }, { name: `thisLength`, type: idl.IDLI32Type })
+                interopParameters.push({ name: `thisArray`, type: idl.createPrimitiveType('SerializerBuffer') }, { name: `thisLength`, type: idl.createPrimitiveType('i32') })
                 serializerArgCreated = true
             }
         } else {
@@ -689,8 +689,8 @@ function makeInteropMethodInner(
         }
     })
     const interopReturnType = idlReturnType && interopReturnConvertor.isReturnInteropBuffer(idlReturnType)
-        ? idl.IDLInteropReturnBufferType
-        : toNativeReturnType(idlReturnType, library) ?? idl.IDLVoidType
+        ? idl.createPrimitiveType('InteropReturnBuffer')
+        : toNativeReturnType(idlReturnType, library) ?? idl.createPrimitiveType('void')
     const modifiers: MethodModifier[] = []
     if (options.forceContext || idlReturnType && idl.IDLContainerUtils.isPromise(idlReturnType))
         modifiers.push(MethodModifier.FORCE_CONTEXT)
@@ -708,61 +708,62 @@ function makeInteropMethodInner(
 }
 
 function getReturnValue(type: idl.IDLType): string {
-
-    const pointers = new Set<idl.IDLType>([idl.IDLPointerType])
-    const integrals = new Set<idl.IDLType>([
-        idl.IDLI8Type,
-        idl.IDLU8Type,
-        idl.IDLI16Type,
-        idl.IDLU16Type,
-        idl.IDLI32Type,
-        idl.IDLU32Type,
-        idl.IDLI64Type,
-        idl.IDLU64Type,
+    if (!idl.isPrimitiveType(type)) {
+        throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]} ${idl.forceAsNamedNode(type).name}`);
+    }
+    const pointers = new Set<idl.IDLPrimitiveTypeKind>(["pointer"])
+    const integrals = new Set<idl.IDLPrimitiveTypeKind>([
+        "i8",
+        "u8",
+        "i16",
+        "u16",
+        "i32",
+        "u32",
+        "i64",
+        "u64",
     ])
-    const numeric = new Set<idl.IDLType>([
-        ...integrals, idl.IDLF32Type, idl.IDLF64Type
+    const numeric = new Set<idl.IDLPrimitiveTypeKind>([
+        ...integrals, "f32", "f64"
     ])
-    const strings = new Set<idl.IDLType>([
-        idl.IDLStringType
+    const strings = new Set<idl.IDLPrimitiveTypeKind>([
+        "String"
     ])
-    if (type === idl.IDLThisType) {
+    const name = type.name;
+    if (name === 'this') {
         return 'this'
     }
-    if (type === idl.IDLUndefinedType) {
+    if (name === 'undefined') {
         return 'undefined'
     }
-    if (pointers.has(type)) {
+    if (pointers.has(name)) {
         return '-1'
     }
-    if (numeric.has(type)) {
+    if (numeric.has(name)) {
         return '0'
     }
-    if (strings.has(type)) {
+    if (strings.has(name)) {
         return `""`
     }
-
-    switch(type) {
-        case idl.IDLUnknownType :return "0"
-        case idl.IDLBooleanType : return "false"
-        case idl.IDLNumberType: return "1"
-        case idl.IDLPointerType: return "0"
-        case idl.IDLStringType: return `"some string"`
-        case idl.IDLAnyType: return `""`
-        case idl.IDLObjectType: return "new Object()"
-        case idl.IDLBufferType: return "new ArrayBuffer(8)"
-        case idl.IDLBigintType: return "BigInt(0)"
-        case idl.IDLInteropReturnBufferType: return "new Uint8Array()"
+    switch(name) {
+        case "unknown" :return "0"
+        case "boolean" : return "false"
+        case "number" : return "1"
+        case "pointer" : return "0"
+        case "String" : return `"some string"`
+        case "any" : return `""`
+        case "Object" : return "new Object()"
+        case "buffer" : return "new ArrayBuffer(8)"
+        case "bigint" : return "BigInt(0)"
+        case "InteropReturnBuffer" : return "new Uint8Array()"
     }
-
-    throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]} ${idl.forceAsNamedNode(type).name}`)
+    throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]} ${name}`);
 }
 
 function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLibrary): idl.IDLType {
 
-    if (!returnType) return idl.IDLVoidType
-    if (returnType === idl.IDLThisType || idl.IDLContainerUtils.isPromise(returnType) || idl.isTypeParameterType(returnType)) {
-        return idl.IDLVoidType
+    if (!returnType) return idl.createPrimitiveType('void')
+    if (idl.isPrimitiveType(returnType, 'this') || idl.IDLContainerUtils.isPromise(returnType) || idl.isTypeParameterType(returnType)) {
+        return idl.createPrimitiveType('void')
     }
 
     if (idl.isReferenceType(returnType)) {
@@ -776,5 +777,5 @@ function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLi
         || idl.IDLContainerUtils.isRecord(returnType))
         return returnType
 
-    return idl.IDLPointerType
+    return idl.createPrimitiveType('pointer')
 }

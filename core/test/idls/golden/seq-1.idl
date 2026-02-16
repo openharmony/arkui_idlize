@@ -4,13 +4,11 @@ dictionary HuksTag {
     number HUKS_TAG_PURPOSE = 536870914;
     number HUKS_TAG_KEY_SIZE = 536870915;
 };
-
 interface HuksParam {
     attribute HuksTag tag;
     attribute (boolean or number) value;
 };
-
 interface HuksOptions {
     [Optional]
-    attribute sequence<HuksParam> properties;
+    optional attribute sequence<HuksParam> properties;
 };

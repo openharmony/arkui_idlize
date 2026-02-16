@@ -477,9 +477,6 @@ export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode
 export function linkParentBack<T extends IDLNode>(node: T): T {
     const parentStack: IDLNode[] = []
     updateEachChild(node, (node) => {
-        if (isPrimitiveType(node)) {
-            return node
-        }
         if (parentStack.length) {
             const top = parentStack[parentStack.length - 1]
             if (node.parent !== undefined && node.parent !== top) {
@@ -489,10 +486,7 @@ export function linkParentBack<T extends IDLNode>(node: T): T {
         }
         parentStack.push(node)
         return node
-    }, (node) => {
-        if (isPrimitiveType(node)) {
-            return
-        }
+    }, () => {
         parentStack.pop()
     })
     return node

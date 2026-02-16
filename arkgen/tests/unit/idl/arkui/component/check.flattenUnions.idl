@@ -1,0 +1,40 @@
+package arkui.component.check.flattenUnions;
+
+// TODO kotlin does not support unions with duplicated types for now
+
+interface Iface1 {};
+interface Iface2 {};
+
+// typedef AggregatedPrimitives2Different = (String or String or i32);
+// typedef AggregatedPrimitives1Different = (String or String);
+// typedef AggregatedReferences2Different = (Iface1 or Iface1 or Iface2);
+// typedef AggregatedReferences1Different = (Iface1 or Iface1);
+// typedef NoConflicts = (String or i32 or Iface1);
+// typedef AggregateTypedefPrimitive = (NoConflicts or i32);
+// typedef AggregateTypedefReference = (NoConflicts or Iface1);
+// typedef AggregateTypedefTypedef = (NoConflicts or Iface1);
+
+// interface IfaceWithFlattenedAttributes {
+//     attribute (String or String or i32) aggregatedPrimitives2Different;
+//     attribute (String or String) aggregatedPrimitives1Different;
+//     attribute (Iface1 or Iface1 or Iface2) aggregatedReferences2Different;
+//     attribute (Iface1 or Iface1) aggregatedReferences1Different;
+//     attribute (String or i32 or Iface1) noConflicts;
+//     attribute (NoConflicts or i32) aggregateTypedefPrimitive;
+//     attribute (NoConflicts or Iface1) aggregateTypedefReference;
+//     attribute (NoConflicts or Iface1) aggregateTypedefTypedef;
+// };
+
+// interface AllCases {
+//     attribute AggregatedPrimitives1Different aggregatedPrimitives1Different;
+//     attribute AggregatedPrimitives2Different aggregatedPrimitives2Different;
+//     attribute AggregatedReferences2Different aggregatedReferences2Different;
+//     attribute AggregatedReferences1Different aggregatedReferences1Different;
+//     attribute NoConflicts noConflicts;
+//     attribute AggregateTypedefPrimitive aggregateTypedefPrimitive;
+//     attribute AggregateTypedefReference aggregateTypedefReference;
+//     attribute AggregateTypedefTypedef aggregateTypedefTypedef;
+//     attribute IfaceWithFlattenedAttributes ifaceWithFlattenedAttributes;
+// };
+// 
+// void entry(AllCases value);

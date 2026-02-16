@@ -94,10 +94,10 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         let decl = this.resolver.resolveTypeReference(type)
         if (decl)
             return `${decl.name}${maybeTypeArguments}`
-        return this.convert(idl.IDLCustomObjectType)
+        return this.convert(idl.createPrimitiveType('CustomObject'))
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        if (type.name === idl.IDLObjectType.name)
+        if (type.name === 'Object')
             return "KPointer"
         // resolve synthetic types
         const decl = this.resolver.resolveTypeReference(type)!
@@ -121,41 +121,41 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         if (decl) {
             return idl.getNamespacesPathFor(decl).map(ns => ns.name).join().concat(name[name.length - 1].concat(maybeTypeArguments))
         }
-        return this.convert(idl.IDLCustomObjectType)
+        return this.convert(idl.createPrimitiveType('CustomObject'))
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
         return type.name
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLThisType: return 'this'
-            case idl.IDLStringType: return 'String'
-            case idl.IDLBooleanType: return 'Bool'
-            case idl.IDLNumberType: return 'Float64'
-            case idl.IDLUndefinedType: return 'Unit' // might be wrong
-            case idl.IDLI8Type: return 'Int8'
-            case idl.IDLU8Type: return 'UInt8'
-            case idl.IDLI16Type: return 'Int16'
-            case idl.IDLU16Type: return 'UInt16'
-            case idl.IDLI32Type: return 'Int32'
-            case idl.IDLU32Type: return 'UInt32'
-            case idl.IDLI64Type: return 'Int64'
-            case idl.IDLU64Type: return 'UInt64'
-            case idl.IDLF32Type: return 'Float32'
-            case idl.IDLF64Type: return 'Float64'
-            case idl.IDLPointerType: return 'UInt64'
-            case idl.IDLVoidType: return 'Unit'
-            case idl.IDLBufferType: return 'Array<UInt8>'
-            case idl.IDLInteropReturnBufferType: return 'Array<UInt8>'
-            case idl.IDLBigintType: return 'Int64'
-            case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
-            case idl.IDLAnyType: return 'Any'
-            case idl.IDLDate: return 'DateTime'
-            case idl.IDLObjectType: return 'Any'
+        switch (type.name) {
+            case 'this': return 'this'
+            case 'String': return 'String'
+            case 'boolean': return 'Bool'
+            case 'number': return 'Float64'
+            case 'undefined': return 'Unit' // might be wrong
+            case 'i8': return 'Int8'
+            case 'u8': return 'UInt8'
+            case 'i16': return 'Int16'
+            case 'u16': return 'UInt16'
+            case 'i32': return 'Int32'
+            case 'u32': return 'UInt32'
+            case 'i64': return 'Int64'
+            case 'u64': return 'UInt64'
+            case 'f32': return 'Float32'
+            case 'f64': return 'Float64'
+            case 'pointer': return 'UInt64'
+            case 'void': return 'Unit'
+            case 'buffer': return 'Array<UInt8>'
+            case 'InteropReturnBuffer': return 'Array<UInt8>'
+            case 'bigint': return 'Int64'
+            case 'SerializerBuffer': return 'KSerializerBuffer'
+            case 'any': return 'Any'
+            case 'date': return 'DateTime'
+            case 'Object': return 'Any'
 
-            case idl.IDLUnknownType:
-            case idl.IDLFunctionType:
-            case idl.IDLCustomObjectType: return 'Any'
+            case 'unknown':
+            case 'Function':
+            case 'CustomObject': return 'Any'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -174,11 +174,11 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
 export class CJIDLTypeToForeignStringConvertor extends CJTypeNameConvertor {
     convert(type: idl.IDLNode): string {
         if (idl.isPrimitiveType(type)) {
-            switch (type) {
-                case idl.IDLStringType: return 'CString'
-                case idl.IDLInteropReturnBufferType: return 'KInteropReturnBuffer'
-                case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
-                case idl.IDLObjectType: return 'Unit'
+            switch (type.name) {
+                case 'String': return 'CString'
+                case 'InteropReturnBuffer': return 'KInteropReturnBuffer'
+                case 'SerializerBuffer': return 'KSerializerBuffer'
+                case 'Object': return 'Unit'
             }
         }
         if (idl.isContainerType(type)) {
@@ -200,8 +200,8 @@ export class CJIDLTypeToForeignStringConvertor extends CJTypeNameConvertor {
         return super.convert(type)
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLBufferType: return 'CPointer<UInt8>'
+        switch (type.name) {
+            case 'buffer': return 'CPointer<UInt8>'
         }
         return super.convertPrimitiveType(type)
     }
@@ -209,8 +209,8 @@ export class CJIDLTypeToForeignStringConvertor extends CJTypeNameConvertor {
 
 export class CJInteropArgConvertor extends InteropArgConvertor {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLNumberType: return "Float64"
+        switch (type.name) {
+            case 'number': return "Float64"
         }
         return super.convertPrimitiveType(type)
     }

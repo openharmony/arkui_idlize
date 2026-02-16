@@ -82,7 +82,7 @@ export class HeaderVisitor {
         const hookMethod = getHookMethod(method.originalParentName, method.method.name)
         if (hookMethod && hookMethod.replaceImplementation) return
         const apiParameters = generateCapiParameters(this.library, method, this.library.createTypeNameConvertor(Language.CPP))
-        var retType = idl.isTypeParameterType(method.sig.returnType) ? idl.IDLVoidType : method.sig.returnType
+        var retType = idl.isTypeParameterType(method.sig.returnType) ? idl.createPrimitiveType('void') : method.sig.returnType
         printMethodDeclaration(this.api, this.returnTypeConvertor.convert(retType), `(*${method.sig.name})`, apiParameters, `;`)
     }
 

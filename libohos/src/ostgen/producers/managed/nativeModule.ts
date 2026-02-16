@@ -22,7 +22,7 @@ import { argConvertor } from "../components/argConvertor"
 export const nativeModuleMaterializedProducer = createProducer(
   { is: idl.isInterface, role: 'native-module' },
   (node, ctx) => {
-    const getFinalizer = idl.createMethod('_getFinalizer', [], idl.IDLPointerType, {
+    const getFinalizer = idl.createMethod('_getFinalizer', [], idl.createPrimitiveType('pointer'), {
       isStatic: true, isAsync: false, isOptional: false, isFree: false})
     getFinalizer.parent = node
     return {
@@ -123,7 +123,7 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
   let capiMethod = method
   let makeApiCall: (expr: LWExpression) => LWExpression = expr => Builders.call(expr).args(apiCallArgs).$()
   if (method.name === 'getFinalizer') {
-    capiMethod = idl.createMethod('_destruct', [], idl.IDLVoidType)
+    capiMethod = idl.createMethod('_destruct', [], idl.createPrimitiveType('void'))
     capiMethod.parent = method.parent
     makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
   }

@@ -18,27 +18,28 @@ import { Ts, lw } from "@idlizer/ost"
 import { createProducer } from "../../engine"
 
 function convertType(type: idl.IDLPrimitiveType): lw.LWType {
-    switch (type) {
-        case idl.IDLAnyType: return Ts.prim.object///
-        case idl.IDLBigintType: return Ts.prim.bigint
-        case idl.IDLBooleanType: return Ts.prim.boolean
-        case idl.IDLBufferType: return Ts.prim.buffer
-        case idl.IDLF32Type: return Ts.prim.f32
-        case idl.IDLF64Type: return Ts.prim.f64
-        case idl.IDLI8Type: return Ts.prim.i8
-        case idl.IDLI32Type: return Ts.prim.i32
-        case idl.IDLI64Type: return Ts.prim.i64
-        case idl.IDLNumberType: return Ts.prim.number
-        case idl.IDLObjectType: return Ts.prim.object
-        case idl.IDLPointerType: return Ts.prim.pointer
-        case idl.IDLSerializerBuffer: return Ts.prim.serializerBuffer
-        case idl.IDLStringType: return Ts.prim.str
-        case idl.IDLU8Type: return Ts.prim.u8
-        case idl.IDLU32Type: return Ts.prim.u32
-        case idl.IDLU64Type: return Ts.prim.u64
-        case idl.IDLVoidType: return Ts.prim.void
+    switch (type.name) {
+        case 'any': return Ts.prim.object
+        case 'bigint': return Ts.prim.bigint
+        case 'boolean': return Ts.prim.boolean
+        case 'buffer': return Ts.prim.buffer
+        case 'f32': return Ts.prim.f32
+        case 'f64': return Ts.prim.f64
+        case 'i8': return Ts.prim.i8
+        case 'i32': return Ts.prim.i32
+        case 'i64': return Ts.prim.i64
+        case 'number': return Ts.prim.number
+        case 'Object': return Ts.prim.object
+        case 'pointer': return Ts.prim.pointer
+        case 'SerializerBuffer': return Ts.prim.serializerBuffer
+        case 'String': return Ts.prim.str
+        case 'u8': return Ts.prim.u8
+        case 'u32': return Ts.prim.u32
+        case 'u64': return Ts.prim.u64
+        case 'void': return Ts.prim.void
+        default:
+            throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
     }
-    throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
 }
 
 export const primitiveProducer = createProducer(

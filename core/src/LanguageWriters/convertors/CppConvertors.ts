@@ -66,8 +66,8 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     convertInterface(node: idl.IDLInterface): ConvertResult {
         let restoredThrow: idl.IDLType | undefined
         if (restoredThrow = maybeRestoreThrows(node, this.library)) {
-            if (restoredThrow === idl.IDLThisType)
-                restoredThrow = idl.IDLVoidType
+            if (idl.isPrimitiveType(restoredThrow, 'this'))
+                restoredThrow = idl.createPrimitiveType('void')
             return this.make(`Throws_${this.convertNode(restoredThrow).text}`, idl.createReferenceType(node), true)
         }
         switch (node.subkind) {
@@ -127,7 +127,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
                 return this.make(`Promise_${this.convertNode(type.elementType[0]).text}`, type)
             }
             if (idl.IDLContainerUtils.isSequence(type)) {
-                if (type.elementType[0] === idl.IDLU8Type) {
+                if (idl.isPrimitiveType(type.elementType[0], 'u8')) {
                     return this.make(`uint8_t*`, type, true)
                 }
                 return this.make(`Array_${this.convertNode(type.elementType[0]).text}`, type, true)
@@ -140,7 +140,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     }
     convertImport(type: idl.IDLImport): ConvertResult {
         console.warn("Imports are not implemented yet")
-        return this.make(idl.IDLCustomObjectType.name, idl.IDLCustomObjectType)
+        return this.make('CustomObject', idl.createPrimitiveType('CustomObject'))
     }
     convertTypeReferenceAsImport(type: idl.IDLReferenceType, _: string): ConvertResult {
         return this.convertTypeReference(type)
@@ -148,7 +148,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     convertTypeReference(type: idl.IDLReferenceType): ConvertResult {
         const refName = type.name
         if (generatorConfiguration().parameterized.includes(refName)) {
-            return this.make('CustomObject', idl.IDLCustomObjectType)
+            return this.make('CustomObject', idl.createPrimitiveType('CustomObject'))
         }
         let decl = this.library.toDeclaration(type)
         if (idl.isCallback(decl)) {
@@ -163,57 +163,56 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         return res
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): ConvertResult {
-        return this.make('CustomObject', idl.IDLCustomObjectType)
+        return this.make('CustomObject', idl.createPrimitiveType('CustomObject'))
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): ConvertResult {
         if (this.isInsideStructure) {
-            switch (type) {
-                case idl.IDLVoidType:
+            switch (type.name) {
+                case 'void':
                     return this.make(`Void`, type)
-                case idl.IDLI32Type:
+                case 'i32':
                     return this.make('I32', type)
-                case idl.IDLU32Type:
+                case 'u32':
                     return this.make('U32', type)
-                case idl.IDLF32Type:
+                case 'f32':
                     return this.make('F32', type)
-                case idl.IDLI64Type:
+                case 'i64':
                     return this.make('I64', type)
-                case idl.IDLU64Type:
+                case 'u64':
                     return this.make('U64', type)
-                case idl.IDLF64Type:
+                case 'f64':
                     return this.make('F64', type)
-                case idl.IDLPointerType:
+                case 'pointer':
                     return this.make('Pointer', type)
             }
         }
-        switch (type) {
-            case idl.IDLThisType: // maybe fix it in another level?
-            case idl.IDLVoidType: return this.make('void', type, true)
-            case idl.IDLI8Type: return this.make(`Int8`, type)
-            case idl.IDLU8Type: return this.make(`UInt8`, type)
-            case idl.IDLI16Type: return this.make(`Int16`, type)
-            case idl.IDLU16Type: return this.make(`UInt16`, type)
-            case idl.IDLI32Type: return this.make(`Int32`, type)
-            case idl.IDLU32Type: return this.make(`UInt32`, type)
-            case idl.IDLI64Type: return this.make(`Int64`, type)
-            case idl.IDLU64Type: return this.make(`UInt64`, type)
-            case idl.IDLF32Type: return this.make(`Float32`, type)
-            case idl.IDLF64Type: return this.make(`Float64`, type)
-            case idl.IDLNumberType: return this.make(`Number`, type)
-            case idl.IDLStringType: return this.make(`String`, type)
-            case idl.IDLBooleanType: return this.make(`Boolean`, type)
-            case idl.IDLBigintType: return this.make(`Int64`, type) // TODO add arbitrary precision numeric type
-            case idl.IDLPointerType: return this.make('NativePointer', type)
-            case idl.IDLCustomObjectType: return this.make('CustomObject', type)
-            case idl.IDLUnknownType:
-            case idl.IDLObjectType:
-            case idl.IDLAnyType: return this.make(`Object`, type)
-            case idl.IDLUndefinedType: return this.make(`Undefined`, type)
-            case idl.IDLFunctionType: return this.make(`Function`, type)
-            case idl.IDLDate: return this.make(`Date`, type)
-            case idl.IDLBufferType: return this.make('Buffer', type)
-            case idl.IDLPointerType: return this.make('Pointer', type)
-            case idl.IDLSerializerBuffer: return this.make('KSerializerBuffer', type, true)
+        switch (type.name) {
+            case 'this': // maybe fix it in another level?
+            case 'void': return this.make('void', type, true)
+            case 'i8': return this.make(`Int8`, type)
+            case 'u8': return this.make(`UInt8`, type)
+            case 'i16': return this.make(`Int16`, type)
+            case 'u16': return this.make(`UInt16`, type)
+            case 'i32': return this.make(`Int32`, type)
+            case 'u32': return this.make(`UInt32`, type)
+            case 'i64': return this.make(`Int64`, type)
+            case 'u64': return this.make(`UInt64`, type)
+            case 'f32': return this.make(`Float32`, type)
+            case 'f64': return this.make(`Float64`, type)
+            case 'number': return this.make(`Number`, type)
+            case 'String': return this.make(`String`, type)
+            case 'boolean': return this.make(`Boolean`, type)
+            case 'bigint': return this.make(`Int64`, type) // TODO add arbitrary precision numeric type
+            case 'pointer': return this.make('NativePointer', type)
+            case 'CustomObject': return this.make('CustomObject', type)
+            case 'unknown':
+            case 'Object':
+            case 'any': return this.make(`Object`, type)
+            case 'undefined': return this.make(`Undefined`, type)
+            case 'Function': return this.make(`Function`, type)
+            case 'date': return this.make(`Date`, type)
+            case 'buffer': return this.make('Buffer', type)
+            case 'SerializerBuffer': return this.make('KSerializerBuffer', type, true)
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -255,7 +254,7 @@ export class CppConvertor extends GenericCppConvertor implements IdlNameConverto
         }
         const typePrefix = conf.TypePrefix
         // TODO remove this ugly hack for CustomObject's
-        const convertedToCustomObject = result.text === idl.IDLCustomObjectType.name
+        const convertedToCustomObject = result.text === 'CustomObject'
         const libPrefix = this.isPrimitiveOrPrimitiveAlias(type) || convertedToCustomObject ? "" : conf.LibraryPrefix
         return `${typePrefix}${libPrefix}${result.text}`
     }
@@ -311,15 +310,15 @@ export class CppInteropArgConvertor extends InteropArgConvertor {
         return PrimitiveTypesInstance.NativePointer.getText()
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
-            case idl.IDLI32Type: return PrimitiveTypesInstance.Int32.getText()
-            case idl.IDLNumberType: return "KInteropNumber"
-            case idl.IDLSerializerBuffer: return "KSerializerBuffer"
-            case idl.IDLBufferType: return "KInteropBuffer"
-            case idl.IDLFunctionType: return PrimitiveTypesInstance.Int32.getText()
-            case idl.IDLDate: return PrimitiveTypesInstance.Int64.getText()
-            case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()
+        switch (type.name) {
+            case 'boolean': return PrimitiveTypesInstance.Boolean.getText()
+            case 'i32': return PrimitiveTypesInstance.Int32.getText()
+            case 'number': return "KInteropNumber"
+            case 'SerializerBuffer': return "KSerializerBuffer"
+            case 'buffer': return "KInteropBuffer"
+            case 'Function': return PrimitiveTypesInstance.Int32.getText()
+            case 'date': return PrimitiveTypesInstance.Int64.getText()
+            case 'pointer': return PrimitiveTypesInstance.NativePointer.getText()
         }
         return super.convertPrimitiveType(type)
     }
@@ -354,7 +353,7 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
         return this.convertor.convert(type)
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        if (type == idl.IDLUndefinedType) return 'void'
+        if (idl.isPrimitiveType(type, 'undefined')) return 'void'
         return this.convertor.convert(type)
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {

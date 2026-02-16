@@ -87,7 +87,7 @@ export function selectName(nameSuggestion: NameSuggestion | undefined, synthetic
 
 const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
     ["TransitionEffect", new Map<string, idl.IDLType>([
-        ["Type", idl.IDLStringType],
+        ["Type", idl.createPrimitiveType('String')],
         ["Effect", idl.createReferenceType("TransitionEffects")]])],
     ["ProgressOptions", new Map([
         ["Type", idl.createReferenceType("ProgressType")]])],
@@ -102,7 +102,7 @@ const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
             idl.createReferenceType("ProgressStyleOptions")],
             "Union_LinearStyleOptions_RingStyleOptions_CapsuleStyleOptions_ProgressStyleOptions")]])],
     ["DirectionalEdgesT", new Map([
-        ["T", idl.IDLNumberType]])],
+        ["T", idl.createPrimitiveType('number')]])],
 ])
 
 class Context {
@@ -282,29 +282,29 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
     private readonly TypeMapper =
         new Map<string, (type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion) => idl.IDLType>([
-            ["object", () => idl.IDLObjectType],
-            ["Object", () => idl.IDLObjectType],
-            ["double", () => idl.IDLF64Type],
-            ["int", () => idl.IDLI32Type],
-            ["float", () => idl.IDLF32Type],
-            ["ESObject", () => idl.IDLObjectType],
-            ["string", () => idl.IDLStringType],
-            ["Boolean", () => idl.IDLBooleanType], // nasty typo in SDK
-            ["ArrayBuffer", () => idl.IDLBufferType],
-            ["DataView", () => idl.IDLBufferType],
-            ["Int8Array", () => idl.IDLBufferType], // ["Int8Array", () => idl.createContainerType('sequence', [idl.IDLI8Type])],
-            ["Uint8Array", () => idl.IDLBufferType], // ["Uint8Array", () => idl.createContainerType('sequence', [idl.IDLU8Type])],
-            ["Uint8ClampedArray", () => idl.IDLBufferType], // ["Uint8ClampedArray", () => idl.createContainerType('sequence', [idl.IDLU8Type])],
-            ["Int16Array", () => idl.IDLBufferType], // ["Int16Array", () => idl.createContainerType('sequence', [idl.IDLI16Type])],
-            ["Uint16Array", () => idl.IDLBufferType], // ["Uint16Array", () => idl.createContainerType('sequence', [idl.IDLU16Type])],
-            ["Int32Array", () => idl.IDLBufferType], // ["Int32Array", () => idl.createContainerType('sequence', [idl.IDLI32Type])],
-            ["Uint32Array", () => idl.IDLBufferType], // ["Uint32Array", () => idl.createContainerType('sequence', [idl.IDLU32Type])],
-            ["Float16Array", () => idl.IDLBufferType], // ["Float16Array", () => idl.createContainerType('sequence', [idl.IDLF16Type])],
-            ["Float32Array", () => idl.IDLBufferType], // ["Float32Array", () => idl.createContainerType('sequence', [idl.IDLF32Type])],
-            ["Float64Array", () => idl.IDLBufferType], // ["Float64Array", () => idl.createContainerType('sequence', [idl.IDLF64Type])],
-            ["BigInt64Array", () => idl.IDLBufferType], // ["BigInt64Array", () => idl.createContainerType('sequence', [idl.IDLI64Type])],
-            ["BigUint64Array", () => idl.IDLBufferType], // ["BigUint64Array", () => idl.createContainerType('sequence', [idl.IDLU64Type])],
-            ["Date", () => idl.IDLDate],
+            ["object", () => idl.createPrimitiveType('Object')],
+            ["Object", () => idl.createPrimitiveType('Object')],
+            ["double", () => idl.createPrimitiveType('f64')],
+            ["int", () => idl.createPrimitiveType('i32')],
+            ["float", () => idl.createPrimitiveType('f32')],
+            ["ESObject", () => idl.createPrimitiveType('Object')],
+            ["string", () => idl.createPrimitiveType('String')],
+            ["Boolean", () => idl.createPrimitiveType('boolean')], // nasty typo in SDK
+            ["ArrayBuffer", () => idl.createPrimitiveType('buffer')],
+            ["DataView", () => idl.createPrimitiveType('buffer')],
+            ["Int8Array", () => idl.createPrimitiveType('buffer')], // ["Int8Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('i8')])],
+            ["Uint8Array", () => idl.createPrimitiveType('buffer')], // ["Uint8Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u8')])],
+            ["Uint8ClampedArray", () => idl.createPrimitiveType('buffer')], // ["Uint8ClampedArray", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u8')])],
+            ["Int16Array", () => idl.createPrimitiveType('buffer')], // ["Int16Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('i16')])],
+            ["Uint16Array", () => idl.createPrimitiveType('buffer')], // ["Uint16Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u16')])],
+            ["Int32Array", () => idl.createPrimitiveType('buffer')], // ["Int32Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('i32')])],
+            ["Uint32Array", () => idl.createPrimitiveType('buffer')], // ["Uint32Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u32')])],
+            ["Float16Array", () => idl.createPrimitiveType('buffer')], // ["Float16Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('f16')])],
+            ["Float32Array", () => idl.createPrimitiveType('buffer')], // ["Float32Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('f32')])],
+            ["Float64Array", () => idl.createPrimitiveType('buffer')], // ["Float64Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('f64')])],
+            ["BigInt64Array", () => idl.createPrimitiveType('buffer')], // ["BigInt64Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('i64')])],
+            ["BigUint64Array", () => idl.createPrimitiveType('buffer')], // ["BigUint64Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u64')])],
+            ["Date", () => idl.createPrimitiveType('date')],
             ["Array", (type, name) => this.makeContainerType("sequence", type, name)],
             ["IterableIterator", (type) => this.makeContainerType("sequence", type)],
             ["Set", (type) => this.makeContainerType("sequence", type)],
@@ -312,25 +312,25 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             ["Promise", (type, name) => this.makeContainerType("Promise", type, name)],
             ["Record", (type, name) => this.makeContainerType("record", type, name)],
             ["Optional", (type, name) => this.makeOptionalType(type, name)],
-            ["Function", () => idl.IDLFunctionType],
+            ["Function", () => idl.createPrimitiveType('Function')],
             // TODO: rethink that
-            ["\"2d\"", () => idl.IDLStringType],
-            ["\"auto\"", () => idl.IDLStringType],
+            ["\"2d\"", () => idl.createPrimitiveType('String')],
+            ["\"auto\"", () => idl.createPrimitiveType('String')],
             ["BusinessError", (type) => idl.createReferenceType("BusinessError")],
 
-            ["int32", () => idl.IDLI32Type],
-            ["uint32", () => idl.IDLU32Type],
-            ["int8", () => idl.IDLI8Type],
-            ["uint8", () => idl.IDLU8Type],
-            ["float32", () => idl.IDLF32Type],
-            ["float64", () => idl.IDLF64Type],
-            ["pointer", () => idl.IDLPointerType],
-            ["KPointer", () => idl.IDLPointerType],
-            ["KNativePointer", () => idl.IDLPointerType],
+            ["int32", () => idl.createPrimitiveType('i32')],
+            ["uint32", () => idl.createPrimitiveType('u32')],
+            ["int8", () => idl.createPrimitiveType('i8')],
+            ["uint8", () => idl.createPrimitiveType('u8')],
+            ["float32", () => idl.createPrimitiveType('f32')],
+            ["float64", () => idl.createPrimitiveType('f64')],
+            ["pointer", () => idl.createPrimitiveType('pointer')],
+            ["KPointer", () => idl.createPrimitiveType('pointer')],
+            ["KNativePointer", () => idl.createPrimitiveType('pointer')],
         ])
 
     makeEnumMember(parent: idl.IDLEnum, name: string, value: string): idl.IDLEnumMember {
-        const result = idl.createEnumMember(name, parent, idl.IDLStringType, value)
+        const result = idl.createEnumMember(name, parent, idl.createPrimitiveType('String'), value)
         parent.elements.push(result)
         return result
     }
@@ -379,7 +379,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                     [],
                     undefined,
                     undefined,
-                    [idl.createProperty(`stub`, idl.IDLStringType)],
+                    [idl.createProperty(`stub`, idl.createPrimitiveType('String'))],
                     undefined,
                     undefined,
                     this.collectTypeParameters(node.typeParameters),
@@ -894,20 +894,20 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 }
                 if (!propType) {
                     // Give up search, and let the type be `number`
-                    propType = idl.IDLNumberType
+                    propType = idl.createPrimitiveType('number')
                 }
                 const callbackParams = [idl.createParameter(propName, propType)]
-                const callbackName = generateSyntheticFunctionName(callbackParams, idl.IDLVoidType)
+                const callbackName = generateSyntheticFunctionName(callbackParams, idl.createPrimitiveType('void'))
                 this.addSyntheticType(
                     idl.createCallback(
-                        callbackName, callbackParams, idl.IDLVoidType, {
+                        callbackName, callbackParams, idl.createPrimitiveType('void'), {
                         extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }],
                         fileName
                     }))
                 return idl.createMethod(
                     `_onChangeEvent_${propName}`,
                     [idl.createParameter("callback", idl.createReferenceType(callbackName))],
-                    idl.IDLVoidType
+                    idl.createPrimitiveType('void')
                 )
             })
     }
@@ -1083,7 +1083,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         return idl.createEnumMember(
             name,
             parent,
-            typeof initializer == 'string' ? idl.IDLStringType : idl.IDLNumberType,
+            typeof initializer == 'string' ? idl.createPrimitiveType('String') : idl.createPrimitiveType('number'),
             initializer,
             typeof initializer == 'string' ? undefined : 0,
             {
@@ -1133,11 +1133,11 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         let returnType: idl.IDLType
         let parameters: idl.IDLParameter[]
         if (isAsync) {
-            returnType = idl.IDLVoidType
+            returnType = idl.createPrimitiveType('void')
             parameters = [idl.createParameter("error", idl.createReferenceType("BusinessError"))]
-            if (types[0] != idl.IDLVoidType)
+            if (!idl.isPrimitiveType(types[0], 'void'))
                 parameters.push(idl.createParameter(`result`, types[0]))
-            parameters = types[0] == idl.IDLVoidType ? [] : [{
+            parameters = idl.isPrimitiveType(types[0], 'void') ? [] : [{
                 kind: idl.IDLKind.Parameter,
                 name: `result`,
                 type: types[0],
@@ -1145,8 +1145,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 isOptional: false
             } as idl.IDLParameter]
         } else {
-            returnType = types.length > 1 ? types[1] : idl.IDLVoidType
-            parameters = types[0] === idl.IDLVoidType ? [] : [{
+            returnType = types.length > 1 ? types[1] : idl.createPrimitiveType('void')
+            parameters = idl.isPrimitiveType(types[0], 'void') ? [] : [{
                 kind: idl.IDLKind.Parameter,
                 name: `parameter`,
                 type: types[0],
@@ -1231,38 +1231,38 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     serializeType(type: ts.TypeNode | undefined, nameSuggestion?: NameSuggestion, typeArgs?: ts.NodeArray<ts.TypeNode>): idl.IDLType {
-        if (type == undefined) return idl.IDLUndefinedType // TODO: can we have implicit types in d.ts?
+        if (type == undefined) return idl.createPrimitiveType('undefined') // TODO: can we have implicit types in d.ts?
 
         if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
-            return idl.IDLUndefinedType
+            return idl.createPrimitiveType('undefined')
         }
         if (type.kind == ts.SyntaxKind.NullKeyword) {
-            return idl.IDLUndefinedType
+            return idl.createPrimitiveType('undefined')
         }
         if (type.kind == ts.SyntaxKind.VoidKeyword) {
-            return idl.IDLVoidType
-            // return idl.IDLUndefinedType
+            return idl.createPrimitiveType('void')
+            // return idl.createPrimitiveType('undefined')
         }
         if (type.kind == ts.SyntaxKind.UnknownKeyword) {
-            return idl.IDLUnknownType
+            return idl.createPrimitiveType('unknown')
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
-            return idl.IDLAnyType
+            return idl.createPrimitiveType('any')
         }
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
-            return idl.IDLObjectType
+            return idl.createPrimitiveType('Object')
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            return idl.IDLNumberType
+            return idl.createPrimitiveType('number')
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-            return idl.IDLBooleanType
+            return idl.createPrimitiveType('boolean')
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
-            return idl.IDLStringType
+            return idl.createPrimitiveType('String')
         }
         if (type.kind == ts.SyntaxKind.BigIntKeyword) {
-            return idl.IDLBigintType
+            return idl.createPrimitiveType('bigint')
         }
         if (ts.isUnionTypeNode(type)) {
             return this.serializeUnion(type.getText(), [...type.types], nameSuggestion)
@@ -1325,7 +1325,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         }
         if (ts.isIndexedAccessTypeNode(type)) {
             // TODO: plain wrong.
-            return idl.IDLStringType
+            return idl.createPrimitiveType('String')
         }
         if (ts.isTypeLiteralNode(type)) {
             if (!nameSuggestion)
@@ -1337,26 +1337,26 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (ts.isLiteralTypeNode(type)) {
             const literal = type.literal
             if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
-                return idl.IDLStringType
+                return idl.createPrimitiveType('String')
             }
             // Unary expressions for negative values.
             if (ts.isNumericLiteral(literal) || ts.isPrefixUnaryExpression(literal)) {
-                return idl.IDLNumberType
+                return idl.createPrimitiveType('number')
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
-                return idl.IDLUndefinedType
+                return idl.createPrimitiveType('undefined')
             }
             if (literal.kind == ts.SyntaxKind.FalseKeyword || literal.kind == ts.SyntaxKind.TrueKeyword) {
-                return idl.IDLBooleanType
+                return idl.createPrimitiveType('boolean')
             }
             throw new Error(`Non-representable type: ${asString(type)}: ${type.getText()} ${type.kind}`)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
-            return idl.IDLStringType
+            return idl.createPrimitiveType('String')
         }
         if (ts.isTypeOperatorNode(type)) {
             warn("typeof is not supported properly, return string")
-            return idl.IDLStringType
+            return idl.createPrimitiveType('String')
         }
         if (ts.isTypeQueryNode(type)) {
             if (ts.isIdentifier(type.exprName)) {
@@ -1364,7 +1364,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 return idl.createReferenceType(name, this.mapTypeArgs(type.typeArguments, name))
             }
             warn(`unsupported type query: ${type.getText()}`)
-            return idl.IDLAnyType
+            return idl.createPrimitiveType('any')
         }
         if (ts.isImportTypeNode(type)) {
             return this.serializeImportTypeNode(nameSuggestion, type)
@@ -1428,18 +1428,18 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             warn(`${sourceText} is a union of Promises. This is not supported by the IDL, use only Promise.`)
             return aPromise
         }
-        if (types.find(it => it == idl.IDLAnyType)) {
+        if (types.find(it => idl.isPrimitiveType(it, 'any'))) {
             warn(`${sourceText} is union with 'any', just make it 'any'.`)
-            return idl.IDLAnyType
+            return idl.createPrimitiveType('any')
         }
 
-        if (types.find(it => it === idl.IDLVoidType)) {
+        if (types.find(it => idl.isPrimitiveType(it, 'void'))) {
             warn(`${sourceText} is union with 'void', which is not supported, remove 'void' variant`)
-            types = types.filter(it => it !== idl.IDLVoidType)
+            types = types.filter(it => !idl.isPrimitiveType(it, 'void'))
         }
-        if (types.find(it => it === idl.IDLUndefinedType)) {
+        if (types.find(it => idl.isPrimitiveType(it, 'undefined'))) {
             return idl.createOptionalType(
-                collapseTypes(types.filter(it => it !== idl.IDLUndefinedType))
+                collapseTypes(types.filter(it => !idl.isPrimitiveType(it, 'undefined')))
             )
         }
         return collapseTypes(types, selectedUnionName)
@@ -1452,7 +1452,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (this.isMethodUsedAsCallback(property)) {
             const parameters = property.parameters.map(it => this.serializeParameter(it))
             const retType = this.serializeType(property.type)
-            let name = generateSyntheticFunctionName(parameters, retType, { isAsync: retType !== idl.IDLVoidType })
+            let name = generateSyntheticFunctionName(parameters, retType, { isAsync: !idl.isPrimitiveType(retType, 'void') })
             const fileName = property.getSourceFile().fileName
             const extendedAttributes: idl.IDLExtendedAttribute[] = []
             const funcType = idl.createCallback(name, parameters, retType, { fileName, extendedAttributes })
@@ -1732,8 +1732,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             })
         }
         this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedMethodName, extendedAttributes)
-        const returnType = isCommonMethod ? idl.IDLThisType :
-            method.type ? this.serializeType(method.type, nameSuggestion?.extend('ret')) : idl.IDLVoidType
+        const returnType = isCommonMethod ? idl.createPrimitiveType('this') :
+            method.type ? this.serializeType(method.type, nameSuggestion?.extend('ret')) : idl.createPrimitiveType('void')
         return idl.createMethod(
             escapedMethodName,
             methodParameters.map(it => isCommonMethod
@@ -1801,22 +1801,22 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (declaration.type) return [this.serializeType(declaration.type), value]
         if (value) {
             if (value.startsWith('"') || value.startsWith("'")) {
-                return [idl.IDLStringType, value.replaceAll("'", '"')]
+                return [idl.createPrimitiveType('String'), value.replaceAll("'", '"')]
             }
             if (value.startsWith("0b")) {
-                return [idl.IDLNumberType, parseInt(value.substring(2), 2).toString()]
+                return [idl.createPrimitiveType('number'), parseInt(value.substring(2), 2).toString()]
             }
             if (value.startsWith("0o")) {
-                return [idl.IDLNumberType, parseInt(value.substring(2), 8).toString()]
+                return [idl.createPrimitiveType('number'), parseInt(value.substring(2), 8).toString()]
             }
             if (value.startsWith("0x")) {
-                return [idl.IDLNumberType, parseInt(value.substring(2), 16).toString()]
+                return [idl.createPrimitiveType('number'), parseInt(value.substring(2), 16).toString()]
             }
             if (!isNaN(parseFloat(value))) {
-                return [idl.IDLNumberType, parseFloat(value).toString()]
+                return [idl.createPrimitiveType('number'), parseFloat(value).toString()]
             }
             if (value === "true" || value === "false") {
-                return [idl.IDLBooleanType, value]
+                return [idl.createPrimitiveType('boolean'), value]
             }
         }
         throw new Error(`Cannot infer constant type from value: ${value}`)

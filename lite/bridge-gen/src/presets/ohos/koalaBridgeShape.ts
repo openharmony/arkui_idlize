@@ -14,7 +14,7 @@
  */
 
 import { capitalize } from "@idlizer/core";
-import { IDLType, IDLParameter, IDLMethod, getFQName, IDLInterface, isInterface, createReferenceType, IDLVoidType } from "@idlizer/core/idl";
+import { IDLType, IDLParameter, IDLMethod, getFQName, IDLInterface, isInterface, createReferenceType, isPrimitiveType } from "@idlizer/core/idl";
 import { D, DD, E, FunctionDeclaration, Hs, lw, LWDeclaration, LWExpression, LWKind, LWStatement, Modifier, S, std, T, Ts, Vs } from "@idlizer/ost";
 import { TypeSpecSelector } from "../../generator/generator";
 import { KOALAUI_SERIALIZER_BASE, KOALAUI_DESERIALIZER_BASE, KOALAUI_KRETURN_BUFFER, KOALAUI_KINT32, KOALAUI_KPOINTER, KOALAUI_KUINT8 } from "../../generator/names";
@@ -75,7 +75,7 @@ export function produceKoalaTwinFunction(node: IDLMethod, selector: TypeSpecSele
     const wrappedFunction = DD({ modifiers }).func(
         getFQName(node),
         { implicitThisType: node.parent && isInterface(node.parent) ? Ask.typeName(node.parent) : undefined, parameters },
-        node.returnType === IDLVoidType ? Ts.prim.void : Ask.typeName(node.returnType),
+        isPrimitiveType(node.returnType, 'void') ? Ts.prim.void : Ask.typeName(node.returnType),
         S.block(writeFunctionBody)
     )
 
@@ -114,7 +114,7 @@ export function produceKoalaTwinFunction(node: IDLMethod, selector: TypeSpecSele
         }
     })
 
-    const trivialReturn = node.returnType === IDLVoidType || !!selector.selectConvertor(node.returnType).fromInteropTransferable
+    const trivialReturn = isPrimitiveType(node.returnType, 'void') || !!selector.selectConvertor(node.returnType).fromInteropTransferable
     if (serializerUsed || !trivialReturn) {
         callArgs.push(E.call(E.get(thisSerializer, 'asBuffer'), []))
         receiveParameters.push({ name: 'thisArray', type: T.c(KOALAUI_KPOINTER) })
@@ -135,7 +135,7 @@ export function produceKoalaTwinFunction(node: IDLMethod, selector: TypeSpecSele
     const writeCall = E.call(Ask.interopCall(node, hostFunction), callArgs)
     const apiCall = Ask.apiCall(node, apiCallArgs, apiCallParams, Ask.typeName(node.returnType))
 
-    if (node.returnType !== IDLVoidType) {
+    if (!isPrimitiveType(node.returnType, 'void')) {
         const returnTypeConvertor = selector.selectConvertor(node.returnType)
         if (returnTypeConvertor.fromInteropTransferable) {
             const [hostReturnExpression, interopReturnType] = returnTypeConvertor.fromInteropTransferable.toInteropReturn(apiCall)

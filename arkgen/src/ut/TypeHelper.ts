@@ -72,7 +72,7 @@ export class TypeHelper {
     }
 
     static dummyType(library: PeerLibrary, aceTypes: AceTypes): TypeHelper {
-        return new TypeHelper(library, aceTypes, idl.IDLVoidType, false)
+        return new TypeHelper(library, aceTypes, idl.createPrimitiveType('void'), false)
     }
 
     getIdlDecl() {

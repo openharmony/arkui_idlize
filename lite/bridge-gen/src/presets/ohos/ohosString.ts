@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLPrimitiveType, IDLStringType } from "@idlizer/core/idl"
+import { IDLPrimitiveType, isPrimitiveType } from "@idlizer/core/idl"
 import { InputLibrary } from "../../library"
 import { InteropProducerTypeDescription, makeDeclarationProducer, SelectResult } from "../../generator/builder"
 import { D, E, Hs, S, T, Ts } from "@idlizer/ost"
@@ -34,7 +34,7 @@ export const [ohStringProducer, OHStringSeed] = makeDeclarationProducer(
 
 export const createOHStringProducer = (_: InputLibrary): InteropProducerTypeDescription<IDLPrimitiveType> => {
     return {
-        select: (type) => type === IDLStringType ? SelectResult.take(type as IDLPrimitiveType) : SelectResult.reject(),
+        select: (type) => isPrimitiveType(type, 'String') ? SelectResult.take(type as IDLPrimitiveType) : SelectResult.reject(),
         interopBufferTransferable: () => ({
             symmetric: true,
             toInteropBuffer(arg, buffer) {

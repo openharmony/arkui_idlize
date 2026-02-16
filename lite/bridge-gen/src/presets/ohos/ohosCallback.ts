@@ -14,7 +14,7 @@
  */
 
 import { InteropProducerTypeDescription, makeSingletonProducer, SelectResult } from "../../generator/builder";
-import { getFQName, IDLCallback, IDLI32Type, IDLType, isCallback, isReferenceType } from "@idlizer/core/idl";
+import { getFQName, IDLCallback, createPrimitiveType, IDLType, isCallback, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
 import { Builders, D, E, EnumDeclaration, Hs, LWType, S, T, Ts, Vs } from "@idlizer/ost";
 import { throwDeclarationWasNotFound } from "../../generator/common";
@@ -70,7 +70,7 @@ export const createOhosCallbackProducer = (library: ColoredLibrary): InteropProd
             const generatedDeclName = 'capi.' + getFQName(callback)
             const callbackParams = callback.parameters.map(p => ({ name: p.name, type: Ts.const(Ask.typeName(p.type)) }))
             const callbackParamWrites = callback.parameters.flatMap(p => ctx.library.selector.toReturnBuffer(p.type, E.v(p.name), E.v(argSerializerName)))
-            const asyncParams = [{ name: 'resourceId', type: Ts.const(Ask.typeName(IDLI32Type)) }, ...callbackParams]
+            const asyncParams = [{ name: 'resourceId', type: Ts.const(Ask.typeName(createPrimitiveType('i32'))) }, ...callbackParams]
             const syncParams = [{ name: 'vmContext', type: vmContentSeed.createType({}) }, ...asyncParams]
             const callbackResourceType = callbackResourceSeed.createType({})
             const kindName = `KIND_${callback.name.toUpperCase()}`
@@ -129,7 +129,7 @@ export const createOhosCallbackProducer = (library: ColoredLibrary): InteropProd
                 const callbackName = getFQName(decl).split('.').at(-1)!
                 const kindName = E.v(`KIND_${callbackName.toUpperCase()}`)
                 const callbackParams: [string, LWType][] = decl.parameters.map(p => [p.name, Ask.typeName(p.type)])
-                const asyncParams: [string, LWType][] = [['resourceId', Ask.typeName(IDLI32Type)], ...callbackParams]
+                const asyncParams: [string, LWType][] = [['resourceId', Ask.typeName(createPrimitiveType('i32'))], ...callbackParams]
                 const syncParams: [string, LWType][] = [['vmContext', vmContentSeed.createType({})], ...asyncParams]
                 const name = 'gotCallback'
                 return [[

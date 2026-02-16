@@ -822,7 +822,7 @@ export abstract class LanguageWriter {
         return `(${value.asString()} as ${this.getNodeName(type)})`
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
-        this.writeStatement(this.makeAssign(valueType, idl.IDLI32Type,
+        this.writeStatement(this.makeAssign(valueType, idl.createPrimitiveType('i32'),
             this.makeFunctionCall("runtimeType", [this.makeString(value)]), false))
     }
 

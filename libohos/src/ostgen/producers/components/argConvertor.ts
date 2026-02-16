@@ -21,22 +21,33 @@ import { OhosProducerContext } from "../../engine"
 import { monoName } from "../../postprocess/postprocess"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
-    switch (type) {
-        case idl.IDLBooleanType: return 'Boolean'
-        case idl.IDLBufferType: return 'Buffer'
-        case idl.IDLI8Type: return 'Int8'
-        case idl.IDLI32Type: return 'Int32'
-        case idl.IDLI64Type: return 'Int64'
-        case idl.IDLF32Type: return 'Float32'
-        case idl.IDLF64Type: return 'Float64'
-        case idl.IDLNumberType: return 'Number'
-        case idl.IDLPointerType: return 'Pointer'
-        case idl.IDLSerializerBuffer: return 'Buffer'
-        case idl.IDLStringType: return 'String'
-        case idl.IDLU8Type: return 'Int8'
-        case idl.IDLU32Type: return 'Int32'
-        case idl.IDLU64Type: return 'Int64'
-        default: throw new Error(`Can not convert "${idl.DebugUtils.debugPrintType(type)}"`)
+    switch (type.name) {
+        case 'boolean':
+            return 'Boolean'
+        case 'buffer':
+        case 'SerializerBuffer':
+            return 'Buffer'
+        case 'i8':
+        case 'u8':
+            return 'Int8'
+        case 'i32':
+        case 'u32':
+            return 'Int32'
+        case 'i64':
+        case 'u64':
+            return 'Int64'
+        case 'f32':
+            return 'Float32'
+        case 'f64':
+            return 'Float64'
+        case 'number':
+            return 'Number'
+        case 'pointer':
+            return 'Pointer'
+        case 'String':
+            return 'String'
+        default:
+            throw new Error(`Can not convert "${idl.DebugUtils.debugPrintType(type)}"`)
     }
 }
 function selectWriteName(type:idl.IDLPrimitiveType): string {
@@ -103,32 +114,34 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
 
 class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
     interopType(native: boolean): lw.LWType {
-        switch (this.type) {
-            case idl.IDLBufferType:
+        switch (this.type.name) {
+            case 'buffer':
                 return Ts.prim.interopReturnBuffer
-            case idl.IDLNumberType:
+            case 'number':
                 return Ts.prim.interopNumber
-            case idl.IDLStringType:
+            case 'String':
                 return native ? Ts.const(Ts.ref(Ts.prim.interopString)) : Ts.prim.interopString
-            case idl.IDLVoidType:
+            case 'void':
                 return Ts.prim.void
             default:
                 return this.convertType(this.type, native)
         }
     }
     isPointer(): boolean {
-        return this.type === idl.IDLNumberType || this.type === idl.IDLStringType
+        return idl.isPrimitiveType(this.type, 'number') || idl.isPrimitiveType(this.type, 'String')
     }
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
-        switch (this.type) {
-            case idl.IDLBufferType:
+        switch (this.type.name) {
+            case 'buffer':
                 return [Builders.return().call('readBuffer')
                     .receiver().ctor('DeserializerBase')
                         .arg(resultVarName)
                         .arg().access('length').receiver(resultVarName).$().$().$().$()
-                    .$().$()]
-            case idl.IDLVoidType: return []
-            default: return super.returnFromInterop(resultVarName, native)
+                    .$().$()];
+            case 'void':
+                return [];
+            default:
+                return super.returnFromInterop(resultVarName, native);
         }
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
@@ -140,7 +153,7 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
 
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         let expr = Builders.expr().call(selectReadName(this.type)).receiver(serializerName).$().$()
-        if (!native && this.type === idl.IDLNumberType) // ugh
+        if (!native && idl.isPrimitiveType(this.type, 'number')) // ugh
             expr = Builders.cast(Ts.prim.number).value(expr).$()
         return [
             [Builders.decl(name).value(expr).$()],

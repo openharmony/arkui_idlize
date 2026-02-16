@@ -48,7 +48,7 @@ class SerializerPrinter {
 
     private generateInterfaceSerializeSignature(target: idl.IDLInterface): Method {
         return new Method(`write`,
-            new NamedMethodSignature(idl.IDLVoidType,
+            new NamedMethodSignature(idl.createPrimitiveType('void'),
                 [idl.createReferenceType('idlize.internal.SerializerBase'), idl.createReferenceType(target)],
                 [this.serializerArgName, "value"],
                 undefined,
@@ -64,7 +64,7 @@ class SerializerPrinter {
 
     private generateInterfaceSerializer(writer: LanguageWriter, imports:ImportsCollector, target: idl.IDLInterface) {
         const signature = new Method(`write`,
-            new NamedMethodSignature(idl.IDLVoidType,
+            new NamedMethodSignature(idl.createPrimitiveType('void'),
                 [idl.createReferenceType('idlize.internal.SerializerBase'), idl.createReferenceType(target)],
                 [this.serializerArgName, "value"],
                 undefined,
@@ -249,7 +249,7 @@ class SerializerPrinter {
     private generateMaterializedBodyDeserializer(writer:LanguageWriter, target: idl.IDLInterface) {
         this.declareDeserializer(writer)
         writer.writeStatement(
-            writer.makeAssign(`ptr`, idl.IDLPointerType,
+            writer.makeAssign(`ptr`, idl.createPrimitiveType('pointer'),
                 writer.makeMethodCall(`valueDeserializer`, `readPointer`, []), true, false))
         if (writer.language === Language.CPP) {
             writer.writeStatement(

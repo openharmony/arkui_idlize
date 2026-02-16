@@ -400,7 +400,7 @@ function hasTypeParameterTypeChild(node: idl.IDLNode): boolean {
 }
 
 function isMeaninglessFieldType(type: idl.IDLType): boolean {
-    return type === idl.IDLVoidType || type === idl.IDLUndefinedType ||
+    return idl.isVoidType(type) || idl.isUndefinedType(type) ||
         idl.isUnionType(type) && type.types.every(isMeaninglessFieldType) ||
         idl.isOptionalType(type) && isMeaninglessFieldType(type.type)
 }

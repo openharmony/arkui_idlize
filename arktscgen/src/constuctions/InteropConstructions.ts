@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { capitalize, createReferenceType, IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlizer/core"
+import { capitalize, createPrimitiveType, createReferenceType, IDLPrimitiveType } from "@idlizer/core"
 import { isCreateOrUpdate, splitCreateOrUpdate } from "../general/common"
 
 export class InteropConstructions {
@@ -27,11 +27,11 @@ export class InteropConstructions {
     }
 
     static get sequencePointerType(): IDLPrimitiveType {
-        return IDLPointerType
+        return createPrimitiveType('pointer')
     }
 
     static get sequenceLengthType(): IDLPrimitiveType {
-        return IDLU32Type
+        return createPrimitiveType('u32')
     }
 
     static sequenceParameterPointer(parameter: string): string {

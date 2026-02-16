@@ -15,16 +15,14 @@
 
 import {
     createParameter,
+    createPrimitiveType,
     createReferenceType,
     FieldModifier,
     IDLInterface,
     IDLMethod,
     IDLParameter,
-    IDLPointerType,
     IDLReferenceType,
     IDLType,
-    IDLUndefinedType,
-    IDLVoidType,
     isInterface,
     isParameter,
     isReferenceType,
@@ -109,7 +107,7 @@ export class PeerPrinter {
 
     private printConstructor(iface: IDLInterface, writer: TSLanguageWriter): void {
         const isAstNodeDescendant = this.typechecker.isHeir(iface, Config.astNodeCommonAncestor)
-        const args: IDLType[] = [IDLPointerType]
+        const args: IDLType[] = [createPrimitiveType('pointer')]
         const argNames: string[] = [PeersConstructions.pointerParameter]
 
         if (isAstNodeDescendant) {
@@ -120,7 +118,7 @@ export class PeerPrinter {
         writer.writeConstructorImplementation(
             iface.name,
             new MethodSignature(
-                IDLVoidType,
+                createPrimitiveType('void'),
                 args,
                 undefined,
                 undefined,
@@ -301,7 +299,7 @@ export class PeerPrinter {
 
     private makePeerBindingCall(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): LanguageExpression {
         const params = node.parameters.slice(0)
-        params.splice(1, 0, createParameter(PeersConstructions.pointerUsage, IDLPointerType))
+        params.splice(1, 0, createParameter(PeersConstructions.pointerUsage, createPrimitiveType('pointer')))
         return writer.makeFunctionCall(
             PeersConstructions.callBinding(iface.name, node.name),
             this.makeBindingArguments(params, writer)
@@ -349,7 +347,7 @@ export class PeerPrinter {
     }
 
     private makeNativeObjectFactory(type: IDLReferenceType, writer: TSLanguageWriter): LanguageExpression {
-        const args = [{ name: 'peer', type: IDLPointerType }];
+        const args = [{ name: 'peer', type: createPrimitiveType('pointer') }];
         const stmts = [
             writer.makeReturn(
                 writer.makeNewObject(
@@ -474,7 +472,7 @@ export class PeerPrinter {
     private printBrand(iface: IDLInterface, writer: TSLanguageWriter): void {
         writer.writeProperty(
             PeersConstructions.brand(iface.name),
-            IDLUndefinedType,
+            createPrimitiveType('undefined'),
             [FieldModifier.PROTECTED, FieldModifier.READONLY]
         )
     }

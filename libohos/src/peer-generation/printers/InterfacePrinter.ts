@@ -218,10 +218,10 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         }
         let returnType: idl.IDLType
         if (methods.every(m => idl.isVoidType(m.returnType))) {
-            returnType = idl.IDLVoidType
+            returnType = idl.createPrimitiveType('void')
         } else {
             returnType = collapseTypes(methods.map(m =>
-                idl.isVoidType(m.returnType) ? idl.IDLUndefinedType : m.returnType
+                idl.isVoidType(m.returnType) ? idl.createPrimitiveType('undefined') : m.returnType
             ))
         }
         return idl.createMethod(
@@ -509,7 +509,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             ? this.peerLibrary.useMemoM3 ? `\n@memo\n` : `\n/** @memo */\n`
             : ``
         const paramsType = this.printParameters(parameters)
-        const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
+        const retType = this.convertType(returnType !== undefined ? returnType : idl.createPrimitiveType('void'))
         const typeParametersDefaults = idl.getExtAttributeTypesValue(node, idl.IDLExtendedAttributes.TypeParametersDefaults)
         return [`export type ${node.name}${this.printTypeParameters(node.typeParameters, typeParametersDefaults)} = ${this.printAnnotations(node)}${maybeMemo}(${paramsType}) => ${retType};`]
     }
@@ -541,7 +541,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                         }
                     }
                     let property = idl.createProperty("",
-                        it.isOptional ? idl.createUnionType([...types, idl.IDLUndefinedType]) : it.type,
+                        it.isOptional ? idl.createUnionType([...types, idl.createPrimitiveType('undefined')]) : it.type,
                         it.isReadonly,
                         it.isStatic,
                         false)
@@ -1004,7 +1004,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         parameters: idl.IDLParameter[],
         returnType: idl.IDLType | undefined): string {
         const paramsType = this.printParameters(parameters)
-        const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
+        const retType = this.convertType(returnType !== undefined ? returnType : idl.createPrimitiveType('void'))
         return `public type ${node.name} = (${paramsType}) -> ${retType}`
     }
     protected printParameters(parameters: idl.IDLParameter[]): string {
@@ -1032,7 +1032,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         
         const members = type.types.map(it => it)
         writer.writeClass(name, () => {
-            const intType = idl.IDLI32Type
+            const intType = idl.createPrimitiveType('i32')
             const selector = 'selector'
             writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
             writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
@@ -1050,7 +1050,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
 
                 writer.writeConstructorImplementation(
                     'init',
-                    new NamedMethodSignature(idl.IDLVoidType, [memberType], [param]),
+                    new NamedMethodSignature(idl.createPrimitiveType('void'), [memberType], [param]),
                     () => {
                         writer.writeStatement(
                             writer.makeAssign(memberName, undefined, writer.makeString(param), false)
@@ -1088,7 +1088,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                 writer.writeFieldDeclaration(memberNames[i], members[i], [FieldModifier.PUBLIC], idl.isOptionalType(members[i]) ?? false)
             }
 
-            const signature = new MethodSignature(idl.IDLVoidType, members)
+            const signature = new MethodSignature(idl.createPrimitiveType('void'), members)
             writer.writeConstructorImplementation(type.name, signature, () => {
                 for (let i = 0; i < memberNames.length; i++) {
                     writer.writeStatement(
@@ -1162,7 +1162,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                 writer.writeProperty(it.name, idl.maybeOptional(it.type, it.isOptional), modifiers, { method: new Method(it.name, new NamedMethodSignature(it.type, [it.type], [it.name])) })
             })
             writer.writeConstructorImplementation(`${FQInterfaceName}`,
-                new NamedMethodSignature(idl.IDLVoidType,
+                new NamedMethodSignature(idl.createPrimitiveType('void'),
                     ownProperties.concat(parentProperties).map(it => idl.maybeOptional(it.type, it.isOptional)),
                     ownProperties.concat(parentProperties).map(it => writer.escapeKeyword(it.name))), () => {
                         for (let i of ownProperties.concat(parentProperties)) {
@@ -1418,7 +1418,7 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         const name = this.convertType(type)
         const members = type.types.map(it => it)
         writer.writeClass(name, () => {
-            const intType = idl.IDLI32Type
+            const intType = idl.createPrimitiveType('i32')
             const selector = 'selector'
             writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
             writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
@@ -1436,7 +1436,7 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
 
                 writer.writeConstructorImplementation(
                     'constructor',
-                    new NamedMethodSignature(idl.IDLVoidType, [memberType], [param]),
+                    new NamedMethodSignature(idl.createPrimitiveType('void'), [memberType], [param]),
                     () => {
                         writer.writeStatement(
                             writer.makeAssign(memberName, undefined, writer.makeString(param), false)
@@ -1571,7 +1571,7 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         returnType: idl.IDLType | undefined
     ): stringOrNone[] {
         const paramsType = this.printParameters(parameters)
-        const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
+        const retType = this.convertType(returnType !== undefined ? returnType : idl.createPrimitiveType('void'))
         return [`public typealias ${node.name}${this.printTypeParameters(node.typeParameters)} = (${paramsType}) -> ${retType}`]
     }
 

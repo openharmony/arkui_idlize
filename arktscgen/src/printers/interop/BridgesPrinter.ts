@@ -27,7 +27,7 @@ import {
     PrimitiveType,
     PrimitiveTypeList
 } from "@idlizer/core"
-import { createReferenceType, IDLFile, IDLInterface, IDLType, IDLVoidType } from "@idlizer/core/idl"
+import { createReferenceType, IDLFile, IDLInterface, IDLType } from "@idlizer/core/idl"
 import { BridgesConstructions } from "../../constuctions/BridgesConstructions"
 import { InteropPrinter } from "./InteropPrinter"
 import { isSequence, isString, makeSignature, makeStatement, nodeNamespace } from "../../utils/idl"
