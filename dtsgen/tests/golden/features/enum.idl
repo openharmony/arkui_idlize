@@ -1,11 +1,11 @@
 package enum;
-dictionary EnumWithoutInitializers {
+enum EnumWithoutInitializers {
     [OriginalEnumMemberName=Value1]
     number VALUE_1 = 0;
     [OriginalEnumMemberName=Value2]
     number VALUE_2 = 1;
 };
-dictionary NumberEnum {
+enum NumberEnum {
     [OriginalEnumMemberName=Value1]
     number VALUE_1 = 0;
     [OriginalEnumMemberName=Value2]
@@ -19,7 +19,7 @@ dictionary NumberEnum {
     [OriginalEnumMemberName=Value6]
     number VALUE_6 = 13;
 };
-dictionary StringEnum {
+enum StringEnum {
     [OriginalEnumMemberName=Value1]
     String VALUE_1 = "one";
     [OriginalEnumMemberName=Value2]
@@ -28,7 +28,7 @@ dictionary StringEnum {
     String VALUE_3 = "three";
 };
 namespace ns {
-    dictionary EnumInNamespace {
+    enum EnumInNamespace {
         [OriginalEnumMemberName=Value1]
         String VALUE_1 = "one";
         [OriginalEnumMemberName=Value2]

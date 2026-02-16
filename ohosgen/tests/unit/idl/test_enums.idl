@@ -1,6 +1,6 @@
 package test_enums;
 namespace test_enums {
-    dictionary MyEnum {
+    enum MyEnum {
         number A = 0;
         number B = 1;
         number C = 2;

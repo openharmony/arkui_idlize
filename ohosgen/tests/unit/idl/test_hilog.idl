@@ -10,7 +10,7 @@ namespace hilog {
     void fatal(number domain, String tag, String format, sequence<ArgType> args);
     boolean isLoggable(number domain, String tag, LogLevel level);
     void setMinLogLevel(LogLevel level);
-    dictionary LogLevel {
+    enum LogLevel {
         number DEBUG = 3;
         number INFO = 4;
         number WARN = 5;

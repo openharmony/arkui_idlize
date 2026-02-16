@@ -1,6 +1,6 @@
 package test_union;
 
-dictionary UnionSampleEnum {
+enum UnionSampleEnum {
     number A = 0;
     number B = 1;
     number C = 10;

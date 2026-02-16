@@ -7,6 +7,6 @@ interface MyClassToDelete {
 };
 typedef MyTypedefToDelete = number;
 void MyFunctionToDelete();
-dictionary MyEnumToDelete {
+enum MyEnumToDelete {
     number VALUE = 0;
 };
