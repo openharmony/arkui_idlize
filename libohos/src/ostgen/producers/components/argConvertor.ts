@@ -15,8 +15,8 @@
 
 import * as idl from "@idlizer/core/idl"
 import { isMaterialized } from "@idlizer/core"
-import { Builders, E, Hs, LWExpression, LWStatement, LWType, lw, Op, S, std, T, Ts, Vs } from "@idlizer/ost"
-import { cApiName, expectExpr, expectType, managedName, typeNameExpr } from "../common.js"
+import { Builders, E, Hs, LWExpression, LWStatement, LWType, lw, Op, std, T, Ts } from "@idlizer/ost"
+import { cApiName, expectExpr, expectType, typeNameExpr } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
 import { monoName } from "../../postprocess/postprocess.js"
 
@@ -24,8 +24,10 @@ function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
         case 'any': return '///any'
         case 'boolean': return 'Boolean'
+        case 'bigint': return '///BigInt'
         case 'buffer':
         case 'SerializerBuffer': return 'Buffer'
+        case 'date': return 'Int64'///?
         case 'i8':
         case 'u8': return 'Int8'
         case 'i32':
@@ -35,7 +37,7 @@ function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
         case 'f32': return 'Float32'
         case 'f64': return 'Float64'
         case 'number': return 'Number'
-        case 'Object': return '///Object'
+        case 'Object': return 'Object'
         case 'pointer': return 'Pointer'
         case 'String': return 'String'
         default: throw new Error(`Missing primitive convertor for "${idl.DebugUtils.debugPrintTrace(type)}"`)
