@@ -46,4 +46,4 @@ gn:
   script:
     - !reference [.npm, script]
     - gn gen out/dir
-    - ninja -C out/dir :all
+    - ninja -C out/dir -j 20 :all

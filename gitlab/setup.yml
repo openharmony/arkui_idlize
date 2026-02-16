@@ -1,11 +1,6 @@
 include:
     - gitlab/npm.yml
 
-.panda:
-    script:
-    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
-    - npm ls @panda/sdk --prefix ./external/incremental/tools/panda
-
 build idlize:
     stage: build
     tags:
@@ -15,8 +10,8 @@ build idlize:
     # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
     script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
-    - node tools/compile-parallel.mjs
+    - gn gen out/dir
+    - ninja -C out/dir -j 20 arkgen:compile arktscgen:compile core:compile ost:compile kit:compile libohos:compile idlinter:compile dtsgen:compile etsgen:compile ohosgen:compile runner:compile
     cache:
     -   key: $CI_PIPELINE_ID
         policy: pull-push
@@ -40,62 +35,3 @@ build idlize:
         - ohosgen/build
         - ohosgen/lib
         - runner/lib
-
-
-build external:
-    stage: build
-    tags:
-    - idlize-ci
-    - koala-ci
-    before_script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-    # - npm i --prefix external/ui2abc/annotate --prefer-offline --no-audit --no-fund
-    # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
-    # - npm i --prefix external/interop --prefer-offline --no-audit --no-fund
-    script:
-    - npm run compile --prefix external/common
-    - npm run compile --prefix external/compat
-    - npm run compile --prefix external/interop
-    - npm run compile --prefix external/smart-arkts
-    - npm run compile --prefix external/fast-arktsc
-    - npm run compile -C external/libarkts
-    - npm run build:all -C external/ui2abc
-    - npm run compile --prefix external/incremental/runtime
-    - npm run build --prefix external/interop
-    - npm run build --prefix external/incremental
-    artifacts:
-        paths:
-        - external/libarkts/lib
-        - external/libarkts/build
-        - external/ui2abc/annotate/lib
-        - external/ui2abc/memo-plugin-ng/lib
-        - external/ui2abc/ui-plugins-ng/lib
-        - external/common/build
-        - external/compat/build
-        - external/smart-arkts/lib
-        - external/fast-arktsc/lib
-        - external/incremental/runtime/build/lib
-        - external/incremental/runtime/build/incremental.abc
-        - external/incremental/runtime/ets
-        - external/incremental/runtime/ets-test
-        - external/interop/build/lib
-        - external/interop/build/interop.abc
-        # need these symlinks for require in es2panda.js to work
-        - external/ui2abc/node_modules/@koalaui/memo-plugin-ng
-        - external/ui2abc/node_modules/@koalaui/ui-plugins-ng
-        expire_in: 1 day
-
-download external sdk:
-    stage: build
-    tags:
-    - idlize-ci
-    - koala-ci
-    script:
-    - !reference [.npm, script]
-    - npm run -C external sdk:all
-    artifacts:
-        paths:
-        - external/sdk-prepared
-        - external/absolute-sdk-patched
-        expire_in: 1 day

@@ -7,7 +7,6 @@ etsgen golden:
   - build idlize
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/etsgen
   script:
     - npm test

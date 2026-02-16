@@ -5,11 +5,12 @@
     - koala-ci
   needs:
     - build idlize
-    - build external
-    - download external sdk
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
+    - npm i -C external --prefer-offline --no-audit --no-fund
+    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
+    - npm run sdk:all -C external
+    - npm run build:all -C external/ui2abc
   script:
     # Bundle idlizer
     - npm run bundle:idlizer --prefix external/arkoala-arkts/tools/idlizer-bundler
@@ -29,7 +30,6 @@ arkgen ArkTS unit:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
   script:
     - npm run -C arkgen/tests-template/arkts build
     - npm run -C arkgen/tests/unit init:arkts
@@ -47,7 +47,7 @@ arkgen Kotlin unit:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
+    - npm i -C external/tools --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen/tests/unit init:kt
     - npm run -C arkgen/tests/unit gen:kt
@@ -57,7 +57,6 @@ arkgen Kotlin unit:
     - npm run -C arkgen/tests/unit exec:kt
   needs:
     - build idlize
-    - build external
 
 arkgen golden unit CAPI:
   stage: test
@@ -80,7 +79,6 @@ pg cj:run:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
     - LD_LIBRARY_PATH=LD_LIBRARY_PATH=$CANGJIE_HOME/runtime/lib/linux_x86_64_llvm:$CANGJIE_HOME/tools/lib:$LD_LIBRARY_PATH npm run all:subset:cj
@@ -92,7 +90,7 @@ arkgen Kotlin subset:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
+    - npm i -C external/tools --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:subset:kt
     - npm run -C arkgen gen:kt:subset
