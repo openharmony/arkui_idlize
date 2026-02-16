@@ -16,7 +16,7 @@
 import { IndentedPrinter } from "../IndentedPrinter.js"
 import { stringOrNone } from "../util.js"
 import { IDLNullTypeName } from "./builders.js"
-import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute, isFile, isType, isProperty, isParameter, isCallback, isEnum, isTypedef } from "./discriminators.js"
+import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute, isFile, isType, isProperty, isParameter, isCallback, isEnum, isTypedef, isConstructor, isMethod } from "./discriminators.js"
 import { IDLKeywords } from "./keywords.js"
 import { IDLType, IDLInterface, IDLExtendedAttributes, IDLKind, IDLParameter, IDLConstructor, IDLVariable, IDLConstant, IDLProperty, IDLNode, IDLSignature, IDLTypedef, IDLReferenceType, IDLExtendedAttribute, IDLFunction, IDLMethod, IDLFile, IDLImport, IDLNamespace, IDLCallback, IDLEntry, IDLEnumMember, IDLEnum, IDLPrimitiveType } from "./node.js"
 
@@ -410,6 +410,10 @@ export const DebugUtils = {
                 result.push('property ' + node.name)
             if (isParameter(node))
                 result.push('parameter ' + node.name)
+            if (isConstructor(node))
+                result.push('constructor ' + node.name)
+            if (isMethod(node))
+                result.push('method ' + node.name)
             if (isInterface(node))
                 result.push('interface ' + node.name)
             if (isCallback(node))

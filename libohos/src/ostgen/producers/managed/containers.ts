@@ -35,6 +35,6 @@ export const containerProducer = createProducer(
         declarations: []
       }
     }
-    throw new Error(`Unknown type "${idl.DebugUtils.debugPrintType(type)}"`)
+    throw new Error(`Unknown type "${idl.DebugUtils.debugPrintTrace(type)}"`)
   }
 )

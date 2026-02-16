@@ -38,7 +38,7 @@ function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
         case 'Object': return '///Object'
         case 'pointer': return 'Pointer'
         case 'String': return 'String'
-        default: throw new Error(`Missing primitive convertor for "${idl.DebugUtils.debugPrintType(type)}"`)
+        default: throw new Error(`Missing primitive convertor for "${idl.DebugUtils.debugPrintTrace(type)}"`)
     }
 }
 function selectWriteName(type:idl.IDLPrimitiveType): string {
@@ -112,7 +112,7 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
                 return new CallbackConvertor(ctx, type, resolved)
         }
     }
-    throw new Error(`Missing convertor for "${idl.DebugUtils.debugPrintType(type)}"`)
+    throw new Error(`Missing convertor for "${idl.DebugUtils.debugPrintTrace(type)}"`)
 }
 
 class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
