@@ -50,11 +50,10 @@ extern "C" [[noreturn]] void InteropLogFatal(const char* format, ...);
 #endif
 void InteropLogFatal(const char* format, ...);
 
-/* Ensure macro forms a single statement */
-#define INTEROP_FATAL(msg, ...)            \
-    InteropLogFatal((msg), ##__VA_ARGS__); \
-    while (0) {                            \
-    }
+#define INTEROP_FATAL(msg, ...)                \
+    do {                                       \
+        InteropLogFatal((msg), ##__VA_ARGS__); \
+    } while (0);
 
 typedef enum InteropTag {
     INTEROP_TAG_UNDEFINED = 101,
