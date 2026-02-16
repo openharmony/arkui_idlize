@@ -18,7 +18,10 @@ import("./gn/import/node.gni")
 group("all") {
     deps = [
         "arkgen:all",
+        "arktscgen:all",
         "ohosgen:all",
+        "ost:all",
+        "kit:all",
         "runner:all",
         "core:all",
         "libohos:all",
