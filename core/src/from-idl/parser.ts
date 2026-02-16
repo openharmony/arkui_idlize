@@ -21,6 +21,7 @@ import { capitalize } from "../util"
 
 const DeprecatedTypeArguments = new DiagnosticMessageGroup("warning", "DeprecatedTypeArguments", "TypeArguments is deprecated", "TypeArguments extended attribute is deprecated")
 const DeprecatedTypeParameters = new DiagnosticMessageGroup("warning", "DeprecatedTypeParameters", "TypeParameters is deprecated", "TypeParameters extended attribute is deprecated")
+const DeprecatedDictionaryKeyword = new DiagnosticMessageGroup("warning", "DeprecatedDictionaryKeyword", "Dictionary is deprecated.", "Dictionary keyword is deprecated.")
 const DeprecatedTypedefSyntax = new DiagnosticMessageGroup("warning", "DeprecatedTypedefSyntax", "C-Style typedef syntax is deprecated", "C-Style typedef syntax is deprecated")
 const DuplicateModifier = new DiagnosticMessageGroup("error", "DuplicateModifier", "Duplicate modifier", "Duplicate of")
 const NotApplicableModifier = new DiagnosticMessageGroup("error", "NotApplicableModifier", "Not applicable modifier")
@@ -891,6 +892,7 @@ export class Parser {
     }
 
     parseDictionary(): idl.IDLEnum {
+        DeprecatedDictionaryKeyword.reportDiagnosticMessage([this.curLocation], 'Dictionary keyword is deprecated, use enum keyword.')
         return this.parseEnumOrDictionary("dictionary")
     }
 
