@@ -1,0 +1,1 @@
+callback Callback_T_Void = void (T data)

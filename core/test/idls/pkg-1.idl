@@ -1,0 +1,3 @@
+package test_pkg;
+
+interface Empty {};

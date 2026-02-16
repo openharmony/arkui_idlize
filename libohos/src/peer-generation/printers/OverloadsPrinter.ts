@@ -15,18 +15,16 @@
 
 import * as idl from '@idlizer/core/idl'
 import {
-    ExpressionStatement,
     LanguageExpression,
     Method,
     MethodModifier,
-    NamedMethodSignature,
-    StringExpression
+    NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, getHookMethod, PeerMethodSignature, PeerClass, MaterializedClass } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, PeerMethodSignature } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
-import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
-import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
-import { peerGeneratorConfiguration } from '../../DefaultConfiguration';
+import { UndefinedConvertor } from "@idlizer/core"
+import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
+import { getHookMethod, peerGeneratorConfiguration } from '../../DefaultConfiguration';
 import { injectPatch } from '../common';
 
 function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
@@ -168,7 +166,6 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
 export function allowsOverloads(language: Language): boolean {
     switch (language) {
         case Language.TS:
-        case Language.CJ:
             return false
         default:
             return true
@@ -311,23 +308,21 @@ export class OverloadsPrinter {
         const key = peer + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
-            if (this.isComponent) {
-                writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
-                this.printer.pushIndent()
-            }
-            const hookMethod = getHookMethod(peer, collapsedMethod.name)
+            const hookParentName = this.isComponent ? peer : methods[0].originalParentName
+            const hookMethod = getHookMethod(hookParentName, collapsedMethod.name)
             if (hookMethod) {
+                writer.addFeature(hookMethod.hookName, this.library.layout.handwrittenPackage())
                 this.printHookedMethodBody(peer, collapsedMethod, hookMethod.hookName, writer)
-                if (!hookMethod.replaceImplementation) {
+                if (hookMethod.replaceImplementation) {
+                    if (this.isComponent && collapsedMethod.signature.returnType == idl.IDLThisType) {
+                        this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
+                    }
+                }
+                else {
                     this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
                 }
             } else {
                 this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
-            }
-            if (this.isComponent) {
-                this.printer.popIndent()
-                this.printer.print(`}`)
-                this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
     }
@@ -348,8 +343,8 @@ export class OverloadsPrinter {
         if (methods.length > 1) {
             const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
                 const argName = collapsedMethod.signature.argName(argIndex)
-                this.printer.language == Language.JAVA ?
-                    this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
+                this.printer.language == Language.CJ ? 
+                    undefined :
                     this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
                 return new UnionRuntimeTypeChecker(
                     methods.map(m => m.argConvertors(this.library)[argIndex] ?? OverloadsPrinter.undefinedConvertor))
@@ -383,7 +378,7 @@ export class OverloadsPrinter {
                         isNeedDiscriminator = resolved !== undefined && idl.isEnum(resolved)
                     }
                     if (isNeedDiscriminator) {
-                        argsConditions.push(runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
+                        argsConditions.push(runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer, this.library))
                     }
                 }
             )
@@ -412,10 +407,7 @@ export class OverloadsPrinter {
                 }
             } else if (this.printer.language == Language.KOTLIN) {
                 this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
-            } else if (this.printer.language == Language.JAVA) {
-                this.printer.print(`final ${this.printer.getNodeName(castedType)} ${castedArgName} = (${this.printer.getNodeName(castedType)})${argName};`)
-            }
-            else {
+            } else {
                 this.printer.print(`const ${castedArgName} = ${this.printer.escapeKeyword(argName)} as (${this.printer.getNodeName(castedType)})`)
             }
             return castedArgName
@@ -437,7 +429,7 @@ export class OverloadsPrinter {
             } else {
                 this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
             }
-            if (collapsedMethod.name.startsWith('set') && collapsedMethod.name.endsWith('Options')) {
+            if (peerMethod.isCallSignature) {
                 this.printer.print(`this.applyOptionsFinish('${peer}');`)
             }
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
@@ -461,11 +453,17 @@ export class OverloadsPrinter {
             this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeUndefined()))
         } else {
-            this.printer.writeStatement(
-                this.printer.makeReturn(
-                    this.printer.makeMethodCall(receiver, methodName,
-                        argsNames.map(it => this.printer.makeString(it)))
-                ))
+            const methodCall = this.printer.makeMethodCall(receiver, methodName, argsNames.map(it => this.printer.makeString(it)))
+            const retType = peerMethod.returnType
+            if (idl.isTypeParameterType(retType)) {
+                console.log(`Class: ${peer}, method: ${peerMethod.method.name} has type parameter return value: ${retType.name}`)
+                this.printer.writeExpressionStatement(methodCall)
+                const retExpr = this.printer.makeCast(this.printer.makeThis(), retType, { unsafe: this.language == Language.TS })
+                this.printer.writeStatement(this.printer.makeReturn(retExpr ))
+            } else {
+                this.printer.writeStatement(
+                    this.printer.makeReturn(methodCall))
+            }
         }
     }
 }

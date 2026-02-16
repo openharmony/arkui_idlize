@@ -14,9 +14,9 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { NodeConvertor, convertNode, convertType, maybeRestoreGenerics } from "@idlizer/core"
+import { NodeConvertor, convertNode, convertType, getSyntheticTypesFileName, maybeRestoreGenerics } from "@idlizer/core"
 import { LibraryInterface, PeerLibrary } from '@idlizer/core'
-import { Language, getInternalClassName, isMaterialized } from '@idlizer/core'
+import { Language } from '@idlizer/core'
 
 export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
     constructor(protected readonly library: LibraryInterface) {}
@@ -38,9 +38,13 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
         const maybeDecl = this.library.resolveTypeReference(type)
         return maybeDecl ? [maybeDecl] : []
     }
+    private preventRecursive = new Set<idl.IDLEntry>()
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (!decl) return []
+        if (this.preventRecursive.has(decl))
+            return []
+        this.preventRecursive.add(decl)
         const result: idl.IDLEntry[] = idl.isEnumMember(decl) ? [decl.parent] : [decl]
         if (type.typeArguments) {
             result.push(...type.typeArguments.flatMap(it => convertType(this, it)))
@@ -54,6 +58,7 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
         if (idl.isInterface(decl) && [idl.IDLInterfaceSubkind.AnonymousInterface, idl.IDLInterfaceSubkind.Tuple].includes(decl.subkind)) {
             result.push(...this.convert(decl))
         }
+        this.preventRecursive.delete(decl)
         return result
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLEntry[] {
@@ -89,7 +94,8 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
         return []
     }
     convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
-        return this.convert(decl.type)
+        const entries = this.convert(decl.type)
+        return entries
     }
     convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {
         return [
@@ -184,15 +190,25 @@ class CJDependenciesCollector extends DependenciesCollector {
     }
 }
 
-class JavaDependenciesCollector extends DependenciesCollector {
-    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
-        return []
-    }
-}
+export class KotlinDependenciesCollector extends DependenciesCollector {
 
-class KotlinDependenciesCollector extends DependenciesCollector {
-    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
-        return []
+    constructor(library: PeerLibrary, private unionsToInterfaces: boolean = true) {
+        super(library)
+    }
+    convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
+        if (this.unionsToInterfaces) {
+            const unionEntry = this.synthesizeUnionEntry(type)
+            return [unionEntry]
+        }
+        return super.convertUnion(type)
+    }
+    private synthesizeUnionEntry(type: idl.IDLUnionType): idl.IDLEntry {
+        // TBD: Synthesize unions for Kotlin in a unified way in one place
+        const entry = idl.createInterface(type.name, idl.IDLInterfaceSubkind.Interface)
+        const packageName = getSyntheticTypesFileName();
+        const file = idl.createFile([entry], packageName, [packageName])
+        idl.linkParentBack(file)
+        return entry
     }
 }
 
@@ -201,9 +217,8 @@ export function createDependenciesCollector(library: PeerLibrary): DependenciesC
         case Language.TS: return new TSDependenciesCollector(library)
         case Language.ARKTS: return new TSDependenciesCollector(library)
         case Language.CJ: return new CJDependenciesCollector(library)
-        case Language.JAVA: return new JavaDependenciesCollector(library)
         case Language.KOTLIN: return new KotlinDependenciesCollector(library)
-        // in Java and CJ there is no imports (just files in the same package)
+        // in CJ there is no imports (just files in the same package)
         default: throw new Error("Not implemented")
     }
 }

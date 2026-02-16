@@ -1,0 +1,4 @@
+interface WithMethods {
+    void Method1(number arg);
+    number Method2();
+};

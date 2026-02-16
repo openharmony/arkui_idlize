@@ -22,8 +22,6 @@ import {
     LanguageWriter,
     MaterializedMethod,
     PeerLibrary,
-    getInternalClassName,
-    getHookMethod,
     isNamedNode,
     isMaterializedType,
     isPrimitiveType,
@@ -31,6 +29,7 @@ import {
     PeerMethodSignature,
     getExtractor
 } from '@idlizer/core'
+import { getHookMethod } from '../../DefaultConfiguration'
 import {
     ExpressionStatement,
     LanguageExpression,
@@ -44,12 +43,6 @@ import { NativeModule } from "../NativeModule";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
-}
-
-export function componentToStyleClass(component: string) {
-    if (component.endsWith("Attribute"))
-        component = component.substring(0, component.length - 9)
-    return `Ark${component}Style`
 }
 
 const returnValName = "retval"  // make sure this doesn't collide with parameter names!
@@ -72,7 +65,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         scopes.forEach(it => {
             writer.pushIndent()
         })
-        if (isSetOptions) {
+        if (method.isCallSignature) {
             writer.print(`ArkThemeScopeManager.getInstance().applyThemeScopeIdToNode(this.peer.ptr);`)
             writer.addFeature(`ArkThemeScopeManager`, '#arktheme')
         }
@@ -81,7 +74,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         argConvertors.forEach((it, index) => {
             if (it.useArray) {
                 if (!serializerCreated) {
-                    const serializerRef = createReferenceType('SerializerBase')
+                    const serializerRef = createReferenceType('idlize.internal.SerializerBase')
                     const serializerEntry = library.resolveTypeReference(serializerRef)
                     if (!serializerEntry) {
                         throw new Error("Not found SerializerBase!")
@@ -89,7 +82,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                     writer.addFeature('SerializerBase', library.layout.resolve({ node: serializerEntry, role: LayoutNodeRole.INTERFACE }))
                     writer.addFeature('DeserializerBase', library.layout.resolve({ node: serializerEntry, role: LayoutNodeRole.INTERFACE }))
                     writer.writeStatement(
-                        writer.makeAssign(`thisSerializer`, createReferenceType('SerializerBase'),
+                        writer.makeAssign(`thisSerializer`, createReferenceType('idlize.internal.SerializerBase'),
                             writer.makeMethodCall('SerializerBase', 'hold', []), true)
                     )
                     serializerCreated = true
@@ -160,13 +153,12 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                     // Read as resource
                     // Change any return type to the serializer buffer in NativeModule
                     // result = makeDeserializedReturn(library, printer, returnType)
-                } else if (!isPrimitiveType(returnType)) {
+                } else if (!isPrimitiveType(returnType) || returnType === idl.IDLStringType) {
                     const returnTypeConvertor = new InteropReturnTypeConvertor(library)
-                    if ((idl.IDLContainerUtils.isSequence(returnType) || idl.IDLContainerUtils.isRecord(returnType)) && writer.language != Language.JAVA) {
+                    if ((idl.IDLContainerUtils.isSequence(returnType) || idl.IDLContainerUtils.isRecord(returnType))) {
                         result = makeDeserializedReturn(library, printer, returnType)
                     } else if (returnTypeConvertor.isReturnInteropBuffer(returnType)
-                        && !(library.typeConvertor(returnValName, returnType) instanceof CustomTypeConvertor)
-                        && writer.language != Language.JAVA) {
+                        && !(library.typeConvertor(returnValName, returnType) instanceof CustomTypeConvertor)) {
                         result = makeDeserializedReturn(library, printer, returnType)
                     } else {
                         // todo: implement deserialization for types other than enum
@@ -180,7 +172,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                                 ]
                         }
                     }
-                } else if (returnType === idl.IDLBufferType && writer.language !== Language.JAVA) {
+                } else if (returnType === idl.IDLBufferType) {
                     const instance = makeDeserializerInstance(returnValName, writer.language)
                     result = [
                         writer.makeReturn(
@@ -203,7 +195,7 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     writer.writeStatement(
         writer.makeAssign(
             deserializerName,
-            idl.createReferenceType("DeserializerBase"),
+            idl.createReferenceType("idlize.internal.DeserializerBase"),
             writer.makeString(makeDeserializerInstance(returnValName, writer.language)),
             true,
             false,
@@ -228,8 +220,6 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
     if (language === Language.TS) {
         return `new DeserializerBase(${returnValName}.buffer, ${returnValName}.byteLength)`
     } else if (language === Language.ARKTS) {
-        return `new DeserializerBase(${returnValName}, ${returnValName}.length)`
-    } else if (language === Language.JAVA) {
         return `new DeserializerBase(${returnValName}, ${returnValName}.length)`
     } else if (language === Language.CJ) {
         return `DeserializerBase(${returnValName}, Int32(${returnValName}.size))`

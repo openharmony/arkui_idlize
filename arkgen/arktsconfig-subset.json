@@ -4,16 +4,46 @@
         "baseUrl": "out/arkts-subset/generated/sig/arkoala-arkts/arkui/generated",
         "outDir": "out/arkts-subset/abc",
         "paths": {
-            "#components": ["./framework/arkts"],
-            "#handwritten": ["./handwritten"],
-            "@arkoala/arkui": ["./framework"],
-            "@koalaui/interop": ["../../../../../../../../external/interop/src/arkts"],
-            "@koalaui/common": ["../../../../../../../../external/incremental/common/src"],
-            "@koalaui/compat": ["../../../../../../../../external/incremental/compat/src/arkts"],
-            "@koalaui/runtime": ["../../../../../../../../external/incremental/runtime/src"],
-            "@koalaui/runtime/annotations": ["../../../../../../../../external/incremental/runtime/annotations"],
-            "@ohos.multimedia.image": ["../../../../../generated/sig/arkoala-arkts/external/src"],
-            "@koalaui/builderLambda": ["./annotations"]
+            "#components": [
+                "./framework/arkts"
+            ],
+            "#handwritten": [
+                "./handwritten"
+            ],
+            "@arkoala/arkui": [
+                "./framework"
+            ],
+            "@koalaui/interop": [
+                "../../../../../../../../external/interop/src/arkts"
+            ],
+            "@koalaui/common": [
+                "../../../../../../../../external/common/src"
+            ],
+            "@koalaui/compat": [
+                "../../../../../../../../external/compat/src/arkts"
+            ],
+            "@ohos.multimedia.image": [
+                "../../../../../generated/sig/arkoala-arkts/external/src"
+            ],
+            "@koalaui/builderLambda": [
+                "./annotations"
+            ],
+            "@koalaui/runtime/annotations": [
+                "../../../../../../../../external/incremental/runtime/annotations"
+            ],
+
+            "arkui.stateManagement.memo.node": [
+                "../../../../../../../../external/incremental/runtime/src/memo/node"
+            ],
+            "arkui.stateManagement.memo.remember": [
+                "../../../../../../../../external/incremental/runtime/src/memo/remember"
+            ],
+            "arkui.stateManagement.runtime": [
+                "../../../../../../../../external/incremental/runtime/annotations"
+            ],
+            "arkui.stateManagement": [
+                "../../../../../../../../external/incremental/runtime/src"
+            ]
         }
     },
     "include": [

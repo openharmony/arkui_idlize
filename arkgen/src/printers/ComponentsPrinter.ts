@@ -26,15 +26,11 @@ import {
     getSuper
 } from '@idlizer/core'
 import {
-    ARKOALA_PACKAGE,
-    ARKOALA_PACKAGE_PATH,
     allowsOverloads,
     collapseSameNamedMethods,
     collectComponents,
     collectDeclDependencies,
-    collectJavaImports,
     collectPeersForFile,
-    COMPONENT_BASE,
     componentToPeerClass,
     findComponentByName,
     findComponentByType,
@@ -43,20 +39,25 @@ import {
     ImportsCollector,
     OverloadsPrinter,
     PrinterResult,
-    printJavaImports,
     readLangTemplate,
     TargetFile,
     collectDeclItself,
     findComponentByDeclaration,
-    componentToStyleClass,
     allowNamedOverloads,
     peerGeneratorConfiguration,
+    PrinterFunction,
     extractContentParameter,
 } from '@idlizer/libohos'
 import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
 import { HandwrittenModule } from '../ArkoalaLayout'
-import { write } from 'fs'
+
+export function shiftIfIsNotEmpty(line: string): string {
+    if (line.length > 0) {
+        return '    ' + line
+    }
+    return ""
+}
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -75,7 +76,7 @@ export function expandComponentWithSupers(library: PeerLibrary, decl: idl.IDLInt
 export function generateAttributeModifierSignature(library: PeerLibrary, component: IdlComponentDeclaration): MethodSignature {
     const modifiers = expandComponentWithSupers(library, component.attributeDeclaration).map(it =>
         idl.createReferenceType(getReferenceTo('AttributeModifier'),
-            [idl.createReferenceType(componentToAttributesInterface(it.name))],
+            [idl.createReferenceType(it)],
         )
     )
     return new NamedMethodSignature(
@@ -86,34 +87,22 @@ export function generateAttributeModifierSignature(library: PeerLibrary, compone
     )
 }
 
-export function generateHookAttributeModifierSignature(library: PeerLibrary, component: IdlComponentDeclaration): idl.IDLUnionType {
-    const modifiers = expandComponentWithSupers(library, component.attributeDeclaration).map(it =>
-        idl.createReferenceType(getReferenceTo('AttributeModifier'),
-            [idl.createReferenceType(componentToAttributesInterface(it.name))],
-        )
-    )
-    return idl.createUnionType([...modifiers, idl.IDLUndefinedType])
-}
-
-class ComponentPrintResult {
-    constructor(public targetFile: TargetFile, public writer: LanguageWriter) { }
-}
-
 interface ComponentFileVisitor {
     visit(): PrinterResult[]
 }
 
-class TSComponentFileVisitor implements ComponentFileVisitor {
+class TSLikeComponentFileVisitor implements ComponentFileVisitor {
 
     constructor(
         protected readonly library: PeerLibrary,
         protected readonly file: idl.IDLFile,
         protected readonly options: {
             isDeclared: boolean,
+            attributeModifierHooks: boolean,
         }
     ) { }
 
-    private overloadsPrinter(printer:LanguageWriter) {
+    private overloadsPrinter(printer: LanguageWriter) {
         return new OverloadsPrinter(this.library, printer, this.library.language, true, this.library.useMemoM3)
     }
 
@@ -127,23 +116,30 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         return result
     }
 
-    private printImports(peer: PeerClass, component:IdlComponentDeclaration): ImportsCollector {
+    private printImports(peer: PeerClass, component: IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
-        imports.addFeature(`hook${component.name}AttributeModifier`, "#handwritten")
-        imports.addFeature(`ModifierStateManager`, `./CommonModifier`)
         imports.addFeature(`${component.name}Modifier`, `${component.name}Modifier`)
+        imports.addFeature(`hook${component.name}AttributeModifier`, "#handwritten")
+        if (this.options.attributeModifierHooks)
+            imports.addFeature(`hook${component.name}AttributeModifier`, HandwrittenModule(this.library.language))
+        collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('CommonMethod')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
         if (!this.options.isDeclared) {
-            imports.addFeatures(["RuntimeType", "runtimeType"], "@koalaui/interop")
-            imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
+            imports.addFeature("RuntimeType", "@koalaui/interop")
+            if (this.library.language === Language.ARKTS) {
+                imports.addFeatures(["NodeAttach"], "@koalaui/runtime")
+                imports.addFeatures(["remember"], "@koalaui/runtime")
+            } else {
+                imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
+            }
             imports.addFeature('ComponentBase', './ComponentBase')
             if (this.library.language === Language.TS) {
                 imports.addFeature("isInstanceOf", "@koalaui/interop")
             }
-            imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
+            imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({ node: component.attributeDeclaration, role: LayoutNodeRole.PEER }))
         }
         if (peer.originalParentFilename) {
             let [parentRef] = component.attributeDeclaration.inheritance
@@ -157,10 +153,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 if (!this.options.isDeclared)
                     imports.addFeature(generateArkComponentName(parentComponent.name), `./${parentGeneratedPath}`)
 
-                imports.addFeatures([
-                    componentToStyleClass(parentComponent.attributeDeclaration.name),
-                    componentToAttributesInterface(parentComponent.attributeDeclaration.name),
-                ], `./${parentGeneratedPath}`)
                 if (parentComponent.attributeDeclaration.inheritance.length) {
                     let [parentRef] = parentComponent.attributeDeclaration.inheritance
                     parentDecl = this.library.resolveTypeReference(parentRef)
@@ -183,111 +175,70 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     }
 
     private printComponent(peer: PeerClass): PrinterResult[] {
-
         const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+        const generate = () => {
+            const imports = this.printImports(peer, component)
+            const printer = this.library.createLanguageWriter()
 
-        const imports = this.printImports(peer, component)
-        const printer = this.library.createLanguageWriter()
+            const componentClassName = generateArkComponentName(peer.componentName)
+            const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
+            const peerClassName = componentToPeerClass(peer.componentName)
 
-        const componentClassName = generateArkComponentName(peer.componentName)
-        const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
-        const peerClassName = componentToPeerClass(peer.componentName)
-
-        printer.writeClass(componentClassName, (writer) => {
-            writer.writeMethodImplementation(
-                new Method('getPeer',
-                    new MethodSignature(createReferenceType(peerClassName), []
-                    ), [MethodModifier.PROTECTED], []),
-                writer => {
-                    writer.print('if (!this.peer) {')
-                    writer.pushIndent()
-                    writer.print(`throw new Error("Attribute function should be called in memo context")`)
-                    writer.popIndent()
-                    writer.print('}')
-                    writer.writeStatement(
-                    writer.makeReturn(
-                        writer.makeCast(
-                            writer.makeFieldAccess("this", "peer"),
-                            createReferenceType(peerClassName),
-                            { optional: true }
+            printer.writeClass(componentClassName, (writer) => {
+                writer.writeMethodImplementation(
+                    new Method('getPeer',
+                        new MethodSignature(createReferenceType(peerClassName), []
+                        ), [MethodModifier.PROTECTED], []),
+                    writer => writer.writeStatement(
+                        writer.makeReturn(
+                            writer.makeCast(
+                                writer.makeFieldAccess("this", "peer"),
+                                createReferenceType(peerClassName),
+                                { optional: true }
+                            )
                         )
-                    ))
-                }
-            )
-            for (const grouped of groupOverloads(peer.methods, this.library.language))
-                this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
-            // todo stub until we can process AttributeModifier
-            writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
-                writer.print('ModifierStateManager.INSTANCE.scope(() => {')
-                writer.pushIndent()
-                writer.print(`hook${component.name}AttributeModifier(this, value);`)
-                writer.popIndent()
-                writer.print('})')
-                writer.writeStatement(writer.makeReturn(writer.makeThis()))
-            })
-
-            const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
-            const applyAttributesFinish = 'applyAttributesFinish'
-            writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
-                writer.print('// we call this function outside of class, so need to make it public')
-                writer.writeMethodCall('super', applyAttributesFinish, [])
-            })
-            const optionsFinishSignature = new MethodSignature(
-                IDLVoidType,
-                [idl.IDLStringType],
-                undefined,
-                undefined,
-                undefined,
-                ['traceName']
-            )
-            const applyOptionsFinish = 'applyOptionsFinish'
-            writer.writeMethodImplementation(new Method(applyOptionsFinish, optionsFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
-                writer.writeMethodCall('super', applyOptionsFinish, ['traceName'])
-            })
-        }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
-
-
-        const hookPrinter = this.library.createLanguageWriter()
-        const hookImports = new ImportsCollector();
-        const componentAttributePath = `component/${this.library.layout.resolve({
-                    node: component.attributeDeclaration,
-                    role: LayoutNodeRole.COMPONENT
-                })}`
-        const valueType =  hookPrinter.getNodeName(generateHookAttributeModifierSignature(this.library, component))
-
-        hookPrinter.print(`function hook${component.name}AttributeModifier(componenet: ${componentClassName}, value: ${valueType}):void {}`)
-        hookImports.addFeature(`AttributeModifier`, `#handwritten`)
-        hookImports.addFeatures([`${componentClassName}`, component.attributeDeclaration.name], componentAttributePath)
-
-        if (peer.originalParentFilename) {
-            let [parentRef] = component.attributeDeclaration.inheritance
-            let parentDecl = this.library.resolveTypeReference(parentRef)
-            while (parentDecl) {
-                const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
-                const parentGeneratedPath = this.library.layout.resolve({
-                    node: parentDecl,
-                    role: LayoutNodeRole.COMPONENT
+                    )
+                )
+                for (const grouped of groupOverloads(peer.methods, this.library.language))
+                    this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
+                // todo stub until we can process AttributeModifier
+                writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
+                    imports.addFeature(`ModifierStateManager`, `./CommonModifier`)
+                    writer.print('ModifierStateManager.INSTANCE.scope(() => {')
+                    writer.pushIndent()
+                    writer.print(`hook${component.name}AttributeModifier(this, value);`)
+                    writer.popIndent()
+                    writer.print('})')
+                    writer.writeStatement(writer.makeReturn(writer.makeThis()))
                 })
 
-                hookImports.addFeatures([
-                    componentToStyleClass(parentComponent.attributeDeclaration.name),
-                    componentToAttributesInterface(parentComponent.attributeDeclaration.name),
-                ], `./${parentGeneratedPath}`)
-                if (parentComponent.attributeDeclaration.inheritance.length) {
-                    let [parentRef] = parentComponent.attributeDeclaration.inheritance
-                    parentDecl = this.library.resolveTypeReference(parentRef)
-                } else {
-                    parentDecl = undefined
-                }
+                const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
+                const applyAttributesFinish = 'applyAttributesFinish'
+                writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
+                    writer.print('// we call this function outside of class, so need to make it public')
+                    writer.writeMethodCall('super', applyAttributesFinish, [])
+                })
+                const optionsFinishSignature = new MethodSignature(
+                    IDLVoidType,
+                    [idl.IDLStringType],
+                    undefined,
+                    undefined,
+                    undefined,
+                    ['traceName']
+                )
+                const applyOptionsFinish = 'applyOptionsFinish'
+                writer.writeMethodImplementation(new Method(applyOptionsFinish, optionsFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
+                    writer.writeMethodCall('super', applyOptionsFinish, ['traceName'])
+                })
+            }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
+            return {
+                content: printer,
+                imports
             }
         }
 
-        hookImports.addFeature(`${component.name}Modifier`, `${component.name}Modifier`)
-
-
         return [{
-            collector: imports,
-            content: printer,
+            generate,
             over: {
                 node: component.attributeDeclaration,
                 role: LayoutNodeRole.COMPONENT,
@@ -299,68 +250,68 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     protected printComponentFunctions(peer: PeerClass): PrinterResult[] {
         if (peerGeneratorConfiguration().isHandWritten(peer.componentName))
             return []
-        const printer = this.library.createLanguageWriter()
         const component = findComponentByName(this.library, peer.componentName)!
-        const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
-        const componentClassImplName = generateArkComponentName(peer.componentName)
-        const callableMethods = peer.methods.filter(it => it.isCallSignature)
-        const collapsedCallables = allowsOverloads(this.library.language)
-            ? callableMethods.map(it => it.method)
-            : callableMethods.length > 0
-                ? [collapseSameNamedMethods(callableMethods.map(it => it.method))]
-                : []
-        // for ArkTS we must control: every builder function must be printed once, because it is only includes `style` and `content_` arguments
-        const printedBuildersTags = new Set<string>()
-        const testPrintedBuilderTag = (tag: string) => {
-            if (printedBuildersTags.has(tag))
-                return false
-            printedBuildersTags.add(tag)
-            return true
-        }
-        collapsedCallables.forEach((callableMethod, callableIndex) => {
-            const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
-            const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
-            const callableName = allowNamedOverloads(this.library.language) ? callableMethods[callableIndex].uniqueOverloadName : callableMethod.name
-            const { hasContentParameter } = extractContentParameter(callableMethods[callableIndex].decl as idl.IDLCallable)
-            const contentParameter = hasContentParameter
-                ? `\n    @memo\n    content_?: () => void,`
-                : ""
-            const contentParameterInvocation = hasContentParameter
-                ? `\n        content_?.()`
-                : ""
-            const callableInvocation = callableMethod?.name ? `receiver.${callableName}(${mappedCallableParamsValues})` : ""
-            const peerClassName = componentToPeerClass(peer.componentName)
-            let printedBuilderTag = `${callableIndex}`
-            if (this.library.language === Language.ARKTS) {
-                printedBuilderTag = `hasContentParameter=${hasContentParameter}`
+        const generate = () => {
+            const printer = this.library.createLanguageWriter()
+            const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
+            const componentClassImplName = generateArkComponentName(peer.componentName)
+            const callableMethods = peer.methods.filter(it => it.isCallSignature)
+            let collapsedCallables = allowsOverloads(this.library.language)
+                ? callableMethods.map(it => it.method)
+                : callableMethods.length > 0
+                    ? [collapseSameNamedMethods(callableMethods.map(it => it.method))]
+                    : []
+            if (collapsedCallables.length > 1 && [Language.TS, Language.ARKTS].includes(this.library.language))
+                collapsedCallables = [collapsedCallables[0]]
+            collapsedCallables.forEach((callableMethod, callableIndex) => {
+                const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
+                const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
+                const callableName = allowNamedOverloads(this.library.language) ? callableMethods[callableIndex].uniqueOverloadName : callableMethod.name
+                const { hasContentParameter } = extractContentParameter(callableMethods[callableIndex].decl as idl.IDLCallable)
+                const contentParameter = hasContentParameter
+                    ? `\n    @memo @memo_skip\n    content_?: () => void,`
+                    : ""
+                const contentParameterInvocation = hasContentParameter
+                    ? `\n        content_?.()`
+                    : ""
+                const callableInvocation = callableMethod?.name ? `receiver.${callableName}(${mappedCallableParamsValues})` : ""
+                const peerClassName = componentToPeerClass(peer.componentName)
+                if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
+                    return [{
+                        collector: this.printImports(peer, component),
+                        content: printer,
+                        over: {
+                            node: component.attributeDeclaration,
+                            role: LayoutNodeRole.COMPONENT,
+                            hint: 'component.function'
+                        }
+                    }]
+                const declaredPostrix = this.options.isDeclared ? "decl_" : ""
+                const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
+                let paramsList = mappedCallableParams?.join(", ")
+                if (paramsList) paramsList += ","
+                const builderFunctionName = allowNamedOverloads(this.library.language)
+                    ? peer.componentBuilderInfos.find(it => it.peerMethodName === callableMethods[callableIndex].sig.name)!.uniqueOverloadName
+                    : component.name
+                printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
+                    .replaceAll("%COMPONENT_NAME%", builderFunctionName)
+                    .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
+                    .replaceAll("%FUNCTION_PARAMETERS%", shiftIfIsNotEmpty(paramsList ?? ""))
+                    .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
+                    .replaceAll("%PEER_CLASS_NAME%", peerClassName)
+                    .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation)
+                    .replaceAll("%CONTENT_PARAMETER%", contentParameter)
+                    .replaceAll("%CONTENT_PARAMETER_INVOCATION%", contentParameterInvocation))
+            })
+            if (allowNamedOverloads(this.library.language) && collapsedCallables.length > 1) {
+                const overloads = peer.componentBuilderInfos.map(it => it.uniqueOverloadName).filter(it => it !== component.name)
+                if (overloads.length > 0)
+                    printer.print(`overload ${component.name} { ${overloads.join(", ")} }`)
             }
-            if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration || !testPrintedBuilderTag(printedBuilderTag))
-                return
-            const declaredPostrix = this.options.isDeclared ? "decl_" : ""
-            const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
-            let paramsList = mappedCallableParams?.join(", ")
-            if (paramsList) paramsList += ","
-            const builderFunctionName = allowNamedOverloads(this.library.language)
-                ? peer.componentBuilderInfos.find(it => it.peerMethodName === callableMethods[callableIndex].sig.name)!.uniqueOverloadName
-                : component.name
-            printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
-                .replaceAll("%COMPONENT_NAME%", builderFunctionName)
-                .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
-                .replaceAll("%FUNCTION_PARAMETERS%", paramsList ?? "")
-                .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
-                .replaceAll("%PEER_CLASS_NAME%", peerClassName)
-                .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation)
-                .replaceAll("%CONTENT_PARAMETER%", contentParameter)
-                .replaceAll("%CONTENT_PARAMETER_INVOCATION%", contentParameterInvocation))
-        })
-        if (allowNamedOverloads(this.library.language) && collapsedCallables.length > 1) {
-            const overloads = peer.componentBuilderInfos.map(it => it.uniqueOverloadName).filter(it => it !== component.name)
-            if (overloads.length > 0)
-                printer.print(`overload ${component.name} { ${overloads.join(", ")} }`)
+            return { content: printer, imports: this.printImports(peer, component) }
         }
         return [{
-            collector: this.printImports(peer, component),
-            content: printer,
+            generate,
             over: {
                 node: component.attributeDeclaration,
                 role: LayoutNodeRole.COMPONENT,
@@ -370,77 +321,20 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     }
 }
 
-class ArkTsComponentFileVisitor extends TSComponentFileVisitor {
-    protected populateImports(imports: ImportsCollector) {
-        if (!this.options.isDeclared)
-            imports.addFeature('TypeChecker', '#components')
-        if (this.library.useMemoM3) {
-            imports.addFeatures(['memo', 'memo_stable'], '@koalaui/runtime/annotations')
-            imports.addFeatures(['ComponentBuilder'], '@koalaui/builderLambda')
+class TSComponentFileVisitor extends TSLikeComponentFileVisitor {
+    protected populateImports(imports: ImportsCollector): void {
+        if (this.options.isDeclared) {
+            imports.addFeature("runtimeType", "@koalaui/interop")
         }
     }
 }
 
-class JavaComponentFileVisitor implements ComponentFileVisitor {
-    private readonly results: ComponentPrintResult[] = []
-
-    constructor(
-        private readonly library: PeerLibrary,
-        private readonly file: idl.IDLFile,
-    ) { }
-
-    visit(): PrinterResult[] {
-        collectPeersForFile(this.library, this.file).forEach(peer => this.printComponent(peer))
-        return []
-    }
-    getComponentResults(): ComponentPrintResult[] {
-        return []
-    }
-
-    private printComponent(peer: PeerClass) {
-        const componentClassName = generateArkComponentName(peer.componentName)
-        const componentType = createReferenceType(componentClassName)
-        const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : COMPONENT_BASE
-        const peerClassName = componentToPeerClass(peer.componentName)
-
-        const result = this.library.createLanguageWriter(Language.JAVA)
-        result.print(`package ${ARKOALA_PACKAGE};\n`)
-        const imports = collectJavaImports(peer.methods.flatMap(method => method.method.signature.args))
-        printJavaImports(result, imports)
-
-        result.writeClass(componentClassName, (writer) => {
-            peer.methods.forEach(peerMethod => {
-                const originalSignature = peerMethod.method.signature as NamedMethodSignature
-                const signature = new NamedMethodSignature(componentType, originalSignature.args, originalSignature.argsNames, originalSignature.defaults)
-                const method = new Method(peerMethod.method.name, signature, [MethodModifier.PUBLIC])
-                writer.writeMethodImplementation(method, writer => {
-                    const thiz = writer.makeThis()
-                    writer.writeStatement(writer.makeCondition(
-                        writer.makeString(`checkPriority("${method.name}")`),
-                        writer.makeBlock([
-                            writer.makeStatement(writer.makeMethodCall(`((${peerClassName})peer)`, `${peerMethod.sig.name}Attribute`, signature.argsNames.map(it => writer.makeString(it)))),
-                            writer.makeReturn(thiz),
-                        ])))
-                    writer.writeStatement(writer.makeReturn(thiz))
-                }
-                )
-            })
-
-            const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
-            const applyAttributesFinish = 'applyAttributesFinish'
-            writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
-                writer.writeMethodCall('super', applyAttributesFinish, [])
-            })
-
-            const applyAttributesSignature = new MethodSignature(IDLVoidType, [])
-            const applyAttributes = 'applyAttributes'
-            writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
-                writer.writeMethodCall('super', applyAttributes, [])
-                writer.writeStatement(writer.makeStatement(writer.makeString(`throw new RuntimeException("not implemented")`)))
-            })
-        }, parentComponentClassName)
-
-        this.results.push(new ComponentPrintResult(new TargetFile(componentClassName + Language.JAVA.extension, ARKOALA_PACKAGE_PATH), result))
+class ArkTsComponentFileVisitor extends TSLikeComponentFileVisitor {
+    protected populateImports(imports: ImportsCollector) {
+        if (this.library.useMemoM3) {
+            imports.addFeatures(['memo', 'memo_stable', 'memo_skip'], '^arkui.stateManagement.runtime')
+            imports.addFeatures(['ComponentBuilder'], '@koalaui/builderLambda')
+        }
     }
 }
 
@@ -454,7 +348,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
         }
     ) { }
 
-    private overloadsPrinter(printer:LanguageWriter) {
+    private overloadsPrinter(printer: LanguageWriter) {
         return new OverloadsPrinter(this.library, printer, this.library.language, true, this.library.useMemoM3)
     }
 
@@ -468,62 +362,61 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
         return result
     }
 
-    private printImports(peer: PeerClass, component:IdlComponentDeclaration): ImportsCollector {
+    private printImports(peer: PeerClass, component: IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
         return imports
     }
 
     private printComponent(peer: PeerClass): PrinterResult[] {
-
         const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+        const generate = () => {
+            const imports = this.printImports(peer, component)
+            const printer = this.library.createLanguageWriter()
 
-        const imports = this.printImports(peer, component)
-        const printer = this.library.createLanguageWriter()
-
-        const componentClassName = generateArkComponentName(peer.componentName)
-        const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
-        const peerClassName = componentToPeerClass(peer.componentName)
+            const componentClassName = generateArkComponentName(peer.componentName)
+            const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
+            const peerClassName = componentToPeerClass(peer.componentName)
 
 
-        printer.writeClass(componentClassName, (writer) => {
-            writer.writeMethodImplementation(
-                new Method('getPeer',
-                    new MethodSignature(createReferenceType(peerClassName), []
-                    ), [MethodModifier.PROTECTED], []),
-                writer => {
-                    writer.print('if (let Some(peer) <- this.peer) {')
-                    writer.pushIndent()
-                    writer.writeStatement(
-                        writer.makeReturn(
-                            writer.makeCast(
-                                writer.makeString("peer"),
-                                createReferenceType(peerClassName),
-                                { optional: true }
+            printer.writeClass(componentClassName, (writer) => {
+                writer.writeMethodImplementation(
+                    new Method('getPeer',
+                        new MethodSignature(createReferenceType(peerClassName), []
+                        ), [MethodModifier.PROTECTED], []),
+                    writer => {
+                        writer.print('if (let Some(peer) <- this.peer) {')
+                        writer.pushIndent()
+                        writer.writeStatement(
+                            writer.makeReturn(
+                                writer.makeCast(
+                                    writer.makeString("peer"),
+                                    createReferenceType(peerClassName),
+                                    { optional: true }
+                                )
                             )
                         )
-                    )
-                    writer.popIndent()
-                    writer.print('} else { throw Exception()}')
-                }
-            )
-            // for (const grouped of groupOverloads(filteredMethods))
-            for (const grouped of peer.methods)
-                this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, [grouped])
-            // todo stub until we can process AttributeModifier
-            if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
-                writer.print(`public func attributeModifier(modifier: AttributeModifier<Object>) { throw Exception("not implemented") }`)
+                        writer.popIndent()
+                        writer.print('} else { throw Exception()}')
+                    }
+                )
+                // for (const grouped of groupOverloads(filteredMethods))
+                for (const grouped of peer.methods)
+                    this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, [grouped])
+                // todo stub until we can process AttributeModifier
+                if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
+                    writer.print(`public func attributeModifier(modifier: AttributeModifier<Object>) { throw Exception("not implemented") }`)
 
-            const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
-            const applyAttributesFinish = 'applyAttributesFinish'
-            writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
-                writer.print('// we call this function outside of class, so need to make it public')
-                writer.writeMethodCall('super', applyAttributesFinish, [])
-            })
-        }, parentComponentClassName, [`${peer.originalClassName!}Interfaces`])
-
+                const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
+                const applyAttributesFinish = 'applyAttributesFinish'
+                writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
+                    writer.print('// we call this function outside of class, so need to make it public')
+                    writer.writeMethodCall('super', applyAttributesFinish, [])
+                })
+            }, parentComponentClassName, [`${peer.originalClassName!}Interfaces`])
+            return { content: printer, imports }
+        }
         return [{
-            collector: imports,
-            content: printer,
+            generate,
             over: {
                 node: component.attributeDeclaration,
                 role: LayoutNodeRole.COMPONENT,
@@ -533,31 +426,33 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
     }
 
     protected printComponentFunction(peer: PeerClass): PrinterResult[] {
-        const printer = this.library.createLanguageWriter()
         const component = findComponentByName(this.library, peer.componentName)!
-        const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
-        const componentClassImplName = generateArkComponentName(peer.componentName)
-        const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
-        const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
-        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}: ${printer.getNodeName(it)}`)
-        const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
-        const callableInvocation = callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""
-        const peerClassName = componentToPeerClass(peer.componentName)
         if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
             return []
-        const declaredPostrix = this.options.isDeclared ? "decl_" : ""
-        const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
-        let paramsList = mappedCallableParams?.join(", ")
-        printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
-            .replaceAll("%COMPONENT_NAME%", component.name)
-            .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
-            .replaceAll("%FUNCTION_PARAMETERS%", paramsList ? `,\n${paramsList}`: "")
-            .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
-            .replaceAll("%PEER_CLASS_NAME%", peerClassName)
-            .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
+        const generate = () => {
+            const printer = this.library.createLanguageWriter()
+            const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
+            const componentClassImplName = generateArkComponentName(peer.componentName)
+            const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
+            const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
+            const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}: ${printer.getNodeName(it)}`)
+            const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
+            const callableInvocation = callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""
+            const peerClassName = componentToPeerClass(peer.componentName)
+            const declaredPostrix = this.options.isDeclared ? "decl_" : ""
+            const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
+            let paramsList = mappedCallableParams?.join(", ")
+            printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
+                .replaceAll("%COMPONENT_NAME%", component.name)
+                .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
+                .replaceAll("%FUNCTION_PARAMETERS%", shiftIfIsNotEmpty(paramsList ? `,\n${paramsList}` : ""))
+                .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
+                .replaceAll("%PEER_CLASS_NAME%", peerClassName)
+                .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
+            return { content: printer, imports: this.printImports(peer, component) }
+        }
         return [{
-            collector: this.printImports(peer, component),
-            content: printer,
+            generate,
             over: {
                 node: component.attributeDeclaration,
                 role: LayoutNodeRole.COMPONENT,
@@ -577,7 +472,7 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
         }
     ) { }
 
-    private overloadsPrinter(printer:LanguageWriter) {
+    private overloadsPrinter(printer: LanguageWriter) {
         return new OverloadsPrinter(this.library, printer, this.library.language, true, this.library.useMemoM3)
     }
 
@@ -598,7 +493,8 @@ class ComponentsVisitor {
     constructor(
         private readonly peerLibrary: PeerLibrary,
         private options: {
-            isDeclared: boolean
+            isDeclared: boolean,
+            attributeModifierHooks: boolean,
         }
     ) { }
 
@@ -613,9 +509,6 @@ class ComponentsVisitor {
             }
             else if (this.language == Language.ARKTS) {
                 visitor = new ArkTsComponentFileVisitor(this.peerLibrary, file, this.options)
-            }
-            else if (this.language == Language.JAVA) {
-                visitor = new JavaComponentFileVisitor(this.peerLibrary, file)
             }
             else if (this.language == Language.CJ) {
                 visitor = new CJComponentFileVisitor(this.peerLibrary, file, this.options)
@@ -632,14 +525,17 @@ class ComponentsVisitor {
     }
 }
 
-export function printComponents(peerLibrary: PeerLibrary): PrinterResult[] {
-    return new ComponentsVisitor(peerLibrary, { isDeclared: false }).printComponents()
+export function createComponentsPrinter(options: { attributeModifierHooks: boolean }): PrinterFunction {
+    return (peerLibrary) => {
+        const visitor = new ComponentsVisitor(peerLibrary, { isDeclared: false, attributeModifierHooks: options.attributeModifierHooks })
+        return visitor.printComponents()
+    }
 }
 
 export function printComponentsDeclarations(peerLibrary: PeerLibrary): PrinterResult[] {
     // TODO: support other output languages
-    if (![Language.TS, Language.ARKTS, Language.JAVA].includes(peerLibrary.language))
+    if (![Language.TS, Language.ARKTS].includes(peerLibrary.language))
         return []
 
-    return new ComponentsVisitor(peerLibrary, { isDeclared: true }).printComponents()
+    return new ComponentsVisitor(peerLibrary, { isDeclared: true, attributeModifierHooks: false }).printComponents()
 }

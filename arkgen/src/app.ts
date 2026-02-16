@@ -14,57 +14,52 @@
  */
 
 import { createCommand } from "commander"
-import * as fs from "fs"
 import * as path from "path"
 import {
-    generate,
-    defaultCompilerOptions,
     Language,
     findVersion,
     verifyIDLLinter,
     scanInputDirs,
-    toIDLFile,
+    parseIDLFile,
     setDefaultConfiguration,
-    patchDefaultConfiguration,
     D,
-    inplaceGenerics,
-    PeerLibrary,
-    inplaceNullsAsUndefined,
+    formatInputPaths,
+    fqnTransformer,
+    createAlgotithmicReferenceResolver,
+    nullsTransformer,
+    transformOnSerializeTransformer,
+    genericsTransformer,
 } from "@idlizer/core"
 import {
-    IDLEntry,
-    IDLFile,
-    isEnum,
-    isInterface,
-    isSyntheticEntry,
-    linkParentBack,
+    getFQName,
     transformMethodsAsync2ReturnPromise,
     linearizeNamespaceMembers,
     IDLNode,
+    IDLFile,
     hasExtAttribute,
     IDLExtendedAttributes,
+    linkParentBack,
 } from "@idlizer/core/idl"
-import { IDLVisitor, loadPeerConfiguration,
+import { loadPeerConfiguration,
     generateTracker, IdlPeerProcessor, loadPlugin,
-    fillSyntheticDeclarations,
-    formatInputPaths,
-    validatePaths,
     libohosPredefinedFiles,
-    PeerGeneratorConfigurationType,
     PeerGeneratorConfigurationSchema,
     peerGeneratorConfiguration,
     NativeModule,
+    syntheticTransformer,
+    setInteropTypesHeaderPath,
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 import { makeInteropBridges } from "./InteropBridges"
 import { loadKnownReferences } from "./knownReferences"
 import { readLibrary } from "@idlizer/interfaces"
+import { arkgenDefaultConfigurationPaths } from "./config"
 
 export function arkgen(argv:string[]) {
     const command = createCommand()
         .option('--show-config-schema', 'Prints JSON schema for config')
-        .option('--dts2peer', 'Convert .d.ts to peer drafts')
+        .option('--dts2peer', 'Convert .d.ts to peer drafts. Deprecated! Use dtsgen --dts2idl and --idl2peer instead')
         .option('--ets2ts', 'Convert .ets to .ts')
         .option('--input-dir <path>', 'Path to input dir(s), comma separated')
         .option('--aux-input-dir <path>', 'Path to aux input dir(s), comma separated')
@@ -86,7 +81,7 @@ export function arkgen(argv:string[]) {
         .option('--dump-serialized', "Dump serialized data")
         .option('--call-log', "Call log")
         .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
-        .option('--language [ts|ts|java|cangjie|kotlin]', 'Output language')
+        .option('--language [ts|ts|cangjie|kotlin]', 'Output language')
         .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
         .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
         .option('--version')
@@ -99,19 +94,22 @@ export function arkgen(argv:string[]) {
         .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
         .option('--no-commented-code', 'Do not generate commented code in modifiers')
         .option('--enable-log', 'Enable logging')
-        .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+        .option('--options-file <path...>', 'Paths to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
         .option('--interop-bridges <string>', "Generate interop bridges macros")
         .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
         .option('--use-component-optional', 'Make all component\'s properties nullable')
-        .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
-        .option('--no-type-checker', "Use TypeChecker or generate ArkTS specific syntax")
+        .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
+        .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
+        .option('--no-subset', "Do not copy the subset staff from the external repo or external-subset dir")
+        .option('--no-component-named-overloads', "Disable components named overloads")
+        .option('--interop-types <path>', 'Path to interop-types.h file')
+
     const options = command
         .parse(argv, { from: 'user' })
         .opts()
-
 
     let didJob = false
 
@@ -125,11 +123,18 @@ export function arkgen(argv:string[]) {
         didJob = true
     }
 
+    if (options.interopTypes) {
+        setInteropTypesHeaderPath(options.interopTypes)
+    }
+
     let apiVersion = options.apiVersion ?? 9999
     Language.ARKTS.extension = options.arktsExtension as string
 
-    setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
-    loadKnownReferences(path.resolve(options.referenceNames))
+    setDefaultConfiguration(loadPeerConfiguration([
+        ...(options.ignoreDefaultConfig ? [] : arkgenDefaultConfigurationPaths()),
+        ...(options.optionsFile ?? [])
+    ]))
+    loadKnownReferences(options.referenceNames)
 
     if (process.env.npm_package_version && !options.showConfigSchema) {
         console.log(`IDLize version ${findVersion()}`)
@@ -140,7 +145,7 @@ export function arkgen(argv:string[]) {
         const language = Language.fromString(options.language ?? "ts")
         const { inputFiles, inputDirs } = formatInputPaths(options)
 
-        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3 && language === Language.ARKTS)
+        let files: IDLFile[] = []
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
@@ -148,19 +153,31 @@ export function arkgen(argv:string[]) {
         const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
         idlInputFiles.forEach(idlFilename => {
             idlFilename = path.resolve(idlFilename)
-            const [file] = toIDLFile(idlFilename)
+            const file = parseIDLFile(idlFilename)
             linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
-            idlLibrary.files.push(file)
+            files.push(file)
         })
         if (options.verifyIdl) {
-            idlLibrary.files.forEach(file => {
-                verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
+            files.forEach(file => {
+                verifyIDLLinter(file, createAlgotithmicReferenceResolver(files), peerGeneratorConfiguration().linter)
             })
         }
-        idlLibrary.files.forEach(inplaceNullsAsUndefined)
-        inplaceArkoalaGenerics(idlLibrary)
-        fillSyntheticDeclarations(idlLibrary)
-        idlLibrary.enableCache()
+
+        files = fqnTransformer(files.map(linkParentBack), createAlgotithmicReferenceResolver(files, true))
+        files = transformOnSerializeTransformer(files, (node: IDLNode) => {
+            const transformation = peerGeneratorConfiguration().transformOnSerialize.find(
+                it => it.from === getFQName(node))
+            return transformation?.to
+        })
+        files = nullsTransformer(files)
+        files = genericsTransformer(files, {
+            ignore: [ignoreComponentRule],
+            ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
+        })
+        files = syntheticTransformer(files)
+
+        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3 && language === Language.ARKTS, options.componentNamedOverloads)
+        idlLibrary.files = files
         new IdlPeerProcessor(idlLibrary).process()
 
         generateTarget(idlLibrary, outDir, language)
@@ -169,88 +186,7 @@ export function arkgen(argv:string[]) {
     }
 
     if (options.dts2peer) {
-        const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
-        const lang = Language.fromString(options.language ?? "ts")
-
-        const { baseDirs, inputDirs, auxInputDirs, inputFiles, auxInputFiles } = formatInputPaths(options)
-        validatePaths(baseDirs, "dir")
-        validatePaths(inputDirs, "dir")
-        validatePaths(auxInputDirs, "dir")
-        validatePaths(inputFiles, "file")
-        validatePaths(auxInputFiles, "file")
-
-        const allInputFiles = scanInputDirs(inputDirs)
-            .concat(inputFiles)
-            .concat(libohosPredefinedFiles())
-            .concat(options.implicitPredefined ? readLibrary("arkuiExtra") : [])
-        const allAuxInputFiles = auxInputFiles
-        const dtsInputFiles = allInputFiles.filter(it => it.endsWith('.d.ts'))
-        const dtsAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.d.ts'))
-        const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
-        const idlAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.idl'))
-
-        const idlLibrary = new ArkoalaPeerLibrary(lang, NativeModule.Interop, options.useMemoM3)
-
-        {
-            const pushOne = (idlFilename: string, resultFilesArray: IDLFile[]) => {
-                idlFilename = path.resolve(idlFilename)
-                const [file] = toIDLFile(idlFilename)
-                resultFilesArray.push(file)
-            }
-            idlInputFiles.forEach(idlFilename => pushOne(idlFilename, idlLibrary.files))
-            idlAuxInputFiles.forEach(auxIdlFilename => pushOne(auxIdlFilename, idlLibrary.auxFiles))
-        }
-
-        generate(
-            baseDirs,
-            [...inputDirs, ...auxInputDirs],
-            dtsInputFiles,
-            dtsAuxInputFiles,
-            generatedPeersDir,
-            path.resolve(__dirname, "..", "stdlib.d.ts"),
-            (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, idlLibrary),
-            {
-                compilerOptions: defaultCompilerOptions,
-                onSingleFile(file: IDLFile, outputDir, sourceFile, isAux) {
-                    // TODO: this hack must be removed
-                    file.entries = file.entries.filter(newEntry =>
-                        !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
-                            if (([newEntry, entry].every(isInterface)
-                                || [newEntry, entry].every(isEnum)
-                                || [newEntry, entry].every(isSyntheticEntry))) {
-                                if (newEntry.name === entry.name) {
-                                    console.error("Removed duplicate", newEntry.name, 'from', file.fileName, ', another declaration found at', peerFile.fileName)
-                                    return true
-                                }
-                            }
-                            return false
-                        }))
-                    )
-
-                    linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
-                    linkParentBack(file)
-
-                    if (isAux)
-                        idlLibrary.auxFiles.push(file)
-                    else
-                        idlLibrary.files.push(file)
-                },
-                onEnd(outDir) {
-                    if (options.verifyIdl) {
-                        idlLibrary.files.forEach(file => {
-                            verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
-                        })
-                    }
-                    fillSyntheticDeclarations(idlLibrary)
-                    idlLibrary.enableCache()
-                    const peerProcessor = new IdlPeerProcessor(idlLibrary)
-                    peerProcessor.process()
-
-                    generateTarget(idlLibrary, outDir, lang)
-                }
-            }
-        )
-        didJob = true
+        console.log('dts2peer usage is deprecated')
     }
 
     if (!didJob) {
@@ -269,7 +205,7 @@ export function arkgen(argv:string[]) {
                 dumpSerialized: options.dumpSerialized ?? false,
                 callLog: options.callLog ?? false,
                 lang: lang,
-                useTypeChecker: options.typeChecker ?? true,
+                attributeModifierHooks: options.attributeModifierHooks ?? false
             }, idlLibrary)
         }
         if (options.generatorTarget == "libace" ||
@@ -293,16 +229,6 @@ export function arkgen(argv:string[]) {
                 .catch(error => console.error(`Plugin ${options.plugin} not found: ${error}`))
         }
     }
-}
-
-export function defaultConfigPath(): string {
-    return path.resolve(__dirname, '..', 'generation-config')
-}
-
-function inplaceArkoalaGenerics(library: PeerLibrary): void {
-    library.files.forEach(file => inplaceGenerics(file, library, { ignore: [
-        ignoreComponentRule,
-    ]}))
 }
 
 function ignoreComponentRule(node: IDLNode): boolean {

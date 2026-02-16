@@ -35,6 +35,6 @@ declare class FlexAttribute extends CommonMethod<FlexAttribute> {
   pointLight(value: PointLightStyle): FlexAttribute;
 }
 
-declare const Flex: FlexInterface;
+//declare constFlex: FlexInterface;
 
-declare const FlexInstance: FlexAttribute;
+//declare constFlexInstance: FlexAttribute;

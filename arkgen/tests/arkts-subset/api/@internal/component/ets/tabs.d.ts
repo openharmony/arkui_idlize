@@ -54,4 +54,4 @@ declare class TabsAttribute extends CommonMethod<TabsAttribute> {
 
 }
 
-declare const Tabs: TabsInterface
+//declare constTabs: TabsInterface

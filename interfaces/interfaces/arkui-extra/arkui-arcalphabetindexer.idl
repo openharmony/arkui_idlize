@@ -21,6 +21,8 @@ import arkui.component.units.Font as Font;
 import arkui.Graphics.LengthMetrics as LengthMetrics;
 import arkui.Graphics.ColorMetrics as ColorMetrics;
 
+callback Callback_I32_Void = void (i32 index);
+
 [Entity=Class]
 interface ArcAlphabetIndexerExtender {
     static pointer arcAlphabetIndexerConstruct(i32 id, i32 flags);

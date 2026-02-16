@@ -36,5 +36,5 @@ declare enum ToggleType {
     // switchStyle(value: SwitchStyle): ToggleAttribute;
   }
 
-declare const Toggle: ToggleInterface;
-declare const ToggleInstance: ToggleAttribute;
+//declare constToggle: ToggleInterface;
+//declare constToggleInstance: ToggleAttribute;

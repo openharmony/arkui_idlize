@@ -14,16 +14,13 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter, CppConvertor, PrimitiveTypesInstance } from "@idlizer/core"
-import { Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
-import { CppLanguageWriter, LanguageWriter } from "@idlizer/core";
+import { IndentedPrinter, Language, PeerLibrary, createLanguageWriter, LibraryInterface } from "@idlizer/core"
+import { PrinterLike } from "./LanguageWriters"
+import { LanguageWriter } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
-import { ImportsCollector } from "./ImportsCollector"
 import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/CallbacksPrinter"
-import { SourceFile } from "./printers/SourceFile"
-import { NativeModule } from "./NativeModule"
 import { generateStructs } from "./printers/StructPrinter"
-import { createCSerializerPrinter, createSerializerPrinter } from "./printers/SerializerPrinter";
+import { createCSerializerPrinter } from "./printers/SerializerPrinter";
 import { collectPeersForFile } from "./PeersCollector";
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
@@ -113,15 +110,17 @@ export function bridgeCcCustomDeclaration(customApi: string[]): string {
 }
 
 export function bridgeHeaderGeneratedDeclaration(generatedApi: string[]): string {
-    return applyBridgeTemplate(generatedApi, "bridge_generated_prologue.h")
+    const template = readTemplate("bridge_generated.h")
+    return template.replaceAll("%GENERATED_API%", generatedApi.join("\n"))
 }
 
 export function bridgeHeaderCustomDeclaration(customApi: string[]): string {
-    return applyBridgeTemplate(customApi, "bridge_custom_prologue.h")
+    const template = readTemplate("bridge_custom.h")
+    return template.replaceAll("%CUSTOM_API%", customApi.join("\n"))
 }
 
-export function appendModifiersCommonPrologue(): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+export function appendModifiersCommonPrologue(library: LibraryInterface): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP, library)
     let body = readTemplate('impl_prologue.cc')
 
     body = body.replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
@@ -140,8 +139,8 @@ export function getNodeTypes(library: PeerLibrary): string[] {
     return [...peerGeneratorConfiguration().components.customNodeTypes, ...components.sort()]
 }
 
-export function completeModifiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+export function completeModifiersContent(library: LibraryInterface, content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP, library)
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
     epilogue = epilogue
@@ -165,7 +164,7 @@ ${lines}
 `
 }
 
-export function dummyImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number, apiGeneratedFile: string): LanguageWriter {
+export function dummyImplementations(library: LibraryInterface, modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number, apiGeneratedFile: string): LanguageWriter {
     let prologue = readTemplate('dummy_impl_prologue.cc')
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
@@ -178,7 +177,7 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
 
-    let result = createLanguageWriter(Language.CPP)
+    let result = createLanguageWriter(Language.CPP, library)
     result.writeLines(prologue)
     result.print("namespace OHOS::Ace::NG::GeneratedModifier {")
     result.pushIndent()
@@ -190,8 +189,8 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
     return result
 }
 
-export function modifierStructList(lines: LanguageWriter): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+export function modifierStructList(library: LibraryInterface, lines: LanguageWriter): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP, library)
     result.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers* ${peerGeneratorConfiguration().cppPrefix}GetArkUINodeModifiers()`)
     result.print("{")
     result.pushIndent()
@@ -208,8 +207,8 @@ export function modifierStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
-export function accessorStructList(lines: LanguageWriter): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+export function accessorStructList(library: LibraryInterface, lines: LanguageWriter): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP, library)
     result.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors* ${peerGeneratorConfiguration().cppPrefix}GetArkUIAccessors()`)
     result.print("{")
     result.pushIndent()
@@ -251,10 +250,22 @@ export function readTemplate(name: string): string {
     return template
 }
 
+
+function getInteropRootPath() {
+    const interopPackagePath = require.resolve('@koalaui/interop')
+    return path.resolve(interopPackagePath, '..', '..', '..', '..', '..')
+}
+
+let interopTypesPath: string | undefined
+export function setInteropTypesHeaderPath(path: string) {
+    interopTypesPath = path
+}
 export function readInteropTypesHeader() {
-    const interopRootPath = getInteropRootPath()
+    if (interopTypesPath) {
+        return fs.readFileSync(interopTypesPath, 'utf-8')
+    }
     return fs.readFileSync(
-        path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h'),
+        path.resolve(getInteropRootPath(), 'src', 'cpp', 'interop-types.h'),
         'utf-8'
     )
 }
@@ -277,11 +288,6 @@ export function maybeReadLangTemplate(name: string, lang: Language): string | un
     if (!fs.existsSync(file))
         return undefined
     return fs.readFileSync(file, 'utf8')
-}
-
-export function getInteropRootPath() {
-    const interopPackagePath = require.resolve('@koalaui/interop')
-    return path.resolve(interopPackagePath, '..', '..', '..', '..', '..')
 }
 
 export function copyDir(from: string, to: string, recursive: boolean) {
@@ -309,7 +315,7 @@ export function makeArkuiModule(componentsFiles: string[], root:string): string 
         componentsFiles.map(file => {
             const relativePath = path.relative(root, file)
             const basenameNoExt = relativePath.replaceAll(path.extname(relativePath), "")
-            return `export * from "./${basenameNoExt}"`
+            return `export * from './${basenameNoExt}'`
         }).sort().join("\n")
     )
 }

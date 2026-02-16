@@ -1,0 +1,9 @@
+package arkui.component.idlize;
+
+import arkui.component.imageCommon.ImageAnalyzerConfig as ImageAnalyzerConfig;
+import arkui.component.xcomponent.XComponentController as XComponentController;
+
+[Entity=Class]
+interface XComponentControllerExtender {
+    static Promise<void> startImageAnalyzer(XComponentController peer, ImageAnalyzerConfig config);
+};

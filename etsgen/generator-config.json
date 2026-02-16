@@ -14,6 +14,7 @@
     "DeletedDeclarations": [
         "double",
         "int",
+        "makeBindable",
         "wrapBuilder",
         "AnimatableArithmetic",
         "IMonitorValue",
@@ -78,7 +79,8 @@
         "PanGesture",
         "PinchGesture",
         "RotationGesture",
-        "SwipeGesture"
+        "SwipeGesture",
+        "makeBuilderParameterProxy"
     ],
     "DeletedMembers": {
         "CommonMethod": [
@@ -87,9 +89,6 @@
         "ScrollableCommonMethod": [
             "onWillScroll",
             "onDidScroll"
-        ],
-        "SliderBlockStyle": [
-            "shape"
         ]
     },
     "StubbedDeclarations": [

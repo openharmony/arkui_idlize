@@ -1,35 +1,51 @@
 import * as idl from "../idl"
 import { generateSyntheticUnionName } from "../peer-generation/idl/common"
+import { IdlTransformer } from "./IdlTransformer"
 
-export const NULL_REFERENCE = "idlize.stdlib.Null"
-export function inplaceNullsAsUndefined(
-    node: idl.IDLNode,
-): void {
-    idl.updateEachChild(node, (child) => {
-        if (idl.isOptionalType(child)) {
-            if (idl.isUnionType(child.type) && child.type.types.some(isNullReference)) {
-                child.type.types = child.type.types.filter(it => !isNullReference(it))
-                child.type.name = generateSyntheticUnionName(child.type.types)
-                if (child.type.types.length === 1) {
-                    child.type = child.type.types[0]
-                }
-                child.extendedAttributes ??= []
-                child.extendedAttributes.push({ name: idl.IDLExtendedAttributes.UnionWithNull })
-                return child
+export function nullsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
+    const transformer = new NullsTransformer()
+    return files.map(it => transformer.visit(it)).map(idl.linkParentBack)
+}
+
+class NullsTransformer extends IdlTransformer {
+    visit(node: idl.IDLType): idl.IDLType
+    visit(node: idl.IDLFile): idl.IDLFile
+    visit(node: idl.IDLNode): idl.IDLNode {
+        if (idl.isOptionalType(node)) {
+            if (idl.isUnionType(node.type) && node.type.types.some(isNullReference)) {
+                const unionTypes = node.type.types.filter(it => !isNullReference(it)).map(it => this.visit(it))
+                const unionName = generateSyntheticUnionName(unionTypes)
+                const extendedAttributes = (node.extendedAttributes ?? [])
+                    .concat({ name: idl.IDLExtendedAttributes.UnionWithNull })
+                return idl.createOptionalType(
+                    unionTypes.length === 1
+                        ? unionTypes[0]
+                        : idl.createUnionType(unionTypes, unionName, idl.cloneNodeInitializer(node.type)),
+                    {
+                        documentation: node.documentation,
+                        extendedAttributes,
+                        fileName: node.fileName,
+                    }
+                )
             }
-        } else if (idl.isUnionType(child)) {
-            if (child.types.some(isNullReference)) {
-                child.types = child.types.filter(it => !isNullReference(it))
-                child.name = generateSyntheticUnionName(child.types)
-                return idl.createOptionalType(child.types.length > 1 ? child : child.types[0], { extendedAttributes: [{
-                    name: idl.IDLExtendedAttributes.UnionOnlyNull
-                }]})
+        } else if (idl.isUnionType(node)) {
+            if (node.types.some(isNullReference)) {
+                const unionTypes = node.types.filter(it => !isNullReference(it)).map(it => this.visit(it))
+                const unionName = generateSyntheticUnionName(unionTypes)
+                return idl.createOptionalType(
+                    unionTypes.length === 1 ? unionTypes[0] : idl.createUnionType(
+                        unionTypes,
+                        unionName,
+                        idl.cloneNodeInitializer(node),
+                    ),
+                    { extendedAttributes: [{ name: idl.IDLExtendedAttributes.UnionOnlyNull }] },
+                )
             }
         }
-        return child
-    })
+        return this.visitEachChild(node)
+    }
 }
 
 function isNullReference(node: idl.IDLNode): boolean {
-    return idl.isReferenceType(node) && node.name === NULL_REFERENCE
+    return idl.isReferenceType(node) && node.name === idl.IDLNullTypeName
 }

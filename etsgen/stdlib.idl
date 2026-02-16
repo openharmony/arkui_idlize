@@ -3,7 +3,7 @@ interface Error {};
 [TypeParameters="T"]
 interface AsyncCallback {};
 
-typedef Object Any;
+typedef Any = Object;
 
 interface Function {};
 

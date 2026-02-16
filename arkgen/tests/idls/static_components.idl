@@ -1,4 +1,4 @@
-package arkui.component.idlize;
+package arkui.component;
 
 import arkui.component.common.SizeResult as SizeResult;
 import arkui.component.common.GeometryInfo as GeometryInfo;
@@ -14,6 +14,9 @@ interface ComponentRoot {};
 
 [Component="CustomBuilderRoot"]
 interface CustomBuilderRoot {};
+
+[Component="ConditionScope"]
+interface ConditionScope {};
 
 callback Callback_onMeasureSize_SizeResult = SizeResult (GeometryInfo selfLayoutInfo, sequence<Measurable> children, ConstraintSizeOptions constraint);
 callback Callback_onPlaceChildren_Void = void (GeometryInfo selfLayoutInfo, sequence<Layoutable> children, ConstraintSizeOptions constraint);

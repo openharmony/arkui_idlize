@@ -18,30 +18,33 @@ import {
     makeFileNameFromClassName,
     modifierStructList,
 } from "../FileGenerators";
-import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, IndentedPrinter,
+import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
     groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary,
-    createLanguageWriter, createEmptyReferenceResolver, LanguageWriter, CppConvertor,
+    createLanguageWriter, LanguageWriter,
     CppReturnTypeConvertor,
     TypeConvertor,
     convertType,
-    ReferenceResolver,
     isMaterialized,
     PrimitiveTypesInstance,
     throwException,
-    getHookMethod,
     PeerMethodSignature,
     capitalize,
     qualifiedName,
+    LibraryInterface,
 } from '@idlizer/core'
-import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType, getFQName, IDLObjectType } from '@idlizer/core/idl'
+import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
+import { IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils,
+    IDLCustomObjectType, IDLFunctionType, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType,
+    IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType,
+    isInterface, isOptionalType, IDLObjectType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
-import { collectOrderedPeers, collectPeers, collectPeersForFile } from "../PeersCollector";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { collectOrderedPeers } from "../PeersCollector";
 import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
 import * as idl from "@idlizer/core/idl"
 import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
 import { generateCapiParameters } from "./HeaderPrinter";
+import { collectProperties } from "./StructPrinter";
 
 function peerToOutString(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string {
     if (isComponentDeclaration(library, context))
@@ -74,8 +77,9 @@ function peerParentNamespaceName(library: PeerLibrary, context: idl.IDLInterface
 
 function peerReturnValue(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string | undefined {
     if (idl.isInterface(context) && isMaterialized(context, library)) {
+        const nameConvertor = library.createTypeNameConvertor(Language.CPP)
         if (method.sig.name === PeerMethodSignature.CTOR)
-            return `reinterpret_cast<Ark_${context.name}>(100)`
+            return `reinterpret_cast<${nameConvertor.convert(context)}>(100)`
         if (method.sig.name === PeerMethodSignature.GET_FINALIZER)
             return `fnPtr<KNativePointer>(dummyClassFinalizer)`
     }
@@ -91,10 +95,10 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         return '{}'
     }
     convertOptional(_: IDLOptionalType): string | undefined {
-        return this.mkObject()
+        return '{ .tag=INTEROP_TAG_UNDEFINED }'
     }
-    convertUnion(_: IDLUnionType): string | undefined {
-        return this.mkObject()
+    convertUnion(type: IDLUnionType): string | undefined {
+        return `{ .selector=0, .value0=${this.convert(type.types[0])} }`
     }
     convertContainer(type: IDLContainerType): string | undefined {
         if (IDLContainerUtils.isPromise(type)) {
@@ -109,9 +113,20 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         return this.convertTypeReference(type)
     }
     convertTypeReference(type: IDLReferenceType): string | undefined {
-        const decl = this.resolver.resolveTypeReference(type)
-        if (decl && isInterface(decl) && isMaterialized(decl, this.resolver)) {
-            return `reinterpret_cast<${this.retTypeConverter.convert(type)}>(300)`
+        const decl = this.resolver.toDeclaration(type)
+        if (idl.isType(decl)) {
+            return convertType(this, decl)
+        }
+        if (decl && isInterface(decl)) {
+            if (isMaterialized(decl, this.resolver)) {
+                return `reinterpret_cast<${this.retTypeConverter.convert(type)}>(300)`
+            }
+            if (peerGeneratorConfiguration().isResource(decl.name)) {
+                return this.mkObject()
+            }
+            const properties = collectProperties(decl, this.resolver)
+            const mappedProperties = properties.map(p => `.${p.name}=${convertType(this, idl.maybeOptional(p.type, p.isOptional))}`)
+            return `{${mappedProperties.join(", ")}}`
         }
         return this.mkObject()
     }
@@ -123,8 +138,8 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         switch (type) {
             case IDLUndefinedType: return undefined
             case IDLBufferType: return this.mkObject()
-            case IDLStringType: return this.mkObject()
-            case IDLNumberType: return "{42}"
+            case IDLStringType: return '{ .chars="", .length=0 }'
+            case IDLNumberType: return "{ .tag=INTEROP_TAG_INT32, .i32=0 }"
             case IDLPointerType: return 'nullptr'
             case IDLBooleanType: return '0'
             case IDLAnyType: return "{}"
@@ -156,9 +171,9 @@ export class ModifierVisitor {
         private isDummy: boolean = false
     ) { }
 
-    printDummyImplFunctionBody(context: idl.IDLInterface, method: PeerMethod) {
+    printDummyImplFunctionBody(context: idl.IDLInterface, method: PeerMethod, returnType?: idl.IDLType) {
         let _ = this.dummy
-        const returnType = method.returnType
+        returnType = returnType ?? method.returnType
         const isVoid = this.returnTypeConvertor.isVoid(returnType)
         const returnValueConvertor = new ReturnValueConvertor(this.returnTypeConvertor, this.library)
         const returnValue = isVoid
@@ -185,15 +200,15 @@ export class ModifierVisitor {
         if (method.sig.name == PeerMethodSignature.CTOR) {
             _.writeStatement(this.makeConstructReturnStatement(_, context, method))
         } else {
-            this.printReturnStatement(this.dummy, method, true, returnValue)
+            this.printReturnStatement(this.dummy, method, returnType, true, returnValue)
         }
     }
 
-    printModifierImplFunctionBody(method: PeerMethod, clazz: PeerClass | undefined = undefined) {
+    printModifierImplFunctionBody(method: PeerMethod, returnType?: idl.IDLType, clazz: PeerClass | undefined = undefined) {
         if (!this.isDummy) {
             this.printBodyImplementation(this.real, method, clazz)
         }
-        this.printReturnStatement(this.real, method)
+        this.printReturnStatement(this.real, method, returnType)
     }
 
     private makeConstructReturnStatement(printer: LanguageWriter, context: idl.IDLInterface, method: PeerMethod): LanguageStatement {
@@ -205,8 +220,8 @@ export class ModifierVisitor {
         throw new Error("Unknown receiver type for constructor creation")
     }
 
-    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, isDummy?: boolean, returnValue: string | undefined = undefined) {
-        const isVoid = this.returnTypeConvertor.isVoid(method.returnType)
+    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnType?: idl.IDLType, isDummy?: boolean, returnValue: string | undefined = undefined) {
+        const isVoid = this.returnTypeConvertor.isVoid(returnType ?? method.returnType)
         if (isDummy) {
             if (returnValue) {
                 printer.print(`return ${returnValue};`)
@@ -294,10 +309,10 @@ export class ModifierVisitor {
         }
     }
 
-    printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
+    printMethodProlog(printer: LanguageWriter, method: PeerMethod, returnType?: idl.IDLType) {
         const apiParameters = generateCapiParameters(this.library, method,
             this.library.createTypeNameConvertor(Language.CPP))
-        printMethodDeclaration(printer.printer, this.returnTypeConvertor.convert(method.returnType), peerImplName(method), apiParameters)
+        printMethodDeclaration(printer.printer, this.returnTypeConvertor.convert(returnType ?? method.returnType), peerImplName(method), apiParameters)
         printer.print("{")
         printer.pushIndent()
     }
@@ -316,7 +331,7 @@ export class ModifierVisitor {
         }
         this.modifiers.print(`${peerParentNamespaceName(this.library, context, method)}::${peerImplName(method)},`)
         this.printMethodProlog(this.real, method)
-        this.printModifierImplFunctionBody(method, clazz)
+        this.printModifierImplFunctionBody(method, method.returnType, clazz)
         this.printMethodEpilog(this.real)
         if (!peerGeneratorConfiguration().noDummyGeneration(clazz.componentName, method.sig.name)) {
             this.printMethodProlog(this.dummy, method)
@@ -425,13 +440,12 @@ class AccessorVisitor extends ModifierVisitor {
         [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {
             if (!method) return
             const hookMethod = getHookMethod(method.originalParentName, method.method.name)
-            if (hookMethod && hookMethod.replaceImplementation) {
-                return;
-            }
+            if (hookMethod && hookMethod.replaceImplementation) return
+            const returnType = idl.isTypeParameterType(method.returnType) ? idl.IDLVoidType : method.returnType
             this.accessors.print(`${namespaceName}::${peerImplName(method)},`)
-            this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
+            this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m, returnType), returnType)
             if (!peerGeneratorConfiguration().noDummyGeneration(clazz.className, method.sig.name)) {
-                this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(clazz.decl, m))
+                this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(clazz.decl, m, returnType), returnType)
             }
         })
         this.popNamespace(namespaceName, false)
@@ -462,8 +476,8 @@ class AccessorVisitor extends ModifierVisitor {
         this.getterDeclarations.print(`const ${accessorType}* Get${className}();`)
     }
 
-    printMaterializedMethod(printer: LanguageWriter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void) {
-        this.printMethodProlog(printer, method)
+    printMaterializedMethod(printer: LanguageWriter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void, returnType?: idl.IDLType) {
+        this.printMethodProlog(printer, method, returnType)
         printBody(method)
         this.printMethodEpilog(printer)
     }
@@ -481,11 +495,12 @@ class AccessorVisitor extends ModifierVisitor {
 }
 
 export class MultiFileModifiersVisitorState {
-    dummy = createLanguageWriter(Language.CPP)
-    real = createLanguageWriter(Language.CPP)
-    accessors = createLanguageWriter(Language.CPP)
-    modifiers = createLanguageWriter(Language.CPP)
-    getterDeclarations = createLanguageWriter(Language.CPP)
+    constructor(private library: LibraryInterface) {}
+    dummy = createLanguageWriter(Language.CPP, this.library)
+    real = createLanguageWriter(Language.CPP, this.library)
+    accessors = createLanguageWriter(Language.CPP, this.library)
+    modifiers = createLanguageWriter(Language.CPP, this.library)
+    getterDeclarations = createLanguageWriter(Language.CPP, this.library)
 }
 
 export class MultiFileModifiersVisitor extends AccessorVisitor {
@@ -501,7 +516,7 @@ export class MultiFileModifiersVisitor extends AccessorVisitor {
         const slug = makeFileNameFromClassName(className)
         let state = storage.get(slug)
         if (!state) {
-            state = new MultiFileModifiersVisitorState()
+            state = new MultiFileModifiersVisitorState(this.library)
             storage.set(slug, state)
         }
         this.dummy = state.dummy
@@ -522,9 +537,9 @@ export function printRealAndDummyModifiers(peerLibrary: PeerLibrary, isDummy: bo
     visitor.commentedCode = false
     visitor.printRealAndDummyModifiers()
     const dummy =
-        visitor.dummy.concat(visitor.modifiers).concat(modifierStructList(visitor.modifierList))
+        visitor.dummy.concat(visitor.modifiers).concat(modifierStructList(peerLibrary, visitor.modifierList))
     const real =
-        visitor.real.concat(visitor.modifiers).concat(modifierStructList(visitor.modifierList))
+        visitor.real.concat(visitor.modifiers).concat(modifierStructList(peerLibrary, visitor.modifierList))
     return {dummy, real}
 }
 
@@ -538,10 +553,10 @@ export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: La
     }
 
     const dummy =
-        visitor.dummy.concat(visitor.accessors).concat(accessorStructList(visitor.accessorList))
+        visitor.dummy.concat(visitor.accessors).concat(accessorStructList(peerLibrary, visitor.accessorList))
 
     const real =
-        visitor.real.concat(visitor.accessors).concat(accessorStructList(visitor.accessorList))
+        visitor.real.concat(visitor.accessors).concat(accessorStructList(peerLibrary, visitor.accessorList))
     return {dummy, real}
 }
 

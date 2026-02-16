@@ -26,8 +26,8 @@
  * @atomicservice
  * @since 12
  */
-declare type SystemBarStyle = import('../api/@ohos.window').default.SystemBarStyle;
-
+// declare type SystemBarStyle = import('../api/@ohos.window').default.SystemBarStyle;
+declare interface SystemBarStyle {}
 /**
  * Defines the navigation common title.
  *
@@ -536,7 +536,7 @@ declare interface NavigationMenuItem {
    * @atomicservice
    * @since 12
    */
-  symbolIcon?: SymbolGlyphModifier;
+  // symbolIcon?: SymbolGlyphModifier;
 
   /**
    * Whether to enable this menu item.
@@ -1855,7 +1855,7 @@ declare interface ToolbarItem {
    * @atomicservice
    * @since 12
    */
-  symbolIcon?: SymbolGlyphModifier;
+  // symbolIcon?: SymbolGlyphModifier;
 
   /**
    * Trigger by navigation toolbar item click.
@@ -1923,7 +1923,7 @@ declare interface ToolbarItem {
    * @atomicservice
    * @since 12
    */
-  activeSymbolIcon?: SymbolGlyphModifier;
+  // activeSymbolIcon?: SymbolGlyphModifier;
 }
 
 /**
@@ -2250,7 +2250,7 @@ declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
    * @atomicservice
    * @since 12
    */
-  backButtonIcon(value: string | PixelMap | Resource | SymbolGlyphModifier): NavigationAttribute;
+  backButtonIcon(value: string | PixelMap | Resource): NavigationAttribute;
 
   /**
    * Hide the NavBar, which includes title bar, the child of Navigation and tool bar. Supported in split mode.
@@ -2964,7 +2964,7 @@ declare interface NavContentInfo {
  * @atomicservice
  * @since 11
  */
-declare const Navigation: NavigationInterface;
+//declare constNavigation: NavigationInterface;
 
 /**
  * Defines Navigation Component instance.
@@ -2987,4 +2987,4 @@ declare const Navigation: NavigationInterface;
  * @atomicservice
  * @since 11
  */
-declare const NavigationInstance: NavigationAttribute;
+//declare constNavigationInstance: NavigationAttribute;

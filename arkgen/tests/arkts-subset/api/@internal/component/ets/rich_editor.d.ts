@@ -3918,7 +3918,7 @@ interface RichEditorInterface {
  * @atomicservice
  * @since 11
  */
-declare const RichEditorInstance: RichEditorAttribute;
+//declare constRichEditorInstance: RichEditorAttribute;
 
 /**
  * Defines RichEditor Component.
@@ -3934,4 +3934,4 @@ declare const RichEditorInstance: RichEditorAttribute;
  * @atomicservice
  * @since 11
  */
-declare const RichEditor: RichEditorInterface;
+//declare constRichEditor: RichEditorInterface;

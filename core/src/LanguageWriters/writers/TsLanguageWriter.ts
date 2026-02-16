@@ -18,6 +18,7 @@ import { isOptionalType } from '../../idl'
 import { Language } from '../../Language'
 import { IndentedPrinter } from "../../IndentedPrinter";
 import {
+    ACCESS_MODIFIERS_SET,
     AssignStatement,
     BlockStatement,
     DelegationCall,
@@ -44,10 +45,9 @@ import {
 import { ArgConvertor } from "../ArgConvertors"
 import { IdlNameConvertor } from "../nameConvertor"
 import { RuntimeType } from "../common";
-import { rightmostIndexOf, throwException } from "../../util"
+import { rightmostIndexOf } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 import { TSKeywords } from '../../languageSpecificKeywords';
-import { isStringEnumType } from '../../peer-generation/isEnumType';
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -99,7 +99,7 @@ class TSUnwrapOptionalExpression implements LanguageExpression {
 class TSThrowErrorStatement implements LanguageStatement {
     constructor(public message: string) { }
     write(writer: LanguageWriter): void {
-        writer.print(`throw new Error("${this.message}")`)
+        writer.print(`throw new Error('${this.message}')`)
     }
 }
 export class TSReturnStatement extends ReturnStatement {
@@ -157,6 +157,9 @@ export class TSLanguageWriter extends LanguageWriter {
     pushNamespace(namespace: string, options: NamespaceOptions): void {
         this.namespaceStack.push(namespace)
         const declaredPrefix = options.isDeclared ? "declare " : ""
+        if (options.isDefault) {
+            this.print(`export default ${namespace}`)
+        }
         this.print(`export ${declaredPrefix}namespace ${namespace} {`)
         if (options.ident) this.pushIndent()
     }
@@ -176,6 +179,10 @@ export class TSLanguageWriter extends LanguageWriter {
        return this.typeConvertor.convert(type)
     }
 
+    override get interopModule(): string {
+        return "@koalaui/interop"
+    }
+
     writeClass(
         name: string,
         op: (writer: this) => void,
@@ -192,7 +199,7 @@ export class TSLanguageWriter extends LanguageWriter {
         let abstractClause = isAbstract ? ` abstract` : ''
         this.printer.print(`export${declaredClause}${abstractClause} class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
         this.pushIndent()
-        op(this)
+        this.classOp(() => op(this))
         this.popIndent()
         this.printer.print(`}`)
     }
@@ -233,7 +240,7 @@ export class TSLanguageWriter extends LanguageWriter {
             if (member.alias !== undefined) {
                 value = member.alias
             } else {
-                value = `${member.stringId != undefined ? `"${member.stringId}"` : `${member.numberId}`}`
+                value = `${member.stringId != undefined ? `'${member.stringId}'` : `${member.numberId}`}`
             }
             const maybeComma = index < members.length - 1 ? "," : ""
             this.printer.print(`${member.name} = ${value}${maybeComma}`)
@@ -242,10 +249,24 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print("}")
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
-        const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
+        if (this.writingClassBody && !modifiers?.some(m => ACCESS_MODIFIERS_SET.has(m))) {
+            modifiers = modifiers?.slice() ?? []
+            modifiers.unshift(FieldModifier.PUBLIC)
+        }
         let prefix = this.makeFieldModifiersList(modifiers)
         if (prefix) prefix += " "
-        this.printer.print(`${prefix}${name}${optional ? "?"  : ""}: ${this.getNodeName(type)}${init}`)
+        const typeName = this.getNodeName(type)
+        const isGetter = modifiers?.includes(FieldModifier.GET)
+        const isSetter = modifiers?.includes(FieldModifier.SET)
+        if (isGetter) {
+            this.printer.print(`${prefix}get ${name}(): ${typeName}`)
+        }
+        if (isSetter) {
+            this.printer.print(`${prefix}set ${name}(value: ${typeName})`)
+        }
+        if (isGetter || isSetter) return
+        const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
+        this.printer.print(`${prefix}${name}${optional ? "?"  : ""}: ${typeName}${init}`)
     }
     writeNativeMethodDeclaration(method: Method): void {
         let name = method.name
@@ -288,7 +309,6 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void {
         let isStatic = modifiers.includes(FieldModifier.STATIC)
-        let isMutable = !modifiers.includes(FieldModifier.READONLY)
         let containerName = propName.concat("_container")
         if (getter) {
             if(!getter!.op) {
@@ -301,20 +321,19 @@ export class TSLanguageWriter extends LanguageWriter {
                     writer.print(`return ${containerName}`)
                 }
             )
-            if (isMutable) {
-                const setSignature = new NamedMethodSignature(idl.IDLVoidType, [propType], [propName])
-                this.writeSetterImplementation(
-                    new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC] : []),
-                    setter ? setter!.op :
+        }
+        if (setter) {
+            const setSignature = new NamedMethodSignature(idl.IDLVoidType, [propType], [propName])
+            this.writeSetterImplementation(
+                new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC] : []),
+                setter ? setter!.op :
                     (writer) => {
                         writer.print(`${containerName} = ${propName}`)
                     }
-                )
-            }
+            )
         }
-        else {
-            this.writeFieldDeclaration(propName, propType, modifiers, idl.isOptionalType(propType), initExpr)
-        }
+        if (getter || setter) return
+        this.writeFieldDeclaration(propName, propType, modifiers, idl.isOptionalType(propType), initExpr)
     }
     override writeTypeDeclaration(decl: idl.IDLTypedef): void {
         const type = this.getNodeName(decl.type)
@@ -323,6 +342,16 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
         this.print(`export const ${constName}: ${this.getNodeName(constType)}${constVal ? ' = ' + constVal : ''}`)
+    }
+    override writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void {
+        if (importedFeatures.length !== aliases.length) {
+            throw new Error(`Inconsistent imports from ${moduleName}`)
+        }
+        const importNodes: string[] = []
+        for (let i = 0; i < importedFeatures.length; i++) {
+            importNodes.push(importedFeatures[i] + (aliases[i] ? ` as ${aliases[i]}` : ``))
+        }
+        this.writeExpressionStatement(this.makeString(`import { ${importNodes.join(', ')} } from '${moduleName}'`))
     }
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {
         let prefix = !modifiers ? undefined : this.supportedModifiers
@@ -374,6 +403,12 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
         return new TSCastExpression(value, this.getNodeName(node), options?.unsafe ?? false)
+    }
+    override instanceOf(value: string, type: idl.IDLType): LanguageExpression {
+        return idl.IDLContainerUtils.isSequence(type)
+            ? this.makeString(`Array.isArray(${value})`)
+            : super.instanceOf(value, type)
+
     }
     override typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
 
@@ -464,7 +499,7 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         return this.makeString(`${value.asString()}.valueOf()`)
     }
-    override castToBoolean(value: string): string { return `+${value}` }
+    override castToBoolean(value: string): string { return `!!${value}` }
     override makeCallIsObject(value: string): LanguageExpression {
         return this.makeString(`${value} instanceof Object`)
     }
@@ -475,5 +510,13 @@ export class TSLanguageWriter extends LanguageWriter {
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
         const runtimeTypeList = runtimeTypes.map(ty => "RuntimeType." + RuntimeType[ty]).join(", ")
         return `[${runtimeTypeList}].includes(runtimeType(${value}))`
+    }
+
+    private writingClassBody = false
+    classOp(op:() => void): void {
+        const old = this.writingClassBody
+        this.writingClassBody = true
+        op()
+        this.writingClassBody = old
     }
 }

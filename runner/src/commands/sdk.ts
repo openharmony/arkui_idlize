@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-import { cpSync, existsSync, mkdirSync } from "node:fs"
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs"
 import { installTemplate, run } from "../utils"
 import { CLONED_SDK_BUILD_TOOLS, CLONED_SDK_DIR, PREPARED_SDK_ARKTS_ARKUI_COMPONENT, PREPARED_SDK_ARKTS_INTERNAL, PREPARED_SDK_DIR_ARKTS, PREPARED_SDK_DIR_TS, SDK_PATCH_DIR, SDK_PATCH_FILE, WORKING_DIR } from "../shared"
 import { join } from "node:path"
 import { EOL } from "node:os"
+import { transformBuilderFunctions } from "../tools/builderFuncsTransformer"
 
 export interface PrepareSdkConfig {
     sdkPath: string
@@ -47,7 +48,9 @@ export function prepareSdk({
         if (existsSync(maybeSpecificPatchFile)) {
             sdkPatchFile = maybeSpecificPatchFile
         }
-        // r.exec(['git', 'apply', sdkPatchFile])
+        if (readFileSync(sdkPatchFile, 'utf-8').trim().length !== 0) {
+            r.exec(['git', 'apply', sdkPatchFile])
+        }
 
         const prepareSdkScriptFile = join(CLONED_SDK_DIR, 'build-tools', 'handleApiFiles.js')
         r.cd(CLONED_SDK_BUILD_TOOLS)
@@ -64,16 +67,6 @@ export function prepareSdk({
             ['--type', 'ets'],
             ['--output', PREPARED_SDK_DIR_TS]
         ])
-
-        const arkuiTransformerDir = join(CLONED_SDK_DIR, 'build-tools', 'arkui_transformer')
-        r.cd(arkuiTransformerDir)
-        r.exec(['npm', 'ci'])
-        r.exec(['npm', 'run', 'compile:arkui'])
-        r.exec([
-            'node', '.',
-            ['--input-dir', PREPARED_SDK_ARKTS_INTERNAL],
-            ['--target-dir', PREPARED_SDK_ARKTS_ARKUI_COMPONENT],
-        ])
     })
 
     let configArktsDir: string | undefined = undefined
@@ -88,6 +81,8 @@ export function prepareSdk({
         )
     }
 
+    rmSync(join(PREPARED_SDK_DIR_ARKTS, 'api', '@internal'), { recursive: true, force: true })
+    transformBuilderFunctions(join(PREPARED_SDK_DIR_ARKTS, 'api', 'arkui', 'component'))
 
     return {
         sdkPath12: PREPARED_SDK_DIR_ARKTS,

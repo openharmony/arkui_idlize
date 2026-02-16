@@ -1,7 +1,14 @@
 package arkui.ComponentContent;
 
-[Entity=Class]
-interface ComponentContent {
+import arkui.Content.Content as Content;
+
+[Entity=Class, Abstract]
+interface ComponentContentBase: [Extends] Content {
+    constructor();
+};
+
+[Entity=Class, TypeParameters="T", TypeParametersDefaults="undefined"]
+interface ComponentContent: [Extends] ComponentContentBase {
     void update(Object args);
     void reuse(optional Object param);
     void recycle();

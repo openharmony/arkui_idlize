@@ -32,7 +32,10 @@
  * @atomicservice
  * @since 11
  */
-declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor').DrawableDescriptor;
+// declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor').DrawableDescriptor;
+interface DrawableDescriptor {
+  value: string
+}
 
 /**
  * Import the DrawingColorFilter type object for image color filter setting.
@@ -44,6 +47,9 @@ declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor
  * @since 12
  */
 // declare type DrawingColorFilter = import('../api/@ohos.graphics.drawing').default.ColorFilter;
+interface DrawingColorFilter {
+  value: string
+}
 
 /**
  * Enumerates all the levels available for the image resolution quality.
@@ -53,7 +59,8 @@ declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor
  * @systemapi
  * @since 12
  */
-declare type ResolutionQuality  = import('../api/@ohos.multimedia.image').default.ResolutionQuality;
+// declare type ResolutionQuality  = import('../api/@ohos.multimedia.image').default.ResolutionQuality;
+declare interface ResolutionQuality {}
 
 /**
  * Object matrix used for setting image transformations.
@@ -64,7 +71,8 @@ declare type ResolutionQuality  = import('../api/@ohos.multimedia.image').defaul
  * @atomicservice
  * @since 16
  */
-declare type ImageMatrix = import ('../api/@ohos.matrix4').default.Matrix4Transit;
+// declare type ImageMatrix = import ('../api/@ohos.matrix4').default.Matrix4Transit;
+declare interface ImageMatrix {}
 
 /**
  * @enum { number }
@@ -1209,17 +1217,6 @@ declare class ImageAttribute extends CommonMethod<ImageAttribute> {
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @since 9
    */
-  /**
-   * Enable image dragging.
-   * Default value is true.
-   *
-   * @param { boolean } value
-   * @returns { ImageAttribute }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @atomicservice
-   * @since 11
-   */
-  draggable(value: boolean): ImageAttribute;
 
   /**
    * Defines the PointLight
@@ -1751,7 +1748,7 @@ declare class ImageAttribute extends CommonMethod<ImageAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Image: ImageInterface;
+//declare constImage: ImageInterface;
 
 /**
  * Defines Image Component instance.
@@ -1783,7 +1780,7 @@ declare const Image: ImageInterface;
  * @atomicservice
  * @since 11
  */
-declare const ImageInstance: ImageAttribute;
+//declare constImageInstance: ImageAttribute;
 
 /**
  * @type ImageErrorCallback
@@ -1928,6 +1925,7 @@ declare interface ImageError {
  * @atomicservice
  * @since 12
  */
+declare interface DrawingLattice {}
 declare interface ResizableOptions {
   /**
    * Image slice widths.

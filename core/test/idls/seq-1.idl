@@ -1,0 +1,16 @@
+dictionary HuksTag {
+    number HUKS_TAG_INVALID = 0;
+    number HUKS_TAG_ALGORITHM = 536870913;
+    number HUKS_TAG_PURPOSE = 536870914;
+    number HUKS_TAG_KEY_SIZE = 536870915;
+};
+
+interface HuksParam {
+    attribute HuksTag tag;
+    attribute (boolean or number) value;
+};
+
+interface HuksOptions {
+    [Optional]
+    attribute sequence<HuksParam> properties;
+};

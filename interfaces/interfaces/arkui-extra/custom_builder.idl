@@ -1,3 +1,5 @@
 package arkui.component.idlize;
 
 callback CustomNodeBuilder = pointer (pointer parentNode);
+
+callback <T> CustomNodeBuilderT = pointer(pointer parentNode, T t);

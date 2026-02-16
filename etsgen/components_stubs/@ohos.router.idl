@@ -1,0 +1,8 @@
+package ohos.router;
+
+[DefaultExport]
+namespace router {
+    interface RouterOptions {};
+    interface RouterMode {};
+    interface RouterState {};
+};

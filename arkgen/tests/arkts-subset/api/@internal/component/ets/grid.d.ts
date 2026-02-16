@@ -16,5 +16,5 @@ declare class GridAttribute extends ScrollableCommonMethod<GridAttribute> {
     onScrollIndex(event: (first: number, last: number) => void): GridAttribute;
 }
 
-declare const Grid: GridInterface;
-declare const GridInstance: GridAttribute;
+//declare constGrid: GridInterface;
+//declare constGridInstance: GridAttribute;

@@ -16,6 +16,7 @@
 import { IndentedPrinter } from "../../IndentedPrinter"
 import {
     BlockStatement,
+    EnumMember,
     LambdaExpression,
     LanguageExpression,
     LanguageStatement,
@@ -43,11 +44,10 @@ import {
     BufferConvertor
 } from "../ArgConvertors"
 import * as idl from '../../idl'
-import { convertDeclaration, IdlNameConvertor } from "../nameConvertor"
+import { convertDeclaration, IdlNameConvertor, withInsideInstanceof } from "../nameConvertor"
 import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor";
 import { Language } from "../../Language";
 import { RuntimeType } from "../common";
-import { throwException } from "../../util";
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
@@ -86,7 +86,7 @@ export class EtsAssignStatement implements LanguageStatement {
             const typeClause = this.type !== undefined ? `: ${writer.getNodeName(this.type)}` : ''
             const maybeAssign = this.expression !== undefined ? " = " : ""
             const initValue = this.expression !== undefined ? this.expression : writer.makeString("")
-            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName} ${typeClause}${maybeAssign}${initValue.asString()}`)
+            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName}${typeClause}${maybeAssign}${initValue.asString()}`)
         } else {
             const receiver = this.options?.receiver
             const withReceiver = receiver ? `${receiver}.` : ""
@@ -105,54 +105,6 @@ class ArkTSMapForEachStatement implements LanguageStatement {
         writer.writeStatement(new BlockStatement(this.body, false))
         writer.popIndent()
         writer.print(`}`)
-    }
-}
-
-export class ArkTSEnumEntityStatement implements LanguageStatement {
-    constructor(
-        private readonly enumEntity: IDLEnum,
-        private readonly options: { isExport: boolean, isDeclare: boolean }
-    ) {}
-
-    write(writer: LanguageWriter) {
-        let enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
-        enumName = enumName.split('.').at(-1)!
-        const members
-            = this.enumEntity.elements
-            .flatMap((member, index) => {
-                const initText = member.initializer ?? index
-                const isTypeString = typeof initText !== "number"
-                const originalName = getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
-                const res: {
-                    name: string,
-                    alias: string | undefined,
-                    stringId: string | undefined,
-                    numberId: number
-                }[] = [{
-                    name: member.name,
-                    alias: undefined,
-                    stringId: isTypeString ? initText : undefined,
-                    numberId: initText as number
-                }]
-                if (originalName !== undefined) {
-                    res.push({
-                        name: originalName,
-                        alias: undefined,
-                        stringId: isTypeString ? initText : undefined,
-                        numberId: initText as number
-                    })
-                    //TODO: enums do not support member aliases
-                    // res.push({
-                    //     name: originalName,
-                    //     alias: member.name,
-                    //     stringId: undefined,
-                    //     numberId: initText as number
-                    // })
-                }
-                return res
-            })
-
-        writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
     }
 }
 
@@ -189,13 +141,6 @@ export class ETSLambdaExpression extends LambdaExpression {
 //                           UTILS                            //
 ////////////////////////////////////////////////////////////////
 
-export function generateTypeCheckerName(typeName: string): string {
-    return "is" + typeName
-        .replaceAll('[]', 'BracketsArray')
-        .replaceAll(/<.*$/g, '') // delete type arguments
-        .replaceAll('.', '_')
-}
-
 export function generateEnumToNumericName(entry: idl.IDLEntry): string {
     const typeName = idl.getQualifiedName(entry, "namespace.name").split('.').join('_')
     return `${typeName}_ToNumeric`
@@ -204,17 +149,6 @@ export function generateEnumToNumericName(entry: idl.IDLEntry): string {
 export function generateEnumFromNumericName(entry: idl.IDLEntry): string {
     const typeName = idl.getQualifiedName(entry, "namespace.name").split('.').join('_')
     return `${typeName}_FromNumeric`
-}
-
-export function makeArrayTypeCheckCall(
-    valueAccessor: string,
-    typeName: string,
-    writer: LanguageWriter) {
-    return writer.makeMethodCall(
-        "TypeChecker",
-        generateTypeCheckerName(typeName),
-        [writer.makeString(valueAccessor)
-    ])
 }
 
 ////////////////////////////////////////////////////////////////
@@ -229,12 +163,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         super(printer, resolver, typeConvertor, Language.ARKTS)
     }
 
-    pushNamespace(namespace: string, options: NamespaceOptions): void {
-        if (options.isDefault) {
-            this.print(`export default ${namespace}`)
-        }
-        super.pushNamespace(namespace, options)
-    }
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
         return new ETSLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor, this.arrayConvertor)
     }
@@ -263,18 +191,21 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`${value} as ${type}`)
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        if (ETSLanguageWriter.isUseTypeChecker) {
-            return this.makeMethodCall('TypeChecker', generateEnumToNumericName(enumEntry), [value])
+        if (idl.isStringEnum(enumEntry)) {
+            let extractorStatement = this.makeMethodCall(value.asString(), 'getOrdinal', [])
+            if (enumEntry.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
+                extractorStatement = this.makeNaryOp('%', [
+                    extractorStatement,
+                    this.makeString(enumEntry.elements.length.toString())
+                ])
+            }
+            return extractorStatement
+        } else {
+            return this.makeMethodCall(value.asString(), 'valueOf', [])
         }
-        return idl.isStringEnum(enumEntry)
-            ? this.makeMethodCall(value.asString(), 'getOrdinal', [])
-            : this.makeMethodCall(value.asString(), 'valueOf', [])
     }
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        if (ETSLanguageWriter.isUseTypeChecker) {
-            return this.makeMethodCall('TypeChecker', generateEnumFromNumericName(enumEntry), [value])
-        }
         return idl.isStringEnum(enumEntry)
             ? this.makeString(`${enumName}.values()[${value.asString()}]`)
             : this.makeMethodCall(enumName, 'fromValue', [value])
@@ -289,7 +220,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             || convertor instanceof CustomTypeConvertor) {
             return this.instanceOf(value, convertor.idlType)
         }
-        return this.makeString(`${value} instanceof ${convertor.targetType(this)}`)
+        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => convertor.targetType(this))}`)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         if (idl.isEnum(this.resolver.toDeclaration(destinationConvertor.nativeType()))) {
@@ -298,12 +229,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeValueFromOption(value, destinationConvertor)
     }
 
-    makeEnumEntity(enumEntity: IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
-        return new ArkTSEnumEntityStatement(enumEntity, {
-            isExport: options?.isExport,
-            isDeclare: !!options?.isDeclare,
-        })
-    }
     writeMethodCall(receiver: string, method: string, params: string[], nullable: boolean = false) {
         // ArkTS does not support - 'this.?'
         super.writeMethodCall(receiver, method, params, nullable && receiver !== "this")
@@ -329,15 +254,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeNaryOp('==', args)
     }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
-        // work around ArkTS compiler bugs
-        if (idl.IDLContainerUtils.isSequence(type)) {
-            const arrayTypeName = this.arrayConvertor.convert(type)
-            return `TypeChecker.${generateTypeCheckerName(arrayTypeName)}(${value})`
-        }
-        if (this.getNodeName(type) === "DragPreviewMode") {
-            return `TypeChecker.isDragPreviewMode(${value})`
-        }
-        return `${value} instanceof ${this.getNodeName(type)}`
+        return `${value} instanceof ${withInsideInstanceof(true, () => {
+            return this.getNodeName(type)
+        })}`
     }
     override castToInt(value: string, bitness: 8 | 32): string {
         // This fix is used to avoid unnecessary writeInt8(value as int32) call, which is generated if value is already an int32
@@ -347,65 +266,22 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             return `(${value}).toByte()`
         return `(${value}).toInt()` // FIXME: is there int8 in ARKTS?
     }
-    override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
+    override castToBoolean(value: string): string { return `${value} ? true : false` }
 
-    override typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
-        if (!members || members.length === 0) {
-            throw new Error("At least one member needs to provided to pass it to TypeChecker!")
-        }
-        const prop = members[0]
-        // Use the same typeInstanceOf<T>(...) method to compile the ETS code by two compilers ArkTS and TS
-        return this.makeString(`TypeChecker.typeInstanceOf<${this.getNodeName(type)}>(value, "${prop}")`)
-    }
-
-    makeTypeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
-        return this.makeString(`TypeChecker.typeCast<${this.getNodeName(type)}>(value)`)
-    }
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
         if (node === idl.IDLI64Type)
-            return this.makeMethodCall(value.asString(), `toLong`, [])
+            return this.makeMethodCall(value.asString() + '!', `toLong`, [])
         if (node === idl.IDLI32Type)
-            return this.makeMethodCall(value.asString(), `toInt`, [])
+            return this.makeMethodCall(value.asString() + '!', `toInt`, [])
         if (node === idl.IDLI8Type)
-            return this.makeMethodCall(value.asString(), `toByte`, [])
+            return this.makeMethodCall(value.asString() + '!', `toByte`, [])
         if (node === idl.IDLF64Type)
-            return this.makeMethodCall(value.asString(), `toDouble`, [])
+            return this.makeMethodCall(value.asString() + '!', `toDouble`, [])
         if (node === idl.IDLF32Type)
-            return this.makeMethodCall(value.asString(), `toFloat`, [])
+            return this.makeMethodCall(value.asString() + '!', `toFloat`, [])
         return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
     }
-
-    public static _isUseTypeChecker: boolean = true
-    public static get isUseTypeChecker(): boolean { return this._isUseTypeChecker }
-    public static useTypeChecker<T>(isUseTypeChecker: boolean, op: () => T): T {
-        const prevIsUse = this.isReferenceRelativeToNamespaces
-        this._isUseTypeChecker = isUseTypeChecker
-        const result = op()
-        this._isUseTypeChecker = prevIsUse
-        return result
+    override instanceOf(value: string, type: idl.IDLType): LanguageExpression {
+        return this.makeString(this.discriminate(value, -1, type, []))
     }
-}
-
-function makeInterfaceTypeCheckerCall(
-    valueAccessor: string,
-    interfaceName: string,
-    allFields: string[],
-    duplicates: Set<string>,
-    writer: LanguageWriter,
-): LanguageExpression {
-    return writer.makeMethodCall(
-        "TypeChecker",
-        generateTypeCheckerName(interfaceName), [writer.makeString(valueAccessor),
-        ...allFields.map(it => {
-            return writer.makeString(duplicates.has(it) ? "true" : "false")
-        })
-    ])
-}
-
-export function makeEnumTypeCheckerCall(valueAccessor: string, enumName: string, writer: LanguageWriter): LanguageExpression {
-    return writer.makeMethodCall(
-        "TypeChecker",
-        generateTypeCheckerName(enumName),
-        [writer.makeString(valueAccessor)]
-    )
 }

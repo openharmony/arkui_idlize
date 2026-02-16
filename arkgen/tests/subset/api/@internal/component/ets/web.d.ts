@@ -38,5 +38,5 @@ declare class WebAttribute extends CommonMethod<WebAttribute> {
     onHttpErrorReceive(callback: Callback<OnHttpErrorReceiveEvent>): WebAttribute;
 }
 
-declare const Web: WebInterface;
-declare const WebInstance: WebAttribute;
+//declare constWeb: WebInterface;
+//declare constWebInstance: WebAttribute;

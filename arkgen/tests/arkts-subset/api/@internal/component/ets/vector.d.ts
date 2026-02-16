@@ -16,7 +16,7 @@ declare type Vector2 = {
 declare interface VectorInterface { 
     (): VectorAttribute
 }
-declare const Vector: VectorInterface
+//declare constVector: VectorInterface
 
 declare class VectorAttribute extends CommonMethod<VectorAttribute> {
 

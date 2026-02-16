@@ -14,7 +14,11 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, isInExternalModule, getExtractor, PACKAGE_IDLIZE_INTERNAL } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier,
+    getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression,
+    DelegationCall, getInternalClassName, LanguageWriter, LayoutNodeRole, MaterializedClass, MaterializedField,
+    qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics,
+    PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -23,36 +27,36 @@ import {
     MethodSignature,
     NamedMethodSignature
 } from "../LanguageWriters";
-import {
-    LanguageWriter, getInternalClassName,
-    MaterializedClass, MaterializedField, PeerLibrary, LayoutNodeRole
-} from "@idlizer/core"
 import { allowNamedOverloads, allowsOverloads, collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector"
 import { TargetFile } from "./TargetFile"
-import {
-    ARK_MATERIALIZEDBASE,
-    ARK_MATERIALIZEDBASE_EMPTY_PARAMETER,
-    ARK_OBJECTBASE,
-} from "./lang/Java";
-import { printJavaImports } from "./lang/JavaPrinters";
-import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, maybeOptional } from '@idlizer/core/idl'
+import { IDLPointerType, IDLType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
 import { PrinterClass, PrinterResult } from '../LayoutManager';
 import { injectPatch } from '../common';
 import { FinalizableType, RefCountedType } from '../idl/IdlPeerGeneratorVisitor';
 
+const MATERIALIZED_TAG = "MaterializedBaseTag.NOP"
+
 interface MaterializedFileVisitor {
     visit(): PrinterResult
+}
+
+type MethodFilter = (method: MaterializedMethod | idl.IDLMethod) => boolean
+
+function getDeserializer(classFQName: string): { receiver: string, method: string } {
+    return {
+        receiver: "extractors",
+        method: `deserialize_${classFQName.replaceAll('.', '_')}`
+    }
 }
 
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     protected readonly collector = new ImportsCollector()
     protected readonly printer = this.library.createLanguageWriter()
-    protected readonly internalPrinter = this.library.createLanguageWriter(this.library.language)
     protected overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language, false, this.library.useMemoM3)
 
     private extraAssignCallbacks: { callback: string, method: string }[] = []
@@ -89,6 +93,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     assignFinalizable(className: string, peerPtr: string, isRefCounted: boolean, /*peerType: idl.IDLReferenceType, createFinalizer: boolean,*/ writer: LanguageWriter) {
+        const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
         const params = isRefCounted ? [writer.makeString(peerPtr)] : [writer.makeString(peerPtr), writer.makeString(`${className}.getFinalizer()`)]
         const peerType = isRefCounted ? RefCountedType : FinalizableType
         writer.writeStatement(
@@ -96,7 +101,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 "this.peer",
                 idl.maybeOptional(peerType, true),
                 writer.makeNewObject(
-                    peerType.name,
+                    nameConvertor.convert(peerType),
                     params
                 ), false
             )
@@ -104,14 +109,13 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     // print non-static readonly fields initialization
-    printReadonlyFieldsInitialization(clazz: MaterializedClass) {
+    printFieldsInitialization(clazz: MaterializedClass) {
         const writer = this.printer
         const receiver = writer.makeThis()
         for (const mField of clazz.fields) {
             const f = mField.field
-            const isReadonly = f.modifiers.includes(FieldModifier.READONLY)
             const isStatic = f.modifiers.includes(FieldModifier.STATIC)
-            if (isReadonly && !isStatic) {
+            if (!mField.state.isAccessor && !isStatic) {
                 const initializer = this.printer.makeMethodCall(receiver.asString(), `get${capitalize(f.name)}`, [])
                 writer.writeStatement(
                     writer.makeAssign(f.name, f.type, initializer, false, false, { receiver: receiver.asString() })
@@ -130,14 +134,14 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }
         const peerPtr = "peerPtr"
         const peerPtrExpr = this.printer.makeString(peerPtr)
-        const params = [...Array(this.maxCtorParams).fill(0).map((_, i) => `_${i}`), peerPtr]
-        const types = [...Array(this.maxCtorParams).fill(idl.IDLBooleanType), idl.IDLPointerType]
+        const params = ["tag", peerPtr]
+        const types = [idl.createReferenceType("idlize.stdlib.MaterializedBaseTag"), idl.IDLPointerType]
         const sig = new NamedMethodSignature(idl.IDLVoidType, types, params)
         this.printer.writeConstructorImplementation(className, sig, writer => {
-            if (!hasSuperClass) {
+            if (!hasSuperClass || !isSuperClassMaterialized(this.library, clazz.superClass)) {
                 this.assignFinalizable(className, peerPtr, clazz.isRefCounted, writer)
             }
-            this.printReadonlyFieldsInitialization(clazz)
+            this.printFieldsInitialization(clazz)
         }, this.getSuperDelegationCall(this.printer, clazz, peerPtrExpr, superClassName))
     }
 
@@ -147,7 +151,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const collapsedCtor = collapseSameNamedMethods(ctors.map(it => it.method), undefined, undefined)
         this.printCollapsedCtor(clazz, collapsedCtor, ctorPostfix, superClassName)
         this.overloadsPrinter.setPostfix(ctorPostfix)
-        this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), ctors)
+        this.overloadsPrinter.printGroupedComponentOverloads(this.mangle(clazz.getImplementationName()), ctors)
         this.overloadsPrinter.setPostfix()
         for (const ctor of clazz.ctors) {
             this.printMethod(ctor, `${ctorPostfix}_serialize`, idl.IDLPointerType)
@@ -168,12 +172,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const dimensions = [...superDecl.constructors.map(it => it.parameters.length)]
         const argsCount = dimensions.length == 0 ? 0 : Math.max(...dimensions)
-        const args = [
-            ...Array(argsCount)
-                .fill(allowsOverloads(this.library.language) ? "false" : "undefined")
-                .map(it => writer.makeString(it)),
-            peerPtrExpr
-        ]
+        const tagArgs: LanguageExpression[] = allowsOverloads(this.library.language)
+            ? [writer.makeString("tag")]
+            : Array(argsCount).fill(writer.makeUndefined())
+        const args = isSuperClassMaterialized(this.library, clazz.superClass) ? [...tagArgs, peerPtrExpr] : []
         return { delegationArgs: args, delegationName: superClassName }
     }
 
@@ -200,7 +202,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const peerPtrExpr = writer.makeTernary(
             writer.makeDefinedCheck(peerPtr, undefined),
             writer.makeString(peerPtr),
-            writer.makeMethodCall(implementationClassName, `${ctor.name}${ctorPostfix}`, ctorArgs)
+            writer.makeMethodCall(this.mangle(implementationClassName), `${ctor.name}${ctorPostfix}`, ctorArgs)
         )
         const delegationCall = this.getSuperDelegationCall(writer, clazz, peerPtrExpr, superClassName)
 
@@ -229,7 +231,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             ctorSig.args.map((_, index) => writer.makeString(ctorSig.argsNames[index]))
         )
 
-        const ctorArgs = [...Array(this.maxCtorParams).fill(writer.makeString("false")), ctorCall]
+        const ctorArgs = [writer.makeString(MATERIALIZED_TAG), ctorCall]
         writer.writeConstructorImplementation(implementationClassName, ctorSig, writer => {
             const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
             injectPatch(writer, key, config.patchMaterialized)
@@ -241,29 +243,31 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     )
                 })
             }
+            this.printFieldsInitialization(clazz)
         }, { delegationType: DelegationType.THIS, delegationName: implementationClassName, delegationArgs: ctorArgs })
     }
 
-    printOverloads(clazz: MaterializedClass) {
-        for (const grouped of groupOverloads(clazz.methods, this.library.language)) {
+    printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
+        for (const grouped of groupOverloads(clazz.methods.filter(filter), this.library.language)) {
             this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), grouped)
         }
         if (!clazz.isInterface && allowNamedOverloads(this.library.language)) {
-            this.writeNamedOverloadsGroups(clazz.decl.methods, this.printer)
+            this.writeNamedOverloadsGroups(clazz.decl.methods.filter(filter), this.printer)
         }
     }
 
-    printTaggedMethods(clazz: MaterializedClass) {
+    printTaggedMethods(clazz: MaterializedClass, filter: MethodFilter) {
         // TBD: Refactor tagged methods staff
         const seenTaggedMethods = new Set<string>()
         clazz.taggedMethods
-            .map(it => methodFromTagged(it))
-            .filter(it => {
+            .filter(filter)
+            .map(it => [it, methodFromTagged(it)])
+            .filter(([tagged, it]) => {
                 if (seenTaggedMethods.has(it.name)) return false
                 seenTaggedMethods.add(it.name)
                 return true
             })
-            .forEach(method => {
+            .forEach(([tagged, method]) => {
                 // const method = methodFromTagged(taggedMethod)
                 const signature = new NamedMethodSignature(
                     method.returnType,
@@ -271,9 +275,27 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     method.parameters.map(it => it.name)
                 )
                 // TBD: Add tagged methods implementation
-                this.printer.writeMethodImplementation(new Method(getTaggedName(method)!, signature), writer => {
+                this.printer.writeMethodImplementation(new Method(method.name!, signature), writer => {
+                    const hook = getHookMethod(clazz.className, method.name!)
+                    if (hook) {
+                        const hookCall = writer.makeFunctionCall(hook.hookName, [writer.makeThis(), ...tagged.parameters.map(it => writer.makeString(it.name))])
+                        writer.addFeature(hook.hookName, this.library.layout.handwrittenPackage())
+                        if (hook.replaceImplementation) {
+                            writer.writeStatement(writer.makeReturn(hookCall))
+                            return
+                        } else {
+                            writer.writeExpressionStatement(hookCall)
+                        }
+                    }
+                    const taggedCall = writer.makeMethodCall('this', tagged.name, tagged.parameters.map(it => writer.makeString(it.name)))
+                    const conditions = idl.fetchSignatureTags(tagged).map(it => writer.makeNaryOp("==", [writer.makeString(it.name), writer.makeString(it.value)]))
+                    const condition = writer.makeNaryOp("||", conditions)
+                    const block = writer.makeBlock([
+                        writer.makeReturn(taggedCall)
+                    ])
+                    writer.writeStatement(writer.makeCondition(condition, block))
                     writer.writeStatement(
-                        writer.makeThrowError("Improve")
+                        writer.makeThrowError("Unrecognized tagged method")
                     )
                 })
             })
@@ -286,33 +308,39 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
         const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
         writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
-            const defaultArg = allowsOverloads(this.library.language) ? writer.makeString("false") : writer.makeUndefined()
-            const args = [...Array(maxCtorParams).fill(defaultArg), writer.makeString("ptr")]
-            writer.writeStatement(writer.makeReturn(writer.makeNewObject(writer.getNodeName(clazzRefType), args)))
+            var returnedExpr: LanguageExpression | undefined = undefined
+            const classFQName = idl.getFQName(clazz.decl)
+            if (peerGeneratorConfiguration().handwrittenDeserializers.find(
+                name => name == classFQName)) {
+                const deserializerInfo = getDeserializer(classFQName)
+                const args = [ writer.makeString("ptr") ]
+                returnedExpr = writer.makeMethodCall(deserializerInfo.receiver, deserializerInfo.method, args)
+            } else {
+                const defaultArgs = allowsOverloads(this.library.language)
+                    ? [writer.makeString(MATERIALIZED_TAG)]
+                    : Array(maxCtorParams).fill(writer.makeUndefined())
+                const args = [...defaultArgs, writer.makeString("ptr")]
+                returnedExpr = writer.makeNewObject(writer.getNodeName(clazzRefType), args)
+            }
+            writer.writeStatement(writer.makeReturn(returnedExpr))
         })
     }
 
-
-    printMethods(clazz: MaterializedClass) {
-        clazz.methods.filter(m => !m.method.modifiers?.includes(MethodModifier.STATIC)).forEach(method => {
+    printMethods(clazz: MaterializedClass, filter: MethodFilter) {
+        clazz.methods.filter(filter).forEach(method => {
             this.printMethod(method, "_serialize")
         })
     }
 
-    printStaticMethods(clazz: MaterializedClass) {
-        clazz.methods.filter(m => m.method.modifiers?.includes(MethodModifier.STATIC)).forEach(method => {
-            this.printMethod(method, "_serialize")
-        })
-    }
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
-        const privateMethod = method.getPrivateMethod(true)
+        const useProtected = this.printer.supportedModifiers.includes(MethodModifier.PROTECTED)
+        const privateMethod = method.getPrivateMethod(useProtected)
         returnType = returnType ?? privateMethod.tsReturnType()
+        returnType = returnType && idl.isTypeParameterType(returnType) ? idl.IDLVoidType : returnType
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         writePeerMethod(this.library, this.printer, privateMethod, true, this.dumpSerialized, `${postfix}`,
             this.printer.language == Language.CJ ?
                 "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
-                this.printer.language == Language.JAVA ?
-                    "this.peer.ptr" :
                 this.printer.language == Language.KOTLIN ?
                     "this.peer!!.ptr" :
                     "this.peer!.ptr", returnType)
@@ -346,22 +374,25 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const mField = field.field
             // TBD: use deserializer to get complex type from native
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
-            const isReaonly = mField.modifiers.includes(FieldModifier.READONLY)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            if (isReaonly && this.printer.language != Language.TS) {
+            if (!field.state.isAccessor && (this.printer.language === Language.ARKTS)) {
+                // arkts can not have property and getter at the same time
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
                 this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
             } else {
+                const hasGetter = !field.state.isAccessor || field.state.hasGetter
+                const hasSetter = !field.state.isAccessor && !field.state.isReadonly
+                    || field.state.isAccessor && field.state.hasSetter
                 this.printer.writeProperty(mField.name, type, (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
-                    {
+                    hasGetter ? {
                         method: new Method('get', new MethodSignature(type, [])), op: () => {
                             this.printer.writeStatement(
                                 this.printer.makeReturn(this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
                             )
                         }
-                    },
-                    {
+                    } : undefined,
+                    hasSetter ? {
                         method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
                             let castedNonNullArg
                             if (field.isNullableOriginalTypeField) {
@@ -375,7 +406,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                             }
                             this.printer.writeMethodCall(receiver, `set${capitalize(mField.name)}`, [castedNonNullArg])
                         }
-                    }
+                    } : undefined
                 )
             }
         })
@@ -383,20 +414,25 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
         const decl: idl.IDLInterface = clazz.decl
-        const superInterface = writer.language == Language.JAVA ? ["Ark_Object"] : undefined
+        const superClass = clazz.superClass
+        var superInterfaces: string[] | undefined = undefined
+        if (superClass) {
+            const nameConvertor = this.library.createTypeNameConvertor(writer.language)
+            const superClassName = nameConvertor.convert(superClass)
+            superInterfaces = [superClassName]
+        }
         writer.writeInterface(this.mangle(decl.name), () => {
             writer.makeStaticBlock(() => {
                 for (const p of decl.properties.filter(p => p.isStatic)) {
                     const modifiers: FieldModifier[] = []
                     if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
                     modifiers.push(FieldModifier.STATIC)
-                    writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
+                    writer.writeProperty(p.name, maybeOptional(p.type, p.isOptional), modifiers)
                 }
             })
-            for (const p of decl.properties.filter(p => !p.isStatic)) {
-                const modifiers: FieldModifier[] = []
-                if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
-                writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
+            for (const field of clazz.fields.filter(f => !f.field.modifiers.includes(FieldModifier.STATIC))) {
+                const f = field.field
+                writer.writeProperty(f.name, maybeOptional(f.type, field.isNullableOriginalTypeField), f.modifiers)
             }
             for (const m of decl.methods) {
                 const overloadInfo = PeerMethodSignature.mangleOverloadedName(m)
@@ -412,7 +448,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (allowNamedOverloads(this.library.language)) {
                 this.writeNamedOverloadsGroups(decl.methods, writer)
             }
-        }, superInterface, clazz.generics?.map(sanitizeGenerics))
+        }, superInterfaces, clazz.generics?.map(sanitizeGenerics))
+        if (idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.DefaultExport)) {
+            writer.writeLines([
+                `export default ${decl.name}`
+            ])
+        }
     }
 
     protected writeNamedOverloadsGroups(methods: idl.IDLMethod[], writer: LanguageWriter): void {
@@ -442,10 +483,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         this.printImports()
 
-        let superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz, this.library))
-        if (!superClassName && printer.language == Language.JAVA) {
-            superClassName = clazz.isStaticMaterialized ? ARK_OBJECTBASE : ARK_MATERIALIZEDBASE
+        var superClassName: string | undefined = undefined
+        if (clazz.superClass) {
+            const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
+            superClassName = generifiedTypeName(clazz.superClass, nameConvertor, getSuperName(clazz, this.library))
         }
+
         const interfaces: string[] = clazz.isStaticMaterialized ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
             interfaces.push(
@@ -457,7 +500,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     }
                     const typeArgs = it.typeArguments?.length ? `<${it.typeArguments.map(arg => printer.getNodeName(arg))}>` : ""
                     const nsName = printer.language === Language.CJ ? decl.name : idl.getQualifiedName(decl, 'namespace.name')
-                    return `${this.namespacePrefix}${nsName}${printer.language == Language.CJ ? 'Interface' : ''}${typeArgs}`
+                    return `${this.namespacePrefix}${nsName}${printer.language == Language.CJ ? 'Interfaces' : ''}${typeArgs}`
                 }))
         }
 
@@ -470,7 +513,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }
 
         // collapse constructors for TS
-        // do not collapse constructors for ArkTS, CJ, Java, ...
+        // do not collapse constructors for ArkTS, CJ, ...
 
         if (clazz.isInterface) {
             this.writeInterface(clazz, printer)
@@ -494,7 +537,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const implementationClassName = this.getImplementationName(clazz)
 
         printer.writeClass(implementationClassName, writer => {
-            if (!superClassName && !clazz.isStaticMaterialized) {
+            if (!isSuperClassMaterialized(this.library, this.clazz.superClass) && !clazz.isStaticMaterialized) {
                 const peerType = clazz.isRefCounted ? RefCountedType : FinalizableType
                 writer.writeFieldDeclaration("peer", idl.maybeOptional(peerType, true), undefined, true, writer.makeNull())
                 // write getPeer() method
@@ -512,6 +555,13 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     this.printCtor(clazz, ctor)
                 }
             }
+            const staticMethodsFilter: MethodFilter = method => {
+                if (method instanceof MaterializedMethod) {
+                    return !!method.method.modifiers && method.method.modifiers.includes(MethodModifier.STATIC)
+                }
+                return method.isStatic
+            }
+            const nonStaticMethodsFilter: MethodFilter = method => !staticMethodsFilter(method)
             writer.makeStaticBlock(() => {
                 if (allowsOverloads(this.library.language)) {
                     for (const ctor of clazz.ctors) {
@@ -525,12 +575,20 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 if (clazz.isInterface) {
                     this.writeFromPtrMethod(clazz, writer, this.maxCtorParams, classTypeParameters)
                 }
-                this.printStaticMethods(clazz)
+                this.printOverloads(clazz, staticMethodsFilter)
+                this.printTaggedMethods(clazz, staticMethodsFilter)
+                this.printMethods(clazz, staticMethodsFilter)
             })
-            this.printOverloads(clazz)
-            this.printTaggedMethods(clazz)
-            this.printMethods(clazz)
+            this.printOverloads(clazz, nonStaticMethodsFilter)
+            this.printTaggedMethods(clazz, nonStaticMethodsFilter)
+            this.printMethods(clazz, nonStaticMethodsFilter)
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
+
+        if (idl.isClassSubkind(clazz.decl) && idl.hasExtAttribute(clazz.decl, idl.IDLExtendedAttributes.DefaultExport)) {
+            printer.writeLines([
+                `export default ${clazz.decl.name}`
+            ])
+        }
     }
 }
 
@@ -563,6 +621,10 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 })
             }
         })
+        if (peerGeneratorConfiguration().handwrittenDeserializers.find(
+            name => name == idl.getFQName(decl))) {
+            this.collector.addFeature("extractors", this.library.layout.handwrittenPackage())
+        }
     }
 
     override printImports() {
@@ -572,7 +634,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         // common runtime dependencies
         this.collector.addFeatures([
             'Finalizable',
-            'runtimeType',
             'RuntimeType',
             'SerializerBase',
             'DeserializerBase',
@@ -580,6 +641,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             'KPointer',
         ], '@koalaui/interop')
         this.collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
+        if (allowsOverloads(this.library.language)) {
+            this.collector.addFeatures(['MaterializedBaseTag'], '@koalaui/interop')
+        }
         this.collector.addFeatures(['unsafeCast'], '@koalaui/common')
         this.collector.addFeatures(['int32', 'int64', 'float32'], '@koalaui/common')
         this.collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
@@ -587,10 +651,10 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             this.collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
         }
         if (this.library.language === Language.TS) {
-            this.collector.addFeature('isInstanceOf', '@koalaui/interop')
+            this.collector.addFeatures(['isInstanceOf', 'runtimeType'], '@koalaui/interop')
         }
 
-        const hookMethods = generatorConfiguration().hooks.get(this.clazz.className)
+        const hookMethods = peerGeneratorConfiguration().hooks.get(this.clazz.className)
         const handwrittenPackage = this.library.layout.handwrittenPackage()
         if (hookMethods) {
             for (const [methodName, hook] of hookMethods.entries()) {
@@ -623,10 +687,11 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     visit(): PrinterResult {
-        this.printMaterializedClass(this.clazz)
         return {
-            collector: this.collector,
-            content: this.printer,
+            generate: () => {
+                this.printMaterializedClass(this.clazz)
+                return { content: this.printer, imports: this.collector }
+            },
             over: {
                 node: this.clazz.decl,
                 role: LayoutNodeRole.INTERFACE,
@@ -636,73 +701,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 }
 
-class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
-    override printImports(): void {
-        const imports = [{ feature: 'org.koalaui.interop.Finalizable', module: '' }]
-        printJavaImports(this.printer, imports)
-    }
-
-    override printCtor(clazz: MaterializedClass, ctor: MaterializedMethod): void {
-        const emptyParameterType = createReferenceType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
-        const ctorPostfix = `_${clazz.className.toLowerCase()}`
-        const implementationClassName = clazz.getImplementationName()
-        const pointerType = IDLPointerType
-        this.library.setCurrentContext(`${clazz.className}.constructor`)
-        writePeerMethod(this.library, this.printer, ctor, true, this.dumpSerialized, ctorPostfix, "", pointerType)
-        this.library.setCurrentContext(undefined)
-
-        const ctorSig = ctor.method.signature as NamedMethodSignature
-        // constructor with a special parameter to use in static methods
-        const emptySignature = new MethodSignature(IDLVoidType, [emptyParameterType])
-        this.printer.writeConstructorImplementation(implementationClassName, emptySignature, writer => {
-            writer.writeSuperCall([emptySignature.argName(0)]);
-        })
-
-        // generate a constructor with zero parameters for static methods
-        // in case there is no alredy defined one
-        if (ctorSig.args.length > 0) {
-            this.printer.writeConstructorImplementation(implementationClassName, new MethodSignature(IDLVoidType, []), writer => {
-                writer.writeSuperCall([`(${ARK_MATERIALIZEDBASE_EMPTY_PARAMETER})null`]);
-            })
-        }
-
-        this.printer.writeConstructorImplementation(implementationClassName, ctorSig, writer => {
-            writer.writeSuperCall([`(${forceAsNamedNode(emptyParameterType).name})null`]);
-
-            const args = ctorSig.argsNames.map(it => writer.makeString(it))
-            writer.writeStatement(
-                writer.makeAssign('ctorPtr', IDLPointerType,
-                    writer.makeMethodCall(implementationClassName, `${PeerMethodSignature.CTOR}${ctorPostfix}`, args),
-                    true))
-
-            writer.writeStatement(writer.makeAssign(
-                'this.peer',
-                FinalizableType,
-                writer.makeNewObject('Finalizable', [writer.makeString('ctorPtr'), writer.makeString(`${implementationClassName}.getFinalizer()`)]),
-                false
-            ))
-        })
-    }
-
-    visit(): PrinterResult {
-        this.printMaterializedClass(this.clazz)
-        return {
-            collector: this.collector,
-            content: this.printer,
-            over: {
-                node: this.clazz.decl,
-                role: LayoutNodeRole.INTERFACE
-            }
-        }
-    }
-}
-
 class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
-    protected collectImports(imports: ImportsCollector): void {
-        super.collectImports(imports)
-        collectDeclItself(this.library, idl.createReferenceType("TypeChecker"), this.collector)
-    }
-
     convertToPropertyType(field: MaterializedField): IDLType {
         return maybeOptional(field.field.type, field.isNullableOriginalTypeField)
     }
@@ -715,8 +714,8 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
         return maybeOptional(field.field.type, field.isNullableOriginalTypeField)
     }
 
-    override printOverloads(clazz: MaterializedClass) {
-        for (let method of clazz.methods) {
+    override printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
+        for (let method of clazz.methods.filter(filter)) {
             if (!method.method.modifiers?.includes(MethodModifier.PRIVATE))
                 method.method.modifiers!.push(MethodModifier.PUBLIC)
             this.printer.writeMethodImplementation(method.method, (writer) => {
@@ -731,12 +730,15 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
     override get namespacePrefix(): string {
         return idl.getNamespaceName(this.clazz.decl)
     }
+    // we cant use open methods inside class constructor
+    override printFieldsInitialization(clazz: MaterializedClass) { }
 
     visit(): PrinterResult {
-        this.printMaterializedClass(this.clazz)
         return {
-            collector: this.collector,
-            content: this.printer,
+            generate: () => {
+                this.printMaterializedClass(this.clazz)
+                return { content: this.printer, imports: this.collector }
+            },
             over: {
                 node: this.clazz.decl,
                 role: LayoutNodeRole.INTERFACE
@@ -746,13 +748,52 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
 }
 
 class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
-    override printImports(): void { }
+    protected collectImports(imports: ImportsCollector) {
+        const decl = this.clazz.decl
+        collectDeclDependencies(this.library, decl, imports, {
+            expandTypedefs: true,
+            includeTransformedCallbacks: true,
+            includeMaterializedInternals: true,
+        })
+        this.clazz.fields.forEach(field => {
+            if (idl.isReferenceType(field.field.type)) {
+                collectDeclItself(this.library, field.field.type, imports, {
+                    includeMaterializedInternals: true,
+                    includeTransformedCallbacks: true
+                })
+            }
+        })
+        // specific runtime dependencies
+        collectDeclItself(this.library, idl.createReferenceType(`${PACKAGE_IDLIZE_INTERNAL}.${NativeModule.Generated.name}`), this.collector)
+    }
+
+    override printImports() {
+        // collect imports
+        this.collectImports(this.collector)
+
+        // common runtime dependencies
+        this.collector.addFeatures([
+            "Finalizable",
+            "RuntimeType",
+            "SerializerBase",
+            "DeserializerBase",
+            "toPeerPtr",
+            "KPointer",
+            "KNativePointer",
+            "MaterializedBase",
+            "MaterializedBaseTag",
+            "NativeBuffer",
+        ], "koalaui.interop")
+    }
 
     convertToPropertyType(field: MaterializedField): IDLType {
         return maybeOptional(field.field.type, field.isNullableOriginalTypeField)
     }
 
     override mangle(className: string): string {
+        if (this.namespacePrefix.length === 0) {
+            return className
+        }
         return removePoints(this.namespacePrefix.concat('_').concat(className))
     }
 
@@ -760,8 +801,8 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
         return idl.getNamespaceName(this.clazz.decl)
     }
 
-    override printOverloads(clazz: MaterializedClass) {
-        for (let method of clazz.methods) {
+    override printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
+        for (let method of clazz.methods.filter(filter)) {
             if (!method.method.modifiers?.includes(MethodModifier.PRIVATE)) {
                 method.method.modifiers!.push(MethodModifier.PUBLIC)
                 if (clazz.isInterface) method.method.modifiers!.push(MethodModifier.OVERRIDE)
@@ -773,10 +814,11 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     visit(): PrinterResult {
-        this.printMaterializedClass(this.clazz)
         return {
-            collector: this.collector,
-            content: this.printer,
+            generate: () => {
+                this.printMaterializedClass(this.clazz)
+                return { content: this.printer, imports: this.collector }
+            },
             over: {
                 node: this.clazz.decl,
                 role: LayoutNodeRole.INTERFACE
@@ -800,9 +842,6 @@ class MaterializedVisitor implements PrinterClass {
                 this.library, clazz, this.dumpSerialized)
         } else if (Language.ARKTS == this.library.language) {
             visitor = new ArkTSMaterializedFileVisitor(
-                this.library, clazz, this.dumpSerialized)
-        } else if (this.library.language == Language.JAVA) {
-            visitor = new JavaMaterializedFileVisitor(
                 this.library, clazz, this.dumpSerialized)
         } else if (this.library.language == Language.CJ) {
             visitor = new CJMaterializedFileVisitor(
@@ -846,6 +885,12 @@ class MaterializedVisitor implements PrinterClass {
 export function createMaterializedPrinter(dumpSerialized: boolean) {
     return (peerLibrary: PeerLibrary) => LanguageWriter.relativeReferences(true, () =>
         new MaterializedVisitor(peerLibrary, dumpSerialized).print())
+}
+
+function isSuperClassMaterialized(library: PeerLibrary, superClass?: idl.IDLReferenceType): boolean {
+    if (!superClass) return false
+    const superClassDecl = library.resolveTypeReference(superClass)
+    return superClassDecl ? idl.isInterface(superClassDecl) && isMaterialized(superClassDecl, library) : false
 }
 
 function getSuperName(clazz: MaterializedClass, resolver:ReferenceResolver): string | undefined {

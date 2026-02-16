@@ -22,92 +22,6 @@ import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { convertType, IdlNameConvertor, TypeConvertor } from '../nameConvertor'
 
 const KInteropReturnBuffer = 'KInteropReturnBuffer'
-export class InteropReturnTypeConvertor implements TypeConvertor<string> {
-    constructor(
-        protected readonly resolver: ReferenceResolver
-    ) {}
-
-    isVoid(method: PeerMethod): boolean {
-        return this.convert(method.returnType) === idl.IDLVoidType.name
-    }
-    isReturnInteropBuffer(type: idl.IDLType) {
-        return this.convert(type) === KInteropReturnBuffer
-    }
-    convert(type: idl.IDLType): string {
-        return convertType(this, type)
-    }
-    convertContainer(type: idl.IDLContainerType): string {
-        if (idl.IDLContainerUtils.isPromise(type)) {
-            // TODO return array by some way
-            return "void"
-        }
-        return KInteropReturnBuffer
-    }
-    convertImport(type: idl.IDLImport): string {
-        throw new Error(`Cannot pass import type ${type.name} through interop`)
-    }
-    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
-        return this.convertTypeReference(type)
-    }
-    convertOptional(type: idl.IDLOptionalType): string {
-        return KInteropReturnBuffer
-    }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLI8Type:
-            case idl.IDLU8Type:
-            case idl.IDLI16Type:
-            case idl.IDLU16Type:
-            case idl.IDLI32Type:
-            case idl.IDLU32Type:
-            case idl.IDLI64Type:
-            case idl.IDLU64Type:
-            case idl.IDLF16Type:
-            case idl.IDLF32Type:
-            case idl.IDLF64Type: return PrimitiveTypesInstance.Int32.getText()
-            case idl.IDLNumberType: return PrimitiveTypesInstance.Number.getText()
-            case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
-            case idl.IDLBigintType: return PrimitiveTypesInstance.Int64.getText()
-            case idl.IDLAnyType:
-            case idl.IDLThisType:
-            case idl.IDLUndefinedType:
-            case idl.IDLUnknownType:
-            case idl.IDLObjectType:
-            case idl.IDLVoidType: return idl.IDLVoidType.name
-            case idl.IDLBufferType: return KInteropReturnBuffer /* ArkTS can not return buffer as language object yet */
-            case idl.IDLStringType: return PrimitiveTypesInstance.String.getText()
-            case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()
-        }
-        throw new Error(`Cannot pass primitive type ${type.name} through interop`)
-    }
-    convertTypeParameter(type: idl.IDLTypeParameterType): string {
-        return idl.IDLVoidType.name
-    }
-    convertTypeReference(type: idl.IDLReferenceType): string {
-       if (type.name.endsWith("Attribute"))
-            return idl.IDLVoidType.name
-        const decl = this.resolver.resolveTypeReference(type)
-        if (decl) {
-            // Callbacks and array types return by value
-            if (idl.isCallback(this.resolver.toDeclaration(type))) {
-                return type.name
-            }
-            if (idl.isInterface(decl)) {
-                if (isMaterialized(decl, this.resolver)) {
-                    return PrimitiveTypesInstance.NativePointer.getText()
-                }
-                return KInteropReturnBuffer
-            }
-            if (idl.isEnum(decl)) {
-                return PrimitiveTypesInstance.Int32.getText()
-            }
-        }
-        return "void"
-    }
-    convertUnion(type: idl.IDLUnionType): string {
-        return KInteropReturnBuffer
-    }
-}
 
 export class InteropArgConvertor implements TypeConvertor<string> {
     convert(type: idl.IDLType): string {
@@ -127,12 +41,11 @@ export class InteropArgConvertor implements TypeConvertor<string> {
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
-            case idl.IDLI64Type: return "KLong"
-            case idl.IDLU64Type: return "KLong"
-            case idl.IDLU8Type: return "KInt"
-            case idl.IDLI32Type: return "KInt"
-            case idl.IDLU32Type: return "KInt"
-            case idl.IDLF32Type: return "KFloat"
+            case idl.IDLI8Type: case idl.IDLU8Type:
+            case idl.IDLI16Type: case idl.IDLU16Type:
+            case idl.IDLI32Type: case idl.IDLU32Type: return "KInt"
+            case idl.IDLI64Type: case idl.IDLU64Type: return "KLong"
+            case idl.IDLF16Type: case idl.IDLF32Type: return "KFloat"
             case idl.IDLF64Type: return "KDouble"
             case idl.IDLNumberType: return 'KInteropNumber'
             case idl.IDLBigintType: return 'KLong'
@@ -156,5 +69,78 @@ export class InteropArgConvertor implements TypeConvertor<string> {
     }
     convertUnion(type: idl.IDLUnionType): string {
         throw new Error("Cannot pass union types through interop")
+    }
+}
+
+export class InteropReturnTypeConvertor extends InteropArgConvertor {
+    constructor(
+        protected readonly resolver: ReferenceResolver
+    ) {
+        super()
+    }
+
+    isVoid(method: PeerMethod): boolean {
+        return this.convert(method.returnType) === idl.IDLVoidType.name
+    }
+    isReturnInteropBuffer(type: idl.IDLType) {
+        return this.convert(type) === KInteropReturnBuffer
+    }
+    convertContainer(type: idl.IDLContainerType): string {
+        if (idl.IDLContainerUtils.isPromise(type)) {
+            // TODO return array by some way
+            return "void"
+        }
+        return KInteropReturnBuffer
+    }
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
+        return this.convertTypeReference(type)
+    }
+    convertOptional(type: idl.IDLOptionalType): string {
+        return KInteropReturnBuffer
+    }
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
+            case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()
+            case idl.IDLStringType: return KInteropReturnBuffer
+            case idl.IDLBufferType: return KInteropReturnBuffer /* ArkTS can not return buffer as language object yet */
+            case idl.IDLAnyType:
+            case idl.IDLThisType:
+            case idl.IDLUndefinedType:
+            case idl.IDLUnknownType:
+            case idl.IDLObjectType:
+            case idl.IDLVoidType: return idl.IDLVoidType.name
+        }
+        return super.convertPrimitiveType(type)
+    }
+    convertTypeParameter(type: idl.IDLTypeParameterType): string {
+        return idl.IDLVoidType.name
+    }
+    convertTypeReference(type: idl.IDLReferenceType): string {
+       if (type.name.endsWith("Attribute"))
+            return idl.IDLVoidType.name
+        const decl = this.resolver.resolveTypeReference(type)
+        if (decl) {
+            // Callbacks and array types return by value
+            if (idl.isCallback(this.resolver.toDeclaration(type))) {
+                return KInteropReturnBuffer
+            }
+            if (idl.isInterface(decl)) {
+                if (isMaterialized(decl, this.resolver)) {
+                    return PrimitiveTypesInstance.NativePointer.getText()
+                }
+                return KInteropReturnBuffer
+            }
+            if (idl.isEnum(decl)) {
+                return PrimitiveTypesInstance.Int32.getText()
+            }
+            if (idl.isTypedef(decl)) {
+                return this.convert(decl.type)
+            }
+        }
+        return "void"
+    }
+    convertUnion(type: idl.IDLUnionType): string {
+        return KInteropReturnBuffer
     }
 }

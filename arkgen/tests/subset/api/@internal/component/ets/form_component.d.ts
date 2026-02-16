@@ -13,4 +13,4 @@ declare class FormComponentAttribute extends CommonMethod<FormComponentAttribute
     onAcquired(callback: Callback<FormCallbackInfo>): FormComponentAttribute;
 }
 
-declare const FormComponent: FormComponentInterface
+//declare constFormComponent: FormComponentInterface

@@ -19,7 +19,6 @@ import {
     Language,
     camelCaseToUpperSnakeCase,
     isMaterialized,
-    isBuilderClass,
     isImportAttr,
     isStringEnum,
     generatorConfiguration,
@@ -28,7 +27,8 @@ import {
     PeerLibrary,
     PrimitiveTypesInstance,
     PrimitiveTypeList,
-    getSuper
+    getSuper,
+    maybeRestoreGenerics
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
@@ -267,7 +267,7 @@ export class StructPrinter {
     private writeRuntimeType(target: idl.IDLNode, targetType: idl.IDLType, isOptional: boolean, writer: LanguageWriter) {
         if (idl.isNamedNode(target) && this.prologueDefinedRuntimeTypes.includes(target.name) && !isOptional)
             return
-        const resultType = idl.createReferenceType("RuntimeType")
+        const resultType = idl.createReferenceType("idlize.stdlib.RuntimeType")
         const op = this.writeRuntimeTypeOp(target, targetType, resultType, isOptional, writer)
         if (op) {
             writer.print("template <>")
@@ -558,14 +558,35 @@ function superPropsWithTypeArgs(decl: idl.IDLInterface, superDecl: idl.IDLInterf
 }
 
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    const superDecl = getSuper(decl, library)
-    const superProps = (superDecl && idl.isInterface(superDecl))
-        ? superPropsWithTypeArgs(decl, superDecl, collectProperties(superDecl, library)) : []
+    const parents = decl.inheritance.flatMap(ref => library.resolveTypeReference(ref) ?? [])
+    const superProps: idl.IDLProperty[] = []
+    parents.forEach(superDecl => {
+        if (idl.isInterface(superDecl)) {
+            superProps.push(
+                ...superPropsWithTypeArgs(decl, superDecl, collectProperties(superDecl, library))
+            )
+        }
+    })
+    const superPropsNames = new Set(superProps.map(it => it.name))
     return [
         ...superProps,
-        ...decl.properties,
-        ...collectBuilderProperties(decl, library)
+        ...decl.properties.filter(it => !superPropsNames.has(it.name)),
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
+}
+
+export function collectMeaninglessProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
+    const superDecl = getSuper(decl, library)
+    const superMeaninglessProps = (superDecl && idl.isInterface(superDecl))
+        ? collectMeaninglessProperties(superDecl, library) : []
+    const meaningfulProperties = collectProperties(decl, library)
+    const originalReference = maybeRestoreGenerics(decl, library)
+    let original: idl.IDLInterface | undefined
+    if (!originalReference || !(original = library.resolveTypeReference(originalReference) as (idl.IDLInterface | undefined)))
+        return superMeaninglessProps
+    return [
+        ...superMeaninglessProps,
+        ...original.properties.filter(originalProperty => !meaningfulProperties.some(it => it.name === originalProperty.name))
+    ]
 }
 
 export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
@@ -576,7 +597,6 @@ export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInt
             [
                 ...(superDecls ? superDecls.map(decl => collectAllProperties(decl as idl.IDLInterface, library)).flat() : Array()),
                 ...decl.properties,
-                ...collectBuilderProperties(decl, library)
             ]
         )
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
@@ -605,30 +625,6 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
         result.push(new NameWithType(name, type))
     }
     return result
-}
-
-function collectBuilderProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    if (!isBuilderClass(decl)) {
-        return []
-    }
-    return groupProps([
-        ...decl.constructors
-            .flatMap(cons =>
-                cons.parameters.map(param => new NameWithType(param.name, param.type!))),
-        ...decl.methods
-            .filter(m => !m.isStatic && m.parameters.length === 1)
-            .map(m => new NameWithType(m.name, m.parameters[0].type!))
-    ])
-        .map(it => {
-            return {
-                kind: idl.IDLKind.Property,
-                name: "_" + it.name,
-                type: it.type,
-                isReadonly: false,
-                isStatic: false,
-                isOptional: true
-            } as idl.IDLProperty
-        })
 }
 
 export function distinctValues<T>(arr: Array<T>) {

@@ -1,0 +1,10 @@
+package arkui.component.idlize;
+
+[Entity=Class]
+interface UIEventHelper {
+    static UIGridEvent constructGridEvent(pointer node);
+    static UIListEvent constructListEvent(pointer node);
+    static UIScrollableCommonEvent constructScrollableCommonEvent(pointer node);
+    static UIScrollEvent constructScrollEvent(pointer node);
+    static UIWaterFlowEvent constructWaterFlowEvent(pointer node);
+};

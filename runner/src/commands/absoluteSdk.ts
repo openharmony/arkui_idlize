@@ -1,21 +1,24 @@
 import * as fs from "fs"
 import * as path from "path"
+import { ABSOLUTE_SDK_DIR } from "../shared"
+import { transformBuilderFunctions } from "../tools/builderFuncsTransformer"
 
 export interface AbsoluteSdkConfig {
-    preparedSdk12: string,
-    absolutePreparedSdk12: string
+    preparedSdk12: string
+}
+export interface AbsoluteSdkResult {
+    absoluteSdk: string
 }
 
 export function absoluteSdk({
     preparedSdk12,
-    absolutePreparedSdk12,
-}: AbsoluteSdkConfig): void {
+}: AbsoluteSdkConfig): AbsoluteSdkResult {
     preparedSdk12 = path.resolve(preparedSdk12)
-    absolutePreparedSdk12 = path.resolve(absolutePreparedSdk12)
+    const absolutePreparedSdk12 = ABSOLUTE_SDK_DIR
 
     fs.mkdirSync(absolutePreparedSdk12, { recursive: true })
     fs.cpSync(path.join(preparedSdk12, "api"), path.join(absolutePreparedSdk12, "api"), { recursive: true })
-    fs.rmSync(path.join(absolutePreparedSdk12, "api", "@internal"), { recursive: true })
+    fs.rmSync(path.join(absolutePreparedSdk12, "api", "@internal"), { recursive: true, force: true })
 
     const arktsconfig = {
         "compilerOptions": {
@@ -43,6 +46,9 @@ export function absoluteSdk({
         fs.writeFileSync(path.join(apiPath, file), content, { encoding: 'utf-8' })
     }
     fs.writeFileSync(path.join(absolutePreparedSdk12, "arktsconfig.json"), JSON.stringify(arktsconfig, undefined, 4), { encoding: 'utf-8' })
+    return {
+        absoluteSdk: ABSOLUTE_SDK_DIR
+    }
 }
 
 function pathToPackage(s: string): string {

@@ -2223,7 +2223,7 @@ declare type ContentDidScrollCallback = (selectedIndex: number, index: number, p
  * @atomicservice
  * @since 11
  */
-declare const Swiper: SwiperInterface;
+//declare constSwiper: SwiperInterface;
 
 /**
  * Defines Swiper Component instance.
@@ -2248,4 +2248,4 @@ declare const Swiper: SwiperInterface;
  * @atomicservice
  * @since 11
  */
-declare const SwiperInstance: SwiperAttribute;
+//declare constSwiperInstance: SwiperAttribute;

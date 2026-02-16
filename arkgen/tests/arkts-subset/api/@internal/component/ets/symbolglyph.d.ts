@@ -749,7 +749,7 @@ declare class SymbolGlyphAttribute extends CommonMethod<SymbolGlyphAttribute> {
  * @atomicservice
  * @since 12
  */
-declare const SymbolGlyph: SymbolGlyphInterface;
+//declare constSymbolGlyph: SymbolGlyphInterface;
 
 /**
  * Defines SymbolGlyph Component instance.
@@ -767,4 +767,4 @@ declare const SymbolGlyph: SymbolGlyphInterface;
  * @atomicservice
  * @since 12
  */
-declare const SymbolGlyphInstance: SymbolGlyphAttribute;
+//declare constSymbolGlyphInstance: SymbolGlyphAttribute;

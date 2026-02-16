@@ -31,9 +31,9 @@ declare class TextAttribute extends CommonMethod<TextAttribute> {
 
 }
 
-declare const TextInstance: TextAttribute;
+//declare constTextInstance: TextAttribute;
 
-declare const Text: TextInterface;
+//declare constText: TextInterface;
 
 declare class TextController {
 

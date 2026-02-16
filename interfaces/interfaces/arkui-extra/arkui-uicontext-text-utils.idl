@@ -11,9 +11,3 @@ interface GlobalScopeUicontextFontScale {
 interface GlobalScopeUicontextTextMenu {
     static void setMenuOptions(TextMenuOptions options);
 };
-
-dictionary CustomKeyboardContinueFeature {
-    number ENABLED = 0;
-    number DISABLED = 1;
-};
-

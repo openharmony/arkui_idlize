@@ -13,22 +13,21 @@
  * limitations under the License.
  */
 
-declare type ComponentContent = import('../api/arkui/ComponentContent').ComponentContent;
 
 declare type AnimationRange<T> = [from: T, to: T];
 
-declare type PromptActionDialogController = import('../api/@ohos.PromptActionDialogController').PromptActionDialogController;
+// declare type PromptActionDialogController = import('../api/@ohos.PromptActionDialogController').PromptActionDialogController;
 
 
-declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
+// declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
 
-declare type NavigationInfo = import('../api/@ohos.arkui.observer').NavigationInfo;
+// declare type NavigationInfo = import('../api/@ohos.arkui.observer').NavigationInfo;
 
-declare type RouterPageInfo = import('../api/@ohos.arkui.observer').RouterPageInfo;
+// declare type RouterPageInfo = import('../api/@ohos.arkui.observer').RouterPageInfo;
 
-declare type PixelMap = import('../api/@ohos.multimedia.image').default.PixelMap;
+// declare type PixelMap = import('../api/@ohos.multimedia.image').default.PixelMap;
 
-declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
+// declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
 
 declare interface AnimateParam {
     duration?: number;
@@ -66,10 +65,6 @@ declare interface LayoutChild {
     position: Position
     measure(childConstraint: ConstraintSizeOptions): void
     layout(childLayoutInfo: LayoutInfo): void
-}
-
-declare interface Callback<T, V = void> {
-  (data: T): V;
 }
 
 declare interface BaseEvent {
@@ -555,7 +550,7 @@ declare class CommonMethod<T> {
 
     onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
 
-    attributeModifier(modifier: AttributeModifier<T>): T
+    // attributeModifier(modifier: AttributeModifier<T>): T
 
     gestureModifier(modifier: GestureModifier): T;
 
@@ -577,6 +572,8 @@ declare interface Rectangle {
 
     height?: Length;
 }
+
+function toIncludeDouble(value?: double)
 
 declare interface RectResult {
     x: number;
@@ -602,7 +599,7 @@ declare interface CommonInterface {
 declare class CommonAttribute extends CommonMethod<CommonAttribute> {
 }
 
-declare const Common: CommonInterface
+//declare constCommon: CommonInterface
 
 declare type Theme = import('../api/@ohos.arkui.theme').Theme;
 

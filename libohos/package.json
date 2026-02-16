@@ -11,7 +11,6 @@
   "files": [
     "build/lib/**/*.js",
     "build/lib/**/*.d.ts",
-    "peer_lib/**/*",
     "predefined/**/*",
     "templates/**/*"
   ],
@@ -22,7 +21,9 @@
   },
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.1.10+devel",
+    "@idlizer/core": "2.1.10+devel"
+  },
+  "devDependencies": {
     "@types/node": "^18.0.0"
   },
   "scripts": {

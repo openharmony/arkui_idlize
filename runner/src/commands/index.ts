@@ -15,14 +15,17 @@
 
 import { absoluteSdk } from "./absoluteSdk";
 import { ets2idl } from "./ets2idl";
-import { idl2peer } from "./idl2peer";
+import { idl2ohos, idl2peer } from "./idl2peer";
 import { install } from "./install";
+import { scrape } from "./scrape";
 import { prepareSdk } from "./sdk";
 
 export const commands = {
     prepareSdk,
     ets2idl,
     idl2peer,
+    idl2ohos,
     install,
     absoluteSdk,
+    scrape
 }

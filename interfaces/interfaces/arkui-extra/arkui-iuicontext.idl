@@ -1,6 +1,7 @@
 package arkui.component.idlize;
 import arkui.component.common.KeyEvent as KeyEvent;
 import arkui.component.Scroller as Scroller;
+import ohos.arkui.UIContext;
 
 [Entity=Class]
 interface Magnifier {

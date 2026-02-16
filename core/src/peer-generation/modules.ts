@@ -60,6 +60,8 @@ function getApplicableModuleFor(packageName: string): ModuleConfiguration {
         if (packageName.startsWith(`idlize.`)) {
             return currentModule()
         }
+        if (packageName === `synthetic`)
+            return currentModule()
         const modules = [...config.modules.keys()].map(it => `"${it}"`).join(", ")
         throw new Error(`Package "${packageName}" is not listed in any module.`
             + ` Add the "${packageName}" to the existed list of modules [${modules}] or new one in the configuration file`)

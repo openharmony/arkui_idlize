@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export default abstract class BaseContext {
+abstract class BaseContext {
 
   stageMode: boolean;
 }

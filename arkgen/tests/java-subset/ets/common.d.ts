@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-declare type SymbolGlyphModifier = import('../../resource/symbol').SymbolGlyphModifier;
+// declare type SymbolGlyphModifier = import('../../resource/symbol').SymbolGlyphModifier;
 
 declare type ComponentContent = import('../api/arkui/ComponentContent').ComponentContent;
 
@@ -399,7 +399,7 @@ declare class CommonMethod<T> {
 
     //~onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
 
-    attributeModifier(modifier: AttributeModifier<T>): T
+    // attributeModifier(modifier: AttributeModifier<T>): T
 
     gestureModifier(modifier: GestureModifier): T;
 

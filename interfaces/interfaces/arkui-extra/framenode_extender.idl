@@ -1,10 +1,13 @@
 package arkui.component.idlize;
 
 import arkui.component.common;
+import arkui.component.enums.EventQueryType as EventQueryType;
 import ohos.arkui.UIContext;
 import arkui.Graphics;
 import arkui.FrameNode;
 import arkui.RenderNode;
+import arkui.FrameNode.InteractionEventBindingInfo as InteractionEventBindingInfo;
+import arkui.FrameNode.UIStatesChangeHandler as UIStatesChangeHandler;
 
 [Entity=Interface]
 interface NodeEdgesLengthMetrics {
@@ -51,6 +54,8 @@ interface FrameNodeExtender {
   static String getInspectorInfo(FrameNode peer);
   static void invalidate(FrameNode peer);
   static void disposeTree(FrameNode peer);
+  static void addSupportedUIStates(FrameNode peer, i32 uiStates, UIStatesChangeHandler statesChangeHandler, boolean excludeInner);
+  static void removeSupportedUIStates(FrameNode peer, i32 uiStates);
   static boolean setCrossLanguageOptions(FrameNode peer, boolean options);
   static boolean getCrossLanguageOptions(FrameNode peer);
   static void setMeasuredSize(FrameNode peer, Size size);
@@ -84,11 +89,12 @@ interface FrameNodeExtender {
   static pointer createTypedFrameNode(String type, boolean supportMultiThread);
   static pointer createByRawPtr(pointer ptr);
   static pointer unWrapRawPtr(pointer ptr);
-  static UICommonEvent getCommonEvent(pointer peer);
+  static UICommonEvent getCommonEvent(FrameNode peer);
   static sequence<f64> convertPoint(FrameNode peer, FrameNode node, NodePosition vector2);
   static pointer getRenderNode(pointer peer);
   static i32 adoptChild(FrameNode peer, FrameNode child);
   static i32 removeAdoptedChild(FrameNode peer, FrameNode child);
+  static InteractionEventBindingInfo getInteractionEventBindingInfo(FrameNode peer, EventQueryType eventType);
   static boolean isOnRenderTree(FrameNode peer);
   static boolean isOnMainTree(FrameNode peer);
   static sequence<f64> convertPositionToWindow(FrameNode peer, NodePosition positionByLocal);

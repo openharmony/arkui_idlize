@@ -862,7 +862,7 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
   /**
    * Describes the button style.
    *
-   * @param { ButtonType } value
+   * @param { ButtonType | undefined } value
    * @returns { ButtonAttribute }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
@@ -870,7 +870,7 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
    * @atomicservice
    * @since 11
    */
-  type(value: ButtonType): ButtonAttribute;
+  type(value: ButtonType | undefined): ButtonAttribute;
 
   /**
    * Indicates whether to enable the switchover effect when the button is pressed. When the status is set to false, the switchover effect is disabled.
@@ -1195,14 +1195,14 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
   /**
    * Set button label style.
    *
-   * @param { ButtonLabelStyle } value - The label style configuration on button.
+   * @param { ButtonLabelStyle | undefined } value - The label style configuration on button.
    * @returns { ButtonAttribute }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
    * @atomicservice
    * @since 11
    */
-  labelStyle(value: ButtonLabelStyle): ButtonAttribute;
+  labelStyle(value: ButtonLabelStyle | undefined ): ButtonAttribute;
 }
 
 /**
@@ -1235,7 +1235,7 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Button: ButtonInterface;
+//declare constButton: ButtonInterface;
 
 /**
  * Defines Button Component instance.
@@ -1267,4 +1267,4 @@ declare const Button: ButtonInterface;
  * @atomicservice
  * @since 11
  */
-declare const ButtonInstance: ButtonAttribute;
+//declare constButtonInstance: ButtonAttribute;
