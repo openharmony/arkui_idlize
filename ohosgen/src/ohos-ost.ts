@@ -42,9 +42,16 @@ import {
     createOhosEffect
 } from "@idlizer/libohos"
 import { continueWith, onlyFor } from '@idlizer/kit'
+import { arkInterfaceProducer } from "./arkui/managed/interface"
+import { arkAttributeProducer } from "./arkui/managed/attribute"
 
 export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
     const selector = new MakeSelector()
+
+    ///ArkUI specifics
+    selector.register(arkAttributeProducer)
+    selector.register(arkInterfaceProducer)
+
     registerDefaultSelectors(selector)
 
     // ignore predefined / synthetic files

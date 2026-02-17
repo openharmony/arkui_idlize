@@ -63,6 +63,7 @@ export * from './ostgen/engine/context.js'
 export * from './ostgen/engine/utils.js'
 export * from './ostgen/producers/index.js'
 export * from './ostgen/producers/common.js'
+export * from './ostgen/producers/components/argConvertor.js'
 export * as moduleLike from "./ostgen/postprocess/moduleLike.js";
 export * as lowLevelLike from "./ostgen/postprocess/lowLevelLike.js";
 

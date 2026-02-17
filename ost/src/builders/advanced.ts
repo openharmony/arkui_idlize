@@ -1768,7 +1768,8 @@ class StructLikeBuilder {
      * @param _name - Structure name
      */
     constructor(protected _name: string) {}
-    protected _fields: { name: string, type: LWType, modifiers?: Modifier[] }[] = []
+    protected _fields: StructureDeclaration['members'] = []
+    fields(fields: StructureDeclaration['members']) { this._fields.push(...fields); return this }
     /**
      * Add a field to the structure.
      * Returns a FieldBuilder for specifying field type and modifiers.
@@ -1838,6 +1839,7 @@ class ClassBuilder extends StructLikeBuilder {
         base: undefined,
         implementations: []
     }
+    methods(methods: FunctionDeclaration[]) { this._methods.push(...methods); return this }
     /**
      * Specify the base class that this class extends (inherits from).
      *

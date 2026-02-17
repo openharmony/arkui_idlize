@@ -18,7 +18,8 @@ import { PeerLibrary } from "@idlizer/core"
 import { ProducerContext, ProducerResult, Seed, terminate } from "@idlizer/kit"
 
 export interface MakeSelectorPattern<N extends idl.IDLNode> {
-    is: (node: idl.IDLNode) => node is N,
+    is: (node: idl.IDLNode) => node is N
+    predicate?: (node: N) => boolean
     role?: Role<N>
 }
 
@@ -43,7 +44,9 @@ export class MakeSelector {
 
     select(seed: OhosSeed): OhosProducer<idl.IDLNode> {
         const record = this.storage.find(it => {
-            if (!it.pattern.is(seed.node)) {
+            if (!it.pattern.is(seed.node) ||
+                it.pattern.predicate && !it.pattern.predicate(seed.node)
+            ) {
                 return false
             }
             if (it.pattern.role === undefined) {
