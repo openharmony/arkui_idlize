@@ -110,6 +110,8 @@ export {
   testChildInterfaceHierarchy,
   testParentClassHierarchy,
   testChildClassHierarchy,
+  testInterfaceHierarchyUnion1,
+  testInterfaceHierarchyUnion2,
 } from "../../generated/ts"
 
 
@@ -225,4 +227,12 @@ export class UnitTestsuite {
             throw new Error("Tests failed!")
         }
     }
+}
+
+export function isInstanceofChildI(value: Object) {
+    return "childFlag" in value
+}
+
+export function isInstanceofParentI(value: Object) {
+    return "parentFlag" in value
 }

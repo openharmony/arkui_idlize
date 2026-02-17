@@ -1705,3 +1705,10 @@ OH_UNIT_ParentC GlobalScope_testParentClassHierarchyImpl(OH_UNIT_ParentC arg) {
 OH_UNIT_ChildC GlobalScope_testChildClassHierarchyImpl(OH_UNIT_ChildC arg) {
     return arg;
 }
+
+OH_UNIT_Union_ChildI_ParentI GlobalScope_testInterfaceHierarchyUnion1Impl(const OH_UNIT_Union_ChildI_ParentI* arg) {
+    return *arg;
+}
+OH_UNIT_Union_ParentI_ChildI GlobalScope_testInterfaceHierarchyUnion2Impl(const OH_UNIT_Union_ParentI_ChildI* arg) {
+    return *arg;
+}

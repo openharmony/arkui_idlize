@@ -31,7 +31,7 @@ import {
 import { NativeModuleType, RuntimeType } from "./common";
 import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { getTransformer, LibraryInterface } from "../LibraryInterface";
-import { capitalize, hashCodeFromString, throwException, warn } from "../util";
+import { capitalize, hashCodeFromString, isDefined, throwException, warn } from "../util";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 import { PeerLibrary } from "../peer-generation/PeerLibrary";
@@ -1079,7 +1079,8 @@ export class UnionConvertor extends BaseArgConvertor {
         return false
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const convertorItems = this.memberConvertors.map((it, index) => new ConvertorItem(it, index, getSourceType(it)))
+        let convertorItems = this.memberConvertors.map((it, index) => new ConvertorItem(it, index, getSourceType(it)))
+        convertorItems = UnionConvertor.sortInterfacesInheritance(this.library, convertorItems)
         if (this.isIndexedDiscriminator(printer))
             return printer.makeMultiBranchCondition(convertorItems.map(it => this.makeBranch(param, value, value, printer, it)));
         // Make arrays type descrimination
@@ -1191,6 +1192,57 @@ export class UnionConvertor extends BaseArgConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.makeNaryOp("||",
             this.memberConvertors.map((_, n) => this.unionChecker.makeDiscriminator(value, n, writer, this.library)))
+    }
+    private static sortInterfacesInheritance(resolver: ReferenceResolver, items: ConvertorItem[]): ConvertorItem[] {
+        // if interface Child extends interface Parent
+        // first check is `if (value instanceof Child)`
+        // second check is `if (value instanceof Parent)`
+        // If we would generate instanceof Parent firstly, child would never be happen.
+        let resolveInterface = (type: idl.IDLType): idl.IDLInterface | undefined => {
+            if (!idl.isReferenceType(type)) {
+                return undefined
+            }
+            const decl = resolver.resolveTypeReference(type)
+            return decl && idl.isInterface(decl) ? decl : undefined
+        }
+        let resolveParents = (decl: idl.IDLInterface): idl.IDLInterface[] => {
+            return [...decl.inheritance
+                .map(resolveInterface)
+                .filter(isDefined)
+                .flatMap(it => [it, ...resolveParents(it)])]
+        }
+        const queue = items.map<{
+            convertorItem: ConvertorItem,
+            needs?: ConvertorItem[],
+        }>(it => {
+            return { convertorItem: it }
+        })
+        queue.forEach((it, _, sortItems) => {
+            const decl = resolveInterface(it.convertorItem.type)
+            const parents = decl ? resolveParents(decl) : undefined
+            if (parents) {
+                for (const other of sortItems) {
+                    const otherDecl = resolveInterface(other.convertorItem.type)
+                    if (otherDecl && parents.includes(otherDecl)) {
+                        other.needs ??= []
+                        other.needs.push(it.convertorItem)
+                    }
+                }
+            }
+        })
+        const sorted: ConvertorItem[] = []
+        while (queue.length) {
+            for (let i = 0; i < queue.length;) {
+                const item = queue[i]
+                if (!item.needs || item.needs?.every(it => sorted.includes(it))) {
+                    queue.splice(i, 1)
+                    sorted.push(item.convertorItem)
+                } else {
+                    i++
+                }
+            }
+        }
+        return sorted
     }
 }
 
