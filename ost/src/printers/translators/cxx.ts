@@ -419,7 +419,16 @@ export class CXXPrinter {
   }
 
   private printField(name: string, type: lw.LWType) {
-    this.printDirectType(type, name)
+    if (type.kind === lw.LWKind.ValueType && type.name === std.names.types.union) {
+        this.p.put('union', ' ', '{').inc().newline()
+        type.args.forEach((arg, i) => {
+          this.printDirectType(arg, 'value' + i)
+          this.p.put(';').newline()
+        })
+        this.p.dec().put('}')
+    } else {
+      this.printDirectType(type, name)
+    }
     this.p.put(';')
   }
   private maybePrintGenerics(generics: lw.GenericDescriptor[]): boolean {

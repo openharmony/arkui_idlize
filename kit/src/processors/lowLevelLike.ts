@@ -64,6 +64,7 @@ class TypeAliasing extends IdentityTransformer {
             case std.names.types.u32: return p('UInt32')
             case std.names.types.u64: return p('UInt64')
             case std.names.types.tag: return p('Tag')
+            case std.names.types.undefined: return p('///Undefined')
             case std.names.types.void: return 'void'
             case std.names.types.interopNumber: return 'KInteropNumber'
             case std.names.types.interopString: return 'KStringPtr'
