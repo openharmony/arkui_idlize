@@ -34,11 +34,11 @@ import {
     getExtendsChain
 } from '@idlizer/core'
 import { PeerLibrary } from "@idlizer/core"
-import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
+import { peerGeneratorConfiguration} from "../../DefaultConfiguration.js";
 import { getInternalClassName, MaterializedClass, MaterializedField, MaterializedMethod } from "@idlizer/core"
-import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
+import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/index.js";
 import { isMaterialized } from "@idlizer/core"
-import { isComponentDeclaration } from "../ComponentsCollector"
+import { isComponentDeclaration } from "../ComponentsCollector.js"
 import { ReferenceResolver } from "@idlizer/core"
 import * as path from "path"
 

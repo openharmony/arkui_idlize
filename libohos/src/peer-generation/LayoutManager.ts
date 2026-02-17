@@ -16,11 +16,11 @@ import * as path from "path"
 import { join } from "node:path"
 import * as idl from "@idlizer/core"
 import { getNamespaceName, getNamespacesPathFor, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary, wrapCurrentFileDescription } from "@idlizer/core"
-import { ImportsCollector } from "./ImportsCollector"
-import { tsCopyrightAndWarning } from "./FileGenerators"
-import { peerGeneratorConfiguration } from "../DefaultConfiguration"
-import { collectDeclItself } from "./ImportsCollectorUtils"
-import { writeFile } from "./common"
+import { ImportsCollector } from "./ImportsCollector.js"
+import { tsCopyrightAndWarning } from "./FileGenerators.js"
+import { peerGeneratorConfiguration } from "../DefaultConfiguration.js"
+import { collectDeclItself } from "./ImportsCollectorUtils.js"
+import { writeFile } from "./common.js"
 
 export interface PrinterResult {
     over: LayoutTargetDescription

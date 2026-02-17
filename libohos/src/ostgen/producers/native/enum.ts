@@ -15,8 +15,8 @@
 
 import { D, T } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { cApiName } from "../common"
-import { createProducer } from "../../engine/context"
+import { cApiName } from "../common.js"
+import { createProducer } from "../../engine/context.js"
 
 export const enumProducer = createProducer(
   { is: idl.isEnum, role: 'capi' },

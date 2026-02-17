@@ -15,7 +15,7 @@
 
 import { ImportsCollector } from "@idlizer/core";
 import { D, IdentityTransformer, lw, std, T, utils } from "@idlizer/ost";
-import { mapFileName, mergeStructs } from "./utils";
+import { mapFileName, mergeStructs } from "./utils.js";
 
 export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     decls = mergeNamespaces(decls)

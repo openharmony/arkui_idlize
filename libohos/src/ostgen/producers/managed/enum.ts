@@ -15,8 +15,8 @@
 
 import { D, T } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { managedName } from "../common";
-import { createProducer } from "../../engine";
+import { managedName } from "../common.js";
+import { createProducer } from "../../engine/index.js";
 
 export const enumProducer = createProducer(
   { is: idl.isEnum, role: 'managed' },

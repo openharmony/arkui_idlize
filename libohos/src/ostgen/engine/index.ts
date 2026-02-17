@@ -13,5 +13,5 @@
  * limitations under the License.
  */
 
-export * from "./context"
-export * from "./utils"
+export * from "./context.js"
+export * from "./utils.js"

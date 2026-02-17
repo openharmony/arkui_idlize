@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { producers as managed } from "./managed";
-import { producers as native } from "./native";
+import { producers as managed } from "./managed/index.js";
+import { producers as native } from "./native/index.js";
 
 export const producers = {
     managed,

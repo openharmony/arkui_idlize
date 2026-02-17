@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { containerProducer } from "./containers";
-import { enumProducer } from "./enum";
-import { nativeModuleConstructorProducer, nativeModuleFunctionProducer, nativeModuleMaterializedProducer } from "./nativeModule";
-import { primitiveProducer } from "./primitives";
-import { referenceProducer } from "./references";
-import { serializerProducer } from "./serializer";
-import { structureProducer } from "./structure";
-import { unionProducer } from "./union";
-import { callbackProducer } from "./callback";
-import { typedefProducer } from "./typedef";
-import { constructorProducer, functionProducer } from "./function";
+import { containerProducer } from "./containers.js";
+import { enumProducer } from "./enum.js";
+import { nativeModuleConstructorProducer, nativeModuleFunctionProducer, nativeModuleMaterializedProducer } from "./nativeModule.js";
+import { primitiveProducer } from "./primitives.js";
+import { referenceProducer } from "./references.js";
+import { serializerProducer } from "./serializer.js";
+import { structureProducer } from "./structure.js";
+import { unionProducer } from "./union.js";
+import { callbackProducer } from "./callback.js";
+import { typedefProducer } from "./typedef.js";
+import { constructorProducer, functionProducer } from "./function.js";
 
 export const producers = {
     enumProducer,

@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ts from "typescript"
+import ts from "typescript"
 import {randInt, randString, pick, pickArray} from "@idlizer/core"
-import { GenericVisitor } from "./options"
-import { asString, getDeclarationsByNode, nameOrNull } from "./util"
+import { GenericVisitor } from "./options.js"
+import { asString, getDeclarationsByNode, nameOrNull } from "./util.js"
 
 const LAMBDA = "LAMBDA"
 

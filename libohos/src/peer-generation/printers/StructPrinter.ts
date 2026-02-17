@@ -30,13 +30,13 @@ import {
     maybeRestoreThrows
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
-import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
+import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/index.js"
 import { LanguageWriter } from "@idlizer/core"
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration"
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js"
 import { PrintHint } from "@idlizer/core"
-import { collectDeclarationTargets } from "../DeclarationTargetCollector"
+import { collectDeclarationTargets } from "../DeclarationTargetCollector.js"
 import { flattenUnionType, generateCallbackAPIArguments } from "@idlizer/core"
-import { collectProperties } from "../propertyCollectors"
+import { collectProperties } from "../propertyCollectors.js"
 
 export class StructPrinter {
 

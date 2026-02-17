@@ -15,9 +15,9 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, T } from "@idlizer/ost";
-import { expectType, managedName } from "../common";
-import { argConvertor } from "../components/argConvertor";
-import { createProducer } from "../../engine";
+import { expectType, managedName } from "../common.js";
+import { argConvertor } from "../components/argConvertor.js";
+import { createProducer } from "../../engine/index.js";
 
 export const callbackProducer = createProducer(
   { is: idl.isCallback, role: 'managed' },

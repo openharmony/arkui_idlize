@@ -22,24 +22,24 @@ import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGeneric
     copyMethod,
     isMaterializedMethodOverridden,
 } from '@idlizer/core'
-import { writePeerMethod } from "./PeersPrinter"
+import { writePeerMethod } from "./PeersPrinter.js"
 import {
     FieldModifier,
     Method,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature
-} from "../LanguageWriters";
-import { allowNamedOverloads, allowsOverloads, collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
-import { ImportsCollector } from "../ImportsCollector"
-import { TargetFile } from "./TargetFile"
+} from "../LanguageWriters/index.js";
+import { allowNamedOverloads, allowsOverloads, collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter.js";
+import { ImportsCollector } from "../ImportsCollector.js"
+import { TargetFile } from "./TargetFile.js"
 import { IDLType, maybeOptional } from '@idlizer/core/idl'
-import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
-import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
-import { NativeModule } from '../NativeModule';
-import { PrinterClass, PrinterResult } from '../LayoutManager';
-import { injectPatch } from '../common';
-import { FinalizableType, RefCountedType } from '../idl/IdlPeerGeneratorVisitor';
+import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils.js";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
+import { NativeModule } from '../NativeModule.js';
+import { PrinterClass, PrinterResult } from '../LayoutManager.js';
+import { injectPatch } from '../common.js';
+import { FinalizableType, RefCountedType } from '../idl/IdlPeerGeneratorVisitor.js';
 
 const MATERIALIZED_TAG = "MaterializedBaseTag.NOP"
 

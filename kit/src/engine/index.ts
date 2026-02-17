@@ -13,5 +13,5 @@
  * limitations under the License.
  */
 
-export * from './continueWith'
-export * from './seed'
+export * from './continueWith.js'
+export * from './seed.js'

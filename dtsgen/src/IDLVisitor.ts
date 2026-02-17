@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ts from "typescript"
-import * as path from "path"
+import ts from "typescript"
+import * as path from "node:path"
+import { fileURLToPath } from "node:url"
 import { parse } from "comment-parser"
 import { OptionValues } from "commander"
 import * as idl from "@idlizer/core/idl"
@@ -30,14 +31,16 @@ import {
     isRoot,
 } from "@idlizer/core"
 import { ReferenceResolver } from "@idlizer/core"
-import { expandIDLVisitorConfig, groupOverloadsTS, IDLVisitorConfiguration } from "./IDLVisitorConfig"
-import { DtsgenConfiguration } from "./config"
-import { GenerateVisitor } from "./idlize"
+import { expandIDLVisitorConfig, groupOverloadsTS, IDLVisitorConfiguration } from "./IDLVisitorConfig.js"
+import { DtsgenConfiguration } from "./config.js"
+import { GenerateVisitor } from "./idlize.js"
 import {
     asString, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getNameWithoutQualifiersLeft,
     heritageDeclarations, identName, identString, isAsync, isNodePublic, isPrivate, isProtected, isReadonly, isStatic,
     nameOrNull
-} from "./util"
+} from "./util.js"
+
+const DIR_NAME = path.resolve(fileURLToPath(import.meta.url), "../../../..");
 
 const MaxSyntheticTypeLength = 60
 
@@ -171,7 +174,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     ) {
         this.typeChecker = program.getTypeChecker()
         this.visitorConfigExt = expandIDLVisitorConfig(dtsConfig.IDLVisitor)
-        this.visitorConfigExt.parsePredefinedIDLFiles(path.join(__dirname, '..'))
+        this.visitorConfigExt.parsePredefinedIDLFiles(DIR_NAME)
     }
 
     private mode: 'old' | 'new' = 'old'

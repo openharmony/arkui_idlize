@@ -32,7 +32,7 @@ import {
     isThrows,
     MethodModifier,
 } from '@idlizer/core'
-import { getHookMethod } from '../../DefaultConfiguration'
+import { getHookMethod } from '../../DefaultConfiguration.js'
 import {
     ExpressionStatement,
     LanguageExpression,
@@ -40,9 +40,9 @@ import {
     Method,
     MethodSignature,
     NamedMethodSignature,
-} from "../LanguageWriters";
+} from "../LanguageWriters/index.js";
 import { createReferenceType, IDLType } from '@idlizer/core/idl'
-import { NativeModule } from "../NativeModule";
+import { NativeModule } from "../NativeModule.js";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`

@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Ts, lw } from "@idlizer/ost"
-import { createProducer } from "../../engine"
+import { createProducer } from "../../engine/index.js"
 
 function convertType(type: idl.IDLPrimitiveType): lw.LWType {
     switch (type.name) {

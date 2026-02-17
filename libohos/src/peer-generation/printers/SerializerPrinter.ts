@@ -15,23 +15,23 @@
 
 import * as idl from '@idlizer/core/idl'
 import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription, maybeRestoreThrows } from '@idlizer/core'
-import { Method, NamedMethodSignature } from "../LanguageWriters"
+import { Method, NamedMethodSignature } from "../LanguageWriters/index.js"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
-import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
-import { ImportsCollector } from "../ImportsCollector"
+import { peerGeneratorConfiguration } from '../../DefaultConfiguration.js'
+import { ImportsCollector } from "../ImportsCollector.js"
 import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
-} from '../idl/IdlPeerGeneratorVisitor'
+} from '../idl/IdlPeerGeneratorVisitor.js'
 import { MethodModifier } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
 import { LayoutNodeRole } from '@idlizer/core'
-import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils'
-import { collectDeclarationTargets } from '../DeclarationTargetCollector'
+import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils.js'
+import { collectDeclarationTargets } from '../DeclarationTargetCollector.js'
 import { flattenUnionType } from '@idlizer/core'
-import { PrinterFunction, PrinterResult } from '../LayoutManager'
-import { isComponentDeclaration } from '../ComponentsCollector'
-import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../propertyCollectors'
+import { PrinterFunction, PrinterResult } from '../LayoutManager.js'
+import { isComponentDeclaration } from '../ComponentsCollector.js'
+import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../propertyCollectors.js'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 

@@ -23,7 +23,7 @@ import {
     flattenUnionType,
     isMaterialized,
 } from '@idlizer/core'
-import { AceTypes } from './AceTypes'
+import { AceTypes } from './AceTypes.js'
 import { E } from '@idlizer/libohos'
 
 const NON_JSON_TYPES = ['Ark_CustomObject', 'Ark_Object', 'Ark_ContentModifier']

@@ -53,16 +53,16 @@ import {
     createDeserializeAndCallPrinter,
     copyFile
 } from "@idlizer/libohos"
-import { createPeersPrinter } from "./printers/PeersPrinter"
-import { ArkoalaInstall, createArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
-import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
-import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"
-import { createComponentsPrinter, printComponentsDeclarations } from "./printers/ComponentsPrinter"
-import { printModifiers } from "./printers/ModifierPrinter"
-import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
-import { printUnitTestsAsMultipleFiles } from "./ut/UnittestPrinter"
-import { printEndToEndTests } from "./ut/E2EPrinter"
-import { Target } from "./ut/E2EFixturesPrinter"
+import { createPeersPrinter } from "./printers/PeersPrinter.js"
+import { ArkoalaInstall, createArkoalaInstall, LibaceInstall } from "./ArkoalaInstall.js"
+import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType.js"
+import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter.js"
+import { createComponentsPrinter, printComponentsDeclarations } from "./printers/ComponentsPrinter.js"
+import { printModifiers } from "./printers/ModifierPrinter.js"
+import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout.js"
+import { printUnitTestsAsMultipleFiles } from "./ut/UnittestPrinter.js"
+import { printEndToEndTests } from "./ut/E2EPrinter.js"
+import { Target } from "./ut/E2EFixturesPrinter.js"
 
 export function generateLibaceUnitTests(config: {
     libaceDestination: string | undefined,

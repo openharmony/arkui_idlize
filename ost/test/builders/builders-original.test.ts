@@ -1,5 +1,5 @@
-import { E, S, T, D } from '../../src/builders/original.js';
-import { LWKind } from '../../src/lws.js';
+import { E, S, T, D } from '@idlizer/ost';
+import { LWKind } from '@idlizer/ost';
 import { suite, test, assert } from "@koalaui/harness";
 
 // Test Expression builders (E)

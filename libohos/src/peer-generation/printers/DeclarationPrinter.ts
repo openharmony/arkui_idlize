@@ -16,9 +16,9 @@
 import * as idl from '@idlizer/core/idl'
 import { CustomPrintVisitor as DtsPrintVisitor, isInIdlize, Language, maybeRestoreThrows, PeerLibrary, sorted } from '@idlizer/core'
 import { LanguageWriter } from "@idlizer/core"
-import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
-import { ImportsCollector } from "../ImportsCollector"
-import { collectComponents } from "../ComponentsCollector"
+import { DependenciesCollector } from "../idl/IdlDependenciesCollector.js"
+import { ImportsCollector } from "../ImportsCollector.js"
+import { collectComponents } from "../ComponentsCollector.js"
 import { qualifiedName } from '@idlizer/core'
 
 class GeneratorSyntheticPrinter extends DependenciesCollector {

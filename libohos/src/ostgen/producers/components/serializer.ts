@@ -14,9 +14,9 @@
  */
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, Hs, LWType, T, Ts } from "@idlizer/ost"
-import { expectType, managedName, bridgeName } from "../common"
-import { OhosProducerContext, OhosProducer } from "../../engine"
-import { argConvertor } from "./argConvertor"
+import { expectType, managedName, bridgeName } from "../common.js"
+import { OhosProducerContext, OhosProducer } from "../../engine/index.js"
+import { argConvertor } from "./argConvertor.js"
 
 export function produceSerializer(native: boolean): OhosProducer<idl.IDLInterface> {
   return (node: idl.IDLInterface, ctx: OhosProducerContext) => {

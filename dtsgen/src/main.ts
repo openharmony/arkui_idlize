@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,11 +39,14 @@ import {
     IDLFile,
     toIDLString
 } from "@idlizer/core/idl"
-import { IDLVisitor } from "./IDLVisitor"
-import { runPreprocessor } from "./preprocessor"
-import { DtsgenConfiguration, dtsgenDefaultConfigurationPaths, loadDtsgenConfiguration } from "./config"
-import { generate } from "./idlize"
-import { defaultCompilerOptions } from "./util"
+import { IDLVisitor } from "./IDLVisitor.js"
+import { runPreprocessor } from "./preprocessor.js"
+import { DtsgenConfiguration, dtsgenDefaultConfigurationPaths, loadDtsgenConfiguration } from "./config.js"
+import { generate } from "./idlize.js"
+import { defaultCompilerOptions } from "./util.js"
+import { fileURLToPath } from 'url'
+
+const DIR_NAME = path.resolve(fileURLToPath(import.meta.url), "../../../..");
 
 const command = createCommand()
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -149,7 +154,7 @@ function main() {
             dtsInputFiles,
             dtsAuxInputFiles,
             options.outputDir ?? "./idl",
-            path.resolve(__dirname, "..", "stdlib.d.ts"),
+            path.resolve(DIR_NAME, "stdlib.d.ts"),
             (sourceFile, program, compilerHost) => new IDLVisitor(
                 baseDirs, sourceFile, program, compilerHost, options, dtsConf).goNewMode(),
             {

@@ -27,13 +27,13 @@ import {
     createLanguageWriter,
 } from '@idlizer/core'
 import { cStyleCopyright, gniFile, makeFileNameFromClassName } from '@idlizer/libohos'
-import { AceTypes } from './AceTypes'
+import { AceTypes } from './AceTypes.js'
 import {
     Debug, MultiFileVisitor, TestData, OPTIONAL_FIXTURE, UNION_FIXTURE, UNION_UNDEF_FIXTURE
-} from './MultiFileVisitor'
-import { TestValue } from './TestValue'
-import { TypeHelper } from './TypeHelper'
-import { LibaceInstall } from '../ArkoalaInstall'
+} from './MultiFileVisitor.js'
+import { TestValue } from './TestValue.js'
+import { TypeHelper } from './TypeHelper.js'
+import { LibaceInstall } from '../ArkoalaInstall.js'
 
 const CPP_FILE_LENGTH_LIMIT = 2000
 const TEST_PLACEHOLDER = 'Placeholder'

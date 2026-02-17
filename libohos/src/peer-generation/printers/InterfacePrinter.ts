@@ -36,14 +36,14 @@ import {
     getInitializerDefaultValue,
     getSyntheticTypesFileName,
 } from '@idlizer/core'
-import { PrinterFunction, PrinterResult } from '../LayoutManager'
-import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
-import { isComponentDeclaration } from '../ComponentsCollector'
-import { DependenciesCollector, KotlinDependenciesCollector } from '../idl/IdlDependenciesCollector'
-import { ImportsCollector, ImportFeature } from '../ImportsCollector'
-import { convertDeclToFeature, collectDeclDependencies } from '../ImportsCollectorUtils'
-import { isModifier } from '../ModifiersCollector'
-import { collectAllProperties, getAllSuperProps } from '../propertyCollectors'
+import { PrinterFunction, PrinterResult } from '../LayoutManager.js'
+import { peerGeneratorConfiguration } from '../../DefaultConfiguration.js'
+import { isComponentDeclaration } from '../ComponentsCollector.js'
+import { DependenciesCollector, KotlinDependenciesCollector } from '../idl/IdlDependenciesCollector.js'
+import { ImportsCollector, ImportFeature } from '../ImportsCollector.js'
+import { convertDeclToFeature, collectDeclDependencies } from '../ImportsCollectorUtils.js'
+import { isModifier } from '../ModifiersCollector.js'
+import { collectAllProperties, getAllSuperProps } from '../propertyCollectors.js'
 
 export interface InterfacesVisitor {
     printInterfaces(): PrinterResult[]

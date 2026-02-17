@@ -27,10 +27,10 @@ import {
     generatorConfiguration,
     isImportAttr,
 } from '@idlizer/core'
-import { createGlobalScopeLegacy } from './GlobalScopeUtils';
-import { collectDeclarationTargets } from "./DeclarationTargetCollector"
-import { collectPeersForFile } from './PeersCollector'
-import { getHookMethod, peerGeneratorConfiguration } from "../DefaultConfiguration"
+import { createGlobalScopeLegacy } from './GlobalScopeUtils.js';
+import { collectDeclarationTargets } from "./DeclarationTargetCollector.js"
+import { collectPeersForFile } from './PeersCollector.js'
+import { getHookMethod, peerGeneratorConfiguration } from "../DefaultConfiguration.js"
 
 const STATUSES = ["Total", "In Progress", "Done", "Blocked", "Managed side"]
 const TOP_PARENT = 'unnamed'

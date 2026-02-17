@@ -1,5 +1,5 @@
-import { E, S, T, D } from '../../src/builders/original.js';
-import { processNPrintCXX } from '../../src/printers/translators/cxx.js';
+import { E, S, T, D } from '@idlizer/ost';
+import { processNPrintCXX } from '@idlizer/ost';
 import { suite, test, assert } from "@koalaui/harness";
 
 // Test C++ translator

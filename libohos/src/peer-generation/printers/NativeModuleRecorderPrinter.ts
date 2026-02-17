@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Method, NamedMethodSignature } from "../LanguageWriters";
+import { Method, NamedMethodSignature } from "../LanguageWriters/index.js";
 import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod, PeerLibrary,
     InteropArgConvertor, createInteropArgConvertor, generateSyntheticFunctionName, createAlternativeReferenceResolver,
     Language,
@@ -21,13 +21,13 @@ import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, Pe
     TypeConvertor,
     MethodModifier
 } from '@idlizer/core'
-import { ImportsCollector } from "../ImportsCollector"
+import { ImportsCollector } from "../ImportsCollector.js"
 import {
     createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, createPrimitiveType,
     createContainerType, IDLType
 } from "@idlizer/core/idl"
-import { makeInteropMethod } from "./NativeModulePrinter";
-import { collectPeersForFile } from "../PeersCollector";
+import { makeInteropMethod } from "./NativeModulePrinter.js";
+import { collectPeersForFile } from "../PeersCollector.js";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter

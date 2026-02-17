@@ -17,7 +17,7 @@ import {
     accessorStructList,
     makeFileNameFromClassName,
     modifierStructList,
-} from "../FileGenerators";
+} from "../FileGenerators.js";
 import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
     groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary,
     createLanguageWriter, LanguageWriter,
@@ -33,21 +33,21 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
     LibraryInterface,
     maybeRestoreThrows,
 } from '@idlizer/core'
-import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
+import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters/index.js";
 import {
     IDLImport, IDLContainerType, IDLContainerUtils, IDLOptionalType, IDLPrimitiveType,
     IDLReferenceType, IDLType, IDLTypeParameterType, IDLUnionType,
     isInterface, isOptionalType
 } from '@idlizer/core/idl'
-import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
-import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
-import { collectOrderedPeers } from "../PeersCollector";
-import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
+import { createGlobalScopeLegacy } from "../GlobalScopeUtils.js";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
+import { collectOrderedPeers } from "../PeersCollector.js";
+import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils.js";
 import * as idl from "@idlizer/core/idl"
-import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
-import { generateCapiParameters } from "./HeaderPrinter";
-import { isVMContextMethod } from "./MethodUtils";
-import { collectProperties } from "../propertyCollectors";
+import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector.js";
+import { generateCapiParameters } from "./HeaderPrinter.js";
+import { isVMContextMethod } from "./MethodUtils.js";
+import { collectProperties } from "../propertyCollectors.js";
 
 function peerToOutString(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string {
     if (isComponentDeclaration(library, context))

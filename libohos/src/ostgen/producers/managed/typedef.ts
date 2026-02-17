@@ -15,8 +15,8 @@
 
 import { D, T } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { expectType, managedName } from "../common";
-import { createProducer } from "../../engine";
+import { expectType, managedName } from "../common.js";
+import { createProducer } from "../../engine/index.js";
 
 export const typedefProducer = createProducer(
   { is: idl.isTypedef, role: 'managed' },

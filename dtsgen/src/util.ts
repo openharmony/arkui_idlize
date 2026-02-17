@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as ts from "typescript"
+import ts from "typescript"
 import { isDefined, Language, throwException } from "@idlizer/core"
 
 /** True if this is visible outside this file, false otherwise */
@@ -311,8 +311,8 @@ export function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.Stri
 }
 
 export const defaultCompilerOptions: ts.CompilerOptions = {
-    target: ts.ScriptTarget.ES5,
-    module: ts.ModuleKind.CommonJS,
+    target: ts.ScriptTarget.ES2017,
+    module: ts.ModuleKind.ESNext,
     noLib: true,
     types: []
 }

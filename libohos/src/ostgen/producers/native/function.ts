@@ -15,11 +15,11 @@
 
 import * as idl from "@idlizer/core/idl";
 import { Builders, LWExpression, LWType, Ts } from "@idlizer/ost"
-import { cApiName, implName } from "../common";
-import { createProducer, fqName, mapPush, modifierClassName, moduleName } from "../../engine"
-import { argConvertor } from "../components/argConvertor";
-import { expectType } from "../common"
-import { OhosProducerContext } from "../../engine"
+import { cApiName, implName } from "../common.js";
+import { createProducer, fqName, mapPush, modifierClassName, moduleName } from "../../engine/index.js"
+import { argConvertor } from "../components/argConvertor.js";
+import { expectType } from "../common.js"
+import { OhosProducerContext } from "../../engine/index.js"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'capi' },

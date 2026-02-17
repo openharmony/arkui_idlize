@@ -15,10 +15,10 @@
 */
 
 import { ConfigSchema, createAlgotithmicReferenceResolver, DiagnosticMessageGroup, DiagnosticResults, forEachChild, getFQName, IDLEntry, IDLFile, IDLReferenceType, IDLType, isImport, isReferenceType, isTypedef, linearizeNamespaceMembers, outputDiagnosticResultsFormatted, parseIDLFile, setFormatterLogger } from "@idlizer/core"
-import { terminate, TerminateError } from "./cli/error"
-import { forkWith, getIO, RealWorld } from "./cli/application"
-import { CURRENT_LOG_LEVEL, logger } from "./cli/logger"
-import { text } from "./text"
+import { terminate, TerminateError } from "./cli/error.js"
+import { forkWith, getIO, RealWorld } from "./cli/application.js"
+import { CURRENT_LOG_LEVEL, logger } from "./cli/logger.js"
+import { text } from "./text.js"
 import { EOL } from "node:os"
 import { dirname } from "node:path"
 

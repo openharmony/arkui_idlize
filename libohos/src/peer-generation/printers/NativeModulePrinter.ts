@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
-import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
+import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators.js";
+import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/index.js";
 import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression,
     createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language,
     createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, isEnumType, InteropReturnTypeConvertor,
@@ -27,14 +27,14 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     isMaterializedType,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
-import { NativeModule } from "../NativeModule";
-import { ArkTSSourceFile, KotlinSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
-import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
-import { PrinterFunction } from "../LayoutManager";
-import { ImportsCollector } from "../ImportsCollector";
-import { collectPeersForFile } from "../PeersCollector";
-import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
-import { isDirectMethod, isVMContextMethod } from './MethodUtils'
+import { NativeModule } from "../NativeModule.js";
+import { ArkTSSourceFile, KotlinSourceFile, SourceFile, TsSourceFile } from "./SourceFile.js";
+import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils.js";
+import { PrinterFunction } from "../LayoutManager.js";
+import { ImportsCollector } from "../ImportsCollector.js";
+import { collectPeersForFile } from "../PeersCollector.js";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
+import { isDirectMethod, isVMContextMethod } from './MethodUtils.js'
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library, createInteropArgConvertor(this.language))

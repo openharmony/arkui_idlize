@@ -16,7 +16,7 @@
 import * as idl from '@idlizer/core/idl'
 import { convertNode, isMaterialized, Language, LibraryInterface, NodeConvertor, ReferenceResolver, sorted } from "@idlizer/core";
 import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
-import { collectProperties } from '../propertyCollectors';
+import { collectProperties } from '../propertyCollectors.js';
 
 class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     constructor(

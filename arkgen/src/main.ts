@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +15,6 @@
  * limitations under the License.
  */
 
-import { arkgen } from "./app";
+import { arkgen } from "./app.js";
 
 arkgen(process.argv.slice(2))

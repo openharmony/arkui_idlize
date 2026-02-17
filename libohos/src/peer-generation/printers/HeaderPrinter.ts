@@ -23,14 +23,14 @@ import { IndentedPrinter, camelCaseToUpperSnakeCase, Language,
     asPromise,
     generatorTypePrefix,
 } from '@idlizer/core'
-import { getNodeTypes } from "../FileGenerators";
-import { getHookMethod, peerGeneratorConfiguration} from "../../DefaultConfiguration";
-import { printMethodDeclaration } from "../LanguageWriters";
-import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
-import { collectOrderedPeers } from '../PeersCollector';
-import { getAccessorName, getDeclarationUniqueName } from './NativeUtils';
-import { isComponentDeclaration } from '../ComponentsCollector';
-import { isVMContextMethod } from './MethodUtils'
+import { getNodeTypes } from "../FileGenerators.js";
+import { getHookMethod, peerGeneratorConfiguration} from "../../DefaultConfiguration.js";
+import { printMethodDeclaration } from "../LanguageWriters/index.js";
+import { createGlobalScopeLegacy } from '../GlobalScopeUtils.js';
+import { collectOrderedPeers } from '../PeersCollector.js';
+import { getAccessorName, getDeclarationUniqueName } from './NativeUtils.js';
+import { isComponentDeclaration } from '../ComponentsCollector.js';
+import { isVMContextMethod } from './MethodUtils.js'
 
 export function generateEventReceiverName(componentName: string) {
     return `${peerGeneratorConfiguration().cppPrefix}ArkUI${componentName}EventsReceiver`

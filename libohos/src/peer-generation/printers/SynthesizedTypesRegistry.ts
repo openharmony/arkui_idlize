@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { TargetFile } from "./TargetFile"
+import { TargetFile } from "./TargetFile.js"
 
 export interface SynthesizedTypesRegistry {
     getDefinitions(): Map<TargetFile, string>

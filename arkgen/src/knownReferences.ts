@@ -15,7 +15,7 @@
 
 import { ConfigTypeInfer, D } from "@idlizer/core"
 import { readFileSync } from "fs"
-import { ARKGEN_ROOT } from "./config"
+import { ARKGEN_ROOT } from "./config.js"
 import { join } from "path"
 
 const KnownReferencesSchema = D.object({

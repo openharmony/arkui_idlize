@@ -1,6 +1,8 @@
 import { dirname, join } from "node:path";
+import { createRequire } from "node:module";
 
-export const OHOSGEN_ROOT = join(dirname(require.resolve('@idlizer/ohosgen')), '../../..')
+const require = createRequire(import.meta.url)
+const OHOSGEN_ROOT = join(dirname(require.resolve('@idlizer/ohosgen')), '../../..')
 
 export function ohosgenDefaultConfigurationPaths(): string[] {
     return [

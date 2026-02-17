@@ -15,8 +15,8 @@
 
 import { Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { createProducer } from "../../engine";
-import { expectType } from "../common"
+import { createProducer } from "../../engine/index.js";
+import { expectType } from "../common.js"
 
 export const unionProducer = createProducer(
   { is: idl.isUnionType, role: 'managed' },

@@ -15,11 +15,11 @@
 
 import { snakeCaseToCamelCase } from "@idlizer/core";
 import { Builders, D, E, Hs, IdentityTransformer, lw, std, T, utils } from "@idlizer/ost"
-import { ImportsCollector } from "../../peer-generation/ImportsCollector";
-import { mapFileName, moduleName } from "../engine/utils";
-import { managedName } from "../producers/common";
-import { callbackKindDeclaration } from "./postprocess";
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { ImportsCollector } from "../../peer-generation/ImportsCollector.js";
+import { mapFileName, moduleName } from "../engine/utils.js";
+import { managedName } from "../producers/common.js";
+import { callbackKindDeclaration } from "./postprocess.js";
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
 import { moduleLike } from "@idlizer/kit";
 
 export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string, callbacks: string[]): lw.LWDeclaration[] {

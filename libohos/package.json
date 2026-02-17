@@ -2,6 +2,7 @@
     "name": "@idlizer/libohos",
     "version": "2.2.2+devel",
     "description": "",
+    "type": "module",
     "types": "build/lib/src/index.d.ts",
     "exports": {
         ".": [
@@ -14,7 +15,6 @@
         "predefined/**/*",
         "templates/**/*"
     ],
-    "type": "module",
     "engines": {
         "npm": ">= 8",
         "node": ">= 18"

@@ -15,10 +15,10 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, Hs, Md, T, Ts } from "@idlizer/ost"
-import { expectType, managedName } from "../common"
-import { OhosProducer, OhosProducerContext, OhosSeed } from "../../engine"
+import { expectType, managedName } from "../common.js"
+import { OhosProducer, OhosProducerContext, OhosSeed } from "../../engine/index.js"
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
-import { createProducer } from "../../engine"
+import { createProducer } from "../../engine/index.js"
 import { ProducerResult } from "@idlizer/kit"
 
 export const structureProducer = createProducer(

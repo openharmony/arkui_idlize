@@ -15,10 +15,12 @@
 
 import * as path from "path"
 import { scanInputDirs } from "@idlizer/core"
+import { createRequire } from "node:module";
 
 let PREDEFINED_PATH: string | undefined = undefined
 export function libohosPredefinedFiles(): string[] {
     if (PREDEFINED_PATH === undefined) {
+        const require = createRequire(import.meta.url)
         PREDEFINED_PATH = path.resolve(require.resolve('@idlizer/libohos'), '..', '..', '..', '..', 'predefined')
     }
     return scanInputDirs([PREDEFINED_PATH, path.join(PREDEFINED_PATH, 'interop')])

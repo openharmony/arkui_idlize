@@ -15,7 +15,7 @@
 
 import { D, IdentityTransformer, lw, std, T, Ts, utils } from "@idlizer/ost";
 import { generatorConfiguration } from "@idlizer/core";
-import { mergeEnums, mergeStructs } from "./utils";
+import { mergeEnums, mergeStructs } from "./utils.js";
 
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
     decls = mergeStructs(decls)

@@ -15,8 +15,8 @@
 
 import * as idl from "@idlizer/core/idl"
 import { warn } from "@idlizer/core"
-import { createProducer } from "../../engine"
-import { expectType } from "../common"
+import { createProducer } from "../../engine/index.js"
+import { expectType } from "../common.js"
 
 export const referenceProducer = createProducer(
   { is: idl.isReferenceType },
