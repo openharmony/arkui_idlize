@@ -7,15 +7,25 @@ ohosgen XML demo:
     - build idlize
     before_script:
       - !reference [.npm, script]
-      - !reference [.panda, script]
     script:
       - cd $CI_PROJECT_DIR/ohosgen/demos/xml
       - npm run all:ts
       - npm run all:arkts
-      - cd $CI_PROJECT_DIR/external/arkoala-arkts
-      - npm i
+
+<Kotlin> ohosgen XML demo:
+    stage: test
+    tags:
+      - idlize-ci
+      - koala-ci
+    needs:
+    - build idlize
+    before_script:
+      - !reference [.npm, script]
+      - npm i -C external/tools --prefer-offline --no-audit --no-fund
+    script:
       - cd $CI_PROJECT_DIR/ohosgen/demos/xml
-      - npm run all:kt
+      - npm run all:ts
+      - npm run all:arkts
 
 ohosgen unit tests:
   stage: test
@@ -26,17 +36,29 @@ ohosgen unit tests:
     - build idlize
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
   script:
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
     - npm run all:ts
     - npm run all:arkts
-    - npm run all:kt
     - cd $CI_PROJECT_DIR/ohosgen/tests/dummy
     - npm run all:ts
     - npm run all:arkts
   # after_script:
   #   - !reference [.notify-telegram, script]
+
+<Kotlin> ohosgen unit tests:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  needs:
+    - build idlize
+  before_script:
+    - !reference [.npm, script]
+    - npm i -C external/tools --prefer-offline --no-audit --no-fund
+  script:
+    - cd $CI_PROJECT_DIR/ohosgen/tests/unit
+    - npm run all:kt
 
 ohosgen demos:
   stage: test
@@ -47,7 +69,6 @@ ohosgen demos:
   - build idlize
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
   script:
     - cd $CI_PROJECT_DIR/ohosgen/demos/mediaquery
     - npm show @koalaui/interop && npm show @koalaui/common
@@ -69,7 +90,6 @@ ohosgen system tests:
     - build idlize
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
   script:
     - cd $CI_PROJECT_DIR/ohosgen/tests/system
     - npm i -d

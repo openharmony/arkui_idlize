@@ -1,23 +1,23 @@
 package arkui.component.check.enum;
 
-dictionary EnumUByte {
+enum EnumUByte {
     number E0 = 0;
     number E1 = 1;
     number E255 = 255;
 };
 
-dictionary EnumByte {
+enum EnumByte {
     number E0 = 0;
     number EN127 = -127;
     number E127 = 127;
 };
 
-dictionary EnumInt {
+enum EnumInt {
     number E0 = 0;
     number E512 = 512;
 };
 
-dictionary EnumLong {
+enum EnumLong {
     number E0 = 0;
     number EFFFFFFFFA = 0xFFFFFFFFA;
 };

@@ -1,11 +1,11 @@
 package arkui.stage_extender;
 
-dictionary PageTransitionType {
+enum PageTransitionType {
     number ENTER = 0;
     number EXIT = 1;
 };
 
-dictionary RouteType {
+enum RouteType {
     [OriginalEnumMemberName=None]
     number NONE = 0;
     [OriginalEnumMemberName=Push]

@@ -10,12 +10,12 @@ interface DrawModifier {
     constructor();
 };
 
-dictionary ColorMode {
+enum ColorMode {
     number LIGHT = 0;
     number DARK = 1;
 };
 
-dictionary LayoutDirection {
+enum LayoutDirection {
     number LTR = 0;
     number RTL = 1;
     [OriginalEnumMemberName=Auto]

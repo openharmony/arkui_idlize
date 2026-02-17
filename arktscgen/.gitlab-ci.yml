@@ -7,7 +7,8 @@ test arktscgen:
   #   - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
   script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
+    - npm i -C external --prefer-offline --no-audit --no-fund
+    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
     - npm run -C external sdk:all
     - npm run compile --prefix external/common
     - npm run compile --prefix external/compat
@@ -23,8 +24,6 @@ test arktscgen:
     - npm run build --prefix external/incremental/harness
     - npm run test --prefix external/libarkts
     - npm run test:all --prefix external/ui2abc/memo-plugin-ng
-  needs:
-    - download external sdk
 
 pack idlize-arktscgen:
   extends:
@@ -44,7 +43,6 @@ pre-publish test arktscgen:
     - koala-ci
   script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
     - npm run test:pack --prefix arktscgen
 
 publish idlize-arktscgen:

@@ -9,7 +9,7 @@
 │   │   ├── 📄 [union](#union)  
 │   │   ├── 📄 [record](#record)  
 ├── 📂 [declarations](#declarations)  
-│   ├── 📄 [enumeration (using dictionary syntax)](#enumeration-using-dictionary-syntax)  
+│   ├── 📄 [enumeration](#enumeration)  
 │   ├── 📄 [constant](#constant)  
 │   ├── 📄 [function](#function)  
 │   ├── 📄 [callback](#callback)  
@@ -134,15 +134,15 @@ void someMethod(record<String, boolean> someParameter);
 
 Declarations introduce new entities (types, values, functions) into the current scope, making them accessible by name.
 
-## enumeration (using dictionary syntax)
+## enumeration
 
-Declares an enumerated type with a domain of integer or string values. Within a dictionary, integer and
+Declares an enumerated type with a domain of integer or string values. Within an enum, integer and
 string items cannot be mixed.
 
 **Example:** 
 
 ```
-dictionary Origin {
+enum Origin {
     number local = 0;
     number remote = 1;
 };

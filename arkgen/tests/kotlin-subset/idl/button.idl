@@ -1,6 +1,6 @@
 package arkui.component;
 
-dictionary ButtonType {
+enum ButtonType {
     [OriginalEnumMemberName=Capsule]
     number CAPSULE = 0;
     [OriginalEnumMemberName=Circle]

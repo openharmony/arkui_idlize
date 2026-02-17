@@ -1,40 +1,3 @@
-arkgen TS subset:
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - !reference [.npm, script]
-  script:
-    - npm run -C arkgen setup:subset:ts
-    - npm run -C arkgen gen-idl:subset:ts
-    - npm run -C arkgen gen:subset:ts
-    - npm run -C arkgen build:subset:ts
-    - npm run -C arkgen build-native:subset:ts
-    - npm run -C arkgen exec:subset:ts
-  needs:
-    - build idlize
-
-arkgen ArkTS subset:
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-  script:
-    - npm run -C arkgen setup:subset:arkts
-    - npm run -C arkgen gen-idl:subset:arkts
-    - npm run -C arkgen gen:subset:arkts
-    - npm run -C arkgen build:subset:arkts
-    - npm run -C arkgen build-native:subset:arkts
-    - npm run -C arkgen/tests-template/arkts build
-    - npm run -C arkgen exec:subset:arkts
-  needs:
-    - build idlize
-    - build external
-
 <ArkTS> koala-projects integration test:
   stage: test
   tags:
@@ -42,11 +5,12 @@ arkgen ArkTS subset:
     - koala-ci
   needs:
     - build idlize
-    - build external
-    - download external sdk
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
+    - npm i -C external --prefer-offline --no-audit --no-fund
+    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
+    - npm run sdk:all -C external
+    - npm run build:all -C external/ui2abc
   script:
     # Bundle idlizer
     - npm run bundle:idlizer --prefix external/arkoala-arkts/tools/idlizer-bundler
@@ -66,7 +30,6 @@ arkgen ArkTS unit:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
   script:
     - npm run -C arkgen/tests-template/arkts build
     - npm run -C arkgen/tests/unit init:arkts
@@ -74,8 +37,6 @@ arkgen ArkTS unit:
     - npm run -C arkgen/tests/unit build:arkts
     - npm run -C arkgen/tests/unit build:arkts:native
     - npm run -C arkgen/tests/unit exec:arkts
-    - npm run -C arkgen/tests/unit gen:golden
-    - npm run -C arkgen/tests/unit exec:golden
   needs:
     - build idlize
 
@@ -86,7 +47,7 @@ arkgen Kotlin unit:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
+    - npm i -C external/tools --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen/tests/unit init:kt
     - npm run -C arkgen/tests/unit gen:kt
@@ -96,7 +57,19 @@ arkgen Kotlin unit:
     - npm run -C arkgen/tests/unit exec:kt
   needs:
     - build idlize
-    - build external
+
+arkgen golden unit CAPI:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.npm, script]
+  script:
+    - npm run -C arkgen/tests/unit gen:golden
+    - npm run -C arkgen/tests/unit exec:golden
+  needs:
+    - build idlize
 
 pg cj:run:
   allow_failure: true
@@ -106,7 +79,6 @@ pg cj:run:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
     - LD_LIBRARY_PATH=LD_LIBRARY_PATH=$CANGJIE_HOME/runtime/lib/linux_x86_64_llvm:$CANGJIE_HOME/tools/lib:$LD_LIBRARY_PATH npm run all:subset:cj
@@ -118,7 +90,7 @@ arkgen Kotlin subset:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
+    - npm i -C external/tools --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:subset:kt
     - npm run -C arkgen gen:kt:subset
@@ -126,20 +98,6 @@ arkgen Kotlin subset:
     - npm run -C arkgen compile:kt:native:subset
     - npm run -C arkgen compile:kt:subset
     - npm run -C arkgen exec:kt:subset
-
-
-build arkoala-ts:
-  allow_failure: true
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - !reference [.npm, script]
-    - cd $CI_PROJECT_DIR/arkgen
-  script:
-    - npm run compile
-    - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run arkoala:ts
 
 # Pack targets
 pack idlize-arkgen:
@@ -189,20 +147,5 @@ publish idlize-linter:
     - .npm-publish
   variables:
     PACKAGE_DIR: linter
-  needs:
-    - build idlize
-
-
-
-subset CAPI golden:
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - !reference [.npm, script]
-    - cd $CI_PROJECT_DIR/arkgen
-  script:
-    - npm run test:subset-api
   needs:
     - build idlize

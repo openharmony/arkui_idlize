@@ -6,10 +6,8 @@ test sdk api compat:
     - idlize-ci
   needs:
     - build idlize
-    - build external
   script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
     - npm run download:sdk
     - node idlinter/bin/check-api-compat.mjs --idlize interface_sdk-js $CI_COMMIT_REF_NAME master
 

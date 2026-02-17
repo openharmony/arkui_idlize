@@ -17,9 +17,11 @@ import * as fs from "node:fs"
 import * as idl from "../idl"
 import { DiagnosticException, DiagnosticMessage, Location, MessageSeverityList, Position } from "../diagnostictypes"
 import { DiagnosticMessageGroup, LoadingFatal, InternalFatal } from "../diagnosticmessages"
+import { capitalize } from "../util"
 
 const DeprecatedTypeArguments = new DiagnosticMessageGroup("warning", "DeprecatedTypeArguments", "TypeArguments is deprecated", "TypeArguments extended attribute is deprecated")
 const DeprecatedTypeParameters = new DiagnosticMessageGroup("warning", "DeprecatedTypeParameters", "TypeParameters is deprecated", "TypeParameters extended attribute is deprecated")
+const DeprecatedDictionaryKeyword = new DiagnosticMessageGroup("warning", "DeprecatedDictionaryKeyword", "Dictionary is deprecated.", "Dictionary keyword is deprecated.")
 const DeprecatedTypedefSyntax = new DiagnosticMessageGroup("warning", "DeprecatedTypedefSyntax", "C-Style typedef syntax is deprecated", "C-Style typedef syntax is deprecated")
 const DuplicateModifier = new DiagnosticMessageGroup("error", "DuplicateModifier", "Duplicate modifier", "Duplicate of")
 const NotApplicableModifier = new DiagnosticMessageGroup("error", "NotApplicableModifier", "Not applicable modifier")
@@ -815,7 +817,7 @@ export class Parser {
             value = this.parseLiteral()
         }
         this.skip(";")
-        // Note that raw value (with quoted strings) is used here, that provides compatibility with older code (while being different from `dictionary` processing)
+        // Note that raw value (with quoted strings) is used here, that provides compatibility with older code (while being different from `enum` processing)
         return idl.createConstant(name.value, type, value?.value, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
     }
 
@@ -885,49 +887,32 @@ export class Parser {
         return idl.createCallback(name.value, args, retType, {extendedAttributes: ext, documentation: extractDocumentation(ext), nodeLocation: sloc(), nameLocation: name.location}, typeParameters)
     }
 
-    parseEnum() {
-        trac("parseEnum")
-        const sloc = this.trackLocation()
-        const ext = this.consumeCurrentExtended()
-        this.skip("enum")
-        const name = this.parseSingleIdentifier()
-        const items: idl.IDLEnumMember[] = []
-        this.skip("{")
-        let next = false
-        while (!this.seeAndSkip("}")) {
-            if (next) {
-                this.skip(",")
-                // Can have trailing comma
-                if (this.seeAndSkip("}")) {
-                    break
-                }
-            }
-            next = true
-            const ext = this.parseExtendedAttributes()
-            const entry = this.parseLiteral()
-            const member = idl.createEnumMember(entry.value, undefined as any, idl.createPrimitiveType('number'), undefined, undefined, {extendedAttributes: ext, nodeLocation: entry.location, nameLocation: entry.location})
-            items.push(member)
-        }
-        return idl.createEnum(name.value, items, {extendedAttributes: ext, documentation: extractDocumentation(ext), nodeLocation: sloc(), nameLocation: name.location})
+    parseEnum(): idl.IDLEnum {
+        return this.parseEnumOrDictionary("enum")
     }
 
     parseDictionary(): idl.IDLEnum {
-        trac("parseDictionary")
+        DeprecatedDictionaryKeyword.reportDiagnosticMessage([this.curLocation], 'Dictionary keyword is deprecated, use enum keyword.')
+        return this.parseEnumOrDictionary("dictionary")
+    }
+
+    parseEnumOrDictionary(token: string): idl.IDLEnum {
+        trac(`parse${capitalize(token)}`)
         const sloc = this.trackLocation()
         const ext = this.consumeCurrentExtended()
-        this.skip("dictionary")
+        this.skip(token)
         const name = this.parseSingleIdentifier()
         const items: idl.IDLEnumMember[] = []
         this.skip("{")
         while (!this.seeAndSkip("}")) {
-            items.push(this.parseDictionaryEntry())
+            items.push(this.parseEnumOrDictionaryEntry(token))
         }
         this.skip(";")
         return idl.createEnum(name.value, items, {extendedAttributes: ext, documentation: extractDocumentation(ext), nodeLocation: sloc(), nameLocation: name.location})
     }
 
-    parseDictionaryEntry(): idl.IDLEnumMember {
-        trac("parseDictionaryEntry")
+    parseEnumOrDictionaryEntry(token: string): idl.IDLEnumMember {
+        trac(`parse${capitalize(token)}Entry`)
         const ext = this.parseExtendedAttributes()
         const sloc = this.trackLocation()
         const type = this.parsePrimitiveType()

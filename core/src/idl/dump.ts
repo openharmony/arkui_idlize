@@ -339,7 +339,7 @@ export class IDLWriter {
                 this.print(`${it.name} ${(it.initializer !== undefined ? " /* " + it.initializer + " */" : "")}`))
             return this.popIndent().print("};")
         } else {
-            this.print(`dictionary ${idl.name!} {`)
+            this.print(`enum ${idl.name!} {`)
                 .pushIndent()
             idl.elements.forEach(it => this.printEnumMember(it))
             return this.popIndent().print("};")

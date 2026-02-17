@@ -32,12 +32,12 @@ suite("IDL parser test suite", () => {
     checkIdlFile("golden/const-1.idl")
   })
 
-  test("Test IDL number dictionary", () => {
-    checkIdlFile("golden/dict-1.idl")
+  test("Test IDL number enum", () => {
+    checkIdlFile("golden/enum-1.idl")
   })
 
-  test("Test IDL string dictionary", () => {
-    checkIdlFile("golden/dict-2.idl")
+  test("Test IDL string enum", () => {
+    checkIdlFile("golden/enum-2.idl")
   })
 
   test("Test IDL empty interface", () => {
