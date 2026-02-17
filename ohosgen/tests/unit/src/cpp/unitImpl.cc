@@ -841,42 +841,51 @@ public:
 
 class DerivedGesture1 : public BaseGesture {
 public:
-    OH_UNIT_GestureType getType() override {
+    OH_UNIT_GestureType getType() override
+    {
         return OH_UNIT_GestureType::OH_UNIT_GESTURE_TYPE_First;
     }
 };
 
 class DerivedGesture2 : public BaseGesture {
 public:
-    OH_UNIT_GestureType getType() override {
+    OH_UNIT_GestureType getType() override
+    {
         return OH_UNIT_GestureType::OH_UNIT_GESTURE_TYPE_Second;
     }
 };
 
-OH_UNIT_BaseGestureHandle BaseGesture_constructImpl() {
+OH_UNIT_BaseGestureHandle BaseGesture_constructImpl()
+{
     BaseGesture* ptr = new DerivedGesture2();
     return reinterpret_cast<OH_UNIT_BaseGestureHandle>(ptr);
 }
-void BaseGesture_destructImpl(OH_UNIT_BaseGestureHandle thisPtr) {
+void BaseGesture_destructImpl(OH_UNIT_BaseGestureHandle thisPtr)
+{
     BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(thisPtr);
     delete gesturePtr;
 }
-OH_UNIT_GestureType BaseGesture_getTypeImpl(OH_NativePointer thisPtr) {
+OH_UNIT_GestureType BaseGesture_getTypeImpl(OH_NativePointer thisPtr)
+{
     BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(thisPtr);
     return gesturePtr->getType();
 }
-OH_UNIT_BaseGesture BaseGesture_createGesture2Impl() {
+OH_UNIT_BaseGesture BaseGesture_createGesture2Impl()
+{
     BaseGesture* ptr = new DerivedGesture2();
     return reinterpret_cast<OH_UNIT_BaseGesture>(ptr);
 }
 
-OH_UNIT_DerivedGesture1Handle DerivedGesture1_constructImpl() {
+OH_UNIT_DerivedGesture1Handle DerivedGesture1_constructImpl()
+{
     return {};
 }
-void DerivedGesture1_destructImpl(OH_UNIT_DerivedGesture1Handle thisPtr) {
+void DerivedGesture1_destructImpl(OH_UNIT_DerivedGesture1Handle thisPtr)
+{
 }
 
-OH_UNIT_DerivedGesture2Handle DerivedGesture2_constructImpl() {
+OH_UNIT_DerivedGesture2Handle DerivedGesture2_constructImpl()
+{
     return {};
 }
 void DerivedGesture2_destructImpl(OH_UNIT_DerivedGesture2Handle thisPtr) {
@@ -1080,7 +1089,12 @@ void DTSCheckExternalLib_checkSubNSExternalTypeImpl(OH_NativePointer thisPtr, OH
 
 
 const char* ERROR_MSG = "(Test passed) Promise was rejected";
-void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, const OH_Number* ms, const UNIT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void PromiseTester_waitImpl(
+    OH_UNIT_VMContext vmContext,
+    OH_UNIT_AsyncWorkerPtr asyncWorker,
+    const OH_Number* ms,
+    const UNIT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
     OH_String* errors = new OH_String[1];
     errors[0].length = strlen(ERROR_MSG);
     errors[0].chars = ERROR_MSG;
@@ -1090,7 +1104,8 @@ void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr 
     );
 }
 
-OH_UNIT_GestureType GlobalScope_getBaseGestureTypeImpl(OH_NativePointer ptr) {
+OH_UNIT_GestureType GlobalScope_getBaseGestureTypeImpl(OH_NativePointer ptr)
+{
     BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(ptr);
     return gesturePtr->getType();
 }
