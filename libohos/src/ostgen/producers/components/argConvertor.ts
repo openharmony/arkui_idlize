@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlizer/core/idl";
-import { Hs, E, lw, Op, S, std, Ts, T, Vs } from "../../../ost";
-import { AdvancedGeneratorContext, cApiName, managedName, typeNameExpr } from "../common";
-import { isMaterialized } from "@idlizer/core";
-import { Builders, LWExpression, LWStatement, LWType } from "../../../ost";
-import { monoName } from "../../postprocess/postprocess";
+import * as idl from "@idlizer/core/idl"
+import { isMaterialized } from "@idlizer/core"
+import { Builders, E, Hs, LWExpression, LWStatement, LWType, lw, Op, S, std, T, Ts, Vs } from "@idlizer/ost"
+import { cApiName, expectExpr, expectType, managedName, typeNameExpr } from "../common"
+import { OhosProducerContext } from "../../engine"
+import { monoName } from "../../postprocess/postprocess"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
@@ -59,7 +59,7 @@ function selectReadName(type:idl.IDLPrimitiveType): string {
 
 export abstract class ArgConvertor<T extends idl.IDLType> {
     constructor(
-        protected ctx: AdvancedGeneratorContext,
+        protected ctx: OhosProducerContext,
         protected type: T
     ) {}
 
@@ -73,19 +73,19 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
         return [Builders.return().value(resultVarName).$()]
     }
-    protected getSerializer(node: idl.IDLNode, native: boolean) {
+    protected getSerializer(node: idl.IDLInterface, native: boolean) {
         return native
-            ? this.ctx.useNativeSerializer(node)
-            : this.ctx.useManagedSerializer(node)
+            ? expectExpr(this.ctx, node, 'native-serde')
+            : expectExpr(this.ctx, node, 'managed-serde')
     }
     protected convertType(type: idl.IDLType, native: boolean): lw.LWType {
         return native
-            ? this.ctx.useCApi(type).reference()
-            : this.ctx.useManaged(type).reference()
+            ? expectType(this.ctx, type, 'capi')
+            : expectType(this.ctx, type, 'managed')
     }
 }
 
-export function argConvertor(ctx: AdvancedGeneratorContext, type: idl.IDLType, optional?: boolean): ArgConvertor<idl.IDLType> {
+export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, optional?: boolean): ArgConvertor<idl.IDLType> {
     ///what can we cache here? Take optional props into account
     if (optional)
         return new OptionalConvertor(ctx, type)
@@ -96,12 +96,12 @@ export function argConvertor(ctx: AdvancedGeneratorContext, type: idl.IDLType, o
     if (idl.isUnionType(type))
         return new UnionConvertor(ctx, type)
     if (idl.isReferenceType(type)) {
-        const decl = ctx.base.resolver.toDeclaration(type)
+        const decl = ctx.library.toDeclaration(type)
         if (decl) {
             if (idl.isInterface(decl)) {
-                return isMaterialized(decl, ctx.base.library)
+                return isMaterialized(decl, ctx.library)
                     ? new MaterializedConvertor(ctx, type)
-                    : new DataConvertor(ctx, type)
+                    : new DataConvertor(ctx, type, decl)
             }
             if (idl.isEnum(decl))
                 return new EnumConvertor(ctx, type)
@@ -121,6 +121,8 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
                 return Ts.prim.interopNumber
             case 'String':
                 return native ? Ts.const(Ts.ref(Ts.prim.interopString)) : Ts.prim.interopString
+            case 'void':
+                return Ts.prim.void
             default:
                 return this.convertType(this.type, native)
         }
@@ -236,10 +238,13 @@ abstract class StructConvertor<T extends idl.IDLType> extends ArgConvertor<T> {
 }
 
 class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
+    constructor(ctx: OhosProducerContext, type: idl.IDLReferenceType, protected decl: idl.IDLInterface) {
+        super(ctx, type)
+    }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         return [Builders.expr().call().function()
             .access('write')
-                .receiver(this.getSerializer(this.type, native).name())
+                .receiver(this.getSerializer(this.decl, native))
                 .static().$().$()
             .arg(serializerName).arg(accessor).$().$stmt()
         ]
@@ -249,7 +254,7 @@ class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
             [Builders.decl(name).value().call()
                 .function()
                     .access('read')
-                    .receiver(this.getSerializer(this.type, native).name())
+                    .receiver(this.getSerializer(this.decl, native))
                     .static().$().$()
                 .arg(serializerName).$().$().$()],
             E.v(name)
@@ -303,7 +308,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     ? Builders.binary(Op.eq)
                         .left().access('selector').receiver(accessor).$().$()
                         .right(i).$()
-                    : Builders.instanceof(this.ctx.useManagedSerializer(ty).reference()).value(accessor).$()
+                    : Builders.instanceof(expectType(this.ctx, ty, 'managed')).value(accessor).$()
                 const value = native
                     ? Builders.access('value' + i).receiver(accessor).$()
                     : accessor /// cast to `ty`
@@ -397,7 +402,7 @@ class OptionalConvertor extends StructConvertor<idl.IDLType> {
 }
 
 class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
-    constructor(ctx: AdvancedGeneratorContext, type: idl.IDLReferenceType, private decl: idl.IDLCallback) {
+    constructor(ctx: OhosProducerContext, type: idl.IDLReferenceType, private decl: idl.IDLCallback) {
         super(ctx, type);
     }
     interopType(native: boolean): lw.LWType {
@@ -414,13 +419,13 @@ class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        const callbackName = monoName(this.convertType(this.type, native))
-        const kindName = E.v(`KIND_${callbackName.toUpperCase()}`)
+        const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
+        const kindName = E.v('KIND_' + callbackName.toUpperCase())
         const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
         const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
         const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
         return [[
-            Builders.decl(name, this.ctx.useCApi(this.type).reference()).value()
+            Builders.decl(name, expectType(this.ctx, this.type, 'capi')).value()
                 .ctor().asStruct()
                     .arg().call('readCallbackResource').receiver(serializerName).$().$()
                     .arg().cast(T.fn(asyncParams, Ts.prim.void)).value()

@@ -13,26 +13,16 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs'
-import * as path from 'path'
 import * as idl from "@idlizer/core/idl"
-import { Language, PeerLibrary } from "@idlizer/core"
+import { Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
-    MakeSelector,
     MANAGED_PREFIX,
     OutputFile,
-    producers,
-    T,
-    GeneratorContext,
     isManaged,
-    moduleLike,
     processNPrintArkTS,
-    lowLevelLike,
     processNPrintCXX,
-    roles,
     processNPrintTS,
-    createProducer,
     mapFileName,
     TargetFile,
     readLangTemplate,
@@ -42,24 +32,39 @@ import {
     C_API_PREFIX,
     BRIDGE_PREFIX,
     IMPL_PREFIX,
-    readInteropTypesHeader
+    readInteropTypesHeader,
+    OhosSeed,
+    registerDefaultSelectors,
+    MakeSelector,
+    moduleLike,
+    lowLevelLike,
+    OhosEffect,
+    createOhosEffect
 } from "@idlizer/libohos"
+import { continueWith, onlyFor } from '@idlizer/kit'
 
-export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
+export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
     const selector = new MakeSelector()
-    for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
-        selector.register(p as any)
+    registerDefaultSelectors(selector)
 
-    const ctx = new GeneratorContext(peerLibrary, selector)
     // ignore predefined / synthetic files
-    const files = peerLibrary.files.filter(file =>
+    const files = library.files.filter(file =>
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
-    const declarations = ctx.generate(files)
-
+    const seeds = linearizeNamespaceMembers(files.flatMap(f => f.entries))
+        .filter(e =>
+            !idl.isImport(e) &&
+            !idl.isNamespace(e) &&
+            !idl.isCallback(e))
+        .map(e => new OhosSeed(e, 'managed'))
+    const {effect, declarations } = continueWith<OhosSeed, PeerLibrary, OhosEffect>({
+        createEffect: createOhosEffect,
+        library,
+        roots: { seeds }},
+        onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
     const knownPackages = files
-        .map(file => file.packageClause.length ? file.packageClause : [peerLibrary.name.toLowerCase()])
+        .map(file => file.packageClause.length ? file.packageClause : [library.name.toLowerCase()])
         .map(clause => [MANAGED_PREFIX, ...clause].join('.'))
         .concat(SPECIAL_PACKAGES)
     const [managed, native] = declarations.reduce<[LWDeclaration[], LWDeclaration[]]>(([m, n], decl) => {
@@ -67,13 +72,13 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
         return [m, n]
     }, [[], []])
     return [
-        dumpTsLike(managed, peerLibrary.language, new Set(knownPackages)),
-        dumpCLike(native, peerLibrary.name)
+        dumpTsLike(managed, effect, library.language, new Set(knownPackages)),
+        dumpCLike(native, effect, library.name)
     ]
 }
 
-function dumpTsLike(decls: LWDeclaration[], language: Language, packages: Set<string>): Map<string, OutputFile> {
-    decls = moduleLike.postprocess(decls)
+function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Language, packages: Set<string>): Map<string, OutputFile> {
+    decls = moduleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
     const files = moduleLike.formFiles(packages, decls)
     const result: Map<string, OutputFile> = new Map()
     const printer = language === Language.ARKTS ? processNPrintArkTS : processNPrintTS
@@ -92,8 +97,8 @@ function dumpTsLike(decls: LWDeclaration[], language: Language, packages: Set<st
     return result
 }
 
-function dumpCLike(decls: LWDeclaration[], moduleName: string): Map<TargetFile, string> {
-    const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls)
+function dumpCLike(decls: LWDeclaration[], effect: OhosEffect, moduleName: string): Map<TargetFile, string> {
+    const files: Map<string, LWDeclaration[]> = lowLevelLike.postprocess(decls, effect.modifiers, effect.callbacks)
     ///copied from OhosNativeVisitor
     const interopTypesContent = readInteropTypesHeader()
     const h = [

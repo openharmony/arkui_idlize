@@ -22,6 +22,7 @@
     "keywords": [],
     "dependencies": {
         "@idlizer/core": "2.2.2+devel",
+        "@idlizer/kit": "2.2.2+devel",
         "@idlizer/ost": "2.2.2+devel",
         "@koalaui/interop": "panda-next"
     },
@@ -31,6 +32,6 @@
     "scripts": {
         "clean": "rimraf -g build",
         "compile:self": "tsc -b .",
-        "compile": "npm run -C ../core compile && npm run -C ../ost compile && npm run compile:self"
+        "compile": "npm run -C ../kit compile && npm run compile:self"
     }
 }

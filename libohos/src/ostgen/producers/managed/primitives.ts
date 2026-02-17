@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { lw, Ts } from "../../../ost";
-import { createProducer } from "../../engine/context"
-import * as idl from "@idlizer/core/idl";
+import * as idl from "@idlizer/core/idl"
+import { Ts, lw } from "@idlizer/ost"
+import { createProducer } from "../../engine"
 
-function selectType(type: idl.IDLPrimitiveType): lw.LWType {
+function convertType(type: idl.IDLPrimitiveType): lw.LWType {
     switch (type.name) {
         case 'any': return Ts.prim.object
         case 'bigint': return Ts.prim.bigint
@@ -44,11 +44,8 @@ function selectType(type: idl.IDLPrimitiveType): lw.LWType {
 
 export const primitiveProducer = createProducer(
   { is: idl.isPrimitiveType },
-  node => {
-    return {
-      artifact: {
-        reference: selectType(node),
-      }
-    }
-  }
+  (type, _) => ({
+    continuation: convertType(type),
+    declarations: []
+  })
 )

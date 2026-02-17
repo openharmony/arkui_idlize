@@ -13,37 +13,34 @@
  * limitations under the License.
  */
 
-import { E, T } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer, managedName, roles } from "../common";
-import { Builders } from "../../../ost";
+import { Builders, E, T } from "@idlizer/ost";
+import { expectType, managedName } from "../common";
 import { argConvertor } from "../components/argConvertor";
+import { createProducer } from "../../engine";
 
-export const callbackProducer = createSpecialProducer(
-  { is: idl.isCallback, role: roles.managed },
+export const callbackProducer = createProducer(
+  { is: idl.isCallback, role: 'managed' },
   (callback, ctx) => {
+    ctx.updateEffect(e => e.callbacks.push(callback.name))
     const generatedDeclName = managedName(idl.getFQName(callback))
+    const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), false))
     return {
-      artifact: {
-        reference: T.c(generatedDeclName),
-        implementationGenerator: () => {
-          const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), false))
-          return [
-            Builders.type(generatedDeclName).funcType()
-              .parameters(callback.parameters.map(it => [it.name, ctx.useManaged(it.type).reference()]))
-              .returns(ctx.useManaged(callback.returnType).reference()).$().$(),
-            Builders.func(managedName('engine.deserializeAndCall' + callback.name))
-              .param('deserializer').typeStr('DeserializerBase').$()
-              .block()
-                .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
-                .decl('call').value().cast(T.c(generatedDeclName)).value().call('get')
-                  .receiver().call('instance').receiver('ResourceHolder').$().$()
-                  .arg('resourceId').$().$().$().$().$()
-                .statements(reads.flatMap(it => it[0]))
-                .call('call').args(reads.map(it => it[1])).$().$().$()
-          ]
-        }
-      }
+      continuation: T.c(generatedDeclName),
+      declarations: [
+        Builders.type(generatedDeclName).funcType()
+          .parameters(callback.parameters.map(it => [it.name, expectType(ctx, it.type, 'managed')]))
+          .returns(expectType(ctx, callback.returnType, 'managed')).$().$(),
+        Builders.func(managedName('engine.deserializeAndCall' + callback.name))
+          .param('deserializer').typeStr('DeserializerBase').$()
+          .block()
+            .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
+            .decl('call').value().cast(T.c(generatedDeclName)).value().call('get')
+              .receiver().call('instance').receiver('ResourceHolder').$().$()
+              .arg('resourceId').$().$().$().$().$()
+            .statements(reads.flatMap(it => it[0]))
+            .call('call').args(reads.map(it => it[1])).$().$().$()
+      ]
     }
   }
 )

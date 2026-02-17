@@ -13,30 +13,28 @@
  * limitations under the License.
  */
 
-import { D, Md, T, Ts } from "../../../ost"
+import { D, Md, T, Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { AdvancedGeneratorContext, cApiName, createSpecialProducer, implName, roles } from "../common"
+import { cApiName } from "../common"
 import { isMaterialized } from "@idlizer/core"
-import { Builders } from "@idlizer/ost"
-import { fqName, modifierClassName } from "../../engine"
+import { createProducer } from "../../engine"
+import { expectType } from "../common"
+import { OhosProducerContext } from "../../engine"
 
-export const structureProducer = createSpecialProducer(
-  { is: idl.isInterface, role: roles.cApi },
+export const structureProducer = createProducer(
+  { is: idl.isInterface, role: 'capi' },
   (node, ctx) => {
     const name = cApiName(idl.getFQName(node))
     return {
-      artifact: {
-        reference: T.c(name),
-        implementationGenerator: () =>
-          isMaterialized(node, ctx.base.library)
-            ? makeMaterialized(node, name)
-            : makeInterface(node, name, ctx)
-      }
+      continuation: T.c(name),
+      declarations: isMaterialized(node, ctx.library)
+        ? makeMaterialized(node, name)
+        : makeInterface(node, name, ctx)
     }
   }
 )
 
-function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext) {
+function makeInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext) {
   return [D.struct(name, node.properties.map(prop => {
     const modifiers = [
       ...prop.isOptional ? [Md.optional()] : [],
@@ -45,22 +43,14 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGenera
     ]
     return {
       name: prop.name,
-      type: ctx.useCApi(prop.type).reference(),
+      type: expectType(ctx, prop.type, 'capi'),
       modifiers,
     }
   }))]
 }
 
 function makeMaterialized(node: idl.IDLInterface, name: string) {
-  const destructorName = fqName(node, '', '_destruct')
   return [
     D.type(name, Ts.ptr(Ts.prim.void)),
-    Builders.struct(cApiName(`modifier.${modifierClassName(node)}Modifier`))
-      .field(destructorName)
-        .funcType()
-        .param('thisPtr').type(Ts.prim.pointer).$()
-        .returns(Ts.prim.void).$().$().$(),
-    Builders.func(implName(destructorName + 'Impl'))
-      .param('thisPtr').type(Ts.prim.pointer).$().$()
   ]
 }

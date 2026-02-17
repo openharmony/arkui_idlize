@@ -13,81 +13,138 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlizer/core/idl";
-import { Hs, E, Ts } from "../../../ost";
-import { createSpecialProducer, isDirectInteropType, roles } from "../common";
-import { fqName, nativeModuleName } from "../../engine";
-import { Builders } from "../../../ost";
-import { argConvertor } from "../components/argConvertor";
+import * as idl from "@idlizer/core/idl"
+import { Builders, D, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
+import { bridgeName, expectExpr, expectType, isDirectInteropType } from "../common"
+import { createProducer, fqName, OhosProducerContext } from "../../engine"
+import { argConvertor } from "../components/argConvertor"
 
-export const nativeModuleMaterializedProducer = createSpecialProducer(
-  { is: idl.isInterface, role: roles.nativeModule },
+export const nativeModuleMaterializedProducer = createProducer(
+  { is: idl.isInterface, role: 'native-module' },
   (node, ctx) => {
-    const methodName = fqName(node, '_', '_getFinalizer')
-    const nativeModuleClassName = nativeModuleName()
+    const getFinalizer = idl.createMethod('_getFinalizer', [], idl.createPrimitiveType('pointer'), {
+      isStatic: true, isAsync: false, isOptional: false, isFree: false})
+    getFinalizer.parent = node
     return {
-      artifact: {
-        reference: E.v(nativeModuleClassName, [Hs.isType()]),
-        implementationGenerator: () => {
-          ctx.useBridge(node)
-          return [Builders.class(nativeModuleClassName)
-            .method(methodName)
-              .native().static().annotation('ani.unsafe.Direct')
-              .returns(Ts.prim.pointer).$().$()
-          ]
-        }
-      }
+      continuation: expectExpr(ctx, getFinalizer, 'native-module'),
+      declarations: []
     }
   }
 )
 
-export const nativeModuleFunctionProducer = createSpecialProducer(
-  { is: idl.isMethod, role: roles.nativeModule },
+export const nativeModuleFunctionProducer = createProducer(
+  { is: idl.isMethod, role: 'native-module' },
   (method, ctx) => {
-    const methodName = fqName(method, '_')
-    const className = nativeModuleName();
+    const funcName = fqName(method)
+    const className = ctx.getEffect().nativeModuleName
+    const returnType = argConvertor(ctx, method.returnType).interopType(false)
+    const nativeModuleMethod = Builders.func('_' + funcName)
+        .native().static()
+        ///no annotation for vmContext methods, see MethodUtils
+        .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
+        .param('buffer').type(Ts.prim.serializerBuffer).$()
+        .param('length').type(Ts.prim.i32).$()
+        .returns(returnType).$()
+    if (!method.isFree && !method.isStatic)
+      nativeModuleMethod.parameters.unshift(
+        { name: 'ptr', type: Ts.prim.pointer })
     return {
-      artifact: {
-        reference: E.get(E.v(className, [Hs.isType()]), methodName),
-        implementationGenerator: () => {
-          ctx.useBridge(method)
-          const returnType = argConvertor(ctx, method.returnType).interopType(false)
-          const nativeModule = Builders.class(className)
-            .method(methodName)
-              .native().static()
-              ///no annotation for vmContext methods, see MethodUtils
-              .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
-              .param('buffer').type(Ts.prim.serializerBuffer).$()
-              .param('length').type(Ts.prim.i32).$()
-              .returns(returnType).$().$()
-          if (!method.isFree && !method.isStatic)
-            nativeModule.methods[0].parameters.unshift(
-              { name: 'ptr', type: Ts.prim.pointer })
-          return [nativeModule]
-        }
-      }
+      continuation: E.get(E.v(className, [Hs.isType()]), '_' + funcName),
+      declarations: [
+        D.class(className, [], [nativeModuleMethod]),
+        makeBridge(funcName, method, ctx)
+      ]
     }
   }
 )
 
-export const nativeModuleConstructorProducer = createSpecialProducer(
-  { is: idl.isConstructor, role: roles.nativeModule },
+export const nativeModuleConstructorProducer = createProducer(
+  { is: idl.isConstructor, role: 'native-module' },
   (ctor, ctx) => {
-    const methodName = fqName(ctor.parent as idl.IDLInterface, '_', '_construct')
-    const nativeModuleClassName = nativeModuleName();
+    const funcName = fqName(ctor)
+    const nativeModuleClassName = ctx.getEffect().nativeModuleName
+    const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
+    const callArgs = ctor.parameters.map(it =>
+      Builders.cast(Ts.ptr(expectType(ctx, it.type, 'capi'))).value()
+        .unary(Op.ref).value(it.name).$().$().$());
     return {
-      artifact: {
-        reference: E.get(E.v(nativeModuleClassName, [Hs.isType()]), methodName),
-        implementationGenerator: () => {
-          ctx.useBridge(ctor)
-          const nativeModule = Builders.class(nativeModuleClassName)
-            .method(methodName)
-              .native().static().annotation('ani.unsafe.Direct')
-              .returns(Ts.prim.pointer)
-              .parameters(ctor.parameters.map(it => ({ name: it.name, type: ctx.useManaged(it.type).reference() }))).$().$()
-          return [nativeModule]
-        }
-      }
+      continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), '_' + funcName),
+      declarations: [
+        // native module
+        Builders.class(nativeModuleClassName)
+          .method('_' + funcName)
+          .native().static().annotation('ani.unsafe.Direct')
+          .returns(Ts.prim.pointer)
+          .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') }))).$().$(),
+        // bridge
+        Builders.func(bridgeName('impl_' + funcName))
+          .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
+          .returns(Ts.prim.pointer)
+          .block()
+            .return(Ts.prim.pointer)
+              .call(expectExpr(ctx, ctor, 'capi'))
+              .args(callArgs).$().$().$()
+          .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
+          .$()
+      ]
     }
   }
 )
+
+function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContext): FunctionDeclaration {
+  const params = [
+    { name: 'thisArray', type: Ts.prim.serializerBuffer },
+    { name: 'thisLength', type: Ts.prim.i32 },
+  ]
+  const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
+    const conv = argConvertor(ctx, it.type, it.isOptional)
+    const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
+    return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
+  })
+  const apiCallArgs = argReads.map(([_, expr]) => expr)
+  const macroName = ['KOALA_INTEROP_']
+  const macroArgs: (string | LWType)[] = [name]
+  const returnConv = argConvertor(ctx, method.returnType)
+  const interopReturnType = returnConv.interopType(true)
+  if (isDirectInteropType(interopReturnType))
+    macroName.push('DIRECT_')
+  if (interopReturnType === Ts.prim.void)
+    macroName.push('V')
+  else
+    macroArgs.push(interopReturnType)
+  if (!method.isFree && !method.isStatic) {
+    params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
+    apiCallArgs.unshift(E.v('thisPtr'))
+    macroArgs.push(Ts.prim.pointer)
+  }
+  macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
+
+  // rewrite `getFinalizer` to call `destruct`
+  let capiMethod = method
+  let makeApiCall: (expr: LWExpression) => LWExpression = expr => Builders.call(expr).args(apiCallArgs).$()
+  if (method.name === 'getFinalizer') {
+    capiMethod = idl.createMethod('_destruct', [], idl.createPrimitiveType('void'))
+    capiMethod.parent = method.parent
+    makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
+  }
+  const apiCall = makeApiCall(expectExpr(ctx, capiMethod, 'capi'))
+
+  const body = Builders.block()
+    .decl('deserializer', T.c('DeserializerBase')).mutable().value()
+      .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
+    .statements(argReads.flatMap(([stmts, _]) => stmts))
+  if (interopReturnType === Ts.prim.interopReturnBuffer) {
+    body
+      .decl('returnBuffer').value(apiCall).$()
+      .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
+      .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
+      .return().call('toReturnBuffer').receiver('returnSerializer').$().$()
+  } else {
+    body.return(interopReturnType).value(apiCall).$()
+  }
+  return Builders.func(bridgeName('impl_' + name))
+    .parameters(params)
+    .returns(interopReturnType)
+    .body(body.$())
+    .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+}

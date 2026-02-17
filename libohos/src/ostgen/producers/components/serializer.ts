@@ -13,51 +13,42 @@
  * limitations under the License.
  */
 import * as idl from "@idlizer/core/idl"
-import { AdvancedGeneratorContext, managedName, bridgeName } from "../common";
-import { ProducerDescription } from "../../engine/context";
-import { Hs, E, T, Ts } from "../../../ost";
-import { argConvertor } from "./argConvertor";
-import { Builders } from "../../../ost";
-import { LWType } from "../../../ost";
+import { Builders, E, Hs, LWType, T, Ts } from "@idlizer/ost"
+import { expectType, managedName, bridgeName } from "../common"
+import { OhosProducerContext, OhosProducer } from "../../engine"
+import { argConvertor } from "./argConvertor"
 
-function makeSerializerName(node: idl.IDLInterface, native: boolean) {
-  const name = idl.getFQName(node) + 'Serializer'
-    return native
-      ? bridgeName(name)
-      : managedName(name)
+export function produceSerializer(native: boolean): OhosProducer<idl.IDLInterface> {
+  return (node: idl.IDLInterface, ctx: OhosProducerContext) => {
+    const serializerName = (native ? bridgeName : managedName)(idl.getFQName(node) + 'Serializer')
+    return {
+      continuation: E.v(serializerName, [Hs.isType()]),
+      declarations: makeSerializer(ctx, node, native, serializerName)
+    }
+  }
 }
 
 /**
  * For TS, produce serializer class with method implementations.
  * Native needs forward class declaration + separate method implementations.
  */
-export function makeSerializer(
-  ctx: AdvancedGeneratorContext,
-  node: idl.IDLInterface,
-  native: boolean
-): ProducerDescription {
-  return {
-    artifact: {
-      reference: E.v(makeSerializerName(node, native), [Hs.isType()]),
-      implementationGenerator: () => {
-        const valueType = (native ? ctx.useCApi(node) : ctx.useManaged(node)).reference()
-        const clazz = makeSerializerClass(node, valueType, native)
-        const write = makeSerializerWrite(ctx, node, valueType, native)
-        const read = makeSerializerRead(ctx, node, valueType, native)
-        if (native) {
-          return [clazz, write, read]
-        } else {
-          clazz.methods[0].body = write.body
-          clazz.methods[1].body = read.body
-          return [clazz]
-        }
-      }
-    }
+function makeSerializer(ctx: OhosProducerContext, node: idl.IDLInterface, native: boolean, serializerName: string) {
+  const role = native ? 'capi' : 'managed'
+  const valueType = expectType(ctx, node, role)
+  const clazz = makeSerializerClass(node, valueType, native, serializerName)
+  const write = makeSerializerWrite(ctx, node, valueType, native, serializerName)
+  const read = makeSerializerRead(ctx, node, valueType, native, serializerName)
+  if (native) {
+    return [clazz, write, read]
+  } else {
+    clazz.methods[0].body = write.body
+    clazz.methods[1].body = read.body
+    return [clazz]
   }
 }
 
-function makeSerializerClass(node: idl.IDLInterface, type: LWType, native: boolean) {
-  return Builders.class(makeSerializerName(node, native))
+function makeSerializerClass(node: idl.IDLInterface, type: LWType, native: boolean, serializerName: string) {
+  return Builders.class(serializerName)
     .method('write')
       .static()
       .param('serializer').type(Ts.ref(T.c('SerializerBase'))).$()
@@ -68,8 +59,8 @@ function makeSerializerClass(node: idl.IDLInterface, type: LWType, native: boole
       .returns(type).$().$()
 }
 
-function makeSerializerWrite(ctx: AdvancedGeneratorContext, node: idl.IDLInterface, type: LWType, native: boolean) {
-  return Builders.func(makeSerializerName(node, native) + '::write')
+function makeSerializerWrite(ctx: OhosProducerContext, node: idl.IDLInterface, type: LWType, native: boolean, serializerName: string) {
+  return Builders.func(serializerName + '::write')
     .param('serializer').type(Ts.ref(T.c('SerializerBase'))).$()
     .param('value').type(type).$()
     .block()
@@ -79,11 +70,11 @@ function makeSerializerWrite(ctx: AdvancedGeneratorContext, node: idl.IDLInterfa
       ])).$().$()
 }
 
-function makeSerializerRead(ctx: AdvancedGeneratorContext, node: idl.IDLInterface, type: LWType, native: boolean) {
+function makeSerializerRead(ctx: OhosProducerContext, node: idl.IDLInterface, type: LWType, native: boolean, serializerName: string) {
   const reads = node.properties.map(prop =>
     argConvertor(ctx, prop.type, prop.isOptional)
       .read(prop.name, E.v('deserializer'), native))
-  return Builders.func(makeSerializerName(node, native) + '::read')
+  return Builders.func(serializerName + '::read')
     .param('deserializer').type(Ts.ref(T.c('DeserializerBase'))).$()
     .returns(type)
     .block()

@@ -13,27 +13,24 @@
  * limitations under the License.
  */
 
-import { D, T } from "../../../ost";
+import { D, T } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer, managedName, roles } from "../common";
+import { managedName } from "../common";
+import { createProducer } from "../../engine";
 
-export const enumProducer = createSpecialProducer(
-  { is: idl.isEnum, role: roles.managed },
-  (node, ctx) => {
+export const enumProducer = createProducer(
+  { is: idl.isEnum, role: 'managed' },
+  (node) => {
     const generatedDeclName = managedName(idl.getFQName(node))
     return {
-      artifact: {
-        reference: T.c(generatedDeclName),
-        implementationGenerator: () => {
-          return [D.enum(generatedDeclName,
-            node.elements.map(element => {
-              return {
-                name: element.name,
-                value: element.initializer
-              }
-            }))]
-        }
-      }
+      continuation: T.c(generatedDeclName),
+      declarations: [
+        D.enum(generatedDeclName,
+          node.elements.map(element => ({
+            name: element.name,
+            value: element.initializer
+          })))
+      ]
     }
   }
 )

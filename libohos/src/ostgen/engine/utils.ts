@@ -17,7 +17,6 @@ import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration } from "@idlizer/core"
 import { readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
-import { managedName } from "../producers/common"
 
 export function throwError(msg:string): never {
     throw new Error(msg)
@@ -48,13 +47,9 @@ export function fqName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstruct
   const fqn = idl.isConstructor(node)
     ? idl.getFQName(node.parent as idl.IDLInterface) + '_construct'
     : idl.isMethod(node) && node.parent && idl.isInterface(node.parent)
-      ? idl.getFQName(node.parent) + '_' + node.name
+      ? idl.getFQName(node.parent) + (node.name.startsWith('_') ? '' : '_') + node.name
       : idl.getFQName(node)
   return (prefix ?? '') + fqn.split('.').join('_') + (postfix ?? '')
-}
-
-export function nativeModuleName(): string {
-  return managedName('engine.' + moduleName('NativeModule'))///substitute name @type aliasing step?
 }
 
 export function modifierClassName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor): string {
@@ -63,4 +58,13 @@ export function modifierClassName(node: idl.IDLInterface | idl.IDLMethod | idl.I
     : node.parent && idl.isInterface(node.parent)
       ? fqName(node.parent)
       : 'GlobalScope'
+}
+
+export function mapPush<K,V>(map: Map<K,V[]>, key: K, value: V) {
+    const array = map.get(key)
+    if (array) {
+        array.push(value)
+    } else {
+        map.set(key, [value])
+    }
 }

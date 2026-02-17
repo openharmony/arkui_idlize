@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-import { D, T } from "../../../ost";
+import { D, T } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer, managedName, roles } from "../common";
+import { expectType, managedName } from "../common";
+import { createProducer } from "../../engine";
 
-export const typedefProducer = createSpecialProducer(
-  { is: idl.isTypedef, role: roles.managed },
+export const typedefProducer = createProducer(
+  { is: idl.isTypedef, role: 'managed' },
   (typedef, ctx) => {
     const generatedDeclName = managedName(idl.getFQName(typedef))
     return {
-      artifact: {
-        reference: T.c(generatedDeclName),
-        implementationGenerator: () =>
-          [D.type(generatedDeclName, ctx.useManaged(typedef.type).reference())]
-      }
+      continuation: T.c(generatedDeclName),
+      declarations: [
+        D.type(generatedDeclName, expectType(ctx, typedef.type, 'managed'))
+      ]
     }
   }
 )

@@ -13,23 +13,22 @@
  * limitations under the License.
  */
 
-import { createProducer } from "../../engine/context";
 import * as idl from "@idlizer/core/idl"
-import { warn } from "@idlizer/core";
+import { warn } from "@idlizer/core"
+import { createProducer } from "../../engine"
+import { expectType } from "../common"
 
 export const referenceProducer = createProducer(
-    { is: idl.isReferenceType },
-    (ref, ctx, query) => {
-        let target: idl.IDLNode | undefined = ctx.resolver.toDeclaration(ref)
-        if (!target) {
-            warn("Unresolved reference " + ref.name)
-            target = idl.createPrimitiveType('Object')
-        }
-        return {
-            redirectTo: {
-                node: target,
-                role: query.role
-            }
-        }
+  { is: idl.isReferenceType },
+  (type, ctx, role) => {
+    let decl = ctx.library.toDeclaration(type)
+    if (!decl) {
+      warn("Unresolved reference " + type.name)
+      decl = idl.createPrimitiveType('Object')
     }
+    return {
+      continuation: expectType(ctx, decl, role!),
+      declarations: []
+    }
+  }
 )

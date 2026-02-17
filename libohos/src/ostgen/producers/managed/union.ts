@@ -13,22 +13,15 @@
  * limitations under the License.
  */
 
-import { Ts } from "../../../ost";
+import { Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer } from "../common";
+import { createProducer } from "../../engine";
+import { expectType } from "../common"
 
-export const unionProducer = createSpecialProducer(
-  { is: idl.isUnionType },
-  (type, ctx, query) => {
-    return {
-      recursive: () => {
-        return {
-          artifact: {
-            reference: Ts.union(
-              type.types.map(type => ctx.base.use({ node: type, role: query.role }).reference()))
-          }
-        }
-      }
-    }
-  }
+export const unionProducer = createProducer(
+  { is: idl.isUnionType, role: 'managed' },
+  (type, ctx) => ({
+    continuation: Ts.union(type.types.map(ty => expectType(ctx, ty, 'managed'))),
+    declarations: []
+  })
 )

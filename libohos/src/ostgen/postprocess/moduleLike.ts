@@ -14,35 +14,31 @@
  */
 
 import { snakeCaseToCamelCase } from "@idlizer/core";
-import { Builders } from "../../ost";
-import { D, E, Hs, IdentityTransformer, lw, std, T, utils } from "../../ost";
+import { Builders, D, E, Hs, IdentityTransformer, lw, std, T, utils } from "@idlizer/ost"
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
-import { mapFileName, moduleName, nativeModuleName } from "../engine/utils";
+import { mapFileName, moduleName } from "../engine/utils";
 import { managedName } from "../producers/common";
-import { callbackKindDeclaration, mergeStructs } from "./postprocess";
+import { callbackKindDeclaration } from "./postprocess";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { moduleLike } from "@idlizer/kit";
 
-export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    decls = mergeNamespaces(decls)
-    decls = mergeStructs(decls)
-    decls = introduceCallbackCaller(decls)
+export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string, callbacks: string[]): lw.LWDeclaration[] {
+    decls = moduleLike.postprocess(decls)
+    decls = introduceCallbackCaller(decls, callbacks)
     decls = introduceTypeChecker(decls)
-    decls = loadNativeModule(decls)
+    decls = loadNativeModule(decls, nativeModuleName)
     return decls
 }
 
-function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    const callers = decls
-        .filter(it => it.name.startsWith(managedName('engine.deserializeAndCall')))
-        .map(it => it.name.replace(/^.*deserializeAndCall/, '')) ///where to take callback name from?
-    const callbackKindEnum = callbackKindDeclaration(callers, s => managedName('engine.' + s))
+function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[]): lw.LWDeclaration[] {
+    const callbackKindEnum = callbackKindDeclaration(callbacks, s => managedName('engine.' + s))
     const caller = Builders.func(managedName('engine.deserializeAndCallCallback'))
         .param('deserializer').typeStr('DeserializerBase').$()
         .block()
             .decl('kind').value().call('readInt32').receiver('deserializer').$().$().$()
             .switch()
                 .selector().call('fromValue').receiver('CallbackKind').arg('kind').$().$()
-                .cases(callers.map(it => { return {
+                .cases(callbacks.map(it => { return {
                     value: E.c(`CallbackKind.KIND_${it.toUpperCase()}`),
                     body: [
                         Builders.return().call(E.v('deserializeAndCall' + it, [Hs.isType()])).arg('deserializer').$().$()
@@ -64,41 +60,12 @@ function introduceTypeChecker(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     return decls.concat(Builders.class(managedName('engine.TypeChecker')).$())
 }
 
-function loadNativeModule(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    const name = nativeModuleName();
-    const nativeModule = decls.find(it => it.name == name) as lw.ClassDeclaration
+function loadNativeModule(decls: lw.LWDeclaration[], nativeModuleName: string): lw.LWDeclaration[] {
+    const nativeModule = decls.find(it => it.name == nativeModuleName) as lw.ClassDeclaration
     nativeModule.methods.unshift(
         Builders.func(std.names.members.staticCtor).static().block()
             .call('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$())
     return decls
-}
-
-function mergeNamespaces(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    const index = new Map<string, lw.NamespaceDeclaration[]>()
-    const others: lw.LWDeclaration[] = []
-    decls.forEach(decl => {
-        if (decl.kind !== lw.LWKind.NamespaceDeclaration) {
-            others.push(decl)
-            return
-        }
-        if (!index.has(decl.name)) {
-            index.set(decl.name, [])
-        }
-        index.get(decl.name)?.push(decl)
-    })
-
-    const result: lw.LWDeclaration[] = others
-    index.forEach((records, name) => {
-        if (records.length === 0) {
-            return
-        }
-        if (records.length === 1) {
-            result.push(records[0])
-            return
-        }
-        result.push(D.ns(name, mergeNamespaces(records.map(r => r.members).flat())))
-    })
-    return result
 }
 
 /////////////////////////////////////////////////////

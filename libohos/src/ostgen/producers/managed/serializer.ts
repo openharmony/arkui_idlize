@@ -14,10 +14,10 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { createSpecialProducer, roles } from "../common";
-import { makeSerializer } from "../components/serializer";
+import { produceSerializer } from "../components/serializer";
+import { createProducer } from "../../engine"
 
-export const serializerProducer = createSpecialProducer(
-  { is: idl.isInterface, role: roles.serializerManaged },
-  (node, ctx) => makeSerializer(ctx, node, false)
+export const serializerProducer = createProducer(
+  { is: idl.isInterface, role: 'managed-serde' },
+  produceSerializer(false)
 )
