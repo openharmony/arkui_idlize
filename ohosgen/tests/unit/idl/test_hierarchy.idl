@@ -42,6 +42,10 @@ interface ChildC: ParentC {
 
 ParentI testParentInterfaceHierarchy(ParentI arg);
 ChildI testChildInterfaceHierarchy(ChildI arg);
+// order in unions affects generation, but discrimination conditions must be
+// generated correctly in both cases
+(ChildI or ParentI) testInterfaceHierarchyUnion1((ChildI or ParentI) arg);
+(ParentI or ChildI) testInterfaceHierarchyUnion2((ParentI or ChildI) arg);
 
 ParentC testParentClassHierarchy(ParentC arg);
 ChildC testChildClassHierarchy(ChildC arg);

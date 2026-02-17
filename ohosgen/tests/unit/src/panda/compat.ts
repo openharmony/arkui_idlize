@@ -1,6 +1,7 @@
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName, checkEvents, wrapSystemApiHandlerCallback } from "@koalaui/interop";
 import { registerUnitApiHandler, UNITNativeModule } from "../../generated/arkts"
+import { ChildI, ParentI } from "../../generated/arkts"
 
 export { int32 } from "@koalaui/common"
 
@@ -109,6 +110,8 @@ export {
   testChildInterfaceHierarchy,
   testParentClassHierarchy,
   testChildClassHierarchy,
+  testInterfaceHierarchyUnion1,
+  testInterfaceHierarchyUnion2,
 } from "../../generated/arkts"
 
 export type OHBuffer = NativeBuffer
@@ -157,4 +160,12 @@ export class UnitTestsuite extends arktest.ArkTestsuite {
     constructor(name: string) {
         super(name)
     }
+}
+
+export function isInstanceofChildI(value: Object) {
+    return value instanceof ChildI
+}
+
+export function isInstanceofParentI(value: Object) {
+    return value instanceof ParentI
 }

@@ -117,6 +117,10 @@ import {
   testChildInterfaceHierarchy,
   testParentClassHierarchy,
   testChildClassHierarchy,
+  testInterfaceHierarchyUnion1,
+  testInterfaceHierarchyUnion2,
+  isInstanceofChildI,
+  isInstanceofParentI,
 } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
@@ -761,6 +765,21 @@ function checkHierarchy() {
   assertEQ(true, resultParentI.parentFlag)
   assertEQ(3, resultParentI.parentCount)
   assertEQ("ab", resultParentI.parentText)
+
+  // ChildI | ParentI
+  let childOrParentI = testInterfaceHierarchyUnion1(childI)
+  assertEQ(true, isInstanceofChildI(childOrParentI))
+  assertEQ(true, isInstanceofParentI(childOrParentI))
+  childOrParentI = testInterfaceHierarchyUnion1(parentI)
+  assertEQ(false, isInstanceofChildI(childOrParentI))
+  assertEQ(true, isInstanceofParentI(childOrParentI))
+  // ParentI | ChildI
+  childOrParentI = testInterfaceHierarchyUnion2(childI)
+  assertEQ(true, isInstanceofChildI(childOrParentI))
+  assertEQ(true, isInstanceofParentI(childOrParentI))
+  childOrParentI = testInterfaceHierarchyUnion2(parentI)
+  assertEQ(false, isInstanceofChildI(childOrParentI))
+  assertEQ(true, isInstanceofParentI(childOrParentI))
 
   let parentC: ParentC = new ParentC(false, 0, "")
   let resultParentC: ParentC = testParentClassHierarchy(parentC)
