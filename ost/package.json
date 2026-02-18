@@ -16,16 +16,17 @@
     },
     "keywords": [],
     "devDependencies": {
-        "typescript": "4.9.5",
+        "@koalaui/harness": "panda-next",
         "@types/node": "^18.19.127",
-        "@idlizer/rimraf": "2.2.2+devel"
+        "@idlizer/rimraf": "2.2.2+devel",
+        "typescript": "4.9.5"
     },
     "scripts": {
         "clean": "rimraf -g build",
         "compile:self": "tsc -b .",
         "compile": "npm run compile:self",
         "test:compile": "tsc -b test/tsconfig.json",
-        "test:run": "node --enable-source-maps build/test/test/run-all.js",
+        "test:run": "node build/test/test/run-all.js",
         "test": "npm run test:compile && npm run test:run"
     }
 }
