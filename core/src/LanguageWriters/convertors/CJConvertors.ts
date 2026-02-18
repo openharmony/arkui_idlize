@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { CJKeywords } from '../../languageSpecificKeywords'
-import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { maybeRestoreThrows } from '../../transformers/transformUtils'
-import { removePoints } from '../../util'
-import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
-import { InteropArgConvertor } from './InteropConvertors'
+import * as idl from '../../idl/index.js'
+import { CJKeywords } from '../../languageSpecificKeywords.js'
+import { ReferenceResolver } from '../../peer-generation/ReferenceResolver.js'
+import { maybeRestoreThrows } from '../../transformers/transformUtils.js'
+import { removePoints } from '../../util.js'
+import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor.js'
+import { InteropArgConvertor } from './InteropConvertors.js'
 
 export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 

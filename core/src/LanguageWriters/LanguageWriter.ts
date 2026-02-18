@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { Language } from "../Language"
-import { IndentedPrinter } from "../IndentedPrinter"
+import { Language } from "../Language.js"
+import { IndentedPrinter } from "../IndentedPrinter.js"
 
-import * as idl from "../idl"
-import { stringOrNone } from "../util";
+import * as idl from "../idl/index.js"
+import { stringOrNone } from "../util.js";
 import * as fs from "node:fs"
-import { NativeModuleType, RuntimeType } from "./common"
-import { ArgConvertor } from "./ArgConvertors";
-import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
-import { convertDeclaration, withInsideInstanceof } from "./nameConvertor";
-import { createDeclarationNameConvertor } from "../peer-generation/idl/IdlNameConvertor";
+import { NativeModuleType, RuntimeType } from "./common.js"
+import { ArgConvertor } from "./ArgConvertors.js";
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js";
+import { convertDeclaration, withInsideInstanceof } from "./nameConvertor.js";
+import { createDeclarationNameConvertor } from "../peer-generation/idl/IdlNameConvertor.js";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //

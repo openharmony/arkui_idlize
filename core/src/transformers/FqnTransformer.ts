@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as idl from "../idl"
-import { ReferenceResolver } from "../peer-generation/ReferenceResolver"
-import { IdlTransformer } from "./IdlTransformer"
+import * as idl from "../idl/index.js"
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js"
+import { IdlTransformer } from "./IdlTransformer.js"
 
 export function fqnTransformer(corpus: idl.IDLFile[], resolver: ReferenceResolver): idl.IDLFile[] {
     const transformer = new FqnTransformer(resolver)

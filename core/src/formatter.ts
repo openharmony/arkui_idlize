@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { DiagnosticResults, MessageSeverityList, DiagnosticMessage, Range, MessageSeverity } from "./diagnostictypes"
+import { DiagnosticResults, MessageSeverityList, DiagnosticMessage, Range, MessageSeverity } from "./diagnostictypes.js"
 
 type Logger = (severity:MessageSeverity, ...msg:string[]) => void
 let logger: Logger = (_, ...msg) => console.log(...msg)

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { MessageSeverity, DiagnosticMessage, Location, DiagnosticException, DiagnosticResults } from "./diagnostictypes"
+import { MessageSeverity, DiagnosticMessage, Location, DiagnosticException, DiagnosticResults } from "./diagnostictypes.js"
 
 /**
  * Template for registering different kinds of messages

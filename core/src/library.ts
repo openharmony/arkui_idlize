@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from './idl'
+import * as idl from './idl/index.js'
 
 export interface IDLLibrary {
     readonly files: readonly idl.IDLFile[]

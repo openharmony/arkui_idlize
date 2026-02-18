@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { IDLFile, IDLNode, IDLNamedNode, IDLImport, isReferenceType, hasExtAttribute, IDLExtendedAttributes, getFileFor } from "./idl"
-import { isFile, isNamedNode, isNamespace, isEnum, isInterface, isImport } from "./idl"
+import { IDLFile, IDLNode, IDLNamedNode, IDLImport, isReferenceType, hasExtAttribute, IDLExtendedAttributes, getFileFor } from "./idl/index.js"
+import { isFile, isNamedNode, isNamespace, isEnum, isInterface, isImport } from "./idl/index.js"
 
 export function getPov(node: IDLNode): IDLNode | undefined {
     let result: IDLNode | undefined = node

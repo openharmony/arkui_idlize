@@ -1,6 +1,6 @@
 import { EOL } from "node:os";
-import * as idl from "../idl"
-import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
+import * as idl from "../idl/index.js"
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js";
 
 export enum IDLValidationDiagnosticsCode {
     INVALID_EXTENDED_ATTRIBUTE = 1000,

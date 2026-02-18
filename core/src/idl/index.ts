@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-export * from './builders'
-export * from './discriminators'
-export * from './dump'
-export * from './keywords'
-export * from './node'
-export * from './utils'
-export * from './visitors'
+export * from './builders.js'
+export * from './discriminators.js'
+export * from './dump.js'
+export * from './keywords.js'
+export * from './node.js'
+export * from './utils.js'
+export * from './visitors.js'

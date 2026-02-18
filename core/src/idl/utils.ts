@@ -14,12 +14,12 @@
  */
 
 import { basename } from "node:path"
-import { capitalize, stringOrNone } from "../util"
-import { createOptionalType, createContainerType, createReferenceType, createPrimitiveType } from "./builders"
-import { isNamedNode, isPrimitiveType, QNPattern, getQualifiedName, getFQName, isOptionalType, isContainerType, IDLContainerUtils, isNamespace, isInPackage, isType, isEntry, isTypeParameterType, isInterface, isTypedef, isCallback, isMethod, isCallable, getExtAttribute, hasExtAttribute, getNamespacesPathFor, getPackageName } from "./discriminators"
-import { IDLNode, IDLNamedNode, IDLKind, IDLExtendedAttributes, IDLType, IDLEntry, IDLReferenceType, IDLContainerType, IDLSignature, IDLParameter, IDLEnum, IDLFile, IDLPrimitiveType } from "./node"
-import { forEachChild, forEachFunction } from "./visitors"
-import { Language } from "../Language"
+import { capitalize, stringOrNone } from "../util.js"
+import { createOptionalType, createContainerType, createReferenceType, createPrimitiveType } from "./builders.js"
+import { isNamedNode, isPrimitiveType, QNPattern, getQualifiedName, getFQName, isOptionalType, isContainerType, IDLContainerUtils, isNamespace, isInPackage, isType, isEntry, isTypeParameterType, isInterface, isTypedef, isCallback, isMethod, isCallable, getExtAttribute, hasExtAttribute, getNamespacesPathFor, getPackageName } from "./discriminators.js"
+import { IDLNode, IDLNamedNode, IDLKind, IDLExtendedAttributes, IDLType, IDLEntry, IDLReferenceType, IDLContainerType, IDLSignature, IDLParameter, IDLEnum, IDLFile, IDLPrimitiveType } from "./node.js"
+import { forEachChild, forEachFunction } from "./visitors.js"
+import { Language } from "../Language.js"
 
 export function entityToType(entity: IDLNode): IDLType {
     if (isType(entity)) {

@@ -12,24 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IndentedPrinter } from "../IndentedPrinter"
-import { Language } from "../Language"
-import { LibraryInterface } from "../LibraryInterface"
-import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType"
-import { CJIDLTypeToForeignStringConvertor, CJInteropArgConvertor, CJTypeNameConvertor } from "./convertors/CJConvertors"
-import { CppInteropArgConvertor, CppConvertor } from "./convertors/CppConvertors"
-import { ETSInteropArgConvertor, ETSTypeNameConvertor } from "./convertors/ETSConvertors"
-import { KotlinInteropArgConvertor, KotlinTypeNameConvertor } from "./convertors/KotlinConvertors"
-import { TSInteropArgConvertor, TSTypeNameConvertor } from "./convertors/TSConvertors"
-import { LanguageWriter } from "./LanguageWriter"
-import { IdlNameConvertor } from "./nameConvertor"
-import { CJLanguageWriter } from "./writers/CJLanguageWriter"
-import { CppLanguageWriter } from "./writers/CppLanguageWriter"
-import { ETSLanguageWriter } from "./writers/ETSLanguageWriter"
-import { KotlinLanguageWriter } from "./writers/KotlinLanguageWriter"
-import { TSLanguageWriter } from "./writers/TsLanguageWriter"
+import { IndentedPrinter } from "../IndentedPrinter.js"
+import { Language } from "../Language.js"
+import { LibraryInterface } from "../LibraryInterface.js"
+import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType.js"
+import { CJIDLTypeToForeignStringConvertor, CJInteropArgConvertor, CJTypeNameConvertor } from "./convertors/CJConvertors.js"
+import { CppInteropArgConvertor, CppConvertor } from "./convertors/CppConvertors.js"
+import { ETSInteropArgConvertor, ETSTypeNameConvertor } from "./convertors/ETSConvertors.js"
+import { KotlinInteropArgConvertor, KotlinTypeNameConvertor } from "./convertors/KotlinConvertors.js"
+import { TSInteropArgConvertor, TSTypeNameConvertor } from "./convertors/TSConvertors.js"
+import { LanguageWriter } from "./LanguageWriter.js"
+import { IdlNameConvertor } from "./nameConvertor.js"
+import { CJLanguageWriter } from "./writers/CJLanguageWriter.js"
+import { CppLanguageWriter } from "./writers/CppLanguageWriter.js"
+import { ETSLanguageWriter } from "./writers/ETSLanguageWriter.js"
+import { KotlinLanguageWriter } from "./writers/KotlinLanguageWriter.js"
+import { TSLanguageWriter } from "./writers/TsLanguageWriter.js"
 
-export * from "./nameConvertor"
+export * from "./nameConvertor.js"
 
 export function createLanguageWriter(language: Language, library: LibraryInterface, nameConvertor?: IdlNameConvertor): LanguageWriter {
     const printer = new IndentedPrinter()

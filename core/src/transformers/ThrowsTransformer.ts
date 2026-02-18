@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as idl from "../idl"
-import { IdlTransformer } from "./IdlTransformer"
+import * as idl from "../idl/index.js"
+import { IdlTransformer } from "./IdlTransformer.js"
 
 export function throwsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
     assertNoThrowsReferences(files)

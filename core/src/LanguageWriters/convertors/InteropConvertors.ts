@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { isMaterialized } from '../../peer-generation/isMaterialized'
+import * as idl from '../../idl/index.js'
+import { isMaterialized } from '../../peer-generation/isMaterialized.js'
 
-import { PeerMethod } from '../../peer-generation/PeerMethod'
-import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
-import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { maybeRestoreThrows } from '../../transformers/transformUtils'
-import { convertType, TypeConvertor } from '../nameConvertor'
+import { PeerMethod } from '../../peer-generation/PeerMethod.js'
+import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType.js'
+import { ReferenceResolver } from '../../peer-generation/ReferenceResolver.js'
+import { maybeRestoreThrows } from '../../transformers/transformUtils.js'
+import { convertType, TypeConvertor } from '../nameConvertor.js'
 
 const KInteropReturnBuffer = 'KInteropReturnBuffer'
 

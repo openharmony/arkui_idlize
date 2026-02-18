@@ -15,7 +15,7 @@
 */
 
 import * as fs from "node:fs"
-import { indentedBy, stringOrNone } from "./util"
+import { indentedBy, stringOrNone } from "./util.js"
 import * as path from "node:path"
 
 export class IndentedPrinter {

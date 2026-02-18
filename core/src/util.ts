@@ -15,7 +15,7 @@
 
 import * as path from 'node:path'
 import * as fs from "node:fs"
-import { Language } from './Language'
+import { Language } from './Language.js'
 
 export function arrayAt<T>(array: T[] | undefined, index: number): T | undefined {
     return array ? array[index >= 0 ? index : array.length + index] : undefined

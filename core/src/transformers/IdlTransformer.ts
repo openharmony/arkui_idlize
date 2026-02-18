@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as idl from "../idl"
+import * as idl from "../idl/index.js"
 
 export abstract class IdlTransformer {
     abstract visit(node: idl.IDLNode): idl.IDLNode

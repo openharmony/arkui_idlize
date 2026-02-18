@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { Language } from "../../Language"
-import { IndentedPrinter } from "../../IndentedPrinter"
-import { PrimitiveTypeList } from "../../peer-generation/PrimitiveType"
-import * as idl from "../../idl"
+import { Language } from "../../Language.js"
+import { IndentedPrinter } from "../../IndentedPrinter.js"
+import { PrimitiveTypeList } from "../../peer-generation/PrimitiveType.js"
+import * as idl from "../../idl/index.js"
 import {
     ExpressionStatement,
     LanguageExpression,
@@ -27,8 +27,8 @@ import {
     MethodModifier,
     MethodSignature,
     ReturnStatement
-} from "../LanguageWriter"
-import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
+} from "../LanguageWriter.js"
+import { ReferenceResolver } from "../../peer-generation/ReferenceResolver.js";
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //

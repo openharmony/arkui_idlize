@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { getFQName, IDLFile, IDLInterface, IDLProperty, createPrimitiveType } from "../idl"
-import { NumericConvertor, PointerConvertor } from "../LanguageWriters/ArgConvertors"
-import { PeerMethod, PeerMethodArg, PeerMethodSignature } from "./PeerMethod"
-import { Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/LanguageWriter"
+import { getFQName, IDLFile, IDLInterface, IDLProperty, createPrimitiveType } from "../idl/index.js"
+import { NumericConvertor, PointerConvertor } from "../LanguageWriters/ArgConvertors.js"
+import { PeerMethod, PeerMethodArg, PeerMethodSignature } from "./PeerMethod.js"
+import { Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/LanguageWriter.js"
 
 export interface PeerClassBase {
     generatedName(isCallSignature: boolean): string

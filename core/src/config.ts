@@ -16,8 +16,8 @@
 import * as fs from "node:fs"
 import * as path from "node:path"
 
-import { ConfigSchema, D, ConfigTypeInfer } from "./configDescriber"
-import { mergeJSONs } from "./configMerge";
+import { ConfigSchema, D, ConfigTypeInfer } from "./configDescriber.js"
+import { mergeJSONs } from "./configMerge.js";
 
 const T = {
     stringArray: () => D.array(D.string())

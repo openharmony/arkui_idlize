@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as idl from "../idl"
-import { warn } from "../util"
-import { DiagnosticMessageGroup } from "../diagnosticmessages"
-import { Parser } from "./parser"
-import { outputDiagnosticMessageFormatted } from "../formatter"
+import * as idl from "../idl/index.js"
+import { warn } from "../util.js"
+import { DiagnosticMessageGroup } from "../diagnosticmessages.js"
+import { Parser } from "./parser.js"
+import { outputDiagnosticMessageFormatted } from "../formatter.js"
 
 const syntheticTypes = new Map<string, idl.IDLEntry>()
 

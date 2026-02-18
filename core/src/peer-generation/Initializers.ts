@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { getFQName, IDLEntry, isProperty } from "../idl"
-import { Language } from "../Language"
+import { getFQName, IDLEntry, isProperty } from "../idl/index.js"
+import { Language } from "../Language.js"
 
 export function getInitializerFeature(lang: Language): string {
     // TBD: update code for CJ

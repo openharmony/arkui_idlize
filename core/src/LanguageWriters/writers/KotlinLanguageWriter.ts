@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { Language } from '../../Language'
-import { IndentedPrinter } from "../../IndentedPrinter";
+import * as idl from '../../idl/index.js'
+import { Language } from '../../Language.js'
+import { IndentedPrinter } from "../../IndentedPrinter.js";
 import {
     AssignStatement,
     BlockStatement,
@@ -39,12 +39,12 @@ import {
     ReturnStatement,
     TryCatchStatement,
     TsEnumEntityStatement,
-} from "../LanguageWriter"
-import { ArgConvertor } from "../ArgConvertors"
-import { IdlNameConvertor } from "../nameConvertor"
-import { RuntimeType } from "../common";
-import { isDefined } from "../../util"
-import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
+} from "../LanguageWriter.js"
+import { ArgConvertor } from "../ArgConvertors.js"
+import { IdlNameConvertor } from "../nameConvertor.js"
+import { RuntimeType } from "../common.js";
+import { isDefined } from "../../util.js"
+import { ReferenceResolver } from "../../peer-generation/ReferenceResolver.js";
 
 export class KotlinLambdaReturnStatement implements LanguageStatement {
     constructor(public expression?: LanguageExpression) { }

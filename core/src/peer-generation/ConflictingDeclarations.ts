@@ -1,7 +1,7 @@
-import { generatorConfiguration } from "../config";
-import * as idl from "../idl"
-import { Language } from "../Language";
-import { LibraryInterface } from "../LibraryInterface";
+import { generatorConfiguration } from "../config.js";
+import * as idl from "../idl/index.js"
+import { Language } from "../Language.js";
+import { LibraryInterface } from "../LibraryInterface.js";
 
 const findTopLevelConflicts_cache = new Map<LibraryInterface, Map<Language, string[]>>()
 function findTopLevelConflicts(library: LibraryInterface, language: Language): string[] {

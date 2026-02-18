@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as idl from "../idl";
-import { Language } from "../Language";
+import * as idl from "../idl/index.js";
+import { Language } from "../Language.js";
 import {
     BlockStatement,
     BranchStatement,
@@ -27,21 +27,21 @@ import {
     NamedMethodSignature,
     ProxyStatement,
     ExpressionStatement
-} from "./LanguageWriter";
-import { NativeModuleType, RuntimeType } from "./common";
-import { generatorConfiguration, generatorTypePrefix } from "../config"
-import { getTransformer, LibraryInterface } from "../LibraryInterface";
-import { capitalize, hashCodeFromString, isDefined, throwException, warn } from "../util";
-import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
-import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
-import { PeerLibrary } from "../peer-generation/PeerLibrary";
-import { LayoutNodeRole } from "../peer-generation/LayoutManager";
-import { isInExternalModule } from "../peer-generation/modules";
-import { getExtractor } from "../peer-generation/Extractors";
-import { maybeRestoreGenerics, maybeRestoreThrows, maybeTransformManagedCallback } from "../transformers/transformUtils";
-import { convertType, TypeConvertor, withInsideInstanceof } from "./nameConvertor";
-import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
-import { collapseTypes } from "../peer-generation/idl/common";
+} from "./LanguageWriter.js";
+import { NativeModuleType, RuntimeType } from "./common.js";
+import { generatorConfiguration, generatorTypePrefix } from "../config.js"
+import { getTransformer, LibraryInterface } from "../LibraryInterface.js";
+import { capitalize, hashCodeFromString, isDefined, throwException, warn } from "../util.js";
+import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors.js";
+import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType.js";
+import { PeerLibrary } from "../peer-generation/PeerLibrary.js";
+import { LayoutNodeRole } from "../peer-generation/LayoutManager.js";
+import { isInExternalModule } from "../peer-generation/modules.js";
+import { getExtractor } from "../peer-generation/Extractors.js";
+import { maybeRestoreGenerics, maybeRestoreThrows, maybeTransformManagedCallback } from "../transformers/transformUtils.js";
+import { convertType, TypeConvertor, withInsideInstanceof } from "./nameConvertor.js";
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js";
+import { collapseTypes } from "../peer-generation/idl/common.js";
 
 export function getSerializerName(_library: LibraryInterface, _language: Language, declaration: idl.IDLEntry) {
     return idl.entryToFunctionName(_language, declaration, "", "SerializerImpl")

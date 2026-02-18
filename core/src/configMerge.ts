@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ConfigSchema, inspectSchema } from "./configDescriber"
+import { ConfigSchema, inspectSchema } from "./configDescriber.js"
 
 function mergeJSON(a: unknown, b: unknown, path: string[], schema: ConfigSchema<any>): unknown {
     if (a === undefined && b !== undefined) {

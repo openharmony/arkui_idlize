@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { generatorConfiguration } from "../config"
+import { generatorConfiguration } from "../config.js"
 
 export class PrimitiveType {
     constructor(protected name: string,
