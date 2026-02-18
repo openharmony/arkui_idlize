@@ -37,25 +37,16 @@ ROOT_DIR="$(cd "$TRACKER_DIR/.." && pwd)"
 
 cd "$ROOT_DIR"
 
-# Install panda SDK
-echo "Installing panda SDK..."
-npm run panda:sdk:install -C external/libarkts
-
-# Compile libarkts
-echo "Compiling libarkts..."
-npm run compile -C external/libarkts
-
 # Compile etsgen
 echo "Compiling etsgen..."
 npm run compile -C etsgen
 
 # Compile runner
 echo "Compiling runner..."
-npm run compile -C $ROOT_DIR/runner
+npm run compile -C runner
 
 # Run runner tracker command (inline from runner/package.json)
 echo "Running runner tracker..."
-cd "$ROOT_DIR"
 node "$ROOT_DIR/runner" tracker "$SDK_PATCHED_ARKTS_PATH" "$ROOT_DIR/interfaces/interfaces/arkui-extra" \
     --sdk-status "$ROOT_DIR/doc/FULL_SDK_STATUS.md" \
     --tracker-status "$ROOT_DIR/doc/COMPONENTS_STATUS.md" \

@@ -15,11 +15,9 @@
 
 import fs from "fs"
 import path from "path"
-import { Version, Git, IDLIZE_HOME, EXTERNAL_HOME, all_packages } from "./utils.mjs"
+import { Version, IDLIZE_HOME, all_packages } from "./utils.mjs"
 
 const CURRENT_VERSION = readVersion()
-const CURRENT_EXTERNAL_VERSION = readExternalVersion().toString()
-const git = new Git
 
 function writeVersion(version) {
     fs.writeFileSync(path.join(IDLIZE_HOME, "VERSION"), version.toString(), "utf-8")
@@ -27,11 +25,6 @@ function writeVersion(version) {
 
 function readVersion() {
     const version = fs.readFileSync(path.join(IDLIZE_HOME, "VERSION"), "utf-8")
-    return version.trim()
-}
-
-function readExternalVersion() {
-    const version = fs.readFileSync(path.join(EXTERNAL_HOME, "VERSION"), "utf-8")
     return version.trim()
 }
 
@@ -53,13 +46,9 @@ function run() {
 
     all_packages.forEach(module => {
         module.write(`version`, `${nextString}`, (json) => {
-            module.externalDependencies.forEach(dep => {
+            module.idlizerDependencies.forEach(dep => {
                 if (json.dependencies && json.dependencies[dep]) {
-                    if (dep.startsWith("@koalaui")) {
-                        json.dependencies[dep] = CURRENT_EXTERNAL_VERSION
-                    } else {
-                        json.dependencies[dep] = nextString
-                    }
+                    json.dependencies[dep] = nextString
                 }
             })
         })
@@ -70,13 +59,9 @@ function run() {
         all_packages.forEach(module => {
             module.publish()
             module.write(`version`, `${nextString}+devel`, (json) => {
-                module.externalDependencies.forEach(dep => {
+                module.idlizerDependencies.forEach(dep => {
                     if (json.dependencies && json.dependencies[dep]) {
-                        if (dep.startsWith("@koalaui")) {
-                            json.dependencies[dep] = `${CURRENT_EXTERNAL_VERSION}`
-                        } else {
-                            json.dependencies[dep] = `${nextString}+devel`
-                        }
+                        json.dependencies[dep] = `${nextString}+devel`
                     }
                 })
             })
@@ -89,13 +74,9 @@ function run() {
 
         all_packages.forEach(module => {
             module.write(`version`, `${oldString}+devel`, (json) => {
-                module.externalDependencies.forEach(dep => {
+                module.idlizerDependencies.forEach(dep => {
                     if (json.dependencies && json.dependencies[dep]) {
-                        if (dep.startsWith("@koalaui")) {
-                            json.dependencies[dep] = `${CURRENT_EXTERNAL_VERSION}`
-                        } else {
-                            json.dependencies[dep] = `${oldString}+devel`
-                        }
+                        json.dependencies[dep] = `${oldString}+devel`
                     }
                 })
             })

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,24 +23,8 @@ const __setupFile = path.format({ ...path.parse(__thisScript), base: '', ext: '.
 const setup = JSON.parse(fs.readFileSync(__setupFile))
 console.log("use setup:", setup)
 const idlizeDir = path.join(path.dirname(__thisScript), '..')
-const repoDir = path.join(idlizeDir, `interface_sdk-js`)
+const repoDir = `${idlizeDir}/external/koala_projects`
 
 downloadFromGit(setup.url, setup.ref, repoDir)
-// repo ready
-
-// link to project
-let sdk = `${idlizeDir}/arkgen/sdk`
-let components = `${repoDir}/api/\@internal/component/ets`
-if (!fs.existsSync(sdk)) {
-    fs.mkdirSync(sdk)
-    try {
-      fs.symlinkSync("../." + components, sdk + "/component")
-    } catch (e) {
-      console.log("Symlink failed, try to copy")
-      fs.cpSync(components, sdk + "/component", { recursive: true })
-    }
-}
-
-// all done
-console.log("sdk ready")
+console.log("repo ready")
 process.exit(0)

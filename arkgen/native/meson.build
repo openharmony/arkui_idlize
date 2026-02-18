@@ -27,9 +27,9 @@ elif is_unit
 else
 endif
 arkoala_dir = gen_dir + '/sig/arkoala-arkts/framework/native/src/generated'
-external_framework_dir = '../../external/arkoala-arkts/framework/native/src'
-external_interop_dir = '../../external/interop/src/cpp'
-external_incremental_cj_dir = '../../external/incremental-cj'
+external_framework_dir = '../../external/koala_projects/arkoala-arkts/framework/native/src'
+external_interop_dir = '../../external/koala_projects/interop/src/cpp'
+external_incremental_cj_dir = '../../external/koala_projects/incremental-cj'
 libace_dir = gen_dir / 'libace'
 
 cxx = meson.get_compiler('cpp')

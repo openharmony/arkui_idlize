@@ -19,9 +19,9 @@ name = "ohosxml"                  # library name -> lib%NAME%.so
 path = "./build"                  # library binary path
 include_directory = [
     "./include",
-    "../../../external/interop/src/cpp",
-    "../../../external/interop/src/cpp/napi",
-    "../../../external/interop/src/cpp/types",
+    "../../../external/koala_projects/interop/src/cpp",
+    "../../../external/koala_projects/interop/src/cpp/napi",
+    "../../../external/koala_projects/interop/src/cpp/types",
 ]
 
 ####################################################################################################

@@ -17,7 +17,7 @@
 set -e
 shopt -s globstar # to make **/*.abc recursive
 
-external_dir=../../../external
+external_dir=../../../external/koala_projects
 arkts_dir=$external_dir/incremental/tools/panda/arkts
 out_dir=build/panda
 aot_bin="${external_dir}/incremental/tools/panda/node_modules/@panda/sdk/linux_host_tools/bin/ark_aot"

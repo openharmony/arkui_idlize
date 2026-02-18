@@ -1,3 +1,16 @@
+download koala_projects:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.npm, script]
+  script:
+    - npm run download:koala_projects
+  artifacts:
+    paths:
+    - external/koala_projects
+
 <ArkTS> koala-projects integration test:
   stage: test
   tags:
@@ -5,22 +18,23 @@
     - koala-ci
   needs:
     - build idlize
+    - download koala_projects
   before_script:
     - !reference [.npm, script]
-    - npm i -C external --prefer-offline --no-audit --no-fund
-    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
-    - npm run sdk:all -C external
-    - npm run build:all -C external/ui2abc
+    - npm i -C external/koala_projects --prefer-offline --no-audit --no-fund
+    - npm run panda:sdk:install --prefix ./external/koala_projects/incremental/tools/panda
+    - npm run sdk:all -C external/koala_projects
+    - npm run build:all -C external/koala_projects/ui2abc
   script:
     # Bundle idlizer
-    - npm run bundle:idlizer --prefix external/arkoala-arkts/tools/idlizer-bundler
+    - npm run bundle:idlizer --prefix external/koala_projects/arkoala-arkts/tools/idlizer-bundler
     # Build
-    - npm run build --prefix external/arkoala-arkts/arkui
-    - npm run compile:native:node-host --prefix external/arkoala-arkts
+    - npm run build --prefix external/koala_projects/arkoala-arkts/arkui
+    - npm run compile:native:node-host --prefix external/koala_projects/arkoala-arkts
     # Verify the outputs
-    - ls -l external/arkoala-arkts/arkui/build/arkui.abc
-    - ls -l external/arkoala-arkts/framework/native/build-node-host-vmloader/ArkoalaLoader.node
-    - ls -l external/arkoala-arkts/framework/native/build-panda-host/libArkoalaNative_linux_x64_ani.so
+    - ls -l external/koala_projects/arkoala-arkts/arkui/build/arkui.abc
+    - ls -l external/koala_projects/arkoala-arkts/framework/native/build-node-host-vmloader/ArkoalaLoader.node
+    - ls -l external/koala_projects/arkoala-arkts/framework/native/build-panda-host/libArkoalaNative_linux_x64_ani.so
 
 
 arkgen ArkTS unit:
@@ -39,6 +53,7 @@ arkgen ArkTS unit:
     - npm run -C arkgen/tests/unit exec:arkts
   needs:
     - build idlize
+    - download koala_projects
 
 arkgen Kotlin unit:
   stage: test
@@ -47,7 +62,7 @@ arkgen Kotlin unit:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - npm i -C external/tools --prefer-offline --no-audit --no-fund
+    - npm i -C external/koala_projects/tools --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen/tests/unit init:kt
     - npm run -C arkgen/tests/unit gen:kt
@@ -57,6 +72,7 @@ arkgen Kotlin unit:
     - npm run -C arkgen/tests/unit exec:kt
   needs:
     - build idlize
+    - download koala_projects
 
 arkgen golden unit CAPI:
   stage: test
@@ -88,9 +104,12 @@ arkgen Kotlin subset:
   tags:
     - idlize-ci
     - koala-ci
+  needs:
+    - build idlize
+    - download koala_projects
   before_script:
     - !reference [.npm, script]
-    - npm i -C external/tools --prefer-offline --no-audit --no-fund
+    - npm i -C external/koala_projects/tools --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:subset:kt
     - npm run -C arkgen gen:kt:subset

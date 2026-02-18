@@ -38,16 +38,17 @@
         "compile:core": "npm run --prefix ../core compile",
         "compile:self": "tsc -b .",
         "compile": "npm run compile:core && npm run compile:self",
-        "external:test": "npm run --prefix ../external/libarkts run:current",
-        "external:clean": "rimraf ../external/libarkts/generated",
-        "external:generate": "npm run compile && node . --panda-sdk-path ../external/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/ui2abc/ --options-file ../external/libarkts/generator/options.json5 --debug --no-initialize",
-        "all": "npm run compile && npm run external:clean && npm run external:generate && npm run external:test",
-        "prepack": "npm run compile && mkdir -p ./build && cp -r ../external/libarkts ./build/libarkts-copy",
+        "external:download": "npm run download:koala_projects -C ..",
+        "external:test": "npm run --prefix ../external/koala_projects/libarkts run:current",
+        "external:clean": "rimraf ../external/koala_projects/libarkts/generated",
+        "external:generate": "npm run compile && node . --panda-sdk-path ../external/koala_projects/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/koala_projects/ui2abc/ --options-file ../external/koala_projects/libarkts/generator/options.json5 --debug --no-initialize",
+        "all": "npm run compile && npm run external:download && npm run external:clean && npm run external:generate && npm run external:test",
+        "prepack": "npm run compile && mkdir -p ./build && cp -r ../node_modules/@koalaui/libarkts ./build/libarkts-copy",
         "postpack": "rimraf ./build/libarkts-copy",
         "test:pack": "node ./tools/main.mjs test-pack",
         "test:all": "npm run all && npm run test:pack",
-        "release:patch": "node ./tools/main.mjs release patch",
-        "release:minor": "node ./tools/main.mjs release minor",
-        "release:major": "node ./tools/main.mjs release major"
+        "release:patch": "npm run external:download && node ./tools/main.mjs release patch",
+        "release:minor": "npm run external:download && node ./tools/main.mjs release minor",
+        "release:major": "npm run external:download && node ./tools/main.mjs release major"
     }
 }

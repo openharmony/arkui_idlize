@@ -36,7 +36,7 @@
         "compile:cj": "",
         "compile:kt": "bash scripts/build-kotlin.sh",
 
-        "compile:interop:native:kt": "npm run compile:native-kotlin-host --prefix ../../../external/interop && npm run compile:kotlin:interop --prefix ../../../external/interop",
+        "compile:interop:native:kt": "npm run compile:native-kotlin-host --prefix ../../../external/koala_projects/interop && npm run compile:kotlin:interop --prefix ../../../external/koala_projects/interop",
 
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",
@@ -59,6 +59,6 @@
         "all:ts": "TARGET=ts npm run all",
         "all:arkts": "TARGET=arkts npm run all",
         "all:cj": "TARGET=cj npm run all",
-        "all:kt": "TARGET=kt npm run all"
+        "all:kt": "npm run download:koala_projects -C ../../.. && TARGET=kt npm run all"
     }
 }

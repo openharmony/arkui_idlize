@@ -299,42 +299,6 @@ rule ohosgen
     //     arkuiConfig.compilerOptions.paths[findTsLikePackage(record, options)] = [frontendFilePath + '.d.ets']
     // })
     createUi2abcConfig(CONFIG_PATH, options.ui2abc)
-
-    // modules
-    const arktsconfigBase: any = {
-        "compilerOptions": {
-            "baseUrl": "./generated/arkts",
-            "outDir": "build/panda/out",
-            "paths": {
-                "@koalaui/interop": ["../../../../../../external/interop/src/arkts"],
-                "@koalaui/common": ["../../../../../../external/common/src"],
-                "@koalaui/compat": ["../../../../../../external/compat/src/arkts"],
-                "@koalaui/runtime": ["../../../../../../external/incremental/runtime/src"]
-            }
-        },
-        "include": ["generated/arkts/**/*.ts"]
-    }
-    for (const record of result.external) {
-        if (record.packageName === "") {
-            continue
-        }
-        const tsLikePackage = findTsLikePackage(record, options)
-        arktsconfigBase["compilerOptions"]["paths"][tsLikePackage] = [join(OUT_DIR, 'modules', record.packageName, "generated", "arkts")]
-    }
-    result.external.forEach(record => {
-        const arktsconfig = JSON.parse(JSON.stringify(arktsconfigBase))
-        arktsconfig["compilerOptions"]["package"] = findTsLikePackage(record, options).split(".").slice(0, -1).join(".")
-        const configPath = join(OUT_DIR, 'modules', record.packageName, 'arktsconfig.json')
-        const configPathDir = dirname(configPath)
-        if (!existsSync(configPathDir)) {
-            mkdirSync(configPathDir, { recursive: true })
-        }
-        writeFileSync(
-            configPath,
-            JSON.stringify(arktsconfig, undefined, 4),
-            'utf-8'
-        )
-    })
 }
 
 function findTsLikePackage(record: SummaryResultRecord, options: AppConfig): string {

@@ -38,6 +38,7 @@
     "setup-out": "node tools/setup/setup.mjs",
     "gn:gen": "gn gen out/dir",
     "gn:targets": "ninja -C out/dir -t targets all",
-    "gn": "npm run gn:gen && ninja -C out/dir :all"
+    "gn": "npm run gn:gen && ninja -C out/dir :all",
+    "download:koala_projects": "node ./tools/download-koala_projects.mjs"
   }
 }

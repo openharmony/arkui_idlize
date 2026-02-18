@@ -18,14 +18,14 @@ ohosgen XML demo:
       - idlize-ci
       - koala-ci
     needs:
-    - build idlize
+      - build idlize
+      - download koala_projects
     before_script:
       - !reference [.npm, script]
-      - npm i -C external/tools --prefer-offline --no-audit --no-fund
+      - npm i -C external/koala_projects/tools --prefer-offline --no-audit --no-fund
     script:
       - cd $CI_PROJECT_DIR/ohosgen/demos/xml
-      - npm run all:ts
-      - npm run all:arkts
+      - npm run all:kt
 
 ohosgen unit tests:
   stage: test
@@ -53,9 +53,10 @@ ohosgen unit tests:
     - koala-ci
   needs:
     - build idlize
+    - download koala_projects
   before_script:
     - !reference [.npm, script]
-    - npm i -C external/tools --prefer-offline --no-audit --no-fund
+    - npm i -C external/koala_projects/tools --prefer-offline --no-audit --no-fund
   script:
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
     - npm run all:kt

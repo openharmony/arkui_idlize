@@ -13,14 +13,30 @@
  * limitations under the License.
  */
 
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { basename, join, resolve } from 'node:path'
 import { Package, IDLIZE_HOME, all_packages as idlize_packages } from '../utils.mjs'
-import { all_workspace_packages} from '../../external/tools/utils.mjs'
+
+function getKoalauiPackages() {
+    const koalauiDir = join(IDLIZE_HOME, './node_modules/@koalaui')
+    if (!existsSync(koalauiDir)) {
+        return;
+    }
+    const packageNames = [
+        'common',
+        'compat',
+        'fast-arktsc',
+        'harness',
+        'interop',
+        'libarkts',
+        'smart-arkts'
+    ]
+    return packageNames.map(packageName => new Package(join(koalauiDir, packageName)))
+}
 
 const all_packages = [
     ...idlize_packages,
-    ...all_workspace_packages.filter(pkg => !pkg.read('private')).map(it => new Package(it.path)),
+    ...getKoalauiPackages().filter(pkg => !pkg.read('private')),
 ]
 const koalaui_dependencies = [
     "@koalaui/compat",
@@ -75,9 +91,13 @@ function findPackage(name) {
     return all_packages.find(it => it.name() === name)
 }
 
+function isKoalauiPackage(name) {
+    return getKoalauiPackages().find(it => it.name() === name) !== undefined
+}
+
 function mangleVersion(version, manglePanda) {
     if (manglePanda) {
-        const pandaSdk = new Package(process.env.PANDA_SDK_PATH ?? join(IDLIZE_HOME, './external/incremental/tools/panda/node_modules/@panda/sdk'))
+        const pandaSdk = new Package(process.env.PANDA_SDK_PATH ?? join(IDLIZE_HOME, './node_modules/@panda/sdk'))
         const pandaVersion = pandaSdk.version()
         return `${version}-panda-${pandaVersion}`
     }
@@ -137,9 +157,11 @@ export function bundle(bundleVersion, bundleOut, options) {
         applyVersions(bundlableDependencies, newVersions)
         console.log("Compiling dependencies..")
         bundlableDependencies.forEach(dep => {
-            const pkg = findPackage(dep)
-            console.log(`compiling ${pkg.name()}..`)
-            pkg.compile()
+            if (!isKoalauiPackage(dep)) {
+                const pkg = findPackage(dep)
+                console.log(`compiling ${pkg.name()}..`)
+                pkg.compile()
+            }
         })
 
         console.log("Packing..")
