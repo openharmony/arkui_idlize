@@ -13,25 +13,27 @@
  * limitations under the License.
  */
 
-import * as fs from "fs"
-import * as path from "path"
 import {
-    ConfigSchema,
+    capitalize,
     ConfigTypeInfer,
     CoreConfigurationSchema,
+    DefaultIDLLinterOptions,
     generatorConfiguration,
-    IDLKind,
     IDLLinterOptions,
     isDefined,
     Language,
+    parseConfigFiles,
 } from "@idlizer/core";
-import { mergeJSONs } from "./configMerge";
 import { D } from "@idlizer/core";
-import { IDLVisitorConfiguration, IDLVisitorConfigurationSchema, expandIDLVisitorConfig } from "./IDLVisitorConfig";
 
 const T = {
     stringArray: () => D.array(D.string())
 }
+
+export const TransformOnSerializeSchema = D.object({
+    from: D.string(),
+    to: D.string(),
+})
 
 export const PeerGeneratorConfigurationSchema = D.combine(
     CoreConfigurationSchema,
@@ -39,7 +41,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
         GenerateUnused: D.boolean(),
         ApiVersion: D.number(),
         dumpSerialized: D.boolean(),
-        boundProperties: D.map(D.string(), T.stringArray()),
 
         currentModulePackagesPaths: D.maybe(D.array(D.object({ package: D.string(), path: D.string() }))),
         currentModuleExportedPackages: D.maybe(T.stringArray()),
@@ -47,11 +48,9 @@ export const PeerGeneratorConfigurationSchema = D.combine(
         components: D.object({
             ignoreComponents: T.stringArray(),
             ignorePeerMethod: T.stringArray(),
-            ignoreTypeParameters: T.stringArray(),
             invalidAttributes: T.stringArray(),
             customNodeTypes: T.stringArray(),
             ignoreEntry: T.stringArray(),
-            ignoreEntryJava: T.stringArray(),
             custom: T.stringArray(),
             handWritten: T.stringArray(),
             replaceThrowErrorReturn: T.stringArray(),
@@ -73,46 +72,35 @@ export const PeerGeneratorConfigurationSchema = D.combine(
             D.map(D.string(), D.map(D.string(), D.string())),
             new Map()
         ),
-        IDLVisitor: IDLVisitorConfigurationSchema,
+        transformAnnotations: D.default(
+            D.map(D.string(), D.string()),
+            new Map<string, string>()
+        ),
+        transformOnSerialize: D.array(TransformOnSerializeSchema),
+        handwrittenDeserializers: T.stringArray(),
     })
 )
 
 export type PeerGeneratorConfigurationType = ConfigTypeInfer<typeof PeerGeneratorConfigurationSchema>
 export type PeerGeneratorConfiguration = PeerGeneratorConfigurationType & PeerGeneratorConfigurationExtension
 export interface PeerGeneratorConfigurationExtension {
-    mapComponentName(originalName: string): string
     ignoreEntry(name: string, language: Language): boolean
-    ignoreTypeParameters(name: string): boolean
     isHandWritten(component: string): boolean
-    isKnownParametrized(name: string | undefined): boolean
     isResource(name: string | undefined): boolean
     isShouldReplaceThrowingError(name: string): boolean
     noDummyGeneration(component: string, method?: string): boolean
 
-    IDLVisitor: IDLVisitorConfiguration,
     linter: IDLLinterOptions
 }
 
 export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfigurationType): PeerGeneratorConfiguration {
     const config = {
         ...data,
-        mapComponentName(originalName: string): string {
-            if (originalName.endsWith("Attribute"))
-                return originalName.substring(0, originalName.length - 9)
-            return originalName
-        },
         ignoreEntry(name: string, language: Language): boolean {
-            return this.components.ignoreEntry.includes(name) ||
-                language === Language.JAVA && this.components.ignoreEntryJava.concat(this.components.custom).includes(name)
-        },
-        ignoreTypeParameters(name: string) {
-            return this.components.ignoreTypeParameters.includes(name)
+            return this.components.ignoreEntry.includes(name)
         },
         isHandWritten(component: string): boolean {
             return this.components.handWritten.concat(this.components.custom).includes(component)
-        },
-        isKnownParametrized(name: string | undefined): boolean {
-            return name != undefined && this.parameterized.includes(name)
         },
         isResource(name: string | undefined): boolean {
             return name != undefined && this.forceResource.includes(name)
@@ -131,27 +119,8 @@ export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfiguratio
             return false
         },
 
-        linter: {
-            validEntryAttributes: new Map([
-                [IDLKind.Import, ["Deprecated", "Documentation"]],
-                [IDLKind.Namespace, ["DefaultExport", "Deprecated", "Documentation", "VerbatimDts"]],
-                [IDLKind.Const, ["DefaultExport", "Deprecated", "Documentation"]],
-                [IDLKind.Property, ["DefaultExport", "Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName", "Documentation"]],
-                [IDLKind.Interface, ["DefaultExport", "Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation", "Documentation", "TypeParameters", "ComponentInterface"]],
-                [IDLKind.Callback, ["DefaultExport", "Deprecated", "Async", "Synthetic", "Documentation", "TypeParameters"]],
-                [IDLKind.Method, ["DefaultExport", "Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected", "Documentation", "CallSignature", "TypeParameters"]],
-                [IDLKind.Callable, ["DefaultExport", "CallSignature", "Deprecated", "Documentation", "CallSignature"]],
-                [IDLKind.Typedef, ["DefaultExport", "Deprecated", "Import", "Documentation", "TypeParameters"]],
-                [IDLKind.Enum, ["DefaultExport", "Deprecated", "Documentation"]],
-                [IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated", "Documentation"]],
-                [IDLKind.Constructor, ["Deprecated", "Documentation"]]
-            ]),
-            checkEnumsConsistency: true,
-            checkReferencesResolved: false,
-        },
-        IDLVisitor: expandIDLVisitorConfig(data.IDLVisitor),
+        linter: DefaultIDLLinterOptions
     }
-    config.IDLVisitor.parsePredefinedIDLFiles(path.join(__dirname, '..'))
     return config
 }
 
@@ -159,45 +128,27 @@ function isWhole(methods: string[]): boolean {
     return methods.includes("*")
 }
 
-function parseConfigFile(configurationFile: string): any {
-    if (!fs.existsSync(configurationFile)) throw new Error(`Configuration file ${configurationFile} does not exist!`)
-
-    const data = fs.readFileSync(path.resolve(configurationFile)).toString()
-    return JSON.parse(data)
-}
-
-export function readConfigFiles(configurationFiles?: string, ignoreDefaultConfig = false): unknown[] {
-    const files = ignoreDefaultConfig ? [] : [
-        path.join(__dirname, "..", "generation-config", "config.json"),
-        path.join(__dirname, "..", "generation-config", "idl-config.json")
-    ]
-    if (configurationFiles) {
-        files.push(...configurationFiles.split(","))
-    }
-
-    return files.map(file => parseConfigFile(file))
-}
-
-export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles?: string, ignoreDefaultConfig = false): T {
-    const json = mergeJSONs(
-        readConfigFiles(configurationFiles, ignoreDefaultConfig),
-        schema
-    )
-    const result = schema.validate(json)
-    if (!result.success()) {
-        throw new Error("Configuration is not valid!\n" + result.error() + '\n')
-    }
-    return result.unwrap()
-}
-
-export function loadPeerConfiguration(configurationFiles?: string, ignoreDefaultConfig = false): PeerGeneratorConfiguration {
-    return expandPeerGeneratorConfiguration(parseConfigFiles(PeerGeneratorConfigurationSchema, configurationFiles, ignoreDefaultConfig))
+export function loadPeerConfiguration(configurationFiles: string[]): PeerGeneratorConfiguration {
+    return expandPeerGeneratorConfiguration(parseConfigFiles(PeerGeneratorConfigurationSchema, configurationFiles))
 }
 
 export function peerGeneratorConfiguration(): PeerGeneratorConfiguration {
     return generatorConfiguration<PeerGeneratorConfiguration>()
 }
 
-export function IDLVisitorConfiguration(): IDLVisitorConfiguration {
-    return peerGeneratorConfiguration().IDLVisitor
+interface HookMethod {
+    hookName: string,
+    replaceImplementation: boolean
+}
+
+export function getHookMethod(className: string, methodName: string): HookMethod | undefined {
+    const hookMethods = peerGeneratorConfiguration().hooks.get(className)
+    if (!hookMethods) return undefined
+    const hook = hookMethods.get(methodName)
+    if (!hook) return undefined
+    const method: HookMethod = {
+        hookName: hook.hookName ?? `hook${className}${capitalize(methodName)}`,
+        replaceImplementation: hook.replaceImplementation ?? true
+    }
+    return method
 }

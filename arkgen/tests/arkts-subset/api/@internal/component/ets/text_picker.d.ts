@@ -1178,7 +1178,7 @@ declare class TextPickerDialog {
  * @atomicservice
  * @since 11
  */
-declare const TextPicker: TextPickerInterface;
+//declare constTextPicker: TextPickerInterface;
 
 /**
  * Defines TextPicker Component instance.
@@ -1201,5 +1201,5 @@ declare const TextPicker: TextPickerInterface;
  * @atomicservice
  * @since 11
  */
-declare const TextPickerInstance: TextPickerAttribute;
+//declare constTextPickerInstance: TextPickerAttribute;
 

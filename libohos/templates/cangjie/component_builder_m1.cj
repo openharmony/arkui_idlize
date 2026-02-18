@@ -28,8 +28,8 @@ class %COMPONENT_ATTRIBUTE_NAME%ContentHolder {
             if (let Some(style) <- styleHolder.value) {
                 style(receiver)
             }
-            if (let Some(content) <- contentHolder.value) {
-                content()
+            if (let Some(content_) <- contentHolder.value) {
+                content_()
             }
         }
     }

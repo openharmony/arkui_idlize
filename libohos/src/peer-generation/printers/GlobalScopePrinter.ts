@@ -15,14 +15,13 @@
 
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
-import { NamedMethodSignature, PeerLibrary, LanguageWriter } from "@idlizer/core"
+import { NamedMethodSignature, PeerLibrary, LanguageWriter, getInitializerDefaultValue } from "@idlizer/core"
 import * as idl from '@idlizer/core'
 import { collapseSameMethodsIDL, groupOverloadsIDL, OverloadsPrinter } from "./OverloadsPrinter"
 import { PrinterResult } from "../LayoutManager"
 import { writePeerMethod } from "./PeersPrinter"
 import { NativeModule } from "../NativeModule"
 import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
-import { importTypeChecker } from "./TypeCheckPrinter"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration"
 
 export function printGlobal(library: PeerLibrary): PrinterResult[] {
@@ -32,83 +31,60 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
         idl.IDLInterfaceSubkind.Interface
     )
 
-    const peerImports = new ImportsCollector()
-    collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), peerImports)
-    const peerMethodWriter = library.createLanguageWriter()
-    const staticWriter = library.createLanguageWriter()
-
     const printed = library.globals.flatMap(scope => {
-
-        scope.methods = scope.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
-
-        const groupedMethods = groupOverloadsIDL(scope.methods, library.language)
+        const filteredScopeMethods = scope.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
+        const groupedMethods = groupOverloadsIDL(filteredScopeMethods, library.language)
         const methodPrinterResults = groupedMethods.filter(it => it.length).flatMap((methods): PrinterResult[] => {
-
-            // imports
-            const imports = new ImportsCollector()
-            methods.forEach(method => {
-                collectDeclDependencies(library, method, imports, { includeMaterializedInternals: true })
-                const types = [method.returnType].concat(method.parameters.map(p => p.type))
-                types.forEach(type => {
-                    if (idl.isReferenceType(type)) {
-                        const decl = library.resolveTypeReference(type)
-                        if (decl) {
-                            collectDeclItself(library, decl, peerImports)
-                            collectDeclDependencies(library, decl, peerImports)
+            const generate = () => {
+                // imports
+                const imports = new ImportsCollector()
+                methods.forEach(method => {
+                    collectDeclDependencies(library, method, imports, { includeMaterializedInternals: true })
+                    const types = [method.returnType].concat(method.parameters.map(p => p.type))
+                    types.forEach(type => {
+                        if (idl.isReferenceType(type)) {
+                            const decl = library.resolveTypeReference(type)
+                            if (decl) {
+                                // collectDeclItself(library, decl, peerImports)
+                                // collectDeclDependencies(library, decl, peerImports)
+                            }
                         }
-                    }
+                    })
                 })
-            })
 
-            peerImports.merge(imports)
-            fillCommonImports(imports, library.language)
-            imports.addFeatures(
-                [realizationHolder.name],
-                library.layout.resolve({
-                    node: realizationHolder,
-                    role: idl.LayoutNodeRole.GLOBAL
-                })
-            )
-
-            // entities
-            const peerMethods = idlFreeMethodToLegacy(methods)
-            const method = collapseSameMethodsIDL(methods)
-            const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional), })))
-
-            // write
-            const writer = library.createLanguageWriter()
-
-            /* global scope export function */
-            LanguageWriter.relativeReferences(true, () => {
-                writer.writeFunctionImplementation(method.name, signature, w => {
-                    const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0]), method.parameters.map(it => w.makeString(it.name)))
-                    const statement = method.returnType !== idl.IDLVoidType
-                        ? w.makeReturn(call)
-                        : w.makeStatement(call)
-                    w.writeStatement(statement)
-                }, method.methods[0].typeParameters)
-            })
-
-            /* global scope peer serialize function */
-            new OverloadsPrinter(library, peerMethodWriter, library.language, false, library.useMemoM3)
-                .printGroupedComponentOverloads(realizationHolder.name, peerMethods)
-
-            peerMethods.forEach(peerMethod => {
-                writePeerMethod(
-                    library,
-                    peerMethodWriter,
-                    peerMethod,
-                    true,
-                    false,
-                    '_serialize',
-                    '',
-                    peerMethod.returnType,
+                // peerImports.merge(imports)
+                fillCommonImports(imports, library.language)
+                imports.addFeatures(
+                    [realizationHolder.name],
+                    library.layout.resolve({
+                        node: realizationHolder,
+                        role: idl.LayoutNodeRole.GLOBAL
+                    })
                 )
-            })
+
+                // entities
+                const method = collapseSameMethodsIDL(methods)
+                const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional), })))
+
+                // write
+                const writer = library.createLanguageWriter()
+
+                /* global scope export function */
+                LanguageWriter.relativeReferences(true, () => {
+                    writer.writeFunctionImplementation(method.name, signature, w => {
+                        const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0]), method.parameters.map(it => w.makeString(it.name)))
+                        const statement = method.returnType !== idl.IDLVoidType
+                            ? w.makeReturn(call)
+                            : w.makeStatement(call)
+                        w.writeStatement(statement)
+                    }, method.methods[0].typeParameters)
+                })
+
+                return { content: writer, imports }
+            }
 
             return [{
-                collector: imports,
-                content: writer,
+                generate,
                 over: {
                     node: methods[0],
                     role: idl.LayoutNodeRole.GLOBAL
@@ -117,15 +93,16 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
         })
 
         const constantPrinterResults = scope.constants.flatMap((it):PrinterResult[] => {
-            const writer = library.createLanguageWriter()
-
-            const imports = new ImportsCollector()
-            collectDeclDependencies(library, it.type, imports)
-            writer.writeConstant(it.name, it.type, it.value)
-
             return [{
-                collector: imports,
-                content: writer,
+                generate: () => {
+                    const content = library.createLanguageWriter()
+
+                    const imports = new ImportsCollector()
+                    collectDeclDependencies(library, it.type, imports)
+                    const value = it.value ?? getInitializerDefaultValue(it, library.language)
+                    content.writeConstant(it.name, it.type, value)
+                    return { content, imports}
+                },
                 over: {
                     node: it,
                     role: idl.LayoutNodeRole.GLOBAL
@@ -140,17 +117,49 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
         return []
     }
 
-    const realizationWriter = library.createLanguageWriter()
-    realizationWriter.writeClass(realizationHolder.name, w => {
-        w.makeStaticBlock(() => {
-            peerMethodWriter.getOutput().forEach(it => w.print(it))
-            peerMethodWriter.features.forEach(item => realizationWriter.addFeature(item[0], item[1]))
-        })
-    })
-    fillPeerImports(peerImports, library)
     const realization: PrinterResult = {
-        collector: peerImports,
-        content: realizationWriter,
+        generate: () => {
+            const imports = new ImportsCollector
+            fillPeerImports(imports, library)
+            collectDeclItself(library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), imports)
+            library.globals.forEach(scope => {
+                const groupedMethods = groupOverloadsIDL(scope.methods, library.language)
+                groupedMethods.filter(it => it.length).forEach(methods => {
+                    methods.forEach(method => {
+                        collectDeclDependencies(library, method, imports, { includeMaterializedInternals: true })
+                    })
+                })
+            })
+
+            const realizationWriter = library.createLanguageWriter()
+            realizationWriter.writeClass(realizationHolder.name, w => {
+                w.makeStaticBlock(() => {
+                    const allGroupedMethods = library.globals.flatMap(scope => {
+                    const filteredScopeMethods = scope.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
+                        return groupOverloadsIDL(filteredScopeMethods, library.language)
+                    })
+                    allGroupedMethods.forEach(methods => {
+                        const peerMethods = idlFreeMethodToLegacy(methods)
+                        new OverloadsPrinter(library, realizationWriter, library.language, false, library.useMemoM3)
+                            .printGroupedComponentOverloads(realizationHolder.name, peerMethods)
+
+                        peerMethods.forEach(peerMethod => {
+                            writePeerMethod(
+                                library,
+                                realizationWriter,
+                                peerMethod,
+                                true,
+                                false,
+                                '_serialize',
+                                '',
+                                peerMethod.returnType,
+                            )
+                        })
+                    })
+                })
+            })
+            return { content: realizationWriter, imports }
+        },
         over: {
             node: realizationHolder,
             role: idl.LayoutNodeRole.GLOBAL
@@ -162,35 +171,49 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 }
 
 function fillCommonImports(collector: ImportsCollector, language: idl.Language) {
-    collector.addFeatures(['int32', 'int64', 'float32'], '@koalaui/common')
-    if (language === idl.Language.ARKTS) {
-        collector.addFeature('NativeBuffer', '@koalaui/interop')
+    if (language === idl.Language.TS || language === idl.Language.ARKTS) {
+        collector.addFeatures(['int32', 'int64', 'float32'], '@koalaui/common')
+        if (language === idl.Language.ARKTS) {
+            collector.addFeature('NativeBuffer', '@koalaui/interop')
+        }
+    }
+    if (language === idl.Language.KOTLIN) {
+        collector.addFeature("NativeBuffer", "koalaui.interop")
     }
 }
 
 function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
     fillCommonImports(collector, library.language)
-    collector.addFeatures([
-        'Finalizable',
-        'runtimeType',
-        'RuntimeType',
-        'SerializerBase',
-        'DeserializerBase',
-        'MaterializedBase',
-        'KPointer',
-        'toPeerPtr',
-    ], '@koalaui/interop')
-    collector.addFeature('unsafeCast', '@koalaui/common')
-    collectDeclItself(library, idl.createReferenceType('CallbackKind'), collector)
-    if (library.language === idl.Language.ARKTS) {
-        collector.addFeature('NativeBuffer', '@koalaui/interop')
-        importTypeChecker(library, collector)
+    if (library.language === idl.Language.TS || library.language === idl.Language.ARKTS) {
+        collector.addFeatures(['unsafeCast'], '@koalaui/common')
+        collector.addFeatures([
+            'Finalizable',
+            'RuntimeType',
+            'SerializerBase',
+            'DeserializerBase',
+            'MaterializedBase',
+            'KPointer',
+            'toPeerPtr',
+        ], '@koalaui/interop')
+        if (library.language === idl.Language.TS) {
+            collector.addFeatures(['runtimeType', 'isInstanceOf'], '@koalaui/interop')
+        }
+        if (library.name === 'arkoala') {
+            collector.addFeature('CallbackTransformer', './CallbackTransformer')
+        }
     }
-    if (library.language === idl.Language.TS) {
-        collector.addFeature('isInstanceOf', '@koalaui/interop')
+    if (library.language === idl.Language.KOTLIN) {
+        collector.addFeatures([
+            "Finalizable",
+            "RuntimeType",
+            "SerializerBase",
+            "DeserializerBase",
+            "MaterializedBase",
+            "KPointer",
+            "KNativePointer",
+            "toPeerPtr",
+        ], "koalaui.interop")
     }
-    collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
-    if (library.name === 'arkoala') {
-        collector.addFeature('CallbackTransformer', './CallbackTransformer')
-    }
+    collectDeclItself(library, idl.createReferenceType('idlize.internal.CallbackKind'), collector)
+    collectDeclItself(library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), collector)
 }

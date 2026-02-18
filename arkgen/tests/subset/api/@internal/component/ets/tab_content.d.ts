@@ -26,9 +26,9 @@ interface BoardStyle {
 
 declare class TabBarSymbol {
 
-    normal: SymbolGlyphModifier;
+    // normal: SymbolGlyphModifier;
 
-    selected?: SymbolGlyphModifier;
+    // selected?: SymbolGlyphModifier;
 }
 
 declare enum LayoutMode {
@@ -43,6 +43,7 @@ declare interface TabBarIconStyle {
   unselectedColor?: ResourceColor;
 }
 
+declare interface IndicatorStyle {}
 declare class SubTabBarStyle {
 
     constructor(content: ResourceStr);
@@ -100,4 +101,4 @@ declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
     tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
 }
 
-declare const TabContent: TabContentInterface
+//declare constTabContent: TabContentInterface

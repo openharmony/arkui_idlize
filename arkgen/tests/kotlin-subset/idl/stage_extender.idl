@@ -1,0 +1,60 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package arkui.stage_extender;
+
+dictionary PageTransitionType {
+    number ENTER = 0;
+    number EXIT = 1;
+};
+
+dictionary RouteType {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Push]
+    number PUSH = 1;
+    [OriginalEnumMemberName=Pop]
+    number POP = 2;
+};
+interface PageTransitionOptions {
+    [Optional]
+    attribute RouteType type;
+    [Optional]
+    attribute number duration;
+    [Optional]
+    attribute number delay;
+};
+callback PageTransitionCallback = void (RouteType type, number progress);
+
+[Entity=Interface]
+interface TransitionParam {
+    attribute PageTransitionOptions pageTransitionOptions;
+    attribute PageTransitionType pageTransitionType;
+
+    [Optional]
+    attribute RouteType routeType;
+
+    [Optional]
+    attribute PageTransitionCallback onProgress;
+};
+
+[Entity=Class]
+interface StageExtender {
+  static void SetSrcPage(pointer node);
+  static void PushPage(pointer node);
+  static void PopPageAndSwitchTo(pointer node);
+  static void ResetTransitions(pointer node);
+  static void SetPageTransition(pointer node, TransitionParam param);
+};

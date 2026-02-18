@@ -22,6 +22,8 @@ import arkui.component.swiper.SwiperAnimationEvent as SwiperAnimationEvent;
 import arkui.component.swiper.OnSwiperAnimationStartCallback as OnSwiperAnimationStartCallback;
 import arkui.component.units;
 
+callback Callback_I32_Void = void (i32 index);
+
 interface ArcDotIndicatorInner {
     [Optional]
     attribute ArcDirectionInner _arcDirection;

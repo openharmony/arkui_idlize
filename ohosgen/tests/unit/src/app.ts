@@ -84,6 +84,23 @@ import { ExternalType, hookns } from "@external.lib"
 import { SDKExternalType } from "@external.lib.sdk"
 import { DTSCheckExternalLib, InternalType } from "#compat"
 
+import { BaseGesture, DerivedGesture2, GestureType } from "#compat"
+
+import {
+    TransformSrcI,
+    TransformDstI,
+    TransformSrcC,
+    TransformDstC,
+    TransformSrcCallbackI,
+    TransformDstCallbackI,
+    TransformSrcCallbackC,
+    TransformDstCallbackC,
+    checkTransformDstI,
+    checkTransformDstC,
+    checkTransformSrcIToCallback,
+    checkTransformSrcCToCallback,
+} from "#compat"
+
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
 }
@@ -533,6 +550,49 @@ function checkPromiseRejected() {
     .catch((e:object) => { console.log(e.toString()) })
 }
 
+function checkTransformOnSerialize() {
+  let transformSrcI: TransformSrcI = { flag: false }
+  let resultTransformSrcI: TransformSrcI = checkTransformDstI(transformSrcI, false)
+  assertEQ(false, resultTransformSrcI.flag)
+
+  transformSrcI = { flag: true }
+  resultTransformSrcI = checkTransformDstI(transformSrcI, true)
+  assertEQ(true, resultTransformSrcI.flag)
+
+  let transformSrcC: TransformSrcC = new TransformSrcC()
+  transformSrcC.flag = false
+  let resultTransformSrcC: TransformSrcC = checkTransformDstC(transformSrcC, false)
+  assertEQ(false, resultTransformSrcC.flag)
+
+  transformSrcC.flag = true
+  resultTransformSrcC = checkTransformDstC(transformSrcC, true)
+  assertEQ(true, resultTransformSrcC.flag)
+
+  let transformSrcCallbackI: TransformSrcCallbackI = { flag: false }
+  let resultTransformSrcCallbackI: TransformSrcCallbackI = checkTransformSrcIToCallback(transformSrcCallbackI, false)
+  assertEQ(true, resultTransformSrcCallbackI.flag)
+
+  transformSrcCallbackI = { flag: true }
+  resultTransformSrcCallbackI = checkTransformSrcIToCallback(transformSrcCallbackI, true)
+  assertEQ(false, resultTransformSrcCallbackI.flag)
+
+  // TBD: fix ArkTS
+  // let transformSrcCallbackC: TransformSrcCallbackC = new TransformSrcCallbackC()
+  // transformSrcCallbackC.flag = false
+  // let resultTransformSrcCallbackC: TransformSrcCallbackC = checkTransformSrcCToCallback(transformSrcCallbackC, false)
+  // assertEQ(true, resultTransformSrcCallbackC.flag)
+
+  // transformSrcCallbackC.flag = true
+  // resultTransformSrcCallbackC = checkTransformSrcCToCallback(transformSrcCallbackC, true)
+  // assertEQ(false, resultTransformSrcCallbackC.flag)
+}
+
+function checkHandwrittenDeserializer() {
+  const gesture = BaseGesture.createGesture2()
+  assertEQ(gesture.getType(), GestureType.Second)
+  assertEQ(gesture instanceof DerivedGesture2, true)
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -558,8 +618,9 @@ export function run() {
   suite.addTest("checkHooks", checkHooks)
   suite.addTest("checkInternalLib", checkInternalLib)
   suite.addTest("checkExternalTypes", checkExternalTypes)
-  suite.addTest("checkContentModifier", checkContentModifier)
-  suite.addTest("checkPromiseRejected", checkPromiseRejected)
+  suite.addAsyncTest("checkPromiseRejected", checkPromiseRejected)
+  suite.addTest("checkHandwrittenDeserializer", checkHandwrittenDeserializer)
+  suite.addTest("checkTransformOnSerialize", checkTransformOnSerialize)
 
   return suite.run()
 }

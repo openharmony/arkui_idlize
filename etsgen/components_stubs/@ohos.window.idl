@@ -15,4 +15,8 @@ namespace window {
     interface SystemBarStyle {
         [Optional] attribute String statusBarContentColor;
     };
+
+    dictionary Orientation {
+        number UNSPECIFIED = 0;
+    };
 };

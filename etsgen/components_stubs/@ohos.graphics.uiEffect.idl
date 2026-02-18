@@ -7,7 +7,7 @@ namespace uiEffect {
     interface VisualEffect {
         VisualEffect backgroundColorBlender(BrightnessBlender blender);
     };
-    typedef BrightnessBlender Blender;
+    typedef Blender = BrightnessBlender;
     [Synthetic, Entity=Tuple]
     interface Tuple_Number_Number_Number {
         attribute number value0;

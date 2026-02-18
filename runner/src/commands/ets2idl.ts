@@ -13,30 +13,42 @@
  * limitations under the License.
  */
 
-import { etsgen } from "@idlizer/etsgen/app"
-import { flat, over } from "../utils"
+import { flat, over, run, scan } from "../utils"
 import { join } from "node:path"
-import { ADDITIONAL_FILES, GENERATED_IDL_DIR } from "../shared"
+import { GENERATED_IDL_DIR } from "../shared"
+import { execSync } from "node:child_process"
 
 export interface Ets2IdlConfig {
+    etsgen: string
     sdkPath: string
-    configPath: string | undefined
+    optionsFile: string
+    arktsConfigPath?: string
+    traceStatus?: string
+}
+export interface Ets2IdlResult {
+    idlPaths:string
 }
 export function ets2idl({
+    etsgen,
     sdkPath,
-    configPath
-}: Ets2IdlConfig) {
+    optionsFile,
+    arktsConfigPath,
+    traceStatus,
+}: Ets2IdlConfig):Ets2IdlResult {
     const sdkApiPath = join(sdkPath, 'api')
-    const additionalFiles = ADDITIONAL_FILES.map(it => join(sdkApiPath, join(...it)))
-    etsgen(
-        flat([
-            '--ets2idl',
-            '--use-component-stubs',
-            ['--output-dir', GENERATED_IDL_DIR],
-            ['--base-dir', sdkApiPath],
-            ['--input-dir', join(sdkApiPath, 'arkui', 'component')],
-            ['--input-files', additionalFiles],
-            over(configPath, path => ['--ets-config', path])
-        ])
-    )
+    const files = scan(sdkApiPath).filter(it => it.endsWith(".d.ets"))
+    run(context => context.exec([
+        etsgen,
+        '--ets2idl',
+        ['--output-dir', GENERATED_IDL_DIR],
+        ['--base-dir', sdkApiPath],
+        ['--input-files', files],
+        over(arktsConfigPath, path => ['--ets-config', path]),
+        over(traceStatus, st => ['--trace-status', st]),
+        ['--ignore-default-config'],
+        ['--options-file', optionsFile],
+    ]))
+    return {
+        idlPaths: GENERATED_IDL_DIR
+    }
 }

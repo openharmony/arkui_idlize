@@ -13,7 +13,7 @@ declare class ColumnAttribute extends CommonMethod<ColumnAttribute> {
     alignItems(value: HorizontalAlign): ColumnAttribute;
 }
 
-declare const Column: ColumnInterface
+//declare constColumn: ColumnInterface
 
 declare enum LayoutSafeAreaType {
     SYSTEM = 0,

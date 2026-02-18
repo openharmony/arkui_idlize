@@ -57,6 +57,6 @@ declare class TextInputAttribute extends CommonMethod<TextInputAttribute> {
     onEditChanged(callback: (isEditing: boolean) => void): TextInputAttribute;
 }
 
-declare const TextInput: TextInputInterface;
+//declare constTextInput: TextInputInterface;
 
-declare const TextInputInstance: TextInputAttribute;
+//declare constTextInputInstance: TextInputAttribute;

@@ -21,17 +21,17 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     TSLanguageWriter,
     CppConvertor,
     CppLanguageWriter,
-    JavaLanguageWriter,
     ETSLanguageWriter,
     CJLanguageWriter,
     CJIDLTypeToForeignStringConvertor,
-    isBuilderClass,
     TSTypeNameConvertor,
-    ETSTypeNameConvertor
+    ETSTypeNameConvertor,
+    findTopLevelConflicts
 } from "@idlizer/core";
 import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor } from './ArkoalaArgConvertors';
-import { ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
+import { ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
 import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType';
+import { peerGeneratorConfiguration } from '@idlizer/libohos';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {
     override createLanguageWriter(language?: Language): LanguageWriter {
@@ -42,8 +42,6 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
                 new TSTypeNameConvertor(this))
             case Language.ARKTS: return new ETSLanguageWriter(printer, this,
                 new ETSTypeNameConvertor(this), new CppConvertor(this))
-            case Language.JAVA: return new JavaLanguageWriter(printer, this,
-                new ArkoalaJavaTypeNameConvertor(this))
             case Language.CPP: return new CppLanguageWriter(printer, this,
                 new CppConvertor(this), ArkPrimitiveTypesInstance)
             case Language.CJ: return new CJLanguageWriter(printer, this,
@@ -55,7 +53,6 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
         switch (language) {
             case Language.TS: return new TSTypeNameConvertor(this)
             case Language.ARKTS: return new ETSTypeNameConvertor(this)
-            case Language.JAVA: return new ArkoalaJavaTypeNameConvertor(this)
             case Language.CJ: return new ArkoalaCJTypeNameConvertor(this)
         }
         return super.createTypeNameConvertor(language)
@@ -70,14 +67,13 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
         }
         if (declaration) {
             if (isImportAttr(declaration))
-                return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+                return new ArkoalaImportTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type))
 
-            if (idl.isInterface(declaration)) {
+            if (idl.isInterface(declaration) && !idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize) && !peerGeneratorConfiguration().forceResource.includes(declaration.name)) {
                 if (isMaterialized(declaration, this)) {
                     return new ArkoalaMaterializedClassConvertor(this, param, declaration)
                 }
-                if (!isBuilderClass(declaration) &&
-                    declaration.subkind === idl.IDLInterfaceSubkind.Interface)
+                if (declaration.subkind === idl.IDLInterfaceSubkind.Interface)
                 {
                     return new ArkoalaInterfaceConvertor(this, (declaration.name!), param, declaration)
                 }

@@ -20,7 +20,7 @@ declare enum DpiFollowStrategy {
 
 declare interface UIExtensionOptions {
    isTransferringCaller?: boolean;
-   placeholder?: ComponentContent;
+   placeholder?: ComponentContent<undefined>;
    dpiFollowStrategy?: DpiFollowStrategy;
 }
 
@@ -67,6 +67,6 @@ declare interface UIExtensionProxy {
 //    onTerminated(callback: Callback<TerminationInfo>): UIExtensionComponentAttribute;
 // }
 //
-// declare const UIExtensionComponent: UIExtensionComponentInterface;
+// //declare constUIExtensionComponent: UIExtensionComponentInterface;
 //
-// declare const UIExtensionComponentInstance: UIExtensionComponentAttribute;
+// //declare constUIExtensionComponentInstance: UIExtensionComponentAttribute;

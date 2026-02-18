@@ -27,5 +27,5 @@ declare class StackAttribute extends CommonMethod<StackAttribute> {
     pointLight(value: PointLightStyle): StackAttribute;
 }
 
-declare const Stack: StackInterface;
-declare const StackInstance: StackAttribute;
+//declare constStack: StackInterface;
+//declare constStackInstance: StackAttribute;

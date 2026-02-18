@@ -15,32 +15,29 @@
 import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
 import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression,
-    createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language, InteropArgConvertor,
+    createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language,
     createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, isEnumType, InteropReturnTypeConvertor,
     isInIdlizeInterop,
     TypeConvertor,
     convertType,
-    getHookMethod,
-    generatorConfiguration,
-    isDirectMethod,
-    isVMContextMethod,
     LayoutNodeRole,
-    lib,
     createOutArgConvertor,
     isInCurrentModule,
+    createLanguageWriter,
+    IdlNameConvertor,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
-import { ArkTSSourceFile, CJSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
+import { ArkTSSourceFile, KotlinSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
 import { PrinterFunction } from "../LayoutManager";
 import { ImportsCollector } from "../ImportsCollector";
 import { collectPeersForFile } from "../PeersCollector";
-import { collapseIdlPeerMethods } from "./OverloadsPrinter";
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { isDirectMethod, isVMContextMethod } from './MethodUtils'
 
 class NativeModulePrinterBase {
-    readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
+    readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library, createInteropArgConvertor(this.language, this.library))
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -67,10 +64,10 @@ class NativeModulePrinterBase {
 class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
     private static readonly excludes = new Map<Language, Set<string>>([
         [Language.CJ, new Set(["MaterializeBuffer", "GetNativeBufferPointer", "LoadUserView"])],
-        [Language.JAVA, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
         [Language.CPP, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
         [Language.TS, new Set()],
         [Language.ARKTS, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
+        [Language.KOTLIN, new Set(["LoadUserView", "VSyncAwait", "TestWithBuffer"])],
     ])
 
     constructor(
@@ -101,7 +98,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
             const patchedReturnType = patchType(signature.returnType)
             signature = new NamedMethodSignature(patchedReturnType, patchedSignatureArgs, signature.argsNames, signature.defaults)
         }
-        let modifiers = generatorConfiguration().forceContext.includes(inputMethod.name) ?
+        let modifiers = peerGeneratorConfiguration().forceContext.includes(idl.getFQName(inputMethod)) ?
             [ MethodModifier.FORCE_CONTEXT ] : undefined
         return new Method('_' + inputMethod.name, signature, modifiers)
     }
@@ -119,7 +116,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
 }
 
 class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
-    private readonly interopConvertor = createInteropArgConvertor(this.language)
+    private readonly interopConvertor = createInteropArgConvertor(this.language, this.library)
     private readonly interopRetConvertor = new InteropReturnTypeConvertor(this.library)
 
     constructor(
@@ -142,7 +139,9 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             })
             if (clazz.finalizer) this.printPeerMethod(clazz.finalizer, idl.IDLPointerType)
             clazz.methods.forEach(method => {
-                this.printPeerMethod(method, method.tsReturnType())
+                var retType = method.tsReturnType()
+                retType = retType && idl.isTypeParameterType(retType) ? idl.IDLVoidType : retType
+                this.printPeerMethod(method, retType)
             })
         })
     }
@@ -317,7 +316,6 @@ function createPredefinedNativeModuleVisitor(library: PeerLibrary, language: Lan
             return new CJNativeModulePredefinedVisitor(library, language, entries)
         case Language.KOTLIN:
         case Language.ARKTS:
-        case Language.JAVA:
             return new NativeModulePredefinedVisitor(library, language, entries)
         default:
             throw new Error("Not supported language for NativeModule")
@@ -332,7 +330,6 @@ function createArkUIGeneratedNativeModuleVisitor(library: PeerLibrary, language:
             return new CJNativeModuleArkUIGeneratedVisitor(library, language)
         case Language.KOTLIN:
         case Language.ARKTS:
-        case Language.JAVA:
             return new NativeModuleArkUIGeneratedVisitor(library, language)
         default:
             throw new Error("Not supported language for NativeModule")
@@ -362,6 +359,36 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
         ], "@koalaui/interop")
         imports.addFeatures(["int32", "int64", "float32"], "@koalaui/common")
     }
+    else if (library.language === Language.KOTLIN) {
+        imports.addFeatures([
+            "KBoolean",
+            "KByte",
+            "KInt",
+            "KLong",
+            "KFloat",
+            "KDouble",
+            "KUInt",
+            "KStringPtr",
+            "KPointer",
+            "KNativePointer",
+            "pointer",
+            "KUint8ArrayPtr",
+            "KInteropReturnBuffer",
+            "KSerializerBuffer",
+        ], "koalaui.interop")
+        imports.addFeature("*", "kotlinx.cinterop")
+    }
+}
+
+function getModuleNameForNativeModule(library: PeerLibrary, module: NativeModuleType): string {
+    const language = library.language
+    if (language === Language.KOTLIN) {
+        if (library.name === "arkoala") {
+            return "koalaui.arkoala"
+        }
+        return module.name
+    }
+    return `${module.name}${language.extension}`
 }
 
 function printNativeModuleRegistration(language: Language, module: NativeModuleType, content: LanguageWriter): void {
@@ -417,15 +444,18 @@ export function printPredefinedNativeModule(library: PeerLibrary, module: Native
     const entries = collectPredefinedNativeModuleEntries(library, module)
     const visitor = createPredefinedNativeModuleVisitor(library, language, entries)
     visitor.visit()
-    const file = SourceFile.make(`${module.name}${language.extension}`, language, library)
-    if (file instanceof TsSourceFile || file instanceof ArkTSSourceFile)
+    const name = getModuleNameForNativeModule(library, module)
+    const file = SourceFile.make(name, language, library)
+    if (file instanceof TsSourceFile || file instanceof ArkTSSourceFile || file instanceof KotlinSourceFile)
         collectNativeModuleImports(module, file.imports, library)
     file.content.writeClass(module.name, writer => {
-        printNativeModuleRegistration(language, module, file.content)
-        writer.concat(visitor.nativeModule)
-        const maybeTemplate = maybeReadLangTemplate(`${module.name}_functions`, language)
-        if (maybeTemplate)
-            writer.writeLines(maybeTemplate)
+        writer.makeStaticBlock((writer) => {
+            printNativeModuleRegistration(language, module, file.content)
+            writer.concat(visitor.nativeModule)
+            const maybeTemplate = maybeReadLangTemplate(`${module.name}_functions`, language)
+            if (maybeTemplate)
+                writer.writeLines(maybeTemplate)
+        })
     })
     return file
 }
@@ -457,30 +487,32 @@ export function printCJPredefinedNativeFunctions(library: PeerLibrary, module: N
 
 export function createGeneratedNativeModulePrinter(module: NativeModuleType, more?:(w:LanguageWriter) => void): PrinterFunction {
     return (library) => {
-        const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
-        visitor.visit()
-        const content = library.createLanguageWriter()
-        const imports = new ImportsCollector()
-        collectNativeModuleImports(module, imports, library)
-        if (content.language == Language.CJ) {
-            (content as CJLanguageWriter).writeCJForeign(writer => {
-                writer.concat((visitor as CJNativeModuleArkUIGeneratedVisitor).nativeFunctions)
+        const generate = () => {
+            const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
+            visitor.visit()
+            const content = library.createLanguageWriter()
+            const imports = new ImportsCollector()
+            collectNativeModuleImports(module, imports, library)
+            if (content.language == Language.CJ) {
+                (content as CJLanguageWriter).writeCJForeign(writer => {
+                    writer.concat((visitor as CJNativeModuleArkUIGeneratedVisitor).nativeFunctions)
+                })
+            }
+            content.writeClass(module.name, writer => {
+                content.makeStaticBlock(() => {
+                    printNativeModuleRegistration(library.language, module, content)
+                    more?.(writer)
+                    writer.concat(visitor.nativeModule)
+                })
             })
+            return { content, imports }
         }
-        content.writeClass(module.name, writer => {
-            content.makeStaticBlock(() => {
-                printNativeModuleRegistration(library.language, module, content)
-                more?.(writer)
-                writer.concat(visitor.nativeModule)
-            })
-        })
         return [{
             over: {
-                node: library.resolveTypeReference(idl.createReferenceType(module.name)) as idl.IDLInterface,
+                node: library.resolveTypeReference(idl.createReferenceType(`idlize.internal.${module.name}`)) as idl.IDLInterface,
                 role: LayoutNodeRole.PEER
             },
-            collector: imports,
-            content: content,
+            generate,
         }]
     }
 }
@@ -519,7 +551,7 @@ export function collectPredefinedNativeModuleEntries(library: PeerLibrary, modul
         case NativeModule.Test:
             return interopDeclarations.filter(it => it.name === "Test")
         case NativeModule.ArkUI:
-            return interopDeclarations.filter(it => it.name === "Node")
+            return interopDeclarations.filter(it => it.name === "NativeModuleNode")
         default:
             throw new Error(`NativeModuleType.${module} is not predefined`)
     }
@@ -539,7 +571,7 @@ export function makeInteropMethod(
         forceContext: boolean,
         throws: boolean,
         hasReceiver: boolean,
-        interopConvertor?: TypeConvertor<string>,
+        interopConvertor?: IdlNameConvertor,
         interopReturnConvertor?: InteropReturnTypeConvertor,
     },
 ): Method
@@ -552,7 +584,7 @@ export function makeInteropMethod(
         forceContext: boolean,
         throws: boolean,
         hasReceiver: boolean,
-        interopConvertor?: TypeConvertor<string>,
+        interopConvertor?: IdlNameConvertor,
         interopReturnConvertor?: InteropReturnTypeConvertor,
     },
 ): Method {
@@ -565,8 +597,8 @@ export function makeInteropMethod(
             method.returnType,
             {
                 hasReceiver: !!method.sig.context,
-                throws: !!method.method.modifiers?.includes(MethodModifier.THROWS),
-                forceContext: !!method.method.modifiers?.includes(MethodModifier.FORCE_CONTEXT),
+                throws: !!method.sig.modifiers?.includes(MethodModifier.THROWS),
+                forceContext: !!method.sig.modifiers?.includes(MethodModifier.FORCE_CONTEXT),
             }
         )
     }
@@ -582,11 +614,11 @@ function makeInteropMethodInner(
         forceContext: boolean,
         throws: boolean,
         hasReceiver: boolean,
-        interopConvertor?: TypeConvertor<string>,
+        interopConvertor?: IdlNameConvertor,
         interopReturnConvertor?: InteropReturnTypeConvertor,
     },
 ): Method {
-    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language)
+    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language, library)
     const interopReturnConvertor = options.interopReturnConvertor ?? new InteropReturnTypeConvertor(library)
     const interopParameters: ({name: string, type: idl.IDLType})[] = options.hasReceiver
         ? [{ name: 'ptr', type: idl.IDLPointerType }] : []
@@ -602,7 +634,7 @@ function makeInteropMethodInner(
         } else {
             interopParameters.push({
                 name: `${it.param}`,
-                type: idl.createReferenceType('%TEXT%:' + convertType(interopConvertor, it.interopType()))
+                type: idl.createReferenceType('%TEXT%:' + interopConvertor.convert(it.interopType()))
             })
         }
     })
@@ -679,7 +711,7 @@ function getReturnValue(type: idl.IDLType): string {
 function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLibrary): idl.IDLType {
 
     if (!returnType) return idl.IDLVoidType
-    if (returnType === idl.IDLThisType || idl.IDLContainerUtils.isPromise(returnType)) {
+    if (returnType === idl.IDLThisType || idl.IDLContainerUtils.isPromise(returnType) || idl.isTypeParameterType(returnType)) {
         return idl.IDLVoidType
     }
 

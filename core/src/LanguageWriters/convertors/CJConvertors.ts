@@ -17,6 +17,7 @@ import * as idl from '../../idl'
 import { CJKeywords } from '../../languageSpecificKeywords'
 import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
+import { removePoints } from '../../util'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 import { InteropArgConvertor } from './InteropConvertors'
 
@@ -157,7 +158,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
 
     private callbackType(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it =>
-            `${CJKeywords.has(it.name) ? it.name.concat("_") : it.name}: ${this.convert(it.type!)}`)
+            `${CJKeywords.has(it.name) ? it.name.concat("_") : it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
         return `((${params.join(", ")}) -> ${this.convert(decl.returnType)})`
     }
 
@@ -209,8 +210,4 @@ export class CJInteropArgConvertor extends InteropArgConvertor {
         }
         return super.convertPrimitiveType(type)
     }
-}
-
-export function removePoints(s: string) {
-    return s.split(/[\.\-]/g).join('_')
 }

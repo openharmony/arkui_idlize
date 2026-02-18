@@ -14,25 +14,8 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { JavaTypeNameConvertor, CJTypeNameConvertor } from '@idlizer/core'
+import { CJTypeNameConvertor } from '@idlizer/core'
 import { ARK_CUSTOM_OBJECT } from '@idlizer/libohos'
-
-export class ArkoalaJavaTypeNameConvertor extends JavaTypeNameConvertor {
-    override convertTypeReference(type: idl.IDLReferenceType): string {
-        switch (type.name) {
-            case "ContentModifier": return ARK_CUSTOM_OBJECT
-            case "Dimension":
-            case "Length": return "Ark_Length"
-            default: return super.convertTypeReference(type)
-        }
-    }
-    override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLAnyType: return ARK_CUSTOM_OBJECT
-            default: return super.convertPrimitiveType(type)
-        }
-    }
-}
 
 export class ArkoalaCJTypeNameConvertor extends CJTypeNameConvertor {
     override convertTypeReference(type: idl.IDLReferenceType): string {

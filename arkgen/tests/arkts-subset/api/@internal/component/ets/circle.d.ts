@@ -308,7 +308,7 @@ declare class CircleAttribute extends CommonShapeMethod<CircleAttribute> {}
  * @atomicservice
  * @since 11
  */
-declare const Circle: CircleInterface;
+//declare constCircle: CircleInterface;
 
 /**
  * Defines Circle Component instance.
@@ -340,4 +340,4 @@ declare const Circle: CircleInterface;
  * @atomicservice
  * @since 11
  */
-declare const CircleInstance: CircleAttribute;
+//declare constCircleInstance: CircleAttribute;

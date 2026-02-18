@@ -23,7 +23,7 @@ interface ArcListExtender {
     static void scrollBarWidth(pointer node, optional LengthMetrics width);
     static void cachedCount(pointer node, optional i32 count);
     static void chainAnimation(pointer node, optional boolean enable);
-    static void childrenMainSize(pointer node, optional ChildrenMainSize size);
+    //static void childrenMainSize(pointer node, optional ChildrenMainSize size); // use hook instead
     static void enableScrollInteraction(pointer node, optional boolean enable);
     static void fadingEdge(pointer node, optional boolean enable);
     static void friction(pointer node, optional f64 friction);

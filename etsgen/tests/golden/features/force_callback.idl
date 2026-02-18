@@ -2,7 +2,12 @@ package force_callback;
 [Synthetic]
 callback Callback_String_Void = void (String value);
 interface EditMenuOptions {
+    [Accessor=Getter]
     attribute Callback_String_Void onCreateMenu;
-    [ExtraMethod=onCreateMenuExtraMethod]
+    [Accessor=Setter]
+    attribute Callback_String_Void onCreateMenu;
+    [ExtraMethod=onCreateMenuExtraMethod, Accessor=Getter]
+    attribute Callback_String_Void onCreateMenuExtraMethod_callback;
+    [ExtraMethod=onCreateMenuExtraMethod, Accessor=Setter]
     attribute Callback_String_Void onCreateMenuExtraMethod_callback;
 };

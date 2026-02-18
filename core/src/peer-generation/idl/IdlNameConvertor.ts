@@ -16,6 +16,7 @@
 import * as idl from "../../idl"
 import { DeclarationConvertor } from "../../LanguageWriters/nameConvertor";
 import { Language } from "../../Language";
+import { removePoints } from "../../util";
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     convertImport(decl: idl.IDLImport): string {
@@ -77,6 +78,16 @@ export class CJDeclarationNameConvertor extends DeclarationNameConvertor {
     static readonly I = new CJDeclarationNameConvertor()
 }
 
+export class KotlinDeclarationNameConvertor extends DeclarationNameConvertor {
+    override convertInterface(decl: idl.IDLInterface): string {
+        return removePoints(idl.getQualifiedName(decl, "namespace.name"))
+    }
+    override convertEnum(decl: idl.IDLEnum): string {
+        return removePoints(idl.getQualifiedName(decl, "namespace.name"))
+    }
+    static readonly I = new KotlinDeclarationNameConvertor()
+}
+
 export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
         const namespace = idl.getNamespacesPathFor(decl).map(it => it.name)
@@ -95,8 +106,11 @@ export class CJFeatureNameConvertor extends DeclarationNameConvertor {
 }
 
 export class KotlinFeatureNameConvertor extends DeclarationNameConvertor {
+    override convertInterface(decl: idl.IDLInterface): string {
+        return removePoints(idl.getQualifiedName(decl, "namespace.name"))
+    }
     override convertEnum(decl: idl.IDLEnum): string {
-        return decl.name
+        return removePoints(idl.getQualifiedName(decl, "namespace.name"))
     }
     static readonly I = new KotlinFeatureNameConvertor()
 }
@@ -104,10 +118,10 @@ export class KotlinFeatureNameConvertor extends DeclarationNameConvertor {
 export function createDeclarationNameConvertor(language: Language): DeclarationNameConvertor {
     switch (language) {
         case Language.ARKTS: return ETSDeclarationNameConvertor.I
-        case Language.JAVA:
         case Language.CPP:
         case Language.TS: return DeclarationNameConvertor.I
         case Language.CJ: CJDeclarationNameConvertor.I
+        case Language.KOTLIN: KotlinDeclarationNameConvertor.I
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }
@@ -115,7 +129,6 @@ export function createDeclarationNameConvertor(language: Language): DeclarationN
 export function createFeatureNameConvertor(language: Language): DeclarationNameConvertor {
     switch (language) {
         case Language.ARKTS: return ETSFeatureNameConvertor.I
-        case Language.JAVA:
         case Language.CPP:
         case Language.TS: return TSFeatureNameConvertor.I
         case Language.CJ: return CJFeatureNameConvertor.I

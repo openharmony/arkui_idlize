@@ -76,7 +76,6 @@ import {
     createOutArgConvertor,
 } from '@idlizer/core'
 import {
-    getInteropRootPath,
     readLangTemplate,
     getUniquePropertiesFromSuperTypes,
     printCallbacksKinds,
@@ -98,7 +97,8 @@ import {
     libraryCcDeclaration,
     createCSerializerPrinter,
     getDeclarationUniqueName,
-    printKotlinCInteropDefFile
+    printKotlinCInteropDefFile,
+    readInteropTypesHeader
 } from '@idlizer/libohos'
 import { OhosInstall } from './OhosInstall'
 
@@ -379,9 +379,7 @@ class OHOSNativeVisitor {
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
         this.cppWriter.writeLines(libraryCcDeclaration({removeCopyright: true}))
-        const interopRootPath = getInteropRootPath()
-        const interopTypesPath = path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h')
-        const interopTypesContent = fs.readFileSync(interopTypesPath, 'utf-8')
+        const interopTypesContent = readInteropTypesHeader()
         this.hWriter.writeLines(
             readLangTemplate('ohos_api_prologue.h', Language.CPP)
                 .replaceAll("%INTEROP_TYPES_HEADER", interopTypesContent)

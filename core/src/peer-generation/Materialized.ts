@@ -18,9 +18,8 @@ import * as idl from '../idl'
 import { Language } from '../Language'
 import { ArgConvertor, VoidConvertor } from '../LanguageWriters/ArgConvertors'
 import { CppReturnTypeConvertor } from '../LanguageWriters/convertors/CppConvertors'
-import { copyMethod, Field, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
+import { copyMethod, Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
 import { capitalize } from '../util'
-import { isBuilderClass } from './BuilderClass'
 import { qualifiedName } from './idl/common'
 import { PeerClassBase } from './PeerClass'
 import { PeerMethod, PeerMethodSignature } from './PeerMethod'
@@ -33,7 +32,40 @@ export class MaterializedField {
         public outArgConvertor?: ArgConvertor,
         public isNullableOriginalTypeField?: boolean,
         public extraMethodName: string | undefined = undefined
-    ) { }
+    ) {
+        const isReadonly = field.modifiers.includes(FieldModifier.READONLY)
+        const isGetter = field.modifiers.includes(FieldModifier.GET)
+        const isSetter = field.modifiers.includes(FieldModifier.SET)
+        if (isReadonly && (isGetter || isSetter))
+            throw new Error(`Unsupported modifiers combination: field can be either readonly or getter/setter or mutable for field ${field.name}`)
+        if (isSetter && !isGetter)
+            throw new Error(`Unsupported modifiers combination: if setter is defined getter must be defined too for field ${field.name}`)
+    }
+
+    get state(): {
+        isAccessor: true,
+        hasGetter: boolean,
+        hasSetter: boolean
+    } | {
+        isAccessor: false,
+        isReadonly: boolean
+    } {
+        const hasGetter = this.field.modifiers.includes(FieldModifier.GET)
+        const hasSetter = this.field.modifiers.includes(FieldModifier.SET)
+        if (hasGetter || hasSetter) {
+            return {
+                isAccessor: true,
+                hasGetter,
+                hasSetter
+            }
+        } else {
+            const isReadonly = this.field.modifiers.includes(FieldModifier.READONLY)
+            return {
+                isAccessor: false,
+                isReadonly
+            }
+        }
+    }
 }
 
 export class MaterializedMethod extends PeerMethod {

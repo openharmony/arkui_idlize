@@ -28,13 +28,16 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         }
         // TODO: Fix for 'TypeError: Type 'Function<R>' is generic but type argument were not provided.'
         if (typeName === "Function") {
-            return "Function<void>"
+            return isInsideInstanceof() ? "Function" : "Function<void>"
         }
         return typeName
     }
     override convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
             return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
+        }
+        if (idl.IDLContainerUtils.isRecord(type) && idl.hasExtAttribute(type, idl.IDLExtendedAttributes.AsRecord)) {
+            return isInsideInstanceof() ? 'Record' : `Record<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
         }
         return super.convertContainer(type)
     }
@@ -106,8 +109,15 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         if (typeArgs.length === 0) {
             typeArgs = [this.convert(idl.IDLVoidType)]
         }
-        return `Function${typeArgs.length - 1}<${typeArgs.join(",")}>`
+        return isInsideInstanceof() ? `Function${typeArgs.length - 1}` : `Function${typeArgs.length - 1}<${typeArgs.join(",")}>`
     }
 }
 
-export class ETSInteropArgConvertor extends TSInteropArgConvertor {}
+export class ETSInteropArgConvertor extends TSInteropArgConvertor {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLBigintType: return 'long'
+        }
+        return super.convertPrimitiveType(type)
+    }
+}

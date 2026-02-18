@@ -16,6 +16,14 @@
 import { IDLFile, IDLNode, IDLNamedNode, IDLImport, isReferenceType, hasExtAttribute, IDLExtendedAttributes, getFileFor } from "./idl"
 import { isFile, isNamedNode, isNamespace, isEnum, isInterface, isImport } from "./idl"
 
+export function getPov(node: IDLNode): IDLNode | undefined {
+    let result: IDLNode | undefined = node
+    while (result && !(isFile(result) || isNamespace(result))) {
+        result = result.parent
+    }
+    return result
+}
+
 export function resolveNamedNode(target: string[], pov: IDLNode|undefined, corpus: IDLFile[]): IDLNamedNode | undefined {
     let result: IDLNamedNode | undefined
     let povScope: string[] = []

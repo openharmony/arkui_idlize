@@ -6,6 +6,6 @@ interface ShapeInterface {
 declare class ShapeAttribute extends CommonMethod<ShapeAttribute> {
 }
 
-declare const Shape: ShapeInterface;
+//declare constShape: ShapeInterface;
 
-declare const ShapeInstance: ShapeAttribute;
+//declare constShapeInstance: ShapeAttribute;

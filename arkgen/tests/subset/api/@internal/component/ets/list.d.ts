@@ -31,4 +31,4 @@ declare class ListAttribute extends ScrollableCommonMethod<ListAttribute> {
     onScrollVisibleContentChange(handler: OnScrollVisibleContentChangeCallback): ListAttribute;
 }
 
-declare const List: ListInterface
+//declare constList: ListInterface

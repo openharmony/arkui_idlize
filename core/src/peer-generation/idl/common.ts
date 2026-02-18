@@ -15,6 +15,7 @@
 
 import * as idl from "../../idl"
 import { Language } from "../../Language"
+import { IdlNameConvertor } from "../../LanguageWriters"
 import { capitalize } from "../../util"
 
 export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
@@ -57,9 +58,8 @@ export function collapseTypes(types: idl.IDLType[], name?: string): idl.IDLType 
     return uniqueTypes.length === 1 ? uniqueTypes[0] : idl.createUnionType(uniqueTypes, name)
 }
 
-export function generifiedTypeName(refType: idl.IDLReferenceType | undefined, refName?: string): string | undefined {
-    if (!refType) return undefined
-    const typeArgs = refType.typeArguments?.map(it => idl.printType(it) /* FIXME: BUG! */).join(",")
+export function generifiedTypeName(refType: idl.IDLReferenceType, nameConvertor: IdlNameConvertor, refName?: string): string {
+    const typeArgs = refType.typeArguments?.map(it => nameConvertor.convert(it)).join(",")
     return `${refName ? refName : refType.name}${typeArgs ? `<${typeArgs}>` : ``}`
 }
 
@@ -86,9 +86,11 @@ export function generateSyntheticFunctionParameterName(parameter:idl.IDLParamete
     return generateSyntheticIdlNodeName(parameter.type)
 }
 
-export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
-    let prefix = isAsync ? "AsyncCallback" : "Callback"
-    const names = parameters.map(generateSyntheticFunctionParameterName).concat(generateSyntheticIdlNodeName(returnType))
+export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, options?: { isAsync?: boolean, nameConvertor?: IdlNameConvertor }): string {
+    let prefix = options?.isAsync ? "AsyncCallback" : "Callback"
+    const names = options?.nameConvertor !== undefined
+        ? parameters.map(it => options.nameConvertor!.convert(it.type)).concat(options.nameConvertor!.convert(returnType))
+        : parameters.map(generateSyntheticFunctionParameterName).concat(generateSyntheticIdlNodeName(returnType))
     return `${prefix}_${names.join("_").replaceAll(".", "_")}`
 }
 

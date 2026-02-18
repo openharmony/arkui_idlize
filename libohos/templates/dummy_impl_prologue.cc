@@ -19,6 +19,7 @@
 #include <chrono>
 #include <future>
 #include <thread>
+#include <map>
 
 #include "Serializers.h"
 #include "interop-logging.h"
@@ -61,7 +62,7 @@ void appendGroupedLog(int kind, const std::string& str) {
 
 void dummyClassFinalizer(KNativePointer* ptr) {
     char hex[20];
-    interop_snprintf(hex, sizeof(hex), "0x%llx", (long long)ptr);
+    InteropPrintToBufferN(hex, sizeof(hex), "0x%llx", (long long)ptr);
     string out("dummyClassFinalizer(");
     out.append(hex);
     out.append(")");
@@ -268,7 +269,13 @@ float TreeNode::measure(Ark_VMContext vmContext, float* data) {
     Ark_Float32 maxWidth = data[2];
     Ark_Float32 maxHeight = data[3];
     if (_flags & Ark_APINodeFlags::GENERATED_CUSTOM_MEASURE) {
-        GENERATED_Ark_EventCallbackArg args[] = { arg(Ark_APICustomOp::GENERATED_MEASURE), arg(minWidth), arg(minHeight), arg(maxWidth), arg(maxHeight) };
+        GENERATED_Ark_EventCallbackArg args[] = {
+            arg(Ark_APICustomOp::GENERATED_MEASURE),
+            arg(minWidth),
+            arg(minHeight),
+            arg(maxWidth),
+            arg(maxHeight)
+    };
         callbacks->CallInt(vmContext, customId(), 5, &args[0]);
         _width = args[1].f32;
         _height = args[2].f32;
@@ -320,7 +327,13 @@ float TreeNode::layout(Ark_VMContext vmContext, float* data) {
     TreeNodeDelays::busyWait(TreeNodeDelays::layoutNodeDelay[_customIntData]);
 
     if (_flags & Ark_APINodeFlags::GENERATED_CUSTOM_LAYOUT) {
-        GENERATED_Ark_EventCallbackArg args[] = { arg(Ark_APICustomOp::GENERATED_LAYOUT), arg(0.0f), arg(0.0f), arg(0.0f), arg(0.0f) };
+        GENERATED_Ark_EventCallbackArg args[] = {
+            arg(Ark_APICustomOp::GENERATED_LAYOUT),
+            arg(0.0f),
+            arg(0.0f),
+            arg(0.0f),
+            arg(0.0f)
+    };
         callbacks->CallInt(vmContext, customId(), 5, &args[0]);
         return 0;
     }
@@ -409,7 +422,8 @@ Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
 
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result)) + " = GetBasicNodeApi()->createNode(GENERATED_Ark_NodeType("
+        _logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result))
+            + " = GetBasicNodeApi()->createNode(GENERATED_Ark_NodeType("
             + std::to_string(type) + "), " + std::to_string(id) + ", " + std::to_string(flags) + ");\n");
         appendGroupedLog(2, _logData);
     }
@@ -486,7 +500,8 @@ Ark_NodeHandle GetNodeByViewStack() {
     Ark_NodeHandle result = reinterpret_cast<Ark_NodeHandle>(234);
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result)) + " = GetBasicNodeApi()->getNodeByViewStack();\n");
+        _logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result))
+            + " = GetBasicNodeApi()->getNodeByViewStack();\n");
         appendGroupedLog(2, _logData);
     }
     if (!needGroupedLog(1)) {
@@ -500,7 +515,8 @@ Ark_NodeHandle GetNodeByViewStack() {
 void DisposeNode(Ark_NodeHandle node) {
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  GetBasicNodeApi()->disposeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
+        _logData.append("  GetBasicNodeApi()->disposeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node))
+            + ");\n");
         appendGroupedLog(2, _logData);
     }
     if (needGroupedLog(1)) {
@@ -517,7 +533,8 @@ void DumpTreeNode(Ark_NodeHandle node) {
 
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  GetBasicNodeApi()->dumpTreeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
+        _logData.append("  GetBasicNodeApi()->dumpTreeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node))
+            + ");\n");
         appendGroupedLog(2, _logData);
     }
 
@@ -659,10 +676,11 @@ Ark_Int32 InsertChildAt(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Int32 p
 }
 
 void ApplyModifierFinish(Ark_NodeHandle node) {
-
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  GetBasicNodeApi()->applyModifierFinish(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
+        _logData.append("  GetBasicNodeApi()->applyModifierFinish(peer"
+            + std::to_string(reinterpret_cast<uintptr_t>(node))
+            + ");\n");
         appendGroupedLog(2, _logData);
     }
 
@@ -676,10 +694,10 @@ void ApplyModifierFinish(Ark_NodeHandle node) {
 }
 
 void MarkDirty(Ark_NodeHandle node, Ark_UInt32 flag) {
-
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  GetBasicNodeApi()->markDirty(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ", " + std::to_string(flag) + ");\n");
+        _logData.append("  GetBasicNodeApi()->markDirty(peer"+ std::to_string(reinterpret_cast<uintptr_t>(node))
+            + ", "  + std::to_string(flag) + ");\n");
         appendGroupedLog(2, _logData);
     }
 
@@ -719,7 +737,8 @@ Ark_Float32 ConvertLengthMetricsUnit(Ark_Float32 value, Ark_Int32 originUnit, Ar
 
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  Ark_Float32 res" + std::to_string(res_num++) + " = GetBasicNodeApi()->convertLengthMetricsUnit("
+        _logData.append("  Ark_Float32 res"
+            + std::to_string(res_num++) + " = GetBasicNodeApi()->convertLengthMetricsUnit("
             + std::to_string(value) + ", " + std::to_string(originUnit) + ", " + std::to_string(targetUnit) + ");\n");
         appendGroupedLog(2, _logData);
     }
@@ -830,9 +849,9 @@ void ShowCrash(Ark_CharPtr message) {}
 // handWritten implementations
 namespace OHOS::Ace::NG::GeneratedModifier {
     namespace CommonMethodModifier {
-        void OnClick0Impl(Ark_NativePointer node,
-                      const Opt_Callback_ClickEvent_Void* event)
-    {
+        void SetOnClick0Impl(Ark_NativePointer node,
+            const Opt_Callback_ClickEvent_Void* event)
+        {
         RegisterOnClick(node, &event->value);
         if (!needGroupedLog(1)) {
             return;
@@ -842,9 +861,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
-    void OnClick1Impl(Ark_NativePointer node,
-                      const Opt_Callback_ClickEvent_Void* event,
-                      const Opt_Number* distanceThreshold)
+    void SetOnClick1Impl(Ark_NativePointer node,
+        const Opt_Callback_ClickEvent_Void* event,
+        const Opt_Float64* distanceThreshold)
     {
         RegisterOnClick(node, &event->value);
         if (!needGroupedLog(1)) {
@@ -857,7 +876,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
-    void OnClickImpl(Ark_NativePointer node,
+    void SetOnClickImpl(Ark_NativePointer node,
         const Callback_ClickEvent_Void* event,
         const Ark_Number* distanceThreshold)
     {
@@ -872,8 +891,8 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
-    void DrawModifierImpl(Ark_NativePointer node,
-                          const Opt_DrawModifier* value)
+    void SetDrawModifierImpl(Ark_NativePointer node,
+        const Opt_DrawModifier* value)
     {
         if (value->value) {
             auto frameNode = AsNode(node);
@@ -892,28 +911,25 @@ namespace OHOS::Ace::NG::GeneratedModifier {
     namespace EnvironmentBackendAccessor {
     Ark_Boolean IsAccessibilityEnabledImpl()
     {
-        if (needGroupedLog(1))
-        {
+        if (needGroupedLog(1)) {
             string out("isAccessibilityEnabled() \n");
             out.append("[return false] \n");
             appendGroupedLog(1, out);
         }
         return false;
     }
-    Ark_Int32 GetColorModeImpl()
+    Ark_ColorMode GetColorModeImpl()
     {
-        if (needGroupedLog(1))
-        {
+        if (needGroupedLog(1)) {
             string out("getColorMode() \n");
-            out.append("[return 1] \n");
+            out.append("[return Ark_ColorMode::ARK_COLOR_MODE_LIGHT] \n");
             appendGroupedLog(1, out);
         }
-        return 1;
+        return Ark_ColorMode::ARK_COLOR_MODE_LIGHT;
     }
     Ark_Float32 GetFontScaleImpl()
     {
-        if (needGroupedLog(1))
-        {
+        if (needGroupedLog(1)) {
             string out("getFontScale() \n");
             out.append("[return 1.0] \n");
             appendGroupedLog(1, out);
@@ -922,28 +938,25 @@ namespace OHOS::Ace::NG::GeneratedModifier {
     }
     Ark_Float32 GetFontWeightScaleImpl()
     {
-        if (needGroupedLog(1))
-        {
+        if (needGroupedLog(1)) {
             string out("getFontWeightScale() \n");
             out.append("[return 1.0] \n");
             appendGroupedLog(1, out);
         }
         return 1.0;
     }
-    Ark_String GetLayoutDirectionImpl()
+    Ark_LayoutDirection GetLayoutDirectionImpl()
     {
-        if (needGroupedLog(1))
-        {
+        if (needGroupedLog(1)) {
             string out("getLayoutDirection() \n");
-            out.append("[return \"LTR\"] \n");
+            out.append("[return Ark_LayoutDirection::ARK_LAYOUT_DIRECTION_LTR] \n");
             appendGroupedLog(1, out);
         }
-        return { "LTR", 3 };
+        return Ark_LayoutDirection::ARK_LAYOUT_DIRECTION_LTR;
     }
     Ark_String GetLanguageCodeImpl()
     {
-        if (needGroupedLog(1))
-        {
+        if (needGroupedLog(1)) {
             string out("getLanguageCode() \n");
             out.append("[return \"en\"] \n");
             appendGroupedLog(1, out);
@@ -954,7 +967,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
 
     namespace EventEmulatorAccessor {
     void EmitClickEventImpl(Ark_NativePointer node,
-                            Ark_ClickEvent event)
+        Ark_ClickEvent event)
     {
         auto frameNode = AsNode(node);
         frameNode->callClickEvent(event);
@@ -1015,7 +1028,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             appendGroupedLog(1, out);
         }
         void SetDrawBehind_callbackImpl(Ark_DrawModifier peer,
-                                        const Callback_DrawContext_Void* drawBehind_callback)
+            const Callback_DrawContext_Void* drawBehind_callback)
         {
             RegisterDrawModifierCallback(peer, drawBehind_callback, DrawBehind);
             if (!needGroupedLog(1)) {
@@ -1027,7 +1040,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             appendGroupedLog(1, out);
         }
         void SetDrawContent_callbackImpl(Ark_DrawModifier peer,
-                                        const Callback_DrawContext_Void* drawContent_callback)
+            const Callback_DrawContext_Void* drawContent_callback)
         {
             RegisterDrawModifierCallback(peer, drawContent_callback, DrawContent);
             if (!needGroupedLog(1)) {
@@ -1039,7 +1052,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             appendGroupedLog(1, out);
         }
         void SetDrawFront_callbackImpl(Ark_DrawModifier peer,
-                                    const Callback_DrawContext_Void* drawFront_callback)
+            const Callback_DrawContext_Void* drawFront_callback)
         {
             RegisterDrawModifierCallback(peer, drawFront_callback, DrawFront);
             if (!needGroupedLog(1)) {
@@ -1051,6 +1064,158 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             appendGroupedLog(1, out);
         }
     } // DrawModifierAccessor
+
+    namespace StageExtenderAccessor {
+        std::map<Ark_NativePointer, std::function<void()>> enterAnimations;
+        std::map<Ark_NativePointer, std::function<void()>> exitAnimations;
+        Ark_NativePointer srcNode = nullptr;
+
+        void RunFor(std::function<void(double)> func,
+                    unsigned int delay, unsigned int duration, unsigned int granularity)
+        {
+            std::thread([func, delay, duration, granularity]() {
+                if (delay > 0) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+                }
+
+                auto step = std::chrono::milliseconds(duration / granularity);
+                int counter = 0;
+                double fractionalStep = 1.0 / granularity;
+                double lastValue = 0.0;
+                auto startTime = std::chrono::steady_clock::now();
+                auto x = startTime;
+
+                while (x - startTime < std::chrono::milliseconds(duration)) {
+                    lastValue = (counter++) * fractionalStep;
+                    func(lastValue);
+                    std::this_thread::sleep_until(x);
+                    x = std::chrono::steady_clock::now() + step;
+                }
+
+                std::this_thread::sleep_until(startTime + std::chrono::milliseconds(duration));
+
+                if (lastValue < 1.0) {
+                    func(1.0);
+                }
+            }).detach();
+        }
+
+        void SetSrcPageImpl(Ark_NativePointer node)
+        {
+            if (!needGroupedLog(1)) {
+                return;
+            }
+            string out("SetSrcPage(");
+            WriteToString(&out, node);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+            srcNode = node;
+        }
+        void PushPageImpl(Ark_NativePointer node)
+        {
+            if (!needGroupedLog(1)) {
+                return;
+            }
+            string out("PushPage(");
+            WriteToString(&out, node);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+
+            auto enterAnimation = enterAnimations.find(node);
+            if (enterAnimation != enterAnimations.end()) {
+                enterAnimation->second();
+            }
+
+            auto exitAnimation = exitAnimations.find(srcNode);
+            if (exitAnimation != exitAnimations.end()) {
+                exitAnimation->second();
+            }
+        }
+        void PopPageAndSwitchToImpl(Ark_NativePointer node)
+        {
+            if (!needGroupedLog(1)) {
+                return;
+            }
+            string out("PopPageAndSwitchTo(");
+            WriteToString(&out, node);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+
+            auto enterAnimation = enterAnimations.find(node);
+            if (enterAnimation != enterAnimations.end()) {
+                enterAnimation->second();
+            }
+            auto exitAnimation = exitAnimations.find(srcNode);
+            if (exitAnimation != exitAnimations.end()) {
+                exitAnimation->second();
+            }
+        }
+        void ResetTransitionsImpl(Ark_NativePointer node)
+        {
+            if (!needGroupedLog(1)) {
+                return;
+            }
+            string out("ResetTransitions(");
+            WriteToString(&out, node);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+            enterAnimations.erase(node);
+            exitAnimations.erase(node);
+        }
+        void SetPageTransitionImpl(Ark_NativePointer node,
+            const Ark_TransitionParam* param)
+        {
+            if (!needGroupedLog(1)) {
+                return;
+            }
+            string out("SetPageTransition(");
+            WriteToString(&out, node);
+            out.append(", ");
+            WriteToString(&out, param);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+
+            // Early exit if no progress callback
+            if (param->onProgress.tag == INTEROP_TAG_UNDEFINED) {
+                return;
+            }
+
+            auto delay = param->pageTransitionOptions.delay.tag != INTEROP_TAG_UNDEFINED
+                ? param->pageTransitionOptions.delay.value.i32
+                : 0;
+            auto duration = param->pageTransitionOptions.duration.tag != INTEROP_TAG_UNDEFINED
+                ? param->pageTransitionOptions.duration.value.i32
+                : 0;
+
+            if (duration <= 0) {
+                return;
+            }
+
+            auto callback = param->onProgress.value;
+            auto routeType = param->routeType.tag != INTEROP_TAG_UNDEFINED
+                ? param->routeType.value
+                : ARK_ROUTE_TYPE_NONE;
+            callback.resource.hold(callback.resource.resourceId);
+
+            auto onProgress = [callback, routeType](double progress) {
+                if (!callback.call) {
+                    return;
+                }
+                Ark_Number ark_progress = {
+                    .tag = INTEROP_TAG_FLOAT32,
+                    .f32 = static_cast<InteropFloat32>(progress)
+                };
+                callback.call(callback.resource.resourceId, routeType, ark_progress);
+            };
+
+            unsigned int granularity = 10;
+            if (param->pageTransitionType == ARK_PAGE_TRANSITION_TYPE_ENTER) {
+                enterAnimations[node] = std::bind(RunFor, onProgress, delay, duration, granularity);
+            } else {
+                exitAnimations[node] = std::bind(RunFor, onProgress, delay, duration, granularity);
+            }
+        }
+    } // StageExtenderAccessor
 }
 
 // end of handWritten implementations

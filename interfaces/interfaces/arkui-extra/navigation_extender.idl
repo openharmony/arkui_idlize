@@ -13,6 +13,7 @@ interface NavExtender {
   static void setUpdateStackCallback(NavPathStack peer, NavExtender_OnUpdateStack callback);
   static void setNavDestinationBuilderCallback(pointer navigation, NavExtender_PageMapNodeBuilder callback);
   static void syncStack(NavPathStack peer);
+  static void setNavDestinationId(pointer ptr, (String or undefined) id);
   static void pushPath(NavPathStack pathStack, NavPathInfo info, NavigationOptions options);
   static void replacePath(NavPathStack pathStack, NavPathInfo info, NavigationOptions options);
   static String pop(NavPathStack pathStack, boolean animated);

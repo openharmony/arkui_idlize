@@ -1,0 +1,2063 @@
+diff --git a/api/@internal/component/ets/common_ts_ets_api.d.ts b/api/@internal/component/ets/common_ts_ets_api.d.ts
+index a9059017a..f00b43955 100644
+--- a/api/@internal/component/ets/common_ts_ets_api.d.ts
++++ b/api/@internal/component/ets/common_ts_ets_api.d.ts
+@@ -70,7 +70,7 @@ declare class AppStorage {
+    * @atomicservice
+    * @since 12 dynamic
+    */
+-  static setAndRef<T>(propName: string, defaultValue: T): AbstractProperty<T>;
++  static setAndRef<T>(propName: string, defaultValue: T, ttype:Type): AbstractProperty<T>;
+ 
+   /**
+    * Called when a link is set.
+@@ -1891,7 +1891,7 @@ declare class LocalStorage {
+     * @atomicservice
+     * @since 12 dynamic
+     */
+-   public setAndRef<T>(propName: string, defaultValue: T): AbstractProperty<T>;
++   public setAndRef<T>(propName: string, defaultValue: T, ttype:Type): AbstractProperty<T>;
+ 
+   /**
+    * Check if LocalStorage has a property with given name
+diff --git a/api/@internal/component/ets/web.d.ts b/api/@internal/component/ets/web.d.ts
+index 0c2849134..c32db134b 100644
+--- a/api/@internal/component/ets/web.d.ts
++++ b/api/@internal/component/ets/web.d.ts
+@@ -27,6 +27,7 @@ import { Resource } from '../../global/resource';
+ import { Position, ResourceStr } from './units';
+ import { MenuType, EditMenuOptions } from './textCommon';
+ import { CopyOptions, NestedScrollMode } from './enums';
++import { PreviewMenuOptions } from './richEditor'
+ /*** endif */
+ 
+ /**
+@@ -7506,24 +7507,6 @@ declare enum AudioSessionType {
+   AMBIENT=3
+ }
+ 
+-/**
+- * Defines the options of preview menu
+- *
+- * @interface PreviewMenuOptions
+- * @syscap SystemCapability.Web.Webview.Core
+- * @since 20 dynamic&static
+- */
+-declare interface PreviewMenuOptions {
+-  /**
+-   * Defines the haptic feedback mode of preview menu.
+-   *
+-   * @type { ?HapticFeedbackMode }
+-   * @syscap SystemCapability.Web.Webview.Core
+-   * @since 20 dynamic&static
+-   */
+-  hapticFeedbackMode?: HapticFeedbackMode;
+-}
+-
+ /**
+  * Defines the selection menu options.
+  *
+diff --git a/api/@ohos.application.DataShareExtensionAbility.d.ts b/api/@ohos.application.DataShareExtensionAbility.d.ts
+index 287258f28..8df303cc1 100644
+--- a/api/@ohos.application.DataShareExtensionAbility.d.ts
++++ b/api/@ohos.application.DataShareExtensionAbility.d.ts
+@@ -172,7 +172,7 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 9 dynamic
+    */
+-  onCreate?(want: Want, callback: AsyncCallback<void>): void;
++  onCreate?: (want: Want, callback: AsyncCallback<void>) => void;
+ 
+   /**
+    * Called back when a datashare extension ability is started for initialization.
+@@ -196,7 +196,7 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 9 dynamic
+    */
+-  insert?(uri: string, valueBucket: ValuesBucket, callback: AsyncCallback<number>): void;
++  insert?: (uri: string, valueBucket: ValuesBucket, callback: AsyncCallback<number>) => void;
+ 
+   /**
+    * Inserts a data record into the database. This method should be implemented by a data share.
+@@ -222,12 +222,12 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 9 dynamic
+    */
+-  update?(
++  update?: (
+     uri: string,
+     predicates: dataSharePredicates.DataSharePredicates,
+     valueBucket: ValuesBucket,
+     callback: AsyncCallback<number>
+-  ): void;
++  ) => void;
+ 
+   /**
+    * Updates one or more data records in the database. This method should be implemented by a data share.
+@@ -250,10 +250,10 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 12 dynamic
+    */
+-  batchUpdate?(
++  batchUpdate?: (
+     operations: Record<string, Array<UpdateOperation>>,
+     callback: AsyncCallback<Record<string, Array<number>>>
+-  ): void;
++  ) => void;
+ 
+   /**
+    * Deletes one or more data records. This method should be implemented by a data share.
+@@ -267,7 +267,7 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 9 dynamic
+    */
+-  delete?(uri: string, predicates: dataSharePredicates.DataSharePredicates, callback: AsyncCallback<number>): void;
++  delete?: (uri: string, predicates: dataSharePredicates.DataSharePredicates, callback: AsyncCallback<number>) => void;
+ 
+   /**
+    * Deletes one or more data records. This method should be implemented by a data share.
+@@ -295,12 +295,12 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 9 dynamic
+    */
+-  query?(
++  query?: (
+     uri: string,
+     predicates: dataSharePredicates.DataSharePredicates,
+     columns: Array<string>,
+     callback: AsyncCallback<Object>
+-  ): void;
++  ) => void;
+ 
+   /**
+    * Queries one or more data records in the database. This method should be implemented by a data share.
+@@ -325,7 +325,7 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 9 dynamic
+    */
+-  batchInsert?(uri: string, valueBuckets: Array<ValuesBucket>, callback: AsyncCallback<number>): void;
++  batchInsert?: (uri: string, valueBuckets: Array<ValuesBucket>, callback: AsyncCallback<number>) => void;
+ 
+   /**
+    * Inserts multiple data records into the database. This method should be implemented by a data share.
+@@ -350,7 +350,7 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 9 dynamic
+    */
+-  normalizeUri?(uri: string, callback: AsyncCallback<string>): void;
++  normalizeUri?: (uri: string, callback: AsyncCallback<string>) => void;
+ 
+   /**
+    * Converts the given normalized {@code uri} generated by {@link #normalizeUri(uri)} into a denormalized one.
+@@ -366,7 +366,7 @@ declare class DataShareExtensionAbility {
+    * @StageModelOnly
+    * @since 9 dynamic
+    */
+-  denormalizeUri?(uri: string, callback: AsyncCallback<string>): void;
++  denormalizeUri?: (uri: string, callback: AsyncCallback<string>) => void;
+ }
+ 
+ export default DataShareExtensionAbility;
+\ No newline at end of file
+diff --git a/api/@ohos.arkui.advanced.FullScreenLaunchComponent.d.ets b/api/@ohos.arkui.advanced.FullScreenLaunchComponent.d.ets
+index b6dc7e275..815cace67 100644
+--- a/api/@ohos.arkui.advanced.FullScreenLaunchComponent.d.ets
++++ b/api/@ohos.arkui.advanced.FullScreenLaunchComponent.d.ets
+@@ -18,8 +18,11 @@
+  * @kit ArkUI
+  */
+ 
+-import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
+-import { ErrorCallback, Callback } from '@ohos.base';
++import AtomicServiceOptions from './@ohos.app.ability.AtomicServiceOptions';
++import { ErrorCallback, Callback } from './@ohos.base';
++import { Component } from './arkui/component/customComponent';
++import { TerminationInfo } from './arkui/component/common';
++import { BuilderParam } from './arkui/component/builder';
+ 
+ /**
+  * Declares the FullScreenLaunchComponent, a component provided by ArkUI that allows
+diff --git a/api/@ohos.arkui.stateManagement.static.d.ets b/api/@ohos.arkui.stateManagement.static.d.ets
+index 82a449c79..25b2750a9 100644
+--- a/api/@ohos.arkui.stateManagement.static.d.ets
++++ b/api/@ohos.arkui.stateManagement.static.d.ets
+@@ -19,20 +19,21 @@
+  * @kit ArkUI
+  */
+  
+-export {
+-    StateContext,
+-    IncrementalScope,
+-    __memo_context_type,
+-    __memo_id_type
+-} from './arkui/incremental/runtime/state';
+-export * from './arkui/incremental/annotation';
++//export {
++//    StateContext,
++//    IncrementalScope,
++//    __memo_context_type,
++//    __memo_id_type
++//} from './arkui/incremental/runtime/state';
++//export * from './arkui/incremental/annotation';
+ export * from './arkui/stateManagement/decorator';
+-export * from './arkui/stateManagement/runtime';
+-export * from './arkui/stateManagement/storage/appStorage';
+-export * from './arkui/stateManagement/storage/appStorageV2';
+-export * from './arkui/stateManagement/storage/environment';
+-export * from './arkui/stateManagement/storage/localStorage';
+-export * from './arkui/stateManagement/storage/persistenceV2';
+-export * from './arkui/stateManagement/storage/persistentStorage';
+-export * from './arkui/stateManagement/storage/storageProperty';
+-export * from './arkui/stateManagement/utils';
+\ No newline at end of file
++//export * from './arkui/stateManagement/runtime';
++//export * from './arkui/stateManagement/storage/appStorage';
++//export * from './arkui/stateManagement/storage/appStorageV2';
++//export * from './arkui/stateManagement/storage/environment';
++//export * from './arkui/stateManagement/storage/localStorage';
++//export * from './arkui/stateManagement/storage/persistenceV2';
++//export * from './arkui/stateManagement/storage/persistentStorage';
++//export * from './arkui/stateManagement/storage/storageProperty';
++export * from './arkui/Storage';
++export * from './arkui/stateManagement/utils';
+diff --git a/api/@ohos.arkui.theme.static.d.ets b/api/@ohos.arkui.theme.static.d.ets
+index d64cd9774..5065cdd40 100644
+--- a/api/@ohos.arkui.theme.static.d.ets
++++ b/api/@ohos.arkui.theme.static.d.ets
+@@ -477,7 +477,7 @@ export declare interface CustomTheme {
+  * @syscap SystemCapability.ArkUI.ArkUI.Full
+  * @since 20 static
+  */
+-export type CustomColors = Partial<Colors>;
++export type CustomColors = Object;
+ /**
+  * Class ThemeControl provides the Theme management for whole Ability and pages.
+  *
+diff --git a/api/@ohos.base.static.d.ets b/api/@ohos.base.static.d.ets
+index be4d43e40..2c69ad748 100644
+--- a/api/@ohos.base.static.d.ets
++++ b/api/@ohos.base.static.d.ets
+@@ -34,7 +34,7 @@
+   * @syscap SystemCapability.Base
+   * @since 20 static
+   */
+- export type ErrorCallback<T extends Error = BusinessError> = (err: T)=> void;
++ export type ErrorCallback<T = BusinessError> = (err: T)=> void;
+  
+  /**
+   * Defines the basic async callback.
+@@ -113,5 +113,5 @@
+   * };
+   * this.context.startAbility(want);
+   */
+- export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
++ export type RecordData = undefined | null | Object;
+  
+\ No newline at end of file
+diff --git a/api/@ohos.data.unifiedDataChannel.d.ts b/api/@ohos.data.unifiedDataChannel.d.ts
+index c345ff6e0..9583c6aa7 100644
+--- a/api/@ohos.data.unifiedDataChannel.d.ts
++++ b/api/@ohos.data.unifiedDataChannel.d.ts
+@@ -90,7 +90,7 @@ declare namespace unifiedDataChannel {
+    * @syscap SystemCapability.DistributedDataManager.UDMF.Core
+    * @since 20 static
+    */
+-  type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
++  type RecordData = undefined | null | Object;
+ 
+   /**
+    * Indicated delay get UnifiedData
+diff --git a/api/@ohos.reminderAgentManager.d.ts b/api/@ohos.reminderAgentManager.d.ts
+index 7b5f8e592..420316d2e 100644
+--- a/api/@ohos.reminderAgentManager.d.ts
++++ b/api/@ohos.reminderAgentManager.d.ts
+@@ -400,7 +400,7 @@ declare namespace reminderAgentManager {
+    * @syscap SystemCapability.Notification.ReminderAgent
+    * @since 20 static
+    */
+-  type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>
++  type RecordData = undefined | null | Object
+ 
+   /**
+    * Want agent information.
+diff --git a/api/@ohos.router.static.d.ets b/api/@ohos.router.static.d.ets
+index 5df69ff58..abf16c5c3 100644
+--- a/api/@ohos.router.static.d.ets
++++ b/api/@ohos.router.static.d.ets
+@@ -193,4 +193,6 @@ declare namespace router {
+   }
+ }
+ 
++export declare function registerPage(page: string, className: string): void
++
+ export default router;
+diff --git a/api/@ohos.wantAgent.d.ets b/api/@ohos.wantAgent.d.ets
+new file mode 100644
+index 000000000..909fedbe1
+--- /dev/null
++++ b/api/@ohos.wantAgent.d.ets
+@@ -0,0 +1,2 @@
++export type WantAgent = object;
++
+diff --git a/api/@ohos.window.d.ts b/api/@ohos.window.d.ts
+index c4753ac4c..f5dff84ac 100644
+--- a/api/@ohos.window.d.ts
++++ b/api/@ohos.window.d.ts
+@@ -67,7 +67,7 @@ declare interface Callback<T, V = void> {
+  * @atomicservice
+  * @since 20 static
+  */
+-type Callback<T, V = void> = (data: T) => V; 
++export type Callback<T, V = void> = (data: T) => V; 
+ 
+ /**
+    * Defines the window animation curve param.
+diff --git a/api/arkui/Graphics.static.d.ets b/api/arkui/Graphics.static.d.ets
+index aacfc246e..568f4471a 100644
+--- a/api/arkui/Graphics.static.d.ets
++++ b/api/arkui/Graphics.static.d.ets
+@@ -469,82 +469,6 @@ export enum LengthMetricsUnit {
+  * @since 20 static
+  */
+ export declare class LengthMetrics {
+-  /**
+-   * Constructor.
+-   *
+-   * @param { double } value - The value of length.
+-   * @param { LengthUnit } [unit] - The length unit.
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20 static
+-   */
+-  constructor(value: double, unit?:LengthUnit);
+-
+-  /**
+-   * Init a lengthMetrics with px unit.
+-   *
+-   * @param { double } value - The value of the length metrics.
+-   * @returns { LengthMetrics } Returns the lengthMetrics object with unit px.
+-   * @static
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20 static
+-   */
+-  static px(value: double): LengthMetrics;
+-
+-  /**
+-   * Init a lengthMetrics with vp unit.
+-   *
+-   * @param { double } value - The value of the length metrics.
+-   * @returns { LengthMetrics } - Returns the lengthMetrics object with unit vp.
+-   * @static
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20 static
+-   */
+-  static vp(value: double): LengthMetrics;
+-
+-  /**
+-   * Init a lengthMetrics with fp unit.
+-   *
+-   * @param { double } value - The value of the length metrics.
+-   * @returns { LengthMetrics } Returns the lengthMetrics object with unit fp.
+-   * @static
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20 static
+-   */
+-  static fp(value: double): LengthMetrics;
+-
+-  /**
+-   * Init a lengthMetrics with percent unit.
+-   *
+-   * @param { double } value - The value of the length metrics.
+-   * @returns { LengthMetrics } Returns the lengthMetrics object with unit percent.
+-   * @static
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20 static
+-   */
+-  static percent(value: double): LengthMetrics;
+-
+-  /**
+-   * Init a lengthMetrics with lpx unit.
+-   *
+-   * @param { double } value - The value of the length metrics.
+-   * @returns { LengthMetrics } Returns the lengthMetrics object with unit lpx.
+-   * @static
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20 static
+-   */
+-  static lpx(value: double): LengthMetrics;
+-
+-  /**
+-   * Init a lengthMetrics with Resource unit.
+-   *
+-   * @param { Resource } value - The value of the length metrics.
+-   * @returns { LengthMetrics } Returns the lengthMetrics object with unit Resource.
+-   * @static
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20 static
+-   */
+-  static resource(value: Resource): LengthMetrics;
+-
+   /**
+    * The unit of the LengthMetrics. The default value is VP.
+    *
+diff --git a/api/arkui/Storage.static.d.ets b/api/arkui/Storage.static.d.ets
+new file mode 100644
+index 000000000..61f1bf640
+--- /dev/null
++++ b/api/arkui/Storage.static.d.ets
+@@ -0,0 +1,214 @@
++'use static'
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++/**
++ * @file
++ * @kit ArkUI
++ * @arkts 1.2
++ */
++
++import { int32, float32 } from "arkui.stateManagement.common"
++
++export declare class AppStorage {
++    static ref<T>(propName: string): AbstractProperty<T> | undefined
++    static setAndRef<T>(propName: string, defaultValue: T, ttype:Type): AbstractProperty<T>
++    static Link<T>(propName: string): SubscribedAbstractProperty<T> | undefined
++    static link<T>(propName: string): SubscribedAbstractProperty<T> | undefined
++    static SetAndLink<T>(propName: string, defaultValue: T): SubscribedAbstractProperty<T>
++    static setAndLink<T>(propName: string, defaultValue: T): SubscribedAbstractProperty<T>
++    static Prop<T>(propName: string): SubscribedAbstractProperty<T> | undefined
++    static prop<T>(propName: string): SubscribedAbstractProperty<T> | undefined
++    static SetAndProp<T>(propName: string, defaultValue: T): SubscribedAbstractProperty<T>
++    static setAndProp<T>(propName: string, defaultValue: T): SubscribedAbstractProperty<T>
++    static Has(propName: string): boolean
++    static has(propName: string): boolean
++    static Get<T>(propName: string): T | undefined
++    static get<T>(propName: string): T | undefined
++    static Set<T>(propName: string, newValue: T): boolean
++    static set<T>(propName: string, newValue: T): boolean
++    static SetOrCreate<T>(propName: string, newValue: T): void
++    static setOrCreate<T>(propName: string, newValue: T): void
++    static Delete(propName: string): boolean
++    static delete(propName: string): boolean
++    static Keys(): IterableIterator<string>
++    static keys(): IterableIterator<string>
++    static staticClear(): boolean
++    static Clear(): boolean
++    static clear(): boolean
++    static IsMutable(propName: string): boolean
++    static Size(): number
++    static size(): number
++}
++
++export enum ColorMode {
++  LIGHT = 0,
++  DARK,
++}
++
++export interface EnvPropsOptions {
++    key: string;
++    defaultValue: number | string | boolean;
++}
++
++
++export declare class Environment {
++    static EnvProp<T>(key: string, value: T): boolean
++    static envProp<T>(key: string, value: T): boolean
++    static envProps(props: EnvPropsOptions[]): void
++    static Keys(): Array<string>
++    static keys(): Array<string>
++    static updateProps(): void
++}
++
++export interface PersistPropsOptions<T> {
++    key: string;
++    defaultValue: T;
++    toJson?: ToJSONType<T>;
++    fromJson?: FromJSONType<T>;
++}
++
++
++export type ToJSONType<T> = (value: T) => jsonx.JsonElement;
++export type FromJSONType<T> = (element: jsonx.JsonElement) => T;
++
++interface StringConverter<T> {
++    toString(value: T): string;
++    fromString(value: string): T | undefined;
++}
++
++export declare class PersistentStorage {
++    static PersistProp<T>(key: string, defaultValue: T): void
++    static persistProp<T>(key: string, defaultValue: T, toJson?: ToJSONType<T>, fromJson?: FromJSONType<T>): boolean
++    static DeleteProp(key: string): void
++    static deleteProp(key: string): void
++    static persistProps(properties: PersistPropsOptions<Any>[]): void
++    static Keys(): Array<string>
++    static keys(): Array<string>
++}
++
++export declare class LocalStorage {
++    constructor(initializingProperties?: IterableIterator<[string, Object]>)
++    static GetShared(): LocalStorage
++    static getShared(): LocalStorage
++    has(propName: string): boolean
++    keys(): IterableIterator<string>
++    size(): number
++    get<T>(propName: string): T | undefined
++    set<T>(propName: string, newValue: T): boolean
++    setOrCreate<T>(propName: string, newValue: T): boolean
++    public ref<T>(propName: string): AbstractProperty<T> | undefined
++    setAndRef<T>(propName: string, defaultValue: T, ttype:Type): AbstractProperty<T>
++    link<T>(propName: string): SubscribedAbstractProperty<T> | undefined
++    setAndLink<T>(propName: string, defaultValue: T): SubscribedAbstractProperty<T>
++    prop<T>(propName: string): SubscribedAbstractProperty<T> | undefined
++    setAndProp<T>(propName: string, defaultValue: T): SubscribedAbstractProperty<T>
++    delete(propName: string): boolean
++    clear(): boolean
++}
++
++interface EntryObject {
++    /*readonly*/ mutable: boolean
++    dispose(): void
++}
++
++export declare enum LayoutDirection {
++  LTR = 0,
++  RTL = 1,
++  Auto = 2
++}
++
++/**
++ * SubscribedAbstractProperty<T> is the return value of
++ *   - AppStorage static functions Link(), Prop(), SetAndLink(), and SetAndProp()
++ *   - LocalStorage member methods link(), prop(), setAndLink(), and setAndProp()
++ *   'T' can be boolean, string, number or custom class.
++ * Main functions
++ *   see get() reads the linked AppStorage/LocalStorage property value,
++ *   see set(newValue) write a new value to the synched AppStorage/LocalStorage property
++ *   see aboutToBeDeleted() ends the sync relationship with the AppStorage/LocalStorage property
++ *        The app must call this function before the SubscribedAbstractProperty<T> object
++ *        goes out of scope.
++ *
++ * @extends AbstractProperty<T>
++ * @interface SubscribedAbstractProperty<T>
++ * @syscap SystemCapability.ArkUI.ArkUI.Full
++ * @since 20
++ */
++export interface SubscribedAbstractProperty<T> extends AbstractProperty<T> {
++  /**
++   * An app needs to call this function before the instance of SubscribedAbstractProperty
++   * goes out of scope / is subject to garbage collection. Its purpose is to unregister the
++   * variable from the two-way/one-way sync relationship that AppStorage/LocalStorage.link()/prop()
++   * and related functions create.
++   *
++   * @syscap SystemCapability.ArkUI.ArkUI.Full
++   * @since 20
++   */
++  aboutToBeDeleted(): void {};
++}
++
++
++/**
++ * Define AbstractProperty<T> interface.
++ *
++ *  AbstractProperty can be understood as a handler or an alias
++ *  to a property inside LocalStorage / AppStorage singleton
++ *  allows to read the value with @see get and to change the
++ *  value with @see set.
++ *
++ * @interface AbstractProperty<T>
++ * @syscap SystemCapability.ArkUI.ArkUI.Full
++ * @since 20
++ */
++export declare interface AbstractProperty<T> {
++  /**
++   * Returns the name of the referenced property
++   *
++   * @returns { string } name of the referenced property
++   * @syscap SystemCapability.ArkUI.ArkUI.Full
++   * @since 20
++   */
++  default info(): string;
++
++  /**
++   * Reads value of the referenced AppStorage/LocalStorage property.
++   *
++   * @returns { T } value of the referenced AppStorage/LocalStorage property.
++   * @syscap SystemCapability.ArkUI.ArkUI.Full
++   * @since 20
++   */
++  default get(): T;
++
++  /**
++   * Assign a new value to the referenced property
++   *
++   * @param {T} newValue - a new value of the referenced property
++   * @syscap SystemCapability.ArkUI.ArkUI.Full
++   * @since 20
++   */
++  default set(newValue: T): void;
++  /**
++   * Register callback function to be called on value change of the referenced property
++   * calling with value undefined clear the callback.
++   *
++   * @param {OnChangeType<T> | undefined} onChangeFunc - register callback function
++   * @syscap SystemCapability.ArkUI.ArkUI.Full
++   * @since 20
++   */
++  default onChange(onChangeFunc: OnChangeType<T> | undefined): void;
++}
++
++export type OnChangeType<T> = (propertyName: string, newValue: T) => void;
+diff --git a/api/arkui/component/builder.static.d.ets b/api/arkui/component/builder.static.d.ets
+index a36cbdd5a..b37bc2d33 100755
+--- a/api/arkui/component/builder.static.d.ets
++++ b/api/arkui/component/builder.static.d.ets
+@@ -31,6 +31,18 @@ import { Callback } from '@ohos.base'
+ @Retention({policy: "SOURCE"})
+ export declare @interface Builder {}
+ 
++/**
++ * Defines LocalBuilder Annotation.
++ *
++ * @syscap SystemCapability.ArkUI.ArkUI.Full
++ * @crossplatform
++ * @form
++ * @atomicservice
++ * @since 20
++ */
++@Retention({policy: "SOURCE"})
++export declare @interface LocalBuilder {}
++
+ /**
+  * Defines BuilderParam Annotation.
+  *
+diff --git a/api/arkui/component/common.static.d.ets b/api/arkui/component/common.static.d.ets
+index 20cf963de..8f3f67a0b 100644
+--- a/api/arkui/component/common.static.d.ets
++++ b/api/arkui/component/common.static.d.ets
+@@ -5836,7 +5836,7 @@ export declare interface SheetOptions extends BindOptions {
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20 static
+      */
+-    detents?: SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents;
++    detents?: TripleLengthDetents;
+     /**
+      * Background blur of the sheet. By default, there is no background blur.
+      *
+@@ -6102,7 +6102,7 @@ export declare interface SheetOptions extends BindOptions {
+     /**
+      * Sets whether the sheet edge has spring effect.
+      *
+-     * @type { ?number }
++     * @type { ?int }
+      * @default 3
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20 static
+@@ -9956,7 +9956,7 @@ export declare interface CommonMethod {
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20 static
+      */
+-    default overlay<T extends Object>(value: string | CustomBuilder | ComponentContent<T> | undefined, options?: OverlayOptions): this;
++    default overlay(value: string | CustomBuilder | ComponentContent<Object> | undefined, options?: OverlayOptions): this;
+     /**
+      * Linear Gradient
+      * angle: Angle of Linear Gradient. The default value is 180;
+diff --git a/api/arkui/component/customComponent.static.d.ets b/api/arkui/component/customComponent.static.d.ets
+index eebcd4181..bb5d9506d 100644
+--- a/api/arkui/component/customComponent.static.d.ets
++++ b/api/arkui/component/customComponent.static.d.ets
+@@ -275,6 +275,17 @@ export declare abstract class CustomComponent<T extends CustomComponent<T, T_Opt
+         @Builder content?: () => void
+     ): T
+ 
++    /**
++     * Define the constructor of custom component
++     */
++    @ComponentBuilder
++    static $_instantiate<S extends CustomComponent<S, OptionsS>, OptionsS>(
++        factory: () => S,
++        initializers?: OptionsS,
++        reuseId?: string,
++        @Builder content?: () => void
++    ): S
++
+     /**
+      * aboutToReuse Method
+      *
+diff --git a/api/arkui/component/extendableComponent.static.d.ets b/api/arkui/component/extendableComponent.static.d.ets
+index 988415465..cd399bedf 100644
+--- a/api/arkui/component/extendableComponent.static.d.ets
++++ b/api/arkui/component/extendableComponent.static.d.ets
+@@ -69,7 +69,7 @@ export declare interface LifeCycle {
+      * @since 20 static
+      */
+     @Builder
+-    build(): void
++    default build(): void;
+ }
+ 
+ /**
+diff --git a/api/arkui/component/relativeContainer.static.d.ets b/api/arkui/component/relativeContainer.static.d.ets
+index 1d14d907f..ea3cee0c7 100644
+--- a/api/arkui/component/relativeContainer.static.d.ets
++++ b/api/arkui/component/relativeContainer.static.d.ets
+@@ -246,16 +246,7 @@ export declare interface RelativeContainerAttribute extends CommonMethod {
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20 static
+      */
+-    default barrier(value: Array<BarrierStyle> | undefined): this;
+-    /**
+-     * Specifies barriers of relativeContainer
+-     *
+-     * @param { Array<LocalizedBarrierStyle> } barrierStyle
+-     * @returns { RelativeContainerAttribute }
+-     * @syscap SystemCapability.ArkUI.ArkUI.Full
+-     * @since 20 static
+-     */
+-    default barrier(barrierStyle: Array<LocalizedBarrierStyle> | undefined): this;
++    default barrier(value: Array<BarrierStyle | LocalizedBarrierStyle> | undefined): this;
+     /**
+      * Set the attribute modifier
+      *
+diff --git a/api/arkui/incremental/runtime/state.static.d.ets b/api/arkui/incremental/runtime/state.static.d.ets
+index 749c371a7..ae5bfdfe9 100644
+--- a/api/arkui/incremental/runtime/state.static.d.ets
++++ b/api/arkui/incremental/runtime/state.static.d.ets
+@@ -19,6 +19,8 @@
+  * @kit ArkUI
+  */
+ 
++import { StateContext } from 'arkui.stateManagement.states.State'
++
+ /**
+  * Define the State interface to observed data changes.
+  *
+@@ -99,26 +101,6 @@ export declare interface IncrementalScope<Value> {
+     param<T>(index: int, value: T, equivalent?: Equivalent<T>, name?: string, contextLocal?: boolean): State<T>;
+ }
+ 
+-/**
+- * Context of a state, keeping track of changes in the given scope.
+- *
+- * @interface StateContext
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 22 static
+- */
+-export declare interface StateContext {
+-    /**
+-     * The scope which is used to track the changes of state context.
+-     *
+-     * @param { int } id - state context id
+-     * @param { int } paramCount - the count of param
+-     * @returns {InternalScope<T>} return state scope
+-     * @syscap SystemCapability.ArkUI.ArkUI.Full
+-     * @since 22 static
+-     */
+-    scope<T>(id: int, paramCount: int): IncrementalScope<T>;
+-}
+-
+ /**
+  * Define StateContext alias.
+  *
+diff --git a/api/arkui/runtime-api/@koalaui.runtime.memo.changeListener.d.ets b/api/arkui/runtime-api/@koalaui.runtime.memo.changeListener.d.ets
+new file mode 100644
+index 000000000..a1779c301
+--- /dev/null
++++ b/api/arkui/runtime-api/@koalaui.runtime.memo.changeListener.d.ets
+@@ -0,0 +1,16 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++export declare function RunEffect<Value>(value: Value, effect: (value: Value) => void): void
+\ No newline at end of file
+diff --git a/api/arkui/runtime-api/@koalaui.runtime.memo.node.d.ets b/api/arkui/runtime-api/@koalaui.runtime.memo.node.d.ets
+new file mode 100644
+index 000000000..5076f4e4c
+--- /dev/null
++++ b/api/arkui/runtime-api/@koalaui.runtime.memo.node.d.ets
+@@ -0,0 +1,26 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { IncrementalNode } from '@koalaui.runtime.tree.IncrementalNode'
++
++@interface memo_intrinsic {}
++
++@memo_intrinsic
++export declare function NodeAttach<Node extends IncrementalNode>(
++    create: () => Node,
++    /** @memo */
++    update: (node: Node) => void,
++    reuseKey?: string
++): void
+\ No newline at end of file
+diff --git a/api/arkui/runtime-api/@koalaui.runtime.memo.remember.d.ets b/api/arkui/runtime-api/@koalaui.runtime.memo.remember.d.ets
+new file mode 100644
+index 000000000..1ef43786f
+--- /dev/null
++++ b/api/arkui/runtime-api/@koalaui.runtime.memo.remember.d.ets
+@@ -0,0 +1,19 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++@interface memo_intrinsic {}
++
++@memo_intrinsic
++export declare function once(callback: () => void): void 
+\ No newline at end of file
+diff --git a/api/arkui/runtime-api/@koalaui.runtime.memo.repeat.d.ets b/api/arkui/runtime-api/@koalaui.runtime.memo.repeat.d.ets
+new file mode 100644
+index 000000000..7fcd16536
+--- /dev/null
++++ b/api/arkui/runtime-api/@koalaui.runtime.memo.repeat.d.ets
+@@ -0,0 +1,23 @@
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { KoalaCallsiteKey, int32 } from "@koalaui/common"
++
++export declare function RepeatByArray<T>(
++    array: ReadonlyArray<T>,
++    key: (element: T, index: int32) => KoalaCallsiteKey,
++    /** @memo */
++    action: (element: T, index: int32) => void
++);
+\ No newline at end of file
+diff --git a/api/arkui/stateManagement/animation/GlobalTimer.static.d.ets b/api/arkui/stateManagement/animation/GlobalTimer.static.d.ets
+new file mode 100644
+index 000000000..c87042e1a
+--- /dev/null
++++ b/api/arkui/stateManagement/animation/GlobalTimer.static.d.ets
+@@ -0,0 +1,23 @@
++'use static'
++/*
++ * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { int64 } from "arkui.stateManagement.common"
++import { MutableState, StateContext } from "arkui.stateManagement.states.State"
++
++export declare function createAnimationTimer(context: StateContext, initial: int64 = 0): MutableState<int64>
+diff --git a/api/arkui/stateManagement/common.static.d.ets b/api/arkui/stateManagement/common.static.d.ets
+new file mode 100644
+index 000000000..27b7ee23e
+--- /dev/null
++++ b/api/arkui/stateManagement/common.static.d.ets
+@@ -0,0 +1,26 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++
++export type int32 = int
++export type uint32 = int
++export type int64 = long
++export type float32 = float
++export type float64 = double
++export type MemoCallSiteKey = int;
+diff --git a/api/arkui/stateManagement/decorator.static.d.ets b/api/arkui/stateManagement/decorator.static.d.ets
+index bb373fcce..c9deb2686 100644
+--- a/api/arkui/stateManagement/decorator.static.d.ets
++++ b/api/arkui/stateManagement/decorator.static.d.ets
+@@ -19,6 +19,8 @@
+  */
+ 
+ import { ExtendableComponent } from '../component/extendableComponent';
++import { SubscribedAbstractProperty, LocalStorage } from 'arkui.Storage';
++export { SubscribedAbstractProperty } from 'arkui.Storage';
+  
+ /**
+  * Defining State annotation
+@@ -29,6 +31,11 @@ import { ExtendableComponent } from '../component/extendableComponent';
+ @Retention({policy: "SOURCE"})
+ export declare @interface State {};
+ 
++@Retention({policy: "SOURCE"})
++export @interface BuilderLambda {
++    name: string
++}
++
+ /**
+  * Defining Prop annotation
+  * Prop is an annotation which is mutable, and its changes will not be synchronized to the parent component.
+@@ -1304,3 +1311,155 @@ export declare interface IMonitorPathInfo {
+      */
+     valueCallback: MonitorValueCallback;
+ }
++
++export declare class PlainStructProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, value?: Value)
++    init(value: Value | undefined): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class BuilderParamDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, value?: Value)
++    init(value: Value | undefined): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class LinkDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    linkTo(property: Value | SubscribedAbstractProperty<Value> | undefined): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class StateDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(value?: Value, initial?: Value): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class PropDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(value?: Value, initial?: Value): void
++    update(value?: Value): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class ObjectLinkDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(value?: Value, initial?: Value): void
++    update(value?: Value): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class ProvideDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(value?: Value, initial?: Value): void
++    provide(provideKey?: string): void
++    checkOverrides(provideKey?: string): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class ConsumeDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(provideKey?: string): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class ConsumerDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(defaultValue: Value, provideKey?: string): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class StorageLinkDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(value: Value, storageKey?: string): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class LocalStorageLinkDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(value: Value, storage: LocalStorage, storageKey?: string): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class StoragePropDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(value: Value, storageKey?: string): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class LocalStoragePropDecoratorProperty<Value> implements SubscribedAbstractProperty<Value> {
++    constructor(name: string, listener?: () => void)
++    init(value: Value, storage: LocalStorage, storageKey?: string): void
++    info(): string
++    get(): Value
++    set(value: Value): void
++    subscribe(listener: () => void): void
++    unsubscribe(listener: () => void): void
++    aboutToBeDeleted(): void
++}
++
++export declare class ParamDecoratorProperty<Value> extends LinkDecoratorProperty<Value> {
++  constructor(name: string, listener?: () => void)
++  init(value: SubscribedAbstractProperty<Value> | Value | undefined, isOnce: boolean): void
++}
+diff --git a/api/arkui/stateManagement/memo/bind.static.d.ets b/api/arkui/stateManagement/memo/bind.static.d.ets
+new file mode 100644
+index 000000000..6e6d2f267
+--- /dev/null
++++ b/api/arkui/stateManagement/memo/bind.static.d.ets
+@@ -0,0 +1,34 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { memo } from "arkui.stateManagement.runtime"
++import { MemoCallSiteKey } from "arkui.stateManagement.common"
++import { StateContext } from "arkui.stateManagement.states.State"
++
++export declare class MemoCallbackContext {
++    readonly context: StateContext
++    readonly id: MemoCallSiteKey
++    constructor(context: StateContext, id: MemoCallSiteKey)
++    @memo static Make(): MemoCallbackContext
++    call(@memo callback: (args: Int32Array) => number, args: Int32Array): number
++}
++export declare function memoBind<T>(@memo item: (arg: T) => void, value: T): @memo () => void
++export declare function memoBind2<T1, T2>(@memo item: (arg1: T1, arg2: T2) => void, value1: T1, value2: T2): @memo () => void
++export declare function memoPartialBind2_1<T1, T2>(@memo item: (arg1: T1, arg2: T2) => void, value1: T1): @memo (arg2: T2) => void
++export declare function memoPartialBind3_2<T1, T2, T3>(@memo item: (arg1: T1, arg2: T2, arg3: T3) => void, value1: T1): @memo (arg2: T2, arg3: T3) => void
+diff --git a/api/arkui/stateManagement/memo/changeListener.static.d.ets b/api/arkui/stateManagement/memo/changeListener.static.d.ets
+new file mode 100644
+index 000000000..5c1e51351
+--- /dev/null
++++ b/api/arkui/stateManagement/memo/changeListener.static.d.ets
+@@ -0,0 +1,23 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { memo_intrinsic } from "arkui.stateManagement.runtime"
++
++export declare function OnChange<Value>(value: Value, listener: (value: Value) => void): void
++@memo_intrinsic export declare function RunEffect<Value>(value: Value, effect: (value: Value) => void): void
+\ No newline at end of file
+diff --git a/api/arkui/stateManagement/memo/contextLocal.static.d.ets b/api/arkui/stateManagement/memo/contextLocal.static.d.ets
+new file mode 100644
+index 000000000..6946aa449
+--- /dev/null
++++ b/api/arkui/stateManagement/memo/contextLocal.static.d.ets
+@@ -0,0 +1,26 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { memo, memo_intrinsic } from "arkui.stateManagement.runtime"
++import { ReadonlyTreeNode } from "arkui.stateManagement.tree.ReadonlyTreeNode"
++import { ReadableState } from "arkui.stateManagement.states.State"
++
++@memo_intrinsic export declare function contextLocalValue<Value = ReadonlyTreeNode>(name: string): Value
++@memo_intrinsic export declare function contextLocalScope<Value>(name: string, value: Value, @memo content: () => void): void
++@memo_intrinsic export declare function contextLocal<Value>(value: string): ReadableState<Value> | undefined;
+diff --git a/api/arkui/stateManagement/memo/entry.static.d.ets b/api/arkui/stateManagement/memo/entry.static.d.ets
+new file mode 100644
+index 000000000..506c0e0e9
+--- /dev/null
++++ b/api/arkui/stateManagement/memo/entry.static.d.ets
+@@ -0,0 +1,43 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { MemoCallSiteKey } from "arkui.stateManagement.common"
++import { memo, memo_entry } from "arkui.stateManagement.runtime"
++import { ComputableState, StateContext, StateManager } from "arkui.stateManagement.states.State"
++import { GlobalStateManager } from "arkui.stateManagement.states.GlobalStateManager"
++import { IncrementalNode } from "arkui.stateManagement.tree.IncrementalNode"
++
++export declare function memoRoot<Node extends IncrementalNode>(
++    node: Node,
++    @memo
++    update: (node: Node) => void,
++    manager: StateManager = GlobalStateManager.instance
++): ComputableState<Node>
++@memo_entry export declare function memoEntry<R>(
++    __memo_context: StateContext,
++    __memo_id: MemoCallSiteKey,
++    @memo entry: () => R): R
++@memo_entry export declare function memoEntry1<T, R>(
++    __memo_context: StateContext,
++    __memo_id: MemoCallSiteKey,
++    @memo entry: (arg: T) => R, arg: T): R
++@memo_entry export declare function memoEntry2<T1, T2, R>(
++    __memo_context: StateContext,
++    __memo_id: MemoCallSiteKey,
++    @memo entry: (arg1: T1, arg2: T2) => R, arg1: T1, arg2: T2): R
+diff --git a/api/arkui/stateManagement/memo/node.static.d.ets b/api/arkui/stateManagement/memo/node.static.d.ets
+new file mode 100644
+index 000000000..de5b61e58
+--- /dev/null
++++ b/api/arkui/stateManagement/memo/node.static.d.ets
+@@ -0,0 +1,32 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { MemoCallSiteKey, uint32 } from "arkui.stateManagement.common"
++import { memo, memo_intrinsic } from "arkui.stateManagement.runtime"
++import { IncrementalNode } from "arkui.stateManagement.tree.IncrementalNode"
++
++@memo_intrinsic export declare function NodeAttach<Node extends IncrementalNode>(
++    create: () => Node, @memo update: (node: Node) => void, reuseKey?: string): void
++@memo_intrinsic export declare function contextNode<T extends IncrementalNode>(kind: uint32 = 1, name?: string): T
++export declare class DataNode<Data> extends IncrementalNode {
++    data: Data | undefined
++    constructor(kind: uint32 = 1)
++    static attach<Data>(kind: uint32, data: Data, onDataChange?: () => void): void
++    static extract<Data>(kind: uint32, node: IncrementalNode): Data | undefined
++}
+diff --git a/api/arkui/stateManagement/memo/remember.static.d.ets b/api/arkui/stateManagement/memo/remember.static.d.ets
+new file mode 100644
+index 000000000..32bdc98db
+--- /dev/null
++++ b/api/arkui/stateManagement/memo/remember.static.d.ets
+@@ -0,0 +1,49 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { float64 } from "arkui.stateManagement.common"
++import { memo_intrinsic, memo_skip } from "arkui.stateManagement.runtime"
++import { memo } from "arkui.stateManagement.runtime"
++import { MutableState, ArrayState, ControlledScope } from "arkui.stateManagement.states.State"
++
++@memo_intrinsic export declare function memoize<Value>(compute: () => Value): Value
++@memo_intrinsic export declare function memoLifecycle(onAttach: () => void, onDetach: () => void): void
++@memo_intrinsic export declare function once(callback: () => void): void
++@memo_intrinsic export declare function remember<Value>(compute: () => Value): Value
++@memo_intrinsic export declare function rememberDisposable<Value>(
++    compute: () => Value, cleanup: (value: Value | undefined) => void): Value
++@memo_intrinsic export declare function rememberMutableState<Value>(
++    initial: (() => Value) | Value): MutableState<Value>
++@memo_intrinsic export declare function rememberArrayState<Value>(
++    initial?: () => ReadonlyArray<Value>): ArrayState<Value>
++@memo export declare function rememberMutableAsyncState<Value>(
++    compute: () => Promise<Value | undefined>,
++    initial?: Value,
++    onError?: (error: Error) => void): MutableState<Value | undefined>
++@memo export declare function rememberComputableState<Key, Value>(
++    key: Key,
++    @memo_skip compute: (key: Key) => Promise<Value | undefined>,
++    initial?: Value,
++    onError?: (error: Error) => void): MutableState<Value | undefined>
++@memo export declare function rememberComputableValue<Key, Value>(
++    key: Key,
++    @memo_skip compute: (key: Key) => Promise<Value | undefined>,
++    initial?: Value,
++    onError?: (e: Error) => void): Value | undefined
++@memo_intrinsic export declare function rememberControlledScope(invalidate: () => void): ControlledScope
+diff --git a/api/arkui/stateManagement/memo/repeat.static.d.ets b/api/arkui/stateManagement/memo/repeat.static.d.ets
+new file mode 100644
+index 000000000..e0a8c280b
+--- /dev/null
++++ b/api/arkui/stateManagement/memo/repeat.static.d.ets
+@@ -0,0 +1,37 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { MemoCallSiteKey, int32 } from "arkui.stateManagement.common"
++import { memo } from "arkui.stateManagement.runtime"
++
++@memo export declare function Repeat(count: int32, @memo action: (index: int32) => void): void
++@memo export declare function RepeatWithKey(
++    count: int32,
++    key: (index: int32) => MemoCallSiteKey,
++    @memo action: (index: int32) => void): void
++@memo export declare function RepeatByArray<T>(
++    array: ReadonlyArray<T>,
++    key: (element: T, index: int32) => MemoCallSiteKey,
++    @memo action: (element: T, index: int32) => void): void
++@memo export declare function RepeatRange<T>(
++    start: int32,
++    end: int32,
++    element: (index: int32) => T,
++    key: (element: T, index: int32) => MemoCallSiteKey,
++    @memo action: (element: T, index: int32) => void): void
+\ No newline at end of file
+diff --git a/api/arkui/stateManagement/memo/testing.static.d.ets b/api/arkui/stateManagement/memo/testing.static.d.ets
+new file mode 100644
+index 000000000..f26c38c98
+--- /dev/null
++++ b/api/arkui/stateManagement/memo/testing.static.d.ets
+@@ -0,0 +1,36 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { uint32 } from "arkui.stateManagement.common"
++import { memo } from "arkui.stateManagement.runtime"
++import { ComputableState, ReadableState, StateManager } from "arkui.stateManagement.states.State"
++import { IncrementalNode } from "arkui.stateManagement.tree.IncrementalNode"
++
++export declare class TestNode extends IncrementalNode {
++    content: string
++    constructor(kind: uint32 = 1)
++    toString(): string
++    static create(@memo content: (node: TestNode) => void): ComputableState<TestNode>
++}
++export declare function testRoot(@memo content: (node: TestNode) => void): ComputableState<TestNode>
++export declare function testUpdate(
++    withCallbacks: boolean = true, manager: StateManager = GlobalStateManager.instance): uint32
++export declare function testTick<Node extends IncrementalNode>(root: ReadableState<Node>, withCallbacks: boolean = true): void
++
++export declare function toRootHierarchy<Node extends IncrementalNode>(root: ComputableState<Node>, isScopeTree: boolean = false): string
+diff --git a/api/arkui/stateManagement/memorize/state.static.d.ets b/api/arkui/stateManagement/memorize/state.static.d.ets
+new file mode 100644
+index 000000000..caa24b51a
+--- /dev/null
++++ b/api/arkui/stateManagement/memorize/state.static.d.ets
+@@ -0,0 +1,38 @@
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++/**
++ * @file
++ * @kit ArkUI
++ * @arkts 1.2
++ */
++
++/**
++ * MemoState is a mutable and remember state.
++ *
++ * @interface MemoState
++ * @syscap SystemCapability.ArkUI.ArkUI.Full
++ * @since 20
++ */
++export interface MemoState<T> {
++  /**
++   * The current value of the memoized state.
++   * @type { T }
++   * @readonly
++   * @syscap SystemCapability.ArkUI.ArkUI.Full
++   * @since 20
++   */
++  readonly value: T;
++}
+\ No newline at end of file
+diff --git a/api/arkui/stateManagement/runtime.static.d.ets b/api/arkui/stateManagement/runtime.static.d.ets
+index ec426d3e3..f94c26b55 100644
+--- a/api/arkui/stateManagement/runtime.static.d.ets
++++ b/api/arkui/stateManagement/runtime.static.d.ets
+@@ -18,8 +18,43 @@
+  * @kit ArkUI
+  */
+ 
+-import { __memo_context_type, __memo_id_type } from '../incremental/runtime/state';
++import { StateContext } from 'arkui.stateManagement.states.State'
++import { LocalStorage } from 'arkui.Storage'
++import { MemoCallSiteKey, int32, uint32, int64, float64 } from 'arkui.stateManagement.common'
++import { MutableState, ReadableState } from "arkui.stateManagement.states.State"
++import { ReadonlyTreeNode } from "arkui.stateManagement.tree.ReadonlyTreeNode"
+ 
++export { __memo_context_type, __memo_id_type } from '../incremental/runtime/state';
++export * from "arkui.stateManagement.animation.GlobalTimer"
++export { MemoCallSiteKey } from "arkui.stateManagement.common"
++export { MemoState } from "arkui.stateManagement.memorize.state"
++export * from "arkui.stateManagement.states.GlobalStateManager"
++export * from "arkui.stateManagement.states.Disposable"
++export * from "arkui.stateManagement.states.State"
++export * from "arkui.stateManagement.memo.bind"
++export * from "arkui.stateManagement.memo.changeListener"
++export * from "arkui.stateManagement.memo.contextLocal"
++export * from "arkui.stateManagement.memo.entry"
++export * from "arkui.stateManagement.memo.node"
++export * from "arkui.stateManagement.memo.remember"
++export * from "arkui.stateManagement.memo.repeat"
++export * from "arkui.stateManagement.memo.testing"
++export * from "arkui.stateManagement.tree.IncrementalNode"
++export * from "arkui.stateManagement.tree.PrimeNumbers"
++export * from "arkui.stateManagement.tree.ReadonlyTreeNode"
++export * from "arkui.stateManagement.tree.TreeNode"
++export * from "arkui.stateManagement.tree.TreePath"
++
++export type __memo_transformed_before = string
++export type __memo_transformed_after = number
++export type __memo_transformed = __memo_transformed_before
++
++export declare function __context(): StateContext
++export declare function __id(): MemoCallSiteKey
++export declare function __key(): MemoCallSiteKey
++export declare function __hash(value: string): MemoCallSiteKey
++
++// From incremental engine
+ /**
+  * Defined memo Annotation.
+  *
+@@ -36,4 +71,28 @@ export declare @interface memo {};
+  * @since 20 static
+  */
+ @Retention({policy: "SOURCE"})
+-export @interface ComponentBuilder {}
+\ No newline at end of file
++export @interface ComponentBuilder {}
++
++@Retention({policy: "SOURCE"})
++export @interface memo_intrinsic {}
++
++@Retention({policy: "SOURCE"})
++export @interface memo_entry {}
++
++@Retention({policy: "SOURCE"})
++export @interface memo_stable {}
++
++@Retention({policy: "SOURCE"})
++export @interface memo_skip {}
++
++@Retention({policy: "SOURCE"})
++export @interface memo_wrap {}
++
++/**
++ * Defining MemoSkip annotation.
++ * MemoSkip parameter will not be a state varaiable in Builder functions.
++ * @syscap SystemCapability.ArkUI.ArkUI.Full
++ * @since 20
++ */
++@Retention({policy: "SOURCE"})
++export declare @interface MemoSkip {};
+diff --git a/api/arkui/stateManagement/states/Disposable.static.d.ets b/api/arkui/stateManagement/states/Disposable.static.d.ets
+new file mode 100644
+index 000000000..1f36d2b41
+--- /dev/null
++++ b/api/arkui/stateManagement/states/Disposable.static.d.ets
+@@ -0,0 +1,27 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++
++export interface Disposable {
++    readonly disposed: boolean
++    dispose(): void
++}
++export declare function disposeContentForward<Type extends Disposable>(array: ReadonlyArray<Type | undefined>): void
++export declare function disposeContentBackward<Type extends Disposable>(array: ReadonlyArray<Type | undefined>): void
++export declare function disposeContent<Type extends Disposable>(it: IterableIterator<Type | undefined>): void
+diff --git a/api/arkui/stateManagement/states/GlobalStateManager.static.d.ets b/api/arkui/stateManagement/states/GlobalStateManager.static.d.ets
+new file mode 100644
+index 000000000..9e32dde4a
+--- /dev/null
++++ b/api/arkui/stateManagement/states/GlobalStateManager.static.d.ets
+@@ -0,0 +1,38 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { StateManager, MutableState, Equivalent, ArrayState, ValueTracker } from "arkui.stateManagement.runtime"
++
++export declare class GlobalStateManager {
++    static current: StateManager | undefined
++    static get instance(): StateManager
++    static reset(): void
++}
++export declare function updateStateManager(manager: StateManager = GlobalStateManager.instance): void
++export declare function callScheduledCallbacks(manager: StateManager = GlobalStateManager.instance): void
++export declare function scheduleCallback(
++    callback?: () => void,
++    manager: StateManager = GlobalStateManager.instance): void
++export declare function mutableState<T>(
++    value: T,
++    equivalent?: Equivalent<T>,
++    tracker?: ValueTracker<T>): MutableState<T>
++export declare function arrayState<T>(array?: ReadonlyArray<T>, equivalent?: Equivalent<T>): ArrayState<T>
++
++export declare function globalMutableState<Value>(value: Value): MutableState<Value>
+diff --git a/api/arkui/stateManagement/states/State.static.d.ets b/api/arkui/stateManagement/states/State.static.d.ets
+new file mode 100644
+index 000000000..6a93b8f89
+--- /dev/null
++++ b/api/arkui/stateManagement/states/State.static.d.ets
+@@ -0,0 +1,118 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { MemoCallSiteKey, uint32, int32 } from "arkui.stateManagement.common"
++import { IncrementalNode } from "arkui.stateManagement.tree.IncrementalNode"
++import { Disposable } from "arkui.stateManagement.states.Disposable"
++
++export declare const CONTEXT_ROOT_SCOPE: string
++export declare const CONTEXT_ROOT_NODE: string
++export type Equivalent<Value> = (oldV: Value, newV: Value) => boolean
++export declare function createStateManager(): StateManager
++export interface StateManager extends StateContext {
++    syncChanges(): void
++    isUpdateNeeded(): boolean
++    updateSnapshot(): uint32
++    updatableNode<Node extends IncrementalNode>(
++        node: Node,
++        update: (context: StateContext) => void,
++        cleanup?: () => void): ComputableState<Node>
++    scheduleCallback(callback: () => void): void
++    callCallbacks(): void
++    frozen: boolean
++    reset(): void
++
++    get currentScopeId(): int
++}
++export interface ReadableState<Value> {
++    readonly modified: boolean
++    readonly value: Value
++}
++export interface MutableState<Value> extends Disposable, ReadableState<Value> {
++    value: Value
++}
++export interface ArrayState<Item> extends ReadableState<ReadonlyArray<Item>> {
++    length: int
++    at(index: int): Item
++    get(index: int): Item
++    set(index: int, item: Item): void
++    copyWithin(target: int, start: int, end?: int): Array<Item>
++    fill(value: Item, start?: int, end?: int): Array<Item>
++    pop(): Item | undefined
++    push(...items: Item[]): int
++    reverse(): Array<Item>
++    shift(): Item | undefined
++    sort(comparator?: (a: Item, b: Item) => number): Array<Item>
++    splice(start: int, deleteCount: int | undefined, ...items: Item[]): Array<Item>
++    unshift(...items: Item[]): int
++}
++export interface ComputableState<Value> extends Disposable, ReadableState<Value> {
++    readonly recomputeNeeded: boolean
++}
++export interface StateContext {
++   readonly node: IncrementalNode | undefined // defined for all scopes within the scope that creates a node
++    attach<Node extends IncrementalNode>(id: MemoCallSiteKey, create: () => Node, update: () => void, cleanup?: () => void): void
++    compute<Value>(id: MemoCallSiteKey, compute: () => Value, cleanup?: (value: Value | undefined) => void, once?: boolean): Value
++    computableState<Value>(compute: (context: StateContext) => Value, cleanup?: (context: StateContext, value: Value | undefined) => void): ComputableState<Value>
++    mutableState<Value>(initial: Value, global?: boolean, equivalent?: Equivalent<Value>, tracker?: ValueTracker<Value>): MutableState<Value>
++    arrayState<Value>(initial?: ReadonlyArray<Value>, global?: boolean, equivalent?: Equivalent<Value>): ArrayState<Value>
++    namedState<Value>(name: string, create: () => Value, global?: boolean, equivalent?: Equivalent<Value>, tracker?: ValueTracker<Value>): MutableState<Value>
++    stateBy<Value>(name: string, global?: boolean): MutableState<Value> | undefined
++    valueBy<Value>(name: string, global?: boolean): Value
++    scope<Value>(id: MemoCallSiteKey, paramCount: int32): IncrementalScope<Value>
++    /** @internal */
++    scopeEx<Value>(
++        id: MemoCallSiteKey,
++        paramCount: int32,
++        create?: () => IncrementalNode,
++        compute?: () => Value,
++        cleanup?: (value: Value | undefined) => void,
++        once?: boolean,
++        reuseKey?: string
++    ): IncrementalScope<Value>
++    controlledScope(id: MemoCallSiteKey, invalidate: () => void): ControlledScope
++}
++export interface ValueTracker<Value> {
++    onCreate(value: Value): Value
++    onUpdate(value: Value): Value
++}
++
++/** @internal */
++export interface IncrementalScope<Value> {
++    /** @returns true if internal value can be returned as is */
++    readonly unchanged: boolean
++    /** @returns internal value if it is already computed */
++    readonly cached: Value
++    /** @returns internal value updated after the computation */
++    recache(newValue?: Value): Value
++    /** @returns internal state for parameter */
++    param<V>(index: int32, value: V): ReadableState<V>
++    paramEx<V>(index: int32, value: V, equivalent?: Equivalent<V>, name?: string, contextLocal?: boolean): ReadableState<V>
++    forceCompleteRerender(): void
++}
++export interface InternalScope<Value> {
++    readonly unchanged: boolean
++    readonly cached: Value
++    recache(newValue?: Value): Value
++    param<V>(index: int32, value: V): ReadableState<V>
++}
++export interface ControlledScope {
++    enter(): void
++    leave(): void
++}
+diff --git a/api/arkui/stateManagement/storage/localStorage.static.d.ets b/api/arkui/stateManagement/storage/localStorage.static.d.ets
+index 619756783..689e0e13c 100644
+--- a/api/arkui/stateManagement/storage/localStorage.static.d.ets
++++ b/api/arkui/stateManagement/storage/localStorage.static.d.ets
+@@ -18,7 +18,7 @@
+  * @kit ArkUI
+  */
+ 
+-import { AbstractProperty, SubscribedAbstractProperty } from './storageProperty';
++import { AbstractProperty, SubscribedAbstractProperty } from 'arkui.Storage';
+ import { RecordData } from '@ohos.base';
+ 
+ /**
+@@ -65,7 +65,7 @@ export declare class LocalStorage {
+    * @syscap SystemCapability.ArkUI.ArkUI.Full
+    * @since 20 static
+    */
+-  public setAndRef<T>(propName: string, defaultValue: T): AbstractProperty<T>;
++  public setAndRef<T>(propName: string, defaultValue: T, ttype: Type): AbstractProperty<T> | undefined;
+   /**
+    * Create and return a two-way sync "(link") to named property
+    *
+@@ -184,4 +184,8 @@ export declare class LocalStorage {
+    * @since 20 static
+    */
+   public clear(): boolean;
++
++  public static getShared(): LocalStorage;
++  prop<T>(propName: string): SubscribedAbstractProperty<T> | undefined
++  setAndProp<T>(propName: string, defaultValue: T): SubscribedAbstractProperty<T>
+ }
+diff --git a/api/arkui/stateManagement/storage/storageProperty.static.d.ets b/api/arkui/stateManagement/storage/storageProperty.static.d.ets
+index 4a5a1a431..2d9e78386 100644
+--- a/api/arkui/stateManagement/storage/storageProperty.static.d.ets
++++ b/api/arkui/stateManagement/storage/storageProperty.static.d.ets
+@@ -58,7 +58,7 @@ export declare interface AbstractProperty<T> {
+    * @syscap SystemCapability.ArkUI.ArkUI.Full
+    * @since 20 static
+    */
+-  get(): T;
++  default get(): T;
+ 
+   /**
+    * Assign a new value to the referenced property
+diff --git a/api/arkui/stateManagement/tree/IncrementalNode.static.d.ets b/api/arkui/stateManagement/tree/IncrementalNode.static.d.ets
+new file mode 100644
+index 000000000..a76ae43f6
+--- /dev/null
++++ b/api/arkui/stateManagement/tree/IncrementalNode.static.d.ets
+@@ -0,0 +1,50 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { uint32, MemoCallSiteKey } from 'arkui.stateManagement.common'
++import { Disposable } from 'arkui.stateManagement.states.Disposable'
++import { ReadonlyTreeNode } from 'arkui.stateManagement.tree.ReadonlyTreeNode'
++
++export declare class IncrementalNode implements Disposable, ReadonlyTreeNode {
++    _disposed: boolean
++    _child: IncrementalNode | undefined
++    _prev: IncrementalNode | undefined
++    _next: IncrementalNode | undefined
++    _parent: IncrementalNode | undefined
++    _incremental: IncrementalNode | undefined
++    protected onChildInserted: ((node: IncrementalNode) => void) | undefined
++    protected onChildRemoved: ((node: IncrementalNode) => void) | undefined
++    readonly kind: uint32
++    constructor(kind: uint32 = 1)
++    isKind(kind: uint32): boolean
++    reuse(reuseKey: string, id: MemoCallSiteKey): Disposable | undefined
++    recycle(reuseKey: string, child: Disposable, id: MemoCallSiteKey): boolean
++    get disposed(): boolean
++    dispose(): void
++    detach(): void
++    get parent(): IncrementalNode | undefined
++    toString(): string
++    toHierarchy(): string
++    get firstChild(): IncrementalNode | undefined
++    get nextSibling(): IncrementalNode | undefined
++    get previousSibling(): IncrementalNode | undefined
++    get disposing(): boolean
++    incrementalUpdateSkip(count: uint32): void
++    incrementalUpdateDone(parent?: IncrementalNode): void
++}
+\ No newline at end of file
+diff --git a/api/arkui/stateManagement/tree/PrimeNumbers.static.d.ets b/api/arkui/stateManagement/tree/PrimeNumbers.static.d.ets
+new file mode 100644
+index 000000000..46939a9b5
+--- /dev/null
++++ b/api/arkui/stateManagement/tree/PrimeNumbers.static.d.ets
+@@ -0,0 +1,22 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { uint32 } from 'arkui.stateManagement.common'
++
++export declare const PrimeNumbers: ReadonlyArray<uint32>
+diff --git a/api/arkui/stateManagement/tree/ReadonlyTreeNode.static.d.ets b/api/arkui/stateManagement/tree/ReadonlyTreeNode.static.d.ets
+new file mode 100644
+index 000000000..dcca961d4
+--- /dev/null
++++ b/api/arkui/stateManagement/tree/ReadonlyTreeNode.static.d.ets
+@@ -0,0 +1,24 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++
++export interface ReadonlyTreeNode {
++    readonly parent: ReadonlyTreeNode | undefined
++    toHierarchy(): string
++}
+\ No newline at end of file
+diff --git a/api/arkui/stateManagement/tree/TreeNode.static.d.ets b/api/arkui/stateManagement/tree/TreeNode.static.d.ets
+new file mode 100644
+index 000000000..e44cbfe75
+--- /dev/null
++++ b/api/arkui/stateManagement/tree/TreeNode.static.d.ets
+@@ -0,0 +1,64 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { uint32, int32, float64 } from "arkui.stateManagement.common"
++import { Disposable } from "arkui.stateManagement.states.Disposable"
++import { ReadonlyTreeNode } from "arkui.stateManagement.tree.ReadonlyTreeNode"
++
++export declare class TreeNode implements Disposable, ReadonlyTreeNode {
++    myIndex: int32
++    myParent: TreeNode | undefined
++    myChildren: Array<TreeNode>
++    myIndicesValid: boolean
++    myDisposed: boolean
++    readonly kind: uint32
++    protected onChildInserted: ((node: TreeNode, index: int32) => void) | undefined
++    protected onChildRemoved: ((node: TreeNode, index: int32) => void) | undefined
++    constructor(kind: uint32 = 1)
++    get disposed(): boolean
++    dispose(): void
++    get parent(): TreeNode | undefined
++    get depth(): uint32
++    get childrenCount(): uint32
++    get children(): ReadonlyArray<TreeNode>
++    get index(): int32
++    isKind(kind: uint32): boolean
++    find<V>(valueOf: (node: TreeNode, index: int32) => V | undefined): V | undefined
++    forEach(action: (node: TreeNode, index: float64) => void): void
++    every(predicate: (node: TreeNode, index: float64) => boolean): boolean
++    some(predicate: (node: TreeNode, index: float64) => boolean): boolean
++    childAt(index: int32): TreeNode | undefined
++    appendChild(node: TreeNode): boolean
++    insertChildAt(index: int32, node: TreeNode): boolean
++    appendChildren(...nodes: TreeNode[]): boolean
++    insertChildrenAt(index: int32, ...nodes: TreeNode[]): boolean
++    removeChildAt(index: int32): TreeNode | undefined
++    removeChildrenAt(index: int32, count?: uint32): Array<TreeNode>
++    removeChild(node: TreeNode): boolean
++    removeFromParent(): void
++    removeNodes(index: int32, count: uint32): Array<TreeNode>
++    insertNodeAt(index: int32, node: TreeNode): void
++    insertable(node: TreeNode): boolean
++    accessible(index: int32, count: uint32 = 1): boolean
++    toString(): string
++    toHierarchy(): string
++    collectNodes(): Array<TreeNode>
++    collectParentsTo(array: Array<TreeNode>): void
++    collectChildrenTo(array: Array<TreeNode>, deep: boolean = false): void
++}
+\ No newline at end of file
+diff --git a/api/arkui/stateManagement/tree/TreePath.static.d.ets b/api/arkui/stateManagement/tree/TreePath.static.d.ets
+new file mode 100644
+index 000000000..215da8a1a
+--- /dev/null
++++ b/api/arkui/stateManagement/tree/TreePath.static.d.ets
+@@ -0,0 +1,30 @@
++'use static'
++/*
++ * Copyright (C) 2025 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++/**
++ * @file
++ * @kit ArkUI
++ */
++import { uint32 } from 'arkui.stateManagement.common'
++
++export declare class TreePath<Node> {
++    readonly node: Node
++    readonly parent: TreePath<Node> | undefined
++    constructor(node: Node, parent?: TreePath<Node>)
++    child(node: Node): TreePath<Node>
++    get root(): TreePath<Node>
++    get depth(): uint32
++    toString(): string
++}
+\ No newline at end of file
+diff --git a/api/graphics3d/Scene.d.ts b/api/graphics3d/Scene.d.ts
+index 042afad53..168f14a75 100644
+--- a/api/graphics3d/Scene.d.ts
++++ b/api/graphics3d/Scene.d.ts
+@@ -34,7 +34,7 @@ import { Position3, Color, GeometryDefinition, Vec2, Vec3, Vec4 } from './SceneT
+  * @syscap SystemCapability.ArkUi.Graphics3D
+  * @since 20 static
+  */
+-declare type ResourceStr = string | Resource;
++export declare type ResourceStr = string | Resource;
+ 
+ /**
+  * The scene resource parameters type.

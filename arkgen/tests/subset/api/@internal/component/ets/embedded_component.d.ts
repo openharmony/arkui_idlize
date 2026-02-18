@@ -30,5 +30,5 @@ declare class EmbeddedComponentAttribute extends CommonMethod<EmbeddedComponentA
    onError(callback: ErrorCallback): EmbeddedComponentAttribute;
 }
 
-declare const EmbeddedComponent: EmbeddedComponentInterface;
-declare const EmbeddedComponentInstance: EmbeddedComponentAttribute;
+//declare constEmbeddedComponent: EmbeddedComponentInterface;
+//declare constEmbeddedComponentInstance: EmbeddedComponentAttribute;

@@ -5,6 +5,7 @@ import arkui.component.common;
 import arkui.Graphics.Frame as Frame;
 import global.resource.Resource as Resource; 
 import ohos.arkui.observer.default as observer;
+import arkui.component.gesture.GestureEvent as GestureEvent;
 
 callback Callback_RangeUpdate = void (i32 start, i32 end, i32 cacheStart, i32 cacheEnd, boolean isLoop);
 callback Callback_CreateItem = pointer (i32 index);
@@ -54,6 +55,8 @@ interface SystemOps {
     static pointer createResourceObject(Resource resource);
 };
 
+callback GestureEventHandler = void (GestureEvent event);
+
 [Entity=Class]
 interface GestureOps {
     static pointer createTapGesture(number fingers, number count, f64 distanceThreshold, boolean isFingerCountLimited);
@@ -64,11 +67,11 @@ interface GestureOps {
     static pointer createRotationGesture(number fingers, number angle, boolean isFingerCountLimited);
     static pointer createSwipeGesture(number fingers, SwipeDirection direction, number speed, boolean isFingerCountLimited);
     static pointer createGestureGroup(GestureMode mode);
-    static void setOnAction(pointer gesture, Callback_GestureEvent_Void  onAction);
-    static void setOnActionStart(pointer gesture, Callback_GestureEvent_Void  onActionStart);
-    static void setOnActionUpdate(pointer gesture, Callback_GestureEvent_Void  onActionUpdate);
-    static void setOnActionEnd(pointer gesture, Callback_GestureEvent_Void  onActionEnd);
-    static void setOnActionCancel(pointer gesture, Callback_GestureEvent_Void  onActionCancel);
+    static void setOnAction(pointer gesture, GestureEventHandler onAction);
+    static void setOnActionStart(pointer gesture, GestureEventHandler onActionStart);
+    static void setOnActionUpdate(pointer gesture, GestureEventHandler onActionUpdate);
+    static void setOnActionEnd(pointer gesture, GestureEventHandler onActionEnd);
+    static void setOnActionCancel(pointer gesture, GestureEventHandler onActionCancel);
     static void setOnCancel(pointer gesture, Callback_Void onCancel);
     static void setGestureTag(pointer gesture, String tag);
     static void setAllowedTypes(pointer gesture, sequence<SourceTool> types);
@@ -229,7 +232,7 @@ interface BuilderNodeOps {
     boolean postInputEvent(optional InputEventType event);
     pointer setRootFrameNodeInBuilderNode(pointer node);
 };
-typedef (TouchEvent or MouseEvent or AxisEvent) InputEventType;
+typedef InputEventType = (TouchEvent or MouseEvent or AxisEvent);
 
 [Entity=Class]
 interface NodeContainerOps {

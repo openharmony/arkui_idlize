@@ -83,7 +83,6 @@ import {
     IDLF32Type,
     IDLF64Type,
     IDLBufferType,
-    isUnspecifiedGenericType,
     IDLUnknownType,
     IDLBooleanType,
     IDLNumberType,
@@ -96,12 +95,13 @@ import {
     IDLFunctionType,
     getQualifiedName,
     isType,
-    IDLObjectType
+    IDLObjectType,
+    isConstant,
 } from "../idl"
-import { resolveSyntheticType, toIDLFile } from "./deserialize"
+import { resolveSyntheticType, parseIDLFile } from "./deserialize"
 import { Language } from "../Language"
 import { warn } from "../util"
-import { isInIdlize } from "../idlize"
+import { isInIdlize } from "../idl"
 import { generatorConfiguration } from "../config"
 
 export class CustomPrintVisitor {
@@ -136,6 +136,8 @@ export class CustomPrintVisitor {
             this.printVersion(node)
         } else if (isNamespace(node)) {
             this.printNamespace(node)
+        } else if (isConstant(node)) {
+            this.printConstant(node)
         } else {
             throw new Error(`Unexpected node kind: ${IDLKind[node.kind!]}`)
         }
@@ -380,8 +382,6 @@ export class CustomPrintVisitor {
                 return `${type.elementType.map(it => this.printTypeForTS(it)).join(",")}[]`
             return `${mapContainerType(type)}<${type.elementType.map(it => this.printTypeForTS(it)).join(",")}>`
         }
-        if (isUnspecifiedGenericType(type))
-            return `${type.name}<${type.typeArguments.map(it => this.printTypeForTS(it)).join(",")}>`
         if (isReferenceType(type)) return this.toTypeName(type)
         if (isUnionType(type)) return `(${type.types.map(it => this.printTypeForTS(it)).join("|")})`
         if (isTypeParameterType(type)) return type.name
@@ -402,8 +402,14 @@ export class CustomPrintVisitor {
                     }
                 }
                 let typeSpec = getQualifiedName(decl, "namespace.name")
-                if (node.typeArguments)
-                    typeSpec = `${typeSpec}<${node.typeArguments.map(it => this.printTypeForTS(it))}>`
+                if (node.typeArguments) {
+                    let typeArguments = node.typeArguments
+                    if (node.name.endsWith(".Callback")) {
+                        console.log("Removing second type arguments for Callback type. Reason: in .d.ts declarations will be only callback with one type argument from ohos.base")
+                        typeArguments = [typeArguments[0]]
+                    }
+                    typeSpec = `${typeSpec}<${typeArguments.map(it => this.printTypeForTS(it))}>`
+                }
                 return typeSpec
             }
         }
@@ -439,7 +445,7 @@ export class CustomPrintVisitor {
 
 export function idlToDtsString(name: string, content: string): string {
     let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
-    const [idlFile] = toIDLFile(name, {content})
+    const idlFile = parseIDLFile(name, content)
     printer.printPackage(idlFile)
     linearizeNamespaceMembers(idlFile.entries).forEach(it => {
         transformMethodsAsync2ReturnPromise(it)

@@ -14,13 +14,13 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, maybeRestoreGenerics, isInExternalModule, isInStdlibModule } from "@idlizer/core"
+import { Language, LayoutNodeRole, isStaticMaterialized, maybeRestoreGenerics, isInExternalModule, isInStdlibModule, isTopLevelConflicted, getInitializerFeature, lib } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
-import { createDependenciesCollector, ArkTSInterfaceDependenciesCollector } from "./idl/IdlDependenciesCollector"
-import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
+import { createDependenciesCollector, DependenciesCollector } from "./idl/IdlDependenciesCollector"
+import { getInternalClassName, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
 
 export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | idl.IDLReferenceType): ImportFeature {
-    const featureNameConvertor = createFeatureNameConvertor(library.language)
+    const featureNameConvertor = library.createTypeNameConvertor(library.language)
     if (idl.isReferenceType(node)) {
         const decl = library.resolveTypeReference(node)
         if (!decl) {
@@ -33,10 +33,14 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
         return { module: '', feature: '' }
     }
 
-    let feature = convertDeclaration(featureNameConvertor, node)
-    const featureNs = idl.getNamespaceName(node)
-    if ([Language.TS, Language.ARKTS].includes(library.language) && featureNs !== '') {
-        feature = featureNs.split('.')[0]
+    let feature = featureNameConvertor.convert(node).split(".")[0]
+    let alias: string | undefined
+    if ([Language.TS, Language.ARKTS].includes(library.language)) {
+        if (isTopLevelConflicted(library, library.language, node)) {
+            const featureNs = idl.getNamespaceName(node)
+            alias = feature
+            feature = featureNs.at(0) ?? node.name
+        }
     }
 
     const moduleName = library.layout.resolve({
@@ -45,6 +49,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
     })
     return {
         feature,
+        alias,
         module: `${moduleName}`,
         isDefault: isDefaultDeclaration(node, library.language)
     }
@@ -59,12 +64,18 @@ export function collectDeclItself(
         includeTransformedCallbacks?: boolean,
     },
 ): void {
+    if (idl.isReferenceType(node)) {
+        node = library.resolveTypeReference(node) ?? node
+    }
     if (idl.isSyntheticEntry(node)) {
         // TS needs no synthetic types
         if (library.language === Language.TS)
             return
         // ArkTS can inline callbacks and tuples, but not type literals
         if (library.language === Language.ARKTS && !(idl.isInterface(node) && node.subkind === idl.IDLInterfaceSubkind.AnonymousInterface))
+            return
+        // Kotlin can only inline callbacks
+        if (library.language === Language.KOTLIN && idl.isCallback(node))
             return
     }
     if ([Language.TS, Language.ARKTS].includes(library.language)) {
@@ -91,9 +102,9 @@ export function collectDeclItself(
         if (!feature.module) {
             return
         }
-        emitter.addFeature(feature.feature, feature.module, undefined, feature.isDefault)
+        emitter.addFeature(feature.feature, feature.module, feature.alias, feature.isDefault)
         if (options?.includeMaterializedInternals) {
-            if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
+            if (idl.isInterface(node) && isMaterialized(node, library) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
                 const ns = idl.getNamespaceName(node)
                 if (ns !== '') {
                     emitter.addFeature(ns.split('.')[0], feature.module)
@@ -123,8 +134,9 @@ export function collectDeclDependencies(
         includeMaterializedInternals?: boolean,
         includeTransformedCallbacks?: boolean,
     },
+    collector?: DependenciesCollector,
 ): void {
-    const collector = createDependenciesCollector(library)
+    collector = collector ?? createDependenciesCollector(library)
     const deps = collector.convert(node)
     if (options?.expandTypedefs) {
         for (let i = 0; i < deps.length; i++) {
@@ -143,6 +155,18 @@ export function collectDeclDependencies(
             includeTransformedCallbacks: options?.includeTransformedCallbacks,
         })
     }
+
+    if (emitter instanceof ImportsCollector) {
+        const needsConstInitializer = idl.isConstant(node) && !node.value
+        const needsPropInitializer = idl.isInterface(node)
+            && idl.isClassSubkind(node)
+            && !isMaterialized(node, library)
+            && node.properties.length > 0
+        if (needsConstInitializer || needsPropInitializer) {
+            emitter.addFeature(getInitializerFeature(library.language), library.layout.handwrittenPackage())
+        }
+    }
+
 }
 
 

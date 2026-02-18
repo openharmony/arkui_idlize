@@ -23,7 +23,7 @@ declare interface UIExtensionOptions {
    dpiFollowStrategy?: DpiFollowStrategy;
 }
 
-declare type TerminationInfo = import('./embedded_component').TerminationInfo;
+// declare type TerminationInfo = import('./embedded_component').TerminationInfo;
 
 declare interface UIExtensionProxy {
    send(data: Record<string, Object>): void;
@@ -41,6 +41,11 @@ interface UIExtensionComponentInterface {
    ): UIExtensionComponentAttribute;
 }
 
+interface UIExtensionResult {
+    code: number;
+    want?: Want;
+}
+
 declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComponentAttribute> {
    onRemoteReady(
        callback: Callback<UIExtensionProxy>
@@ -49,10 +54,7 @@ declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComp
        callback: Callback<Record<string, Object>>
    ): UIExtensionComponentAttribute;
    onResult(
-       callback: Callback<{
-          code: number;
-          want?: Want;
-       }>
+       callback: Callback<UIExtensionResult>
    ): UIExtensionComponentAttribute;
    onRelease(
        callback: Callback<number>
@@ -63,6 +65,6 @@ declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComp
    onTerminated(callback: Callback<TerminationInfo>): UIExtensionComponentAttribute;
 }
 
-declare const UIExtensionComponent: UIExtensionComponentInterface;
+//declare constUIExtensionComponent: UIExtensionComponentInterface;
 
-declare const UIExtensionComponentInstance: UIExtensionComponentAttribute;
+//declare constUIExtensionComponentInstance: UIExtensionComponentAttribute;

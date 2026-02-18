@@ -25,6 +25,6 @@ declare class CalendarPickerAttribute extends CommonMethod<CalendarPickerAttribu
     altEdgeAlign(alignType: CalendarAlign, offset?: AltOffset): CalendarPickerAttribute;
 }
 
-declare const CalendarPicker: CalendarPickerInterface
+//declare constCalendarPicker: CalendarPickerInterface
 
-declare const CalendarPickerInstance: CalendarPickerAttribute;
+//declare constCalendarPickerInstance: CalendarPickerAttribute;

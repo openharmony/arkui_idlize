@@ -16,20 +16,34 @@ import * as path from "path"
 import { join } from "node:path"
 import * as idl from "@idlizer/core"
 import { writeIntegratedFile } from "./common"
-import { getNamespaceName, getNamespacesPathFor, IDLEntry, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
+import { getNamespaceName, getNamespacesPathFor, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary, wrapCurrentFileDescription } from "@idlizer/core"
 import { ImportsCollector } from "./ImportsCollector"
-import { ARKOALA_PACKAGE } from "./printers/lang/Java";
 import { tsCopyrightAndWarning } from "./FileGenerators"
 import { peerGeneratorConfiguration } from "../DefaultConfiguration"
+import { collectDeclItself } from "./ImportsCollectorUtils"
 
 export interface PrinterResult {
     over: LayoutTargetDescription
-    collector: ImportsCollector
-    content: LanguageWriter
+    generate: () => LanguageWriter | {
+        imports: ImportsCollector
+        content: LanguageWriter
+    }
     private?: boolean
     weight?: number
     ignoreNamespace?: boolean
 }
+
+interface ExecutedPrinterResult {
+    over: LayoutTargetDescription
+    content: LanguageWriter
+    imports: ImportsCollector
+    private?: boolean
+    weight?: number
+    ignoreNamespace?: boolean
+
+}
+
+export type OutputFile = { content: string[], imports: ImportsCollector, extension: string, exported: boolean }
 
 export interface PrinterClass {
     print(library: PeerLibrary): PrinterResult[]
@@ -57,8 +71,16 @@ export function install(
         fileExtension?: string,
         customLayout?: LayoutManager,
         isDeclared?: boolean,
-    }): string[] {
-    const storage = new Map<string, PrinterResult[]>()
+}): string[] {
+    return installFiles(outDir, library, printFiles(library, printers, options))
+}
+
+export function printFiles(library: PeerLibrary, printers: Printer[], options?: {
+    fileExtension?: string,
+    customLayout?: LayoutManager,
+    isDeclared?: boolean,
+}): Map<string, OutputFile> {
+    const storage = new Map<string, ExecutedPrinterResult[]>()
 
     // groupBy
     const layout = options?.customLayout ?? library.layout
@@ -71,54 +93,73 @@ export function install(
         if (!storage.has(filePath)) {
             storage.set(filePath, [])
         }
-        storage.get(filePath)?.push(it)
+        const executionResult = wrapCurrentFileDescription(it.over, it.generate)
+        storage.get(filePath)?.push({
+            over: it.over,
+            ignoreNamespace: it.ignoreNamespace,
+            private: it.private,
+            weight: it.weight,
+            content: executionResult instanceof LanguageWriter ? executionResult : executionResult.content,
+            imports: executionResult instanceof LanguageWriter ? new ImportsCollector : executionResult.imports,
+        })
     })
 
     // print
-    const installedToExport: string[] = []
+    const result: Map<string, OutputFile> = new Map()
     Array.from(storage.entries()).forEach(([filePath, results]) => {
-        const installPath = join(outDir, filePath) + (options?.fileExtension ?? library.language.extension)
-        if (!results.every(it => !!it.private || !isEntryExported(it.over.node))) {
-            installedToExport.push(installPath)
-        }
         results.sort((a, b) => (a.weight ?? 0) - (b.weight ?? 0))
         results.sort(sortByNamespaces)
 
         const imports = new ImportsCollector()
-        let content: string[] = []
-
         results.forEach(it => {
-            it.content.features.forEach(([feature, module]) => {
-                imports.addFeature({ feature, module })
+            wrapCurrentFileDescription(it.over, () => {
+                it.content.features.forEach(feature => {
+                    if (feature.type === "raw")
+                        imports.addFeature(feature)
+                    else
+                        collectDeclItself(library, feature.node, imports)
+                })
+                imports.merge(it.imports)
             })
-            imports.merge(it.collector)
         })
-        content = content.concat(printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }))
+        result.set(filePath, {
+            content: printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }),
+            imports,
+            extension: options?.fileExtension ?? library.language.extension,
+            exported: !results.every(it => !!it.private || !isEntryExported(it.over.node))
+        })
+    })
+    return result
+}
+
+export function installFiles(outDir: string, library: PeerLibrary, files: Map<string, OutputFile>): string[] {
+    const installedToExport: string[] = []
+    files.forEach(({ content, imports, extension, exported }, filePath) => {
+        const codePrefix: string[] = []
         if (library.language === Language.KOTLIN) {
-            imports.clear()
-            content = ['@file:OptIn(ExperimentalForeignApi::class)', 'package idlize', 'import kotlinx.cinterop.*', 'import koalaui.interop.*'].concat(content)
+            codePrefix.push(`package ${filePath}\n`)
         }
         if (library.language === Language.CJ) {
             imports.clear()
-            content = ['package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*', 'import KoalaRuntime.memoize.*', 'import std.time.DateTime'].concat(content)
-        }
-        if (library.language === Language.JAVA) {
-            content = [`package ${ARKOALA_PACKAGE};`].concat(content)
+            codePrefix.push('package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*', 'import KoalaRuntime.memoize.*', 'import std.time.DateTime')
         }
 
-        const text = tsCopyrightAndWarning(
-            imports.printToLines(filePath, outDir)
-                .concat(content)
-                .join('\n')
-        )
+        const importsWriter = library.createLanguageWriter()
+        imports.print(importsWriter, filePath, outDir)
+        const completeCode = codePrefix.concat(importsWriter.getOutput()).concat(content).join('\n')
+        const text = tsCopyrightAndWarning(completeCode)
 
+        const installPath = join(outDir, filePath) + extension
+        if (exported) {
+            installedToExport.push(installPath)
+        }
         writeIntegratedFile(installPath, text, 'producing')
     })
 
     return installedToExport
 }
 
-function printWithNamespaces(library: PeerLibrary, results: PrinterResult[], options: { isDeclared: boolean }): string[] {
+function printWithNamespaces(library: PeerLibrary, results: ExecutedPrinterResult[], options: { isDeclared: boolean }): string[] {
     const resultsContent = library.createLanguageWriter()
     const resultsContentCache: string[] = []
     for (const record of results) {
@@ -129,7 +170,7 @@ function printWithNamespaces(library: PeerLibrary, results: PrinterResult[], opt
     return resultsContent.getOutput()
 }
 
-function wrapNamespaces(item: PrinterResult | undefined, alreadyWrapped: string[], writer: LanguageWriter, options: { isDeclared: boolean }): void {
+function wrapNamespaces(item: ExecutedPrinterResult | undefined, alreadyWrapped: string[], writer: LanguageWriter, options: { isDeclared: boolean }): void {
     const node = item?.over.node
     const ns = node ? getNamespacePathFromResult(item) : []
     let bestMatch = 0
@@ -149,14 +190,14 @@ function wrapNamespaces(item: PrinterResult | undefined, alreadyWrapped: string[
     }
 }
 
-function sortByNamespaces(a: PrinterResult, b: PrinterResult): number {
+function sortByNamespaces(a: ExecutedPrinterResult, b: ExecutedPrinterResult): number {
     return getNamespaceNameFromResult(a).localeCompare(getNamespaceNameFromResult(b))
 }
 
-function getNamespaceNameFromResult(a:PrinterResult): string {
+function getNamespaceNameFromResult(a:ExecutedPrinterResult): string {
     return a.ignoreNamespace ? '' : getNamespaceName(a.over.node)
 }
 
-function getNamespacePathFromResult(a:PrinterResult): idl.IDLNamespace[] {
+function getNamespacePathFromResult(a:ExecutedPrinterResult): idl.IDLNamespace[] {
     return a.ignoreNamespace ? [] : getNamespacesPathFor(a.over.node)
 }
