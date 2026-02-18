@@ -13,7 +13,7 @@
     "compile:self": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/src/cli/index.js",
-    "test": "mocha",
+    "test": "harness",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "clean": "rm -rf dist",
@@ -50,7 +50,6 @@
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "eslint": "^8.55.0",
-    "mocha": "^9.2.2",
     "prettier": "^3.1.1",
     "ts-node": "^10.9.2"
   }
