@@ -25,8 +25,6 @@
         "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^11.1.6",
-        "@types/chai": "^4.3.1",
-        "source-map-support": "^0.5.21",
         "@idlizer/rimraf": "2.2.2+devel"
     },
     "scripts": {

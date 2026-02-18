@@ -29,5 +29,4 @@ tsNode.register({
     // If uncommented, running tests doesn't perform type checks.
     // transpileOnly: true,
     project: path.resolve(`test`, `tsconfig${unmemoized_suffix}.json`),
-    compiler: "@koalaui/ets-tsc"
 })
