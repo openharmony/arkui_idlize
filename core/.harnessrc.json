@@ -1,0 +1,4 @@
+{
+    "spec": "./test/**/*.ts",
+    "require": ["@koalaui/harness/register"]
+}
