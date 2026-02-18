@@ -96,31 +96,32 @@ function tokenize(input: string): Token[] {
   const isAlpha = (ch: string) => /[a-zA-Z_]/.test(ch);
   const isAlphaNumeric = (ch: string) => isAlpha(ch) || isDigit(ch);
 
-  const keywords: Record<string, TokenType> = {
-    'var': TokenType.VAR,
-    'mut': TokenType.MUT,
-    'const': TokenType.CONST,
-    'if': TokenType.IF,
-    'then': TokenType.THEN,
-    'else': TokenType.ELSE,
-    'while': TokenType.WHILE,
-    'do': TokenType.DO,
-    'return': TokenType.RETURN,
-    'new': TokenType.NEW,
-    'static': TokenType.STATIC,
-    'struct': TokenType.STRUCT,
-    'class': TokenType.CLASS,
-    'field': TokenType.FIELD,
-    'function': TokenType.FUNCTION,
-    'private': TokenType.PRIVATE,
-    'get': TokenType.GET,
-    'set': TokenType.SET,
-    'native': TokenType.NATIVE,
-    'optional': TokenType.OPTIONAL,
-    'readonly': TokenType.READONLY,
-    'declare': TokenType.DECLARE,
-    'externC': TokenType.EXTERNC,
-  };
+  const keywords = new Map<string, TokenType>([
+    ['var', TokenType.VAR],
+    ['mut', TokenType.MUT],
+    ['const', TokenType.CONST],
+    ['if', TokenType.IF],
+    ['then', TokenType.THEN],
+    ['else', TokenType.ELSE],
+    ['while', TokenType.WHILE],
+    ['do', TokenType.DO],
+    ['return', TokenType.RETURN],
+    ['new', TokenType.NEW],
+    ['static', TokenType.STATIC],
+    ['struct', TokenType.STRUCT],
+    ['class', TokenType.CLASS],
+    ['field', TokenType.FIELD],
+    ['function', TokenType.FUNCTION],
+    ['private', TokenType.PRIVATE],
+    ['get', TokenType.GET],
+    ['set', TokenType.SET],
+    ['native', TokenType.NATIVE],
+    ['optional', TokenType.OPTIONAL],
+    ['readonly', TokenType.READONLY],
+    ['declare', TokenType.DECLARE],
+    ['externC', TokenType.EXTERNC],
+  ]);
+
 
   while (position < input.length) {
     const start = position;
@@ -294,8 +295,12 @@ function tokenize(input: string): Token[] {
     // Numbers
     if (isDigit(ch)) {
       let value = '';
-      while (position < input.length && isDigit(input[position])) {
+      let gotDot = false
+      while (position < input.length && isDigit(input[position]) || (input[position] === '.' && !gotDot)) {
         value += input[position];
+        if (input[position] === '.') {
+          gotDot = true
+        }
         position++;
       }
       tokens.push({ type: TokenType.NUMBER, lexeme: value, position: start });
@@ -309,8 +314,7 @@ function tokenize(input: string): Token[] {
         text += input[position];
         position++;
       }
-
-      const type = keywords[text] || TokenType.IDENTIFIER;
+      const type = keywords.get(text) ?? TokenType.IDENTIFIER;
       tokens.push({ type, lexeme: text, position: start });
       continue;
     }

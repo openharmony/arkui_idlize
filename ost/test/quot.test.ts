@@ -13,6 +13,10 @@ const quotTest = describe('Quot OST builder', [
                 E.c(42)
             )
             assertEquals(
+                quot.E`($ (@self->x->toString) [])`,
+                E.call(E.get(E.get(Vs.self, 'x'), 'toString'), [])
+            )
+            assertEquals(
                 quot.E`(= (@self->x) x)`,
                 E.bin('=', E.get(Vs.self, 'x'), E.v('x'))
             )
@@ -21,7 +25,7 @@ const quotTest = describe('Quot OST builder', [
                 E.bin('=', E.get(Vs.self, E.c(0)), E.v('x'))
             )
             assertEquals(
-                quot.E`(+ 2 (* x 8))`,
+                quot.E`(+ 2.3 (* x 8))`,
                 E.bin('+', E.c(2), E.bin('*', E.v('x'), E.c(8)))
             )
             assertEquals(
