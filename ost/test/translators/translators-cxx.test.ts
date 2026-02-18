@@ -1,6 +1,6 @@
-import { E, S, T, D } from '../../src/builders/original';
-import { processNPrintCXX } from '../../src/printers/translators/cxx';
-import { assertEquals, describe, runTestSuite } from '../test-utils';
+import { E, S, T, D } from '../../src/builders/original.js';
+import { processNPrintCXX } from '../../src/printers/translators/cxx.js';
+import { assertEquals, describe, runTestSuite } from '../test-utils.js';
 
 // Test C++ translator
 const cxxTranslatorTests = describe('C++ Translator Tests', [

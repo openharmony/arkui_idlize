@@ -93,7 +93,8 @@ export class IdentityTransformer {
       implicitThisType: decl.implicitThisType ? this.goType(decl.implicitThisType) : undefined,
       parameters: decl.parameters.map(p => ({
         name: p.name,
-        type: this.goType(p.type)
+        type: this.goType(p.type),
+        expression: p.expression ? this.goExpression(p.expression) : undefined
       })),
       returnType: this.goType(decl.returnType),
       body: decl.body ? this.goStatement(decl.body) : undefined

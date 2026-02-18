@@ -439,6 +439,8 @@ export interface FunctionDeclaration {
     name: string
     /** Parameter type */
     type: LWType
+    /** Parameter optional default expression (has limited support) */
+    expression?: LWExpression
   }[]
   /** Function return type */
   returnType: LWType

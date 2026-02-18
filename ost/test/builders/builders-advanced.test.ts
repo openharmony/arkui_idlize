@@ -1,7 +1,7 @@
-import { Builders } from '../../src/builders/advanced';
-import { T } from '../../src/builders/original';
-import { LWKind } from '../../src/lws';
-import { assertEquals, describe, runTestSuite } from '../test-utils';
+import { Builders } from '../../src/builders/advanced.js';
+import { T } from '../../src/builders/original.js';
+import { LWKind } from '../../src/lws.js';
+import { assertEquals, describe, runTestSuite } from '../test-utils.js';
 
 // Test Advanced Builders - simplified tests that compile
 const advancedTests = describe('Advanced Builders (Builders)', [

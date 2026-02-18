@@ -5,7 +5,7 @@
     "rootDir": "..",
     "composite": false,
     "noEmitOnError": false,
-    "module": "commonjs",
+    "module": "esnext",
     "baseUrl": ".",
     "paths": {
       "*": ["./build/lib/*", "./src/*"]

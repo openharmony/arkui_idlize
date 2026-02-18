@@ -1,6 +1,6 @@
-import { E, S, T, D } from '../../src/builders/original';
-import { processNPrintTS } from '../../src/printers/translators/typescript';
-import { assertEquals, describe, runTestSuite } from '../test-utils';
+import { E, S, T, D } from '../../src/builders/original.js';
+import { processNPrintTS } from '../../src/printers/translators/typescript.js';
+import { assertEquals, describe, runTestSuite } from '../test-utils.js';
 
 // Test TypeScript translator
 const tsTranslatorTests = describe('TypeScript Translator Tests', [
@@ -84,6 +84,15 @@ const tsTranslatorTests = describe('TypeScript Translator Tests', [
   Blue = 2
 }`;
       assertEquals(output.trim(), expected.trim());
+    }
+  },
+  {
+    name: "Function with default parameters",
+    fn: () => {
+      const fnWithParams = D.func('foo', [{ name: 'x', type: T.c('int'), expression: E.c(42) }], T.c('void'), S.block([]))
+      const output = processNPrintTS(fnWithParams, '', new Set())
+      const expected = `export function foo(x: int = 42): void {\n  \n}`
+      assertEquals(output.trim(), expected.trim())
     }
   }
 ]);
