@@ -1,5 +1,4 @@
 {
-
     "name": "@idlizer/arkgen-tests-template-arkts",
     "private": true,
     "arkts": {
@@ -16,6 +15,7 @@
         "build": "smart-arkts compile --link-name ./out/all.abc --simultaneous"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next"
+        "@koalaui/smart-arkts": "panda-next",
+        "@idlizer/rimraf": "2.2.2+devel"
     }
 }

@@ -27,7 +27,8 @@
         "@koalaui/interop": "panda-next"
     },
     "devDependencies": {
-        "@types/node": "^18.19.127"
+        "@types/node": "^18.19.127",
+        "@idlizer/rimraf": "2.2.2+devel"
     },
     "scripts": {
         "clean": "rimraf -g build",

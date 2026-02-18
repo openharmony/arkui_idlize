@@ -21,6 +21,9 @@
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^11.1.6"
     },
+    "devDependencies": {
+        "@idlizer/rimraf": "2.2.2+devel"
+    },
     "scripts": {
         "clean": "rimraf -g build lib .rollup.cache",
         "compile:self": "tsc -b . && rollup -c",

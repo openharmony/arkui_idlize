@@ -39,7 +39,7 @@
         "rollup": "^4.24.4",
         "minimist": "^1.2.8",
         "typescript": "4.9.5",
-        "rimraf": "^6.0.1"
+        "@idlizer/rimraf": "2.2.2+devel"
     },
     "scripts": {
         "--todo": "remove '--types chai' it is used just because tsc cli does not allow specifying empty types array with console flags",
