@@ -37,7 +37,7 @@
         "@types/node": "^18.19.127",
         "source-map-support": "^0.5.21",
         "@koalaui/interop": "panda-next",
-        "rimraf": "^6.0.1"
+        "@idlizer/rimraf": "2.2.2+devel"
     },
     "scripts": {
         "clean": "rimraf lib .rollup.cache build",

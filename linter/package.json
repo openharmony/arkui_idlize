@@ -24,7 +24,7 @@
         "@types/chai": "^4.3.1",
         "@types/node": "^18.19.127",
         "source-map-support": "^0.5.21",
-        "rimraf": "^6.0.1"
+        "@idlizer/rimraf": "2.2.2+devel"
     },
     "scripts": {
         "clean": "rimraf lib build",

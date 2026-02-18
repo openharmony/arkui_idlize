@@ -1,0 +1,20 @@
+{
+  "name": "@idlizer/rimraf",
+  "version": "2.2.2+devel",
+  "private": true,
+  "description": "rm -rf for Node (workspace replacement for rimraf)",
+  "type": "module",
+  "main": "src/cli.js",
+  "bin": {
+    "rimraf": "./src/cli.js"
+  },
+  "files": [
+    "src/**/*.js"
+  ],
+  "engines": {
+    "node": ">= 16"
+  },
+  "dependencies": {
+    "commander": "^10.0.0"
+  }
+}

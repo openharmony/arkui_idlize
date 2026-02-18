@@ -23,7 +23,8 @@
     "lite/sk-gen",
     "lite/bridge-gen",
     "ost",
-    "kit"
+    "kit",
+    "tools/rimraf"
   ],
   "license": "Apache-2.0",
   "keywords": [],
