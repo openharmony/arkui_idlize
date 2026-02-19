@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { isMaterialized } from '../../peer-generation/isMaterialized'
-import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
-import { InteropArgConvertor, InteropReturnTypeConvertor } from './InteropConvertors'
-import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
-import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
-import { Language } from '../../Language'
-import { LibraryInterface } from '../../LibraryInterface'
-import { maybeRestoreGenerics, maybeRestoreThrows } from '../../transformers/transformUtils'
-import { LanguageWriter } from '../LanguageWriter'
+import * as idl from '../../idl/index.js'
+import { isMaterialized } from '../../peer-generation/isMaterialized.js'
+import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor.js'
+import { InteropArgConvertor, InteropReturnTypeConvertor } from './InteropConvertors.js'
+import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations.js'
+import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager.js'
+import { Language } from '../../Language.js'
+import { LibraryInterface } from '../../LibraryInterface.js'
+import { maybeRestoreGenerics, maybeRestoreThrows } from '../../transformers/transformUtils.js'
+import { LanguageWriter } from '../LanguageWriter.js'
 
 const KBoolean = "KBoolean"
 const KByte = "KByte"

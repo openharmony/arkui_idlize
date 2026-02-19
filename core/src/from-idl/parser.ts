@@ -14,10 +14,10 @@
  */
 
 import * as fs from "node:fs"
-import * as idl from "../idl"
-import { DiagnosticException, DiagnosticMessage, Location, MessageSeverityList, Position } from "../diagnostictypes"
-import { DiagnosticMessageGroup, LoadingFatal, InternalFatal } from "../diagnosticmessages"
-import { capitalize } from "../util"
+import * as idl from "../idl/index.js"
+import { DiagnosticException, DiagnosticMessage, Location, MessageSeverityList, Position } from "../diagnostictypes.js"
+import { DiagnosticMessageGroup, LoadingFatal, InternalFatal } from "../diagnosticmessages.js"
+import { capitalize } from "../util.js"
 
 const DeprecatedTypeArguments = new DiagnosticMessageGroup("warning", "DeprecatedTypeArguments", "TypeArguments is deprecated", "TypeArguments extended attribute is deprecated")
 const DeprecatedTypeParameters = new DiagnosticMessageGroup("warning", "DeprecatedTypeParameters", "TypeParameters is deprecated", "TypeParameters extended attribute is deprecated")

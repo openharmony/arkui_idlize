@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
-import { DeclarationConvertor } from "../../LanguageWriters/nameConvertor";
-import { Language } from "../../Language";
-import { removePoints } from "../../util";
+import * as idl from "../../idl/index.js"
+import { DeclarationConvertor } from "../../LanguageWriters/nameConvertor.js";
+import { Language } from "../../Language.js";
+import { removePoints } from "../../util.js";
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     convertImport(decl: idl.IDLImport): string {

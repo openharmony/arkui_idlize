@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { isDefined, stringOrNone } from "../util"
-import { IDLNode, IDLFile, IDLKind, IDLPrimitiveType, IDLContainerType, IDLReferenceType, IDLEnum, IDLEnumMember, IDLUnionType, IDLTypeParameterType, IDLInterface, IDLImport, IDLCallable, IDLMethod, IDLParameter, IDLConstructor, IDLProperty, IDLCallback, IDLInterfaceSubkind, IDLConstant, IDLTypedef, IDLType, IDLEntry, IDLNamespace, IDLExtendedAttributes, IDLOptionalType, IDLVersion, IDLNamedNode, IDLPrimitiveTypeKind } from "./node"
+import { isDefined, stringOrNone } from "../util.js"
+import { IDLNode, IDLFile, IDLKind, IDLPrimitiveType, IDLContainerType, IDLReferenceType, IDLEnum, IDLEnumMember, IDLUnionType, IDLTypeParameterType, IDLInterface, IDLImport, IDLCallable, IDLMethod, IDLParameter, IDLConstructor, IDLProperty, IDLCallback, IDLInterfaceSubkind, IDLConstant, IDLTypedef, IDLType, IDLEntry, IDLNamespace, IDLExtendedAttributes, IDLOptionalType, IDLVersion, IDLNamedNode, IDLPrimitiveTypeKind } from "./node.js"
 
 /////////////////////////////////////////////////////////////////
 // BASICS

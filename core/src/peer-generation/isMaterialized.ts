@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { generatorConfiguration } from '../config'
-import * as idl from '../idl'
-import { Language } from '../Language'
-import { Method } from '../LanguageWriters/LanguageWriter'
-import { LibraryInterface } from '../LibraryInterface'
-import { capitalize } from '../util'
-import { getSuper, isMethodOverridden } from './getSuperType'
-import { qualifiedName } from './idl/common'
-import { ReferenceResolver } from './ReferenceResolver'
+import { generatorConfiguration } from '../config.js'
+import * as idl from '../idl/index.js'
+import { Language } from '../Language.js'
+import { Method } from '../LanguageWriters/LanguageWriter.js'
+import { LibraryInterface } from '../LibraryInterface.js'
+import { capitalize } from '../util.js'
+import { getSuper, isMethodOverridden } from './getSuperType.js'
+import { qualifiedName } from './idl/common.js'
+import { ReferenceResolver } from './ReferenceResolver.js'
 
 export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
     if (!idl.isInterfaceSubkind(declaration) && !idl.isClassSubkind(declaration)) return false

@@ -14,9 +14,9 @@
  */
 
 import { posix as path } from "node:path"
-import { getOrPut } from "./util"
-import { LanguageWriter } from "./LanguageWriters/LanguageWriter";
-import { Language } from "./Language";
+import { getOrPut } from "./util.js"
+import { LanguageWriter } from "./LanguageWriters/LanguageWriter.js";
+import { Language } from "./Language.js";
 
 class FeatureInfo {
     aliases: Set<string | undefined> = new Set()

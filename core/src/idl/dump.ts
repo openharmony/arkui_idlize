@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../IndentedPrinter"
-import { stringOrNone } from "../util"
-import { IDLNullTypeName, createPrimitiveType } from "./builders"
-import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute, isFile } from "./discriminators"
-import { IDLKeywords } from "./keywords"
-import { IDLType, IDLInterface, IDLExtendedAttributes, IDLKind, IDLParameter, IDLConstructor, IDLVariable, IDLConstant, IDLProperty, IDLNode, IDLSignature, IDLTypedef, IDLReferenceType, IDLExtendedAttribute, IDLFunction, IDLMethod, IDLFile, IDLImport, IDLNamespace, IDLCallback, IDLEntry, IDLEnumMember, IDLEnum, IDLPrimitiveType } from "./node"
+import { IndentedPrinter } from "../IndentedPrinter.js"
+import { stringOrNone } from "../util.js"
+import { IDLNullTypeName, createPrimitiveType } from "./builders.js"
+import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute, isFile } from "./discriminators.js"
+import { IDLKeywords } from "./keywords.js"
+import { IDLType, IDLInterface, IDLExtendedAttributes, IDLKind, IDLParameter, IDLConstructor, IDLVariable, IDLConstant, IDLProperty, IDLNode, IDLSignature, IDLTypedef, IDLReferenceType, IDLExtendedAttribute, IDLFunction, IDLMethod, IDLFile, IDLImport, IDLNamespace, IDLCallback, IDLEntry, IDLEnumMember, IDLEnum, IDLPrimitiveType } from "./node.js"
 
 export function escapeIDLKeyword(name: string): string {
     return name + (IDLKeywords.has(name) ? "_" : "")

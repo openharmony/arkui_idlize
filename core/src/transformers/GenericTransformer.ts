@@ -12,19 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { generatorConfiguration } from "../config"
-import { toIdlType } from "../from-idl/deserialize"
-import * as idl from "../idl"
-import { Language } from "../Language"
-import { IdlNameConvertor } from "../LanguageWriters"
-import { ArgConvertor } from "../LanguageWriters/ArgConvertors"
-import { StructureNameConvertor } from "../LanguageWriters/convertors/CppConvertors"
-import { LibraryInterface } from "../LibraryInterface"
-import { isMaterialized } from "../peer-generation/isMaterialized"
-import { LayoutManager } from "../peer-generation/LayoutManager"
-import { toDeclaration } from "../peer-generation/PeerLibrary"
-import { createCachedReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver"
-import { IdlTransformer } from "./IdlTransformer"
+import { generatorConfiguration } from "../config.js"
+import { toIdlType } from "../from-idl/deserialize.js"
+import * as idl from "../idl/index.js"
+import { Language } from "../Language.js"
+import { IdlNameConvertor } from "../LanguageWriters/index.js"
+import { ArgConvertor } from "../LanguageWriters/ArgConvertors.js"
+import { StructureNameConvertor } from "../LanguageWriters/convertors/CppConvertors.js"
+import { LibraryInterface } from "../LibraryInterface.js"
+import { isMaterialized } from "../peer-generation/isMaterialized.js"
+import { LayoutManager } from "../peer-generation/LayoutManager.js"
+import { toDeclaration } from "../peer-generation/PeerLibrary.js"
+import { createCachedReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver.js"
+import { IdlTransformer } from "./IdlTransformer.js"
 
 type ProduceResult = {
     anchor: string,

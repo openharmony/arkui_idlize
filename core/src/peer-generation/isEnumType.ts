@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { ReferenceResolver } from './ReferenceResolver'
-import { IDLType, IDLEnum, isReferenceType, isEnum, isStringEnum } from "../idl"
+import { ReferenceResolver } from './ReferenceResolver.js'
+import { IDLType, IDLEnum, isReferenceType, isEnum, isStringEnum } from "../idl/index.js"
 
 export function isEnumType(type: IDLType, resolver: ReferenceResolver): boolean {
     return toEnum(type, resolver) != undefined

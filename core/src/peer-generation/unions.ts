@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import * as idl from '../idl'
-import { convertType, TypeConvertor } from "../LanguageWriters";
-import { IDLImport, IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUnionType, isType, isUnionType } from '../idl'
-import { collapseTypes } from "./idl/common"
-import { LanguageExpression, LanguageWriter } from "../LanguageWriters/LanguageWriter";
-import { ArgConvertor } from "../LanguageWriters/ArgConvertors";
-import { RuntimeType } from "../LanguageWriters/common";
-import { LibraryInterface } from "../LibraryInterface";
-import { ReferenceResolver } from "./ReferenceResolver";
-import { Language } from "../Language";
+import * as idl from '../idl/index.js'
+import { convertType, TypeConvertor } from "../LanguageWriters/index.js";
+import { IDLImport, IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUnionType, isType, isUnionType } from '../idl/index.js'
+import { collapseTypes } from "./idl/common.js"
+import { LanguageExpression, LanguageWriter } from "../LanguageWriters/LanguageWriter.js";
+import { ArgConvertor } from "../LanguageWriters/ArgConvertors.js";
+import { RuntimeType } from "../LanguageWriters/common.js";
+import { LibraryInterface } from "../LibraryInterface.js";
+import { ReferenceResolver } from "./ReferenceResolver.js";
+import { Language } from "../Language.js";

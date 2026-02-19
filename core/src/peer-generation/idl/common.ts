@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
-import { Language } from "../../Language"
-import { IdlNameConvertor } from "../../LanguageWriters"
+import * as idl from "../../idl/index.js"
+import { Language } from "../../Language.js"
+import { IdlNameConvertor } from "../../LanguageWriters/index.js"
 
 export function qualifiedName(decl: idl.IDLNode, languageOrDelimiter: Language|string, pattern: idl.QNPattern): string {
     if (!idl.isNamedNode(decl))

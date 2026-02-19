@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { zip } from "./util"
+import { zip } from "./util.js"
 
 export interface JsonSchemaLeaf {
     type?: string

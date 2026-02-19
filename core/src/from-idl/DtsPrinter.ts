@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { indentedBy, stringOrNone } from "../util"
+import { indentedBy, stringOrNone } from "../util.js"
 import {
     IDLCallback,
     IDLConstructor,
@@ -73,13 +73,13 @@ import {
     getQualifiedName,
     isConstant,
     isInNamespace,
-} from "../idl"
-import { parseIDLFile } from "./deserialize"
-import { Language } from "../Language"
-import { warn } from "../util"
-import { isInIdlize } from "../idl"
-import { ReferenceResolver } from "../peer-generation/ReferenceResolver"
-import { maybeRestoreThrows } from "../transformers/transformUtils"
+} from "../idl/index.js"
+import { parseIDLFile } from "./deserialize.js"
+import { Language } from "../Language.js"
+import { warn } from "../util.js"
+import { isInIdlize } from "../idl/index.js"
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js"
+import { maybeRestoreThrows } from "../transformers/transformUtils.js"
 
 export class CustomPrintVisitor {
     output: string[] = []

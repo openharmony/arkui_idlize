@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
-import { IndentedPrinter } from "../../IndentedPrinter";
-import { CJKeywords } from "../../languageSpecificKeywords";
-import { ArgConvertor, BaseArgConvertor } from "../ArgConvertors"
-import { RuntimeType } from "../common"
+import * as idl from "../../idl/index.js"
+import { IndentedPrinter } from "../../IndentedPrinter.js";
+import { CJKeywords } from "../../languageSpecificKeywords.js";
+import { ArgConvertor, BaseArgConvertor } from "../ArgConvertors.js"
+import { RuntimeType } from "../common.js"
 import {
     AssignStatement,
     BlockStatement,
@@ -37,11 +37,11 @@ import {
     NamespaceOptions,
     ObjectArgs,
     ReturnStatement,
-} from "../LanguageWriter"
-import { IdlNameConvertor } from "../nameConvertor"
-import { Language } from "../../Language";
-import { indentedBy, isDefined } from "../../util";
-import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
+} from "../LanguageWriter.js"
+import { IdlNameConvertor } from "../nameConvertor.js"
+import { Language } from "../../Language.js";
+import { indentedBy, isDefined } from "../../util.js";
+import { ReferenceResolver } from "../../peer-generation/ReferenceResolver.js";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Location } from "../diagnostictypes"
+import { Location } from "../diagnostictypes.js"
 
 export enum IDLKind {
     Interface = "Interface",

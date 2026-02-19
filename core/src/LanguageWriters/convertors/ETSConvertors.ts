@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
-import { LanguageWriter } from "../LanguageWriter"
-import { isInsideInstanceof } from "../nameConvertor"
-import { TSInteropArgConvertor, TSTypeNameConvertor } from "./TSConvertors"
+import * as idl from "../../idl/index.js"
+import { LanguageWriter } from "../LanguageWriter.js"
+import { isInsideInstanceof } from "../nameConvertor.js"
+import { TSInteropArgConvertor, TSTypeNameConvertor } from "./TSConvertors.js"
 
 export class ETSTypeNameConvertor extends TSTypeNameConvertor {
     convertTypeReference(type: idl.IDLReferenceType): string {

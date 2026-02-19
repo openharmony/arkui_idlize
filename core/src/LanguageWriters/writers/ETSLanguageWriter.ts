@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../IndentedPrinter"
+import { IndentedPrinter } from "../../IndentedPrinter.js"
 import {
     BlockStatement,
     LambdaExpression,
@@ -25,18 +25,18 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
-} from "../LanguageWriter"
-import { TSCastExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { IDLType, isPrimitiveType } from '../../idl'
+} from "../LanguageWriter.js"
+import { TSCastExpression, TSLanguageWriter } from "./TsLanguageWriter.js"
+import { IDLType, isPrimitiveType } from '../../idl/index.js'
 import {
     ArgConvertor,
     makeETSDiscriminatorFromFields,
-} from "../ArgConvertors"
-import * as idl from '../../idl'
-import { IdlNameConvertor, withInsideInstanceof } from "../nameConvertor"
-import { Language } from "../../Language";
-import { RuntimeType } from "../common";
-import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
+} from "../ArgConvertors.js"
+import * as idl from '../../idl/index.js'
+import { IdlNameConvertor, withInsideInstanceof } from "../nameConvertor.js"
+import { Language } from "../../Language.js";
+import { RuntimeType } from "../common.js";
+import { ReferenceResolver } from "../../peer-generation/ReferenceResolver.js";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //

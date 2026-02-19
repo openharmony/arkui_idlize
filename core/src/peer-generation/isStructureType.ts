@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { IDLType, isReferenceType, isInterface, isSyntheticEntry } from "../idl"
-import { isMaterialized } from "./isMaterialized"
-import { ReferenceResolver } from "./ReferenceResolver"
+import { IDLType, isReferenceType, isInterface, isSyntheticEntry } from "../idl/index.js"
+import { isMaterialized } from "./isMaterialized.js"
+import { ReferenceResolver } from "./ReferenceResolver.js"
 
 export function isStructureType(type: IDLType, library: ReferenceResolver): boolean {
     if (!isReferenceType(type)) return false

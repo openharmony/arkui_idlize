@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { IDLNodeInitializer, createInterface, createFile, createNamespace, createMethod, createCallable, createCallback, createConstructor, createUnionType, createOptionalType, createConstant, createEnum, createEnumMember, createProperty, createParameter, createTypedef, createContainerType, createReferenceType, createImport, createTypeParameterReference, createVersion, generateSyntheticUnionName } from "./builders"
-import { isType, isNamespace, isInterface, isMethod, isCallback, isTypedef, isEnum, isImport, isVersion, isConstant, isConstructor, isProperty, isCallable, isFile, isReferenceType, isParameter, isUnionType, isOptionalType, isEnumMember, isPrimitiveType, isContainerType, isTypeParameterType } from "./discriminators"
-import { IDLNode, IDLKind, IDLFile, IDLNamespace, IDLInterface, IDLSignature, IDLUnionType, IDLOptionalType, IDLConstant, IDLEnum, IDLProperty, IDLParameter, IDLTypedef, IDLContainerType, IDLReferenceType, IDLEntry, IDLConstructor, IDLMethod, IDLCallable, IDLType, IDLEnumMember, IDLCallback, IDLImport, IDLTypeParameterType, IDLVersion, IDLFunction } from "./node"
+import { IDLNodeInitializer, createInterface, createFile, createNamespace, createMethod, createCallable, createCallback, createConstructor, createUnionType, createOptionalType, createConstant, createEnum, createEnumMember, createProperty, createParameter, createTypedef, createContainerType, createReferenceType, createImport, createTypeParameterReference, createVersion, generateSyntheticUnionName } from "./builders.js"
+import { isType, isNamespace, isInterface, isMethod, isCallback, isTypedef, isEnum, isImport, isVersion, isConstant, isConstructor, isProperty, isCallable, isFile, isReferenceType, isParameter, isUnionType, isOptionalType, isEnumMember, isPrimitiveType, isContainerType, isTypeParameterType } from "./discriminators.js"
+import { IDLNode, IDLKind, IDLFile, IDLNamespace, IDLInterface, IDLSignature, IDLUnionType, IDLOptionalType, IDLConstant, IDLEnum, IDLProperty, IDLParameter, IDLTypedef, IDLContainerType, IDLReferenceType, IDLEntry, IDLConstructor, IDLMethod, IDLCallable, IDLType, IDLEnumMember, IDLCallback, IDLImport, IDLTypeParameterType, IDLVersion, IDLFunction } from "./node.js"
 
 type IDLNodeVisitorVoid = (node: IDLNode) => void
 type IDLNodeVisitorValue = (node: IDLNode) => () => void

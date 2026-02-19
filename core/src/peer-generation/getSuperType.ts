@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import * as idl from '../idl'
-import { Language } from '../Language'
-import { Method } from '../LanguageWriters/LanguageWriter'
-import { KotlinTypeComparator } from '../LanguageWriters/TypeComparator'
-import { LibraryInterface } from '../LibraryInterface'
-import { ReferenceResolver } from './ReferenceResolver'
+import * as idl from '../idl/index.js'
+import { Language } from '../Language.js'
+import { Method } from '../LanguageWriters/LanguageWriter.js'
+import { KotlinTypeComparator } from '../LanguageWriters/TypeComparator.js'
+import { LibraryInterface } from '../LibraryInterface.js'
+import { ReferenceResolver } from './ReferenceResolver.js'
 
 function getSuperCandidates(declaration:idl.IDLInterface, resolver: ReferenceResolver): [idl.IDLInterface, idl.IDLReferenceType][] {
     return declaration.inheritance

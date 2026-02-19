@@ -21,10 +21,10 @@ import {
     IDLNode,
     IDLType,
     IDLTypedef,
-} from '../../idl'
-import { Language } from '../../Language'
-import { ArgConvertor, BaseArgConvertor } from "../ArgConvertors"
-import { PrimitiveTypeList } from "../../peer-generation/PrimitiveType"
+} from '../../idl/index.js'
+import { Language } from '../../Language.js'
+import { ArgConvertor, BaseArgConvertor } from "../ArgConvertors.js"
+import { PrimitiveTypeList } from "../../peer-generation/PrimitiveType.js"
 import {
     AssignStatement,
     BlockStatement,
@@ -43,19 +43,19 @@ import {
     StringExpression,
     DelegationCall,
     MethodStaticCallExpression
-} from "../LanguageWriter"
+} from "../LanguageWriter.js"
 import {
     CLikeExpressionStatement,
     CLikeLanguageWriter,
     CLikeLoopStatement,
     CLikeReturnStatement
-} from "./CLikeLanguageWriter"
-import { IdlNameConvertor } from "../nameConvertor"
-import { RuntimeType } from "../common"
-import { IndentedPrinter } from "../../IndentedPrinter";
-import { cppKeywords } from "../../languageSpecificKeywords";
-import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
-import * as idl from "../../idl";
+} from "./CLikeLanguageWriter.js"
+import { IdlNameConvertor } from "../nameConvertor.js"
+import { RuntimeType } from "../common.js"
+import { IndentedPrinter } from "../../IndentedPrinter.js";
+import { cppKeywords } from "../../languageSpecificKeywords.js";
+import { ReferenceResolver } from "../../peer-generation/ReferenceResolver.js";
+import * as idl from "../../idl/index.js";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //

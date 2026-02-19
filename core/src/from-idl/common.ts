@@ -15,9 +15,9 @@
 
 import * as fs from "node:fs"
 import * as path from "node:path"
-import { IDLFile } from "../idl"
-import { parseIDLFile } from "./deserialize";
-import { zip } from "../util";
+import { IDLFile } from "../idl/index.js"
+import { parseIDLFile } from "./deserialize.js";
+import { zip } from "../util.js";
 
 function getFilesRecursive(dirPath: string, arrayOfFiles: string[] = []) {
     let files = fs.readdirSync(dirPath)

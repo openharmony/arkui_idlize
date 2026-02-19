@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { getQualifiedName, IDLInterface } from "../idl"
-import { Language } from "../Language"
-import { capitalize } from "../util"
-import { getInternalClassName, getInternalClassQualifiedName } from "./isMaterialized"
-import { isInExternalModule } from "./modules"
+import { getQualifiedName, IDLInterface } from "../idl/index.js"
+import { Language } from "../Language.js"
+import { capitalize } from "../util.js"
+import { getInternalClassName, getInternalClassQualifiedName } from "./isMaterialized.js"
+import { isInExternalModule } from "./modules.js"
 
 function getExtractorClass(target: IDLInterface, toPtr: boolean = true): string {
     if (isInExternalModule(target)) {

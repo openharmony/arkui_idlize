@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as idl from '../idl'
-import { PeerClass } from "./PeerClass"
+import * as idl from '../idl/index.js'
+import { PeerClass } from "./PeerClass.js"
 
 export class PeerFile1 {
     readonly peers: Map<string, PeerClass> = new Map()

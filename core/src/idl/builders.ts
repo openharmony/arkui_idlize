@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { Location } from "../diagnostictypes";
-import { capitalize } from "../util";
-import { isOptionalType, getFQName, isContainerType, isNamedNode, isPrimitiveType } from "./discriminators";
-import { IDLCallable, IDLCallback, IDLConstant, IDLConstructor, IDLContainerKind, IDLContainerType, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFile, IDLImport, IDLInterface, IDLInterfaceSubkind, IDLKind, IDLMethod, IDLNamespace, IDLNode, IDLOptionalType, IDLParameter, IDLPrimitiveType, IDLPrimitiveTypeKind, IDLProperty, IDLReferenceType, IDLType, IDLTypedef, IDLTypeParameterType, IDLUnionType, IDLVersion } from "./node";
+import { Location } from "../diagnostictypes.js";
+import { capitalize } from "../util.js";
+import { isOptionalType, getFQName, isContainerType, isNamedNode, isPrimitiveType } from "./discriminators.js";
+import { IDLCallable, IDLCallback, IDLConstant, IDLConstructor, IDLContainerKind, IDLContainerType, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFile, IDLImport, IDLInterface, IDLInterfaceSubkind, IDLKind, IDLMethod, IDLNamespace, IDLNode, IDLOptionalType, IDLParameter, IDLPrimitiveType, IDLPrimitiveTypeKind, IDLProperty, IDLReferenceType, IDLType, IDLTypedef, IDLTypeParameterType, IDLUnionType, IDLVersion } from "./node.js";
 
 const innerIdlSymbol = Symbol("innerIdlSymbol")
 

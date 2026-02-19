@@ -2,9 +2,9 @@ import * as path from 'path'
 import * as fs from 'node:fs'
 
 import { assert, suite, test } from "@koalaui/harness"
-import { parseIDLFile, parseIDLFileNew, compareParsingResults } from "../src/from-idl/deserialize"
-import { toIDLString } from "../src/idl"
-import { DiagnosticMessageGroup } from "../src/diagnosticmessages"
+import { parseIDLFile, parseIDLFileNew, compareParsingResults } from "../src/from-idl/deserialize.js"
+import { toIDLString } from "../src/idl/index.js"
+import { DiagnosticMessageGroup } from "../src/diagnosticmessages.js"
 
 const idlDirPath = './test/idls/'
 const buildDirPath = './test/build/'

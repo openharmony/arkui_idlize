@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import * as idl from '../idl'
-import { ArgConvertor } from '../LanguageWriters/ArgConvertors'
-import { copyMethod, Field, FieldModifier, Method, METHOD_ACCESS_MODIFIERS, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
-import { getInternalClassName } from './isMaterialized'
-import { PeerClassBase } from './PeerClass'
-import { PeerMethod, PeerMethodSignature } from './PeerMethod'
+import * as idl from '../idl/index.js'
+import { ArgConvertor } from '../LanguageWriters/ArgConvertors.js'
+import { copyMethod, Field, FieldModifier, Method, METHOD_ACCESS_MODIFIERS, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter.js'
+import { getInternalClassName } from './isMaterialized.js'
+import { PeerClassBase } from './PeerClass.js'
+import { PeerMethod, PeerMethodSignature } from './PeerMethod.js'
 
 export class MaterializedField {
     constructor(

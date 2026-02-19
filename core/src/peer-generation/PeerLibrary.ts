@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from '../idl'
-import { Language } from '../Language'
-import { LanguageWriter } from '../LanguageWriters/LanguageWriter'
-import { createLanguageWriter, IdlNameConvertor } from '../LanguageWriters'
+import * as idl from '../idl/index.js'
+import { Language } from '../Language.js'
+import { LanguageWriter } from '../LanguageWriters/LanguageWriter.js'
+import { createLanguageWriter, IdlNameConvertor } from '../LanguageWriters/index.js'
 import {
     BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
     AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
@@ -25,25 +25,25 @@ import {
     ObjectConvertor,
     TransformOnSerializeConvertor,
     ThrowsConvertor,
-} from "../LanguageWriters/ArgConvertors"
-import { CppNameConvertor, StructureNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
-import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
-import { CppConvertor } from '../LanguageWriters/convertors/CppConvertors'
-import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors'
-import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors'
-import { LibraryInterface } from '../LibraryInterface'
-import { generateSyntheticFunctionName, isImportAttr } from './idl/common'
-import { MaterializedClass } from './Materialized'
-import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
-import { IDLLibrary, lib, query } from '../library'
-import { isMaterialized } from './isMaterialized'
-import { isInCurrentModule } from './modules'
-import { generatorConfiguration } from '../config'
-import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors'
-import { NativeModuleType } from '../LanguageWriters/common'
-import { toIdlType } from '../from-idl/deserialize'
-import { createCachedReferenceResolver, ReferenceResolver } from './ReferenceResolver'
-import { maybeRestoreThrows } from '../transformers/transformUtils'
+} from "../LanguageWriters/ArgConvertors.js"
+import { CppNameConvertor, StructureNameConvertor } from '../LanguageWriters/convertors/CppConvertors.js'
+import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors.js'
+import { CppConvertor } from '../LanguageWriters/convertors/CppConvertors.js'
+import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors.js'
+import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors.js'
+import { LibraryInterface } from '../LibraryInterface.js'
+import { generateSyntheticFunctionName, isImportAttr } from './idl/common.js'
+import { MaterializedClass } from './Materialized.js'
+import { LayoutManager, LayoutManagerStrategy } from './LayoutManager.js'
+import { IDLLibrary, lib, query } from '../library.js'
+import { isMaterialized } from './isMaterialized.js'
+import { isInCurrentModule } from './modules.js'
+import { generatorConfiguration } from '../config.js'
+import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors.js'
+import { NativeModuleType } from '../LanguageWriters/common.js'
+import { toIdlType } from '../from-idl/deserialize.js'
+import { createCachedReferenceResolver, ReferenceResolver } from './ReferenceResolver.js'
+import { maybeRestoreThrows } from '../transformers/transformUtils.js'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]

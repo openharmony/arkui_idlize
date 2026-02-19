@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLEntry } from "../idl";
+import { IDLEntry } from "../idl/index.js";
 
 export enum LayoutNodeRole {
     PEER,

@@ -1,5 +1,5 @@
-import { generatorConfiguration, ModuleConfiguration } from "../config"
-import * as idl from "../idl"
+import { generatorConfiguration, ModuleConfiguration } from "../config.js"
+import * as idl from "../idl/index.js"
 
 const stdlibModule: ModuleConfiguration = {
     name: "__stdlib",

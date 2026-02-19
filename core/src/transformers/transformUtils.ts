@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as idl from "../idl"
-import { ReferenceResolver } from "../peer-generation/ReferenceResolver"
+import * as idl from "../idl/index.js"
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js"
 
 export function maybeRestoreGenerics(
     maybeTransformedGeneric: idl.IDLReferenceType | idl.IDLEntry,

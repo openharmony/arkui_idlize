@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { generatorConfiguration } from "../../config"
-import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from "../nameConvertor"
-import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
-import { InteropArgConvertor } from './InteropConvertors'
-import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { qualifiedName } from '../../peer-generation/idl/common'
-import { isInIdlizeInternal } from '../../idl'
-import { LibraryInterface } from '../../LibraryInterface'
-import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
-import { Language } from '../../Language'
-import { maybeRestoreThrows, maybeTransformManagedCallback } from '../../transformers/transformUtils'
+import * as idl from '../../idl/index.js'
+import { generatorConfiguration } from "../../config.js"
+import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from "../nameConvertor.js"
+import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType.js'
+import { InteropArgConvertor } from './InteropConvertors.js'
+import { ReferenceResolver } from '../../peer-generation/ReferenceResolver.js'
+import { qualifiedName } from '../../peer-generation/idl/common.js'
+import { isInIdlizeInternal } from '../../idl/index.js'
+import { LibraryInterface } from '../../LibraryInterface.js'
+import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations.js'
+import { Language } from '../../Language.js'
+import { maybeRestoreThrows, maybeTransformManagedCallback } from '../../transformers/transformUtils.js'
 
 function isSubtypeTopLevelConflicted(library: LibraryInterface, node: idl.IDLType) {
     let hasConflicts = false

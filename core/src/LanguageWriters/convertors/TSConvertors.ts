@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { Language } from '../../Language'
-import { LibraryInterface } from '../../LibraryInterface'
-import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
-import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
-import { maybeRestoreGenerics, maybeRestoreThrows } from '../../transformers/transformUtils'
-import { LanguageWriter } from '../LanguageWriter'
-import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor, withInsideInstanceof } from '../nameConvertor'
+import * as idl from '../../idl/index.js'
+import { Language } from '../../Language.js'
+import { LibraryInterface } from '../../LibraryInterface.js'
+import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations.js'
+import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager.js'
+import { maybeRestoreGenerics, maybeRestoreThrows } from '../../transformers/transformUtils.js'
+import { LanguageWriter } from '../LanguageWriter.js'
+import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor, withInsideInstanceof } from '../nameConvertor.js'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 

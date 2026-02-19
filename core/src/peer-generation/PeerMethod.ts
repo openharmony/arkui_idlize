@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as idl from '../idl'
-import { IDLType } from "../idl"
-import { ArgConvertor, createOutArgConvertor } from "../LanguageWriters/ArgConvertors"
-import { Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
-import { PeerLibrary } from './PeerLibrary'
+import * as idl from '../idl/index.js'
+import { IDLType } from "../idl/index.js"
+import { ArgConvertor, createOutArgConvertor } from "../LanguageWriters/ArgConvertors.js"
+import { Method, MethodModifier } from "../LanguageWriters/LanguageWriter.js"
+import { PeerLibrary } from './PeerLibrary.js'
 
 export class PeerMethodArg {
     constructor(

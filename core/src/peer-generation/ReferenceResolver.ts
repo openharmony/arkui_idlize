@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from '../idl'
-import { getPov, resolveNamedNode } from '../resolveNamedNode'
-import { consoleWarn } from '../util'
+import * as idl from '../idl/index.js'
+import { getPov, resolveNamedNode } from '../resolveNamedNode.js'
+import { consoleWarn } from '../util.js'
 
 export interface ReferenceResolver {
     resolveTypeReference(type: idl.IDLReferenceType, options?: { terminalImports?: boolean, unresolvedOk?: boolean }): idl.IDLEntry | undefined

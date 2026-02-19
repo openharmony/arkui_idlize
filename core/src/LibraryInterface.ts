@@ -1,10 +1,10 @@
-import * as idl from "./idl"
-import { Language } from "./Language";
-import { IdlNameConvertor } from "./LanguageWriters";
-import { ArgConvertor } from "./LanguageWriters/ArgConvertors";
-import { LayoutManager } from "./peer-generation/LayoutManager";
-import { getModuleFor } from "./peer-generation/modules";
-import { ReferenceResolver } from "./peer-generation/ReferenceResolver";
+import * as idl from "./idl/index.js"
+import { Language } from "./Language.js";
+import { IdlNameConvertor } from "./LanguageWriters/index.js";
+import { ArgConvertor } from "./LanguageWriters/ArgConvertors.js";
+import { LayoutManager } from "./peer-generation/LayoutManager.js";
+import { getModuleFor } from "./peer-generation/modules.js";
+import { ReferenceResolver } from "./peer-generation/ReferenceResolver.js";
 
 // todo: TypeProcessor? LibraryBase?
 export interface LibraryInterface extends ReferenceResolver {
