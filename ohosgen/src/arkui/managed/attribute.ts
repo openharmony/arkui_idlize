@@ -34,7 +34,7 @@ export const arkAttributeProducer = createProducer(
   (node, ctx) => {
     const packageName = idl.getPackageName(node)
     const componentName = node.name
-    const baseName = managedName(`${packageName}.Ark${componentName}`)
+    const baseName = managedName(idl.getFQName(node)).replace(/Attribute$/, '')
 
     // Filter properties with [CommonMethod] attribute
     const commonMethodProps = node.properties.filter(isCommonMethodProperty)
@@ -50,7 +50,7 @@ export const arkAttributeProducer = createProducer(
           .decl('peerId').value().call('nextId').receiver('PeerNode').$().$().$()
           .decl('peerPtr').value().call(`_${componentName}_construct`).receiver(ctx.getEffect().nativeModuleName)
             .arg('peerId').arg('flags').$().$().$()
-          .decl('peer').value().ctor(`Ark${componentName}Peer`)
+          .decl('peer').value().ctor(componentName + 'Peer')
             .arg('peerPtr').arg('peerId').arg(componentName).arg('flags').$().$().$()
           .call('setPeer').receiver('component').arg('peer').$()
           .return().value('peer').$().$().$()
@@ -94,7 +94,7 @@ export const arkAttributeProducer = createProducer(
     const superType = node.inheritance.length > 0
       ? expectType(ctx, node.inheritance[0], 'managed')
       : undefined
-    const attrInterface = Builders.class(baseName)
+    const attrInterface = Builders.class(baseName + 'Attribute')
       .interface()
     if (superType) {
       attrInterface.extends(superType)
@@ -103,17 +103,18 @@ export const arkAttributeProducer = createProducer(
       const propType = expectType(ctx, prop.type, 'managed')
       attrInterface.method(prop.name)
         .param('value').type(propType).$()
-        .returns(Ts.prim.self)
-        .block()
-          .return().value('this').$().$().$().$()
+        .returns(Ts.prim.self).$().$()
+        /// interface method has no body, right?
+        // .block()
+        //   .return().value('this').$().$().$().$()
     }
 
     // Build ArkBlankComponent class
     const componentClass = Builders.class(baseName + 'Component')
     if (superType) {
-      componentClass.extends(T.c(managedName(`${packageName}.Ark${node.inheritance[0].name}Component`)))
+      componentClass.extends(T.c(managedName(`${packageName}.${node.inheritance[0].name}Component`)))
     }
-    componentClass.implements(T.c(baseName))
+    componentClass.implements(T.c(baseName + 'Attribute'))
 
     // getPeer()
     componentClass.method('getPeer')
@@ -123,6 +124,7 @@ export const arkAttributeProducer = createProducer(
 
     // For each [CommonMethod] property, add delegation method
     for (const prop of commonMethodProps) {
+      ///ccreate IDLMethod and delegate to function producer
       const propName = prop.name
       const propType = expectType(ctx, prop.type, 'managed')
 
@@ -147,12 +149,12 @@ export const arkAttributeProducer = createProducer(
     }
 
     // applyAttributesFinish and applyOptionsFinish
-    componentClass.method('applyAttributesFinish')
+    componentClass.method('applyAttributesFinish')///needed? just calls super
       .returns(Ts.prim.void)
       .block()
         .call('applyAttributesFinish').receiver('@base').$().$().$().$()
 
-    componentClass.method('applyOptionsFinish')
+    componentClass.method('applyOptionsFinish')///needed? just calls super
       .param('traceName').type(Ts.prim.str).$()
       .returns(Ts.prim.void)
       .block()
@@ -179,7 +181,7 @@ export const arkAttributeProducer = createProducer(
       [createLambda, bodyLambda],
       [T.c(baseName + 'Peer')]
     )
-    const implFunc = Builders.func(baseName.replace('Ark', '') + 'Impl')
+    const implFunc = Builders.func(baseName + 'Impl')
       .param('style').type(Ts.optional(T.fn([['attributes', T.c(baseName)]], Ts.prim.void))).$()
       .param('content_').type(Ts.optional(T.fn([], Ts.prim.void))).$()
       .returns(Ts.prim.void)
@@ -189,7 +191,7 @@ export const arkAttributeProducer = createProducer(
         .call(nodeAttachCall).$().$()
 
     return {
-      continuation: T.c(baseName + 'Component'),
+      continuation: T.c(baseName),
       declarations: [
         peerClass.$(),
         attrInterface.$(),

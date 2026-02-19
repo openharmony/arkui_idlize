@@ -523,6 +523,7 @@ export class TSPrinter {
           if (declaration.oop.base) {
             this.p.put('extends', ' ')
             this.printType(declaration.oop.base)
+            this.p.put(' ')
           }
           if (declaration.oop.implementations?.length) {
             this.p.put('implements', ' ')

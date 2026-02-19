@@ -23,9 +23,8 @@ function isComponentInterface(node: idl.IDLInterface) {
 export const arkInterfaceProducer = createProducer(
   { is: idl.isInterface, predicate: isComponentInterface, role: 'managed' },
   (node, ctx) => {
-    const packageName = idl.getPackageName(node)
     const componentName = node.name.replace(/Interface$/, '')
-    const baseName = managedName(`${packageName}.Ark${componentName}`)
+    const baseName = managedName(idl.getFQName(node)).replace(/Interface$/, '')
     const methodName = `set${componentName}Options`
 
     // For each callable signature, build the peer method, interface method, and component method
@@ -67,16 +66,17 @@ export const arkInterfaceProducer = createProducer(
     }
 
     // Build attribute interface with set{ComponentName}Options method
-    const attrInterface = Builders.class(baseName.replace('Ark', ''))
+    const attrInterface = Builders.class(baseName + 'Attribute')
       .interface()
 
     for (const callable of node.callables) {
       const params = callable.parameters.map(p => ({ name: p.name, type: expectType(ctx, p.type, 'managed') }))
       attrInterface.method(methodName)
         .parameters(params)
-        .returns(Ts.prim.self)
-        .block()
-          .return().ctor('Error').arg(`Unimplemented method ${methodName}`).$().$().$().$()
+        .returns(Ts.prim.self).$().$()
+        ///no body in interface methods, ok?
+        // .block()
+        //   .return().ctor('Error').arg(`Unimplemented method ${methodName}`).$().$().$().$()
     }
 
     // Build component class with set{ComponentName}Options delegation method

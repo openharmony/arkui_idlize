@@ -39,7 +39,8 @@ import {
     moduleLike,
     lowLevelLike,
     OhosEffect,
-    createOhosEffect
+    createOhosEffect,
+    LWKind
 } from "@idlizer/libohos"
 import { continueWith, onlyFor } from '@idlizer/kit'
 import { arkInterfaceProducer } from "./arkui/managed/interface"
@@ -69,6 +70,21 @@ export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, M
         library,
         roots: { seeds }},
         onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
+
+    console.log(`=== ${declarations.length} declarations {`)
+    declarations
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .forEach(decl => {
+            console.log('  ', decl.name)
+            if (decl.kind === LWKind.StructureDeclaration)
+                decl.members.forEach(member => console.log('    ', member.name))
+            if (decl.kind === LWKind.ClassDeclaration) {
+                decl.fields.forEach(field => console.log('    ', field.name))
+                decl.methods.forEach(method => console.log('    ', method.name, '()'))
+            }
+        })
+    console.log('} /// declarations')
+    
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
     const knownPackages = files
         .map(file => file.packageClause.length ? file.packageClause : [library.name.toLowerCase()])
