@@ -163,6 +163,22 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeString(value: string): LanguageExpression {
         return new ETSStringExpression(value)
     }
+    makeArrayInit(type: idl.IDLContainerType, size?: number | string, options?: { initializerFunction?: LanguageExpression }): LanguageExpression {
+        if (options?.initializerFunction !== undefined) {
+            if (size === undefined) {
+                throw new Error("Size must be provided if initializer function is provided")
+            }
+            return this.makeString(`new Array<${this.getNodeName(type.elementType[0])}>(${size.toString()}, ${options.initializerFunction.asString()})`)
+        } else {
+            if (size !== undefined) {
+                throw new Error("Size requires initializer function to be provided")
+            }
+            return this.makeString(`new Array<${this.getNodeName(type.elementType[0])}>()`)
+        }
+    }
+    makeArrayResize(array: string, arrayType: string, length: string, deserializer: string): LanguageStatement {
+        throw new Error("Resizing arrays is not supported in ETS")
+    }
     makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, body)
     }
