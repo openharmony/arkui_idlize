@@ -26,7 +26,7 @@
         "compile:self": "tsc -b .",
         "compile": "npm run compile:self",
         "test:compile": "tsc -b test/tsconfig.json",
-        "test:run": "node build/test/test/run-all.js",
+        "test:run": "harness",
         "test": "npm run test:compile && npm run test:run"
     }
 }
