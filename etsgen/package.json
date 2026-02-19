@@ -2,8 +2,9 @@
     "name": "@idlizer/etsgen",
     "version": "2.2.2+devel",
     "description": "",
-    "main": "lib/cli.js",
-    "bin": "lib/cli.js",
+    "type": "module",
+    "main": "build/lib/src/main.js",
+    "bin": "build/lib/src/main.js",
     "exports": "./build/lib/src/index.js",
     "types": "./build/lib/src/index.d.ts",
     "files": [
@@ -25,15 +26,11 @@
     "devDependencies": {
         "@idlizer/core": "2.2.2+devel",
         "@types/node": "^18.19.127",
-        "@rollup/plugin-commonjs": "^26.0.1",
-        "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-terser": "^0.4.4",
-        "@rollup/plugin-typescript": "^11.1.6",
         "@idlizer/rimraf": "2.2.2+devel"
     },
     "scripts": {
-        "clean": "rimraf -g build .rollup.cache lib out",
-        "compile:self": "tsc -b . && rollup -c",
+        "clean": "rimraf -g build lib out",
+        "compile:self": "tsc -b .",
         "compile": "npm run -C ../core compile && npm run compile:self",
         "plot:deps": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api && dot -T svg ./out/idl/deps.dot -o ./out/deps.svg",
         "plot:deps:noplot": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",

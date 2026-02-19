@@ -19,6 +19,7 @@ import {
     parseConfigFiles,
 } from "@idlizer/core";
 import { dirname, join } from "node:path";
+import { createRequire } from "node:module";
 
 const T = {
     stringArray: () => D.array(D.string()),
@@ -41,4 +42,5 @@ export function loadEtsgenConfiguration(configurationFiles: string[]) {
     return parseConfigFiles(ETSConfigScheme, configurationFiles)
 }
 
+const require = createRequire(import.meta.url)
 export const ETSGEN_ROOT = join(dirname(require.resolve('@idlizer/etsgen')), '../../..')

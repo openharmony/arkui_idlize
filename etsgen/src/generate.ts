@@ -31,8 +31,8 @@ import * as arkts from "@koalaui/libarkts"
 import * as idl from "@idlizer/core/idl"
 import * as path from "node:path"
 import * as fs from "node:fs"
-import { ETSVisitorConfig } from "./config"
-import { PlotVisitor } from "./plot"
+import { ETSVisitorConfig } from "./config.js"
+import { PlotVisitor } from "./plot.js"
 
 const MaxSyntheticTypeLength = 60
 

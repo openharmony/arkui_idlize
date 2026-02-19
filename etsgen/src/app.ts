@@ -19,11 +19,11 @@ import {
     scanInputDirs,
     validatePaths
 } from "@idlizer/core"
-import { generateFromSts } from "./generate"
+import { generateFromSts } from "./generate.js"
 import { join, resolve } from "node:path"
 import { cpSync } from "node:fs"
-import { ETSGEN_ROOT, loadEtsgenConfiguration } from "./config"
-import { resolveSymlinks } from "./utils"
+import { ETSGEN_ROOT, loadEtsgenConfiguration } from "./config.js"
+import { resolveSymlinks } from "./utils.js"
 
 export function etsgen(argv:string[]) {
     const program = createCommand()
