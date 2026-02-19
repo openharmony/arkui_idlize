@@ -1,93 +1,68 @@
 import { Builders } from '../../src/builders/advanced.js';
 import { T } from '../../src/builders/original.js';
 import { LWKind } from '../../src/lws.js';
-import { assertEquals, describe, runTestSuite } from '../test-utils.js';
+import { suite, test, assert } from "@koalaui/harness";
 
 // Test Advanced Builders - simplified tests that compile
-const advancedTests = describe('Advanced Builders (Builders)', [
-  {
-    name: 'Builders.expr().const() creates ConstantExpression',
-    fn: () => {
+suite('Advanced Builders (Builders)', () => {
+    test('Builders.expr().const() creates ConstantExpression', () => {
       const expr = Builders.expr()
         .const(42)
         .$() as any;
-      assertEquals(expr.kind, LWKind.ConstantExpression);
-      assertEquals(expr.value, '42');
-    }
-  },
-  {
-    name: 'Builders.expr().var() creates VariableExpression',
-    fn: () => {
+      assert.equal(expr.kind, LWKind.ConstantExpression);
+      assert.equal(expr.value, '42');
+    });
+    test('Builders.expr().var() creates VariableExpression', () => {
       const expr = Builders.expr()
         .var('x')
         .$() as any;
-      assertEquals(expr.kind, LWKind.VariableExpression);
-      assertEquals(expr.name, 'x');
-    }
-  },
-  {
-    name: 'Builders.stmt().decl() creates DeclarationStatement',
-    fn: () => {
+      assert.equal(expr.kind, LWKind.VariableExpression);
+      assert.equal(expr.name, 'x');
+    });
+    test('Builders.stmt().decl() creates DeclarationStatement', () => {
       const stmt = Builders.stmt()
         .decl('x', T.c('number'))
         .mutable()
         .value(42)
         .$()  // returns StatementBuilder
         .$() as any; // returns DeclarationStatement
-      assertEquals(stmt.kind, LWKind.DeclarationStatement);
-      assertEquals(stmt.varName, 'x');
-      assertEquals(stmt.varType.kind, LWKind.ValueType);
-      assertEquals(stmt.mutable, true);
-      assertEquals((stmt.expression as any).value, '42');
-    }
-  },
-  {
-    name: 'Builders.func() creates FunctionDeclaration',
-    fn: () => {
+      assert.equal(stmt.kind, LWKind.DeclarationStatement);
+      assert.equal(stmt.varName, 'x');
+      assert.equal(stmt.varType.kind, LWKind.ValueType);
+      assert.equal(stmt.mutable, true);
+      assert.equal((stmt.expression as any).value, '42');
+    });
+    test('Builders.func() creates FunctionDeclaration', () => {
       // Simple function without parameters for now
       const func = Builders.func('test')
         .returns(T.c('void'))
         .$() as any;
-      assertEquals(func.kind, LWKind.FunctionDeclaration);
-      assertEquals(func.name, 'test');
-      assertEquals(func.returnType.kind, LWKind.ValueType);
-    }
-  },
-  {
-    name: 'Builders.struct() creates StructureDeclaration',
-    fn: () => {
+      assert.equal(func.kind, LWKind.FunctionDeclaration);
+      assert.equal(func.name, 'test');
+      assert.equal(func.returnType.kind, LWKind.ValueType);
+    });
+    test('Builders.struct() creates StructureDeclaration', () => {
       const struct = Builders.struct('Point')
         .field('x').type(T.c('number')).$()
         .field('y').type(T.c('number')).$()
         .$() as any;
-      assertEquals(struct.kind, LWKind.StructureDeclaration);
-      assertEquals(struct.name, 'Point');
-      assertEquals(struct.members.length, 2);
-      assertEquals(struct.members[0].name, 'x');
-      assertEquals(struct.members[0].type.kind, LWKind.ValueType);
-    }
-  },
-  {
-    name: 'Builders.enum() creates EnumDeclaration',
-    fn: () => {
+      assert.equal(struct.kind, LWKind.StructureDeclaration);
+      assert.equal(struct.name, 'Point');
+      assert.equal(struct.members.length, 2);
+      assert.equal(struct.members[0].name, 'x');
+      assert.equal(struct.members[0].type.kind, LWKind.ValueType);
+    });
+    test('Builders.enum() creates EnumDeclaration', () => {
       const enumDecl = Builders.enum('Color')
         .member('Red', 0)
         .member('Green', 1)
         .member('Blue', 2)
         .$() as any;
-      assertEquals(enumDecl.kind, LWKind.EnumDeclaration);
-      assertEquals(enumDecl.name, 'Color');
-      assertEquals(enumDecl.members.length, 3);
-      assertEquals(enumDecl.members[0].name, 'Red');
-      assertEquals(enumDecl.members[0].value, 0);
-    }
+      assert.equal(enumDecl.kind, LWKind.EnumDeclaration);
+      assert.equal(enumDecl.name, 'Color');
+      assert.equal(enumDecl.members.length, 3);
+      assert.equal(enumDecl.members[0].name, 'Red');
+      assert.equal(enumDecl.members[0].value, 0);
+    });
   }
-]);
-
-// Run test suite
-console.log('Running tests for advanced builders...\n');
-
-const allPassed = runTestSuite(advancedTests);
-
-console.log('\n' + (allPassed ? '✅ All tests passed!' : '❌ Some tests failed.'));
-process.exit(allPassed ? 0 : 1);
+);

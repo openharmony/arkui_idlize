@@ -1,12 +1,10 @@
 import { E, S, T, D } from '../../src/builders/original.js';
 import { processNPrintTS } from '../../src/printers/translators/typescript.js';
-import { assertEquals, describe, runTestSuite } from '../test-utils.js';
+import { suite, test, assert } from "@koalaui/harness";
 
 // Test TypeScript translator
-const tsTranslatorTests = describe('TypeScript Translator Tests', [
-  {
-    name: 'Simple function declaration',
-    fn: () => {
+suite('TypeScript Translator Tests', () => {
+    test('Simple function declaration', () => {
       const func = D.func(
         'add',
         [
@@ -19,12 +17,9 @@ const tsTranslatorTests = describe('TypeScript Translator Tests', [
       const output = processNPrintTS(func, '', new Set());
       // Actual output from translator (no braces for single return)
       const expected = `export function add(a: number, b: number): number return a + b`;
-      assertEquals(output.trim(), expected.trim());
-    }
-  },
-  {
-    name: 'Variable declaration with const',
-    fn: () => {
+      assert.equal(output.trim(), expected.trim());
+    });
+    test('Variable declaration with const', () => {
       const decl = S.declaration('x', T.c('number'), false, E.c(42));
       // Need to wrap in a top-level expression? processNPrintTS expects LWDeclaration.
       // Use a simple function declaration with variable inside? Actually processNPrintTS takes LWDeclaration, not statement.
@@ -47,16 +42,13 @@ const tsTranslatorTests = describe('TypeScript Translator Tests', [
         '}'
       ];
       const lines = output.trim().split('\n');
-      assertEquals(lines.length, 4);
-      assertEquals(lines[0], expectedLines[0]);
-      assertEquals(lines[1], expectedLines[1]);
-      assertEquals(lines[2], expectedLines[2]);
-      assertEquals(lines[3], expectedLines[3]);
-    }
-  },
-  {
-    name: 'Interface declaration',
-    fn: () => {
+      assert.equal(lines.length, 4);
+      assert.equal(lines[0], expectedLines[0]);
+      assert.equal(lines[1], expectedLines[1]);
+      assert.equal(lines[2], expectedLines[2]);
+      assert.equal(lines[3], expectedLines[3]);
+    });
+    test('Interface declaration', () => {
       const struct = D.struct('Point', [
         { name: 'x', type: T.c('number') },
         { name: 'y', type: T.c('number') }
@@ -66,12 +58,9 @@ const tsTranslatorTests = describe('TypeScript Translator Tests', [
   x: number
   y: number
 }`;
-      assertEquals(output.trim(), expected.trim());
-    }
-  },
-  {
-    name: 'Enum declaration',
-    fn: () => {
+      assert.equal(output.trim(), expected.trim());
+    });
+    test('Enum declaration', () => {
       const enumDecl = D.enum('Color', [
         { name: 'Red', value: 0 },
         { name: 'Green', value: 1 },
@@ -83,21 +72,13 @@ const tsTranslatorTests = describe('TypeScript Translator Tests', [
   Green = 1,
   Blue = 2
 }`;
-      assertEquals(output.trim(), expected.trim());
-    }
-  },
-  {
-    name: "Function with default parameters",
-    fn: () => {
+      assert.equal(output.trim(), expected.trim());
+    });
+    test('Function with default parameters', () => {
       const fnWithParams = D.func('foo', [{ name: 'x', type: T.c('int'), expression: E.c(42) }], T.c('void'), S.block([]))
       const output = processNPrintTS(fnWithParams, '', new Set())
       const expected = `export function foo(x: int = 42): void {\n  \n}`
-      assertEquals(output.trim(), expected.trim())
-    }
-  }
-]);
+      assert.equal(output.trim(), expected.trim())
+    });
+});
 
-console.log('Running TypeScript translator tests...\n');
-const passed = runTestSuite(tsTranslatorTests);
-console.log('\n' + (passed ? '✅ All TypeScript translator tests passed!' : '❌ Some TypeScript translator tests failed.'));
-process.exit(passed ? 0 : 1);
