@@ -408,6 +408,12 @@ attachPathOptions(
                 console.log(`Version: ${testResult.stdout.trim()}`);
               }
             }
+
+            const clangFormatConfigPath = resolveUtilityClangFormatConfigPath();
+            const clangFormatStyleArg = buildClangFormatStyleArg(clangFormatConfigPath);
+            if (options.verbose) {
+              console.log(`Using tool .clang-format: ${clangFormatConfigPath}`);
+            }
             
             const cppPaths = (config as any).pathsForCheckByType.cpp as string[];
             const exts = '{cpp,cc,cxx,c++,hpp,h}';
@@ -460,7 +466,7 @@ attachPathOptions(
                   
                   const res = spawnSync(
                     clangFormat,
-                    ['-style=file', `-assume-filename=${file}`],
+                    [clangFormatStyleArg, `-assume-filename=${file}`],
                     { cwd: config.repoPath, input: content, encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 }
                   );
                   
@@ -729,6 +735,12 @@ attachPathOptions(
         process.exit(1);
       }
 
+      const clangFormatConfigPath = resolveUtilityClangFormatConfigPath();
+      const clangFormatStyleArg = buildClangFormatStyleArg(clangFormatConfigPath);
+      if (options.verbose) {
+        console.log(`Using tool .clang-format: ${clangFormatConfigPath}`);
+      }
+
       const outputDir: string = options.output || path.join('out', 'fixed');
       const maxLineLength = parseInt(options.maxLength, 10) || config.formatting?.maxLineLength || 120;
       
@@ -776,7 +788,7 @@ attachPathOptions(
 
           const res = spawnSync(
             clangFormatFinal,
-            ['-style=file', `-assume-filename=${file}`],
+            [clangFormatStyleArg, `-assume-filename=${file}`],
             { cwd: config.repoPath, input: content, encoding: 'utf-8', maxBuffer: 1024 * 1024 * 100 }
           );
 
@@ -1046,6 +1058,40 @@ function parsePathsForCheck(pathsForCheck: any): PathsForCheckByType | undefined
   }
 
   return byType;
+}
+
+function findPackageRoot(startDir: string): string | null {
+  let currentDir = path.resolve(startDir);
+  const rootDir = path.parse(currentDir).root;
+
+  while (true) {
+    if (fs.existsSync(path.join(currentDir, 'package.json'))) {
+      return currentDir;
+    }
+    if (currentDir === rootDir) {
+      return null;
+    }
+    currentDir = path.dirname(currentDir);
+  }
+}
+
+function resolveUtilityClangFormatConfigPath(): string {
+  const packageRoot = findPackageRoot(__dirname);
+  if (!packageRoot) {
+    throw new Error('Failed to resolve tool package root for .clang-format lookup');
+  }
+
+  const clangFormatConfigPath = path.join(packageRoot, '.clang-format');
+  if (!fs.existsSync(clangFormatConfigPath)) {
+    throw new Error(`.clang-format not found in tool directory: ${clangFormatConfigPath}`);
+  }
+
+  return clangFormatConfigPath;
+}
+
+function buildClangFormatStyleArg(configPath: string): string {
+  const normalizedPath = path.resolve(configPath).replace(/\\/g, '/');
+  return `-style=file:${normalizedPath}`;
 }
 
 function mapFormattingConfig(userFmt: any | undefined): Partial<FormatterConfig> {

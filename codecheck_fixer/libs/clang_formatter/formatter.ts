@@ -88,6 +88,40 @@ function resolveClangFormatPath(explicitPath?: string, repoPath?: string): strin
   }
 }
 
+function findPackageRoot(startDir: string): string | null {
+  let currentDir = path.resolve(startDir);
+  const rootDir = path.parse(currentDir).root;
+
+  while (true) {
+    if (fs.existsSync(path.join(currentDir, 'package.json'))) {
+      return currentDir;
+    }
+    if (currentDir === rootDir) {
+      return null;
+    }
+    currentDir = path.dirname(currentDir);
+  }
+}
+
+function resolveUtilityClangFormatConfigPath(): string {
+  const packageRoot = findPackageRoot(__dirname);
+  if (!packageRoot) {
+    throw new Error('Failed to resolve tool package root for .clang-format lookup');
+  }
+
+  const clangFormatConfigPath = path.join(packageRoot, '.clang-format');
+  if (!fs.existsSync(clangFormatConfigPath)) {
+    throw new Error(`.clang-format not found in tool directory: ${clangFormatConfigPath}`);
+  }
+
+  return clangFormatConfigPath;
+}
+
+function buildClangFormatStyleArg(configPath: string): string {
+  const normalizedPath = path.resolve(configPath).replace(/\\/g, '/');
+  return `-style=file:${normalizedPath}`;
+}
+
 /**
  * Formats C++ code using clang-format.
  */
@@ -109,12 +143,27 @@ export function formatCppCode(options: FormatCppOptions): string {
     return code;
   }
 
+  let clangFormatStyleArg = '';
+  try {
+    clangFormatStyleArg = buildClangFormatStyleArg(resolveUtilityClangFormatConfigPath());
+  } catch (error) {
+    const configError = new ClangFormatError(
+      `Failed to resolve .clang-format from utility directory.`,
+      error
+    );
+    onFormattingError?.(configError);
+    if (strictParsing) {
+      throw configError;
+    }
+    return code;
+  }
+
   const effectiveRepoPath = repoPath || path.dirname(filePath) || process.cwd();
 
   try {
     const formatted = execFileSync(
       resolvedClangFormat,
-      ['-style=file', `-assume-filename=${filePath}`],
+      [clangFormatStyleArg, `-assume-filename=${filePath}`],
       {
         cwd: effectiveRepoPath,
         encoding: 'utf-8',

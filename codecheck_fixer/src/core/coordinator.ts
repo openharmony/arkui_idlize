@@ -92,11 +92,20 @@ export class FixCoordinator {
       // File processing time (seconds)
       const fileTime = (Date.now() - fileStartTime) / 1000;
       const timeColored = `\x1b[90m${fileTime.toFixed(1)}s\x1b[0m`;
-      const suffix = ` (${timeColored}, cases: \x1b[36m${result.totalCases}\x1b[0m, fixed: ${result.fixedCases})`;
-      try {
-        process.stdout.write(`\r[${processed}/${validFiles.length}] ${coloredDisplayPath}${suffix}\n`);
-      } catch {
-        console.log(`[${processed}/${validFiles.length}] ${coloredDisplayPath}${suffix}`);
+      if (result.error) {
+        const suffix = ` \x1b[31m✗ ${result.error}\x1b[0m`;
+        try {
+          process.stdout.write(`\r[${processed}/${validFiles.length}] ${coloredDisplayPath}${suffix}\n`);
+        } catch {
+          console.log(`[${processed}/${validFiles.length}] ${coloredDisplayPath}${suffix}`);
+        }
+      } else {
+        const suffix = ` (${timeColored}, cases: \x1b[36m${result.totalCases}\x1b[0m, fixed: ${result.fixedCases})`;
+        try {
+          process.stdout.write(`\r[${processed}/${validFiles.length}] ${coloredDisplayPath}${suffix}\n`);
+        } catch {
+          console.log(`[${processed}/${validFiles.length}] ${coloredDisplayPath}${suffix}`);
+        }
       }
     }
 
@@ -123,7 +132,7 @@ export class FixCoordinator {
   private async processFile(
     filePath: string,
     preload?: { content: string; longLineCount: number }
-  ): Promise<{ totalCases: number; fixedCases: number }> {
+  ): Promise<{ totalCases: number; fixedCases: number; error?: string }> {
     try {
       if (cancellationToken.isCancelled()) {
         return { totalCases: 0, fixedCases: 0 };
@@ -154,9 +163,22 @@ export class FixCoordinator {
         fixedCases = Math.max(0, totalCases - afterCount);
       }
       return { totalCases, fixedCases };
-    } catch (error) {
-      console.error(`Error processing file ${filePath}:`, error);
-      return { totalCases: 0, fixedCases: 0 };
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error);
+      const shortError = errorMsg.includes('ENOENT')
+        ? 'file not found'
+        : errorMsg.includes('EACCES')
+        ? 'no access permissions'
+        : errorMsg.includes('parse')
+        ? 'parsing error'
+        : errorMsg.includes('ENOMEM')
+        ? 'out of memory'
+        : errorMsg.length > 50
+        ? errorMsg.substring(0, 47) + '...'
+        : errorMsg;
+
+      console.error(`Error processing file ${filePath}: ${shortError}`);
+      return { totalCases: 0, fixedCases: 0, error: shortError };
     }
   }
 
