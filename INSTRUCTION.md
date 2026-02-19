@@ -10,9 +10,9 @@ cd external
 npm i
 cd ..
 
-# PREPARE LIBARKTS
-cd external/ui2abc/libarkts
-npm run reinstall:regenerate
+# PREPARE LIBARKTS (using panda actual for current koala_projects submodule)
+cd external/libarkts
+PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
 npm run compile
 cd ../../..
 
@@ -28,9 +28,13 @@ npm run download:sdk
 ## GENERATION
 
 ```bash
-node runner m3 ./sdk-patched-arkts ./interfaces/interfaces/arkui-extra/*.idl \
+node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
+    --sdk-stage prepared \
     --arkgen-options-file ./arkgen/generation-config/config.json \
-    --sdk-stage prepared --etsgen 'node etsgen' --arkgen 'node arkgen' \
+    --etsgen-options-file ./etsgen/generator-config.json \
+    --arkgen-interop-types ./runner/interop-types/src/cpp/interop-types.h \
+    --scraper-options-file ./runner/configs/scraper-config.json \
+    --arkgen "node arkgen" --etsgen "node etsgen" \
     --output <directory-to-install-generated-files>
 ```
 

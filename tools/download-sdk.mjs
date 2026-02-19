@@ -36,8 +36,10 @@ else repoRefKind = 'local'
 
 // initial clone
 if (!fs.existsSync(repoDir) || !fs.existsSync(gitDir)) {
-  console.log("no git directories exists, try to clone repo")
-  exec(`git --git-dir=${gitDir} clone ${repoUrl} ${repoDir}`)
+  console.log("no git directories exist, try to clone repo")
+  exec(`git clone ${repoUrl} ${repoDir}`)
+} else {
+  exec(`${git} remote set-url origin ${repoUrl}`)
 }
 
 // unshallow
