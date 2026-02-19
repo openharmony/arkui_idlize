@@ -26,7 +26,8 @@ import {
     StringExpression,
     NamedMethodSignature,
     ProxyStatement,
-    ExpressionStatement
+    ExpressionStatement,
+    MethodSignature
 } from "./LanguageWriter.js";
 import { NativeModuleType, RuntimeType } from "./common.js";
 import { generatorConfiguration, generatorTypePrefix } from "../config.js"
@@ -42,6 +43,7 @@ import { maybeRestoreGenerics, maybeRestoreThrows, maybeTransformManagedCallback
 import { convertType, TypeConvertor, withInsideInstanceof } from "./nameConvertor.js";
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js";
 import { collapseTypes } from "../peer-generation/idl/common.js";
+import { ETSLanguageWriter } from "./writers/ETSLanguageWriter.js";
 
 export function getSerializerName(_library: LibraryInterface, _language: Language, declaration: idl.IDLEntry) {
     return idl.entryToFunctionName(_language, declaration, "", "SerializerImpl")
@@ -739,12 +741,23 @@ export class ArrayConvertor extends BaseArgConvertor { //
         const statements: LanguageStatement[] = []
         const arrayType = this.idlType
         statements.push(writer.makeAssign(lengthBuffer, idl.createPrimitiveType('i32'), writer.makeString(`${deserializerName}.readInt32()`), true))
-        statements.push(writer.makeAssign(bufferName, arrayType, writer.makeArrayInit(this.type, lengthBuffer), true, false))
-        statements.push(writer.makeArrayResize(bufferName, writer.getNodeName(arrayType), lengthBuffer, deserializerName))
-        statements.push(writer.makeLoop(counterBuffer, lengthBuffer,
-            this.elementConvertor.convertorDeserialize(`${bufferName}TempBuf`, deserializerName, (expr) => {
-                return writer.makeAssign(writer.makeArrayAccess(bufferName, counterBuffer).asString(), undefined, expr, false)
-            }, writer)))
+        if (writer instanceof ETSLanguageWriter) {
+            // in ETS we must explicitly set initializer value per each element OR pass initializer function
+            statements.push(writer.makeAssign(bufferName, arrayType, writer.makeArrayInit(this.type, lengthBuffer, {
+                initializerFunction: writer.makeLambda(new MethodSignature(this.elementType, [idl.createPrimitiveType('i32')]), [
+                    this.elementConvertor.convertorDeserialize(`${bufferName}TempBuf`, deserializerName, (expr) => {
+                        return writer.makeLambdaReturn(expr)
+                    }, writer)
+                ])
+            })))
+        } else {
+            statements.push(writer.makeAssign(bufferName, arrayType, writer.makeArrayInit(this.type, lengthBuffer), true, false))
+            statements.push(writer.makeArrayResize(bufferName, writer.getNodeName(arrayType), lengthBuffer, deserializerName))
+            statements.push(writer.makeLoop(counterBuffer, lengthBuffer,
+                this.elementConvertor.convertorDeserialize(`${bufferName}TempBuf`, deserializerName, (expr) => {
+                    return writer.makeAssign(writer.makeArrayAccess(bufferName, counterBuffer).asString(), undefined, expr, false)
+                }, writer)))
+        }
         statements.push(assigneer(writer.makeString(bufferName)))
         return new BlockStatement(statements, false)
     }
