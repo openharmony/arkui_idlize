@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { GENERATED_PEER_DIR } from "../shared"
-import { flat, scan, over, run } from "../utils"
+import { GENERATED_PEER_DIR } from "../shared.js"
+import { flat, scan, over, run } from "../utils.js"
 import { basename, join, parse } from "node:path"
 import { writeFileSync } from "node:fs"
 

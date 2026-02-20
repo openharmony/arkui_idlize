@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +17,12 @@
 
 import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { Command } from "commander"
-import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CWD, WORKING_DIR } from "./shared"
-import { commands } from "./commands"
+import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CWD, WORKING_DIR } from "./shared.js"
+import { commands } from "./commands/index.js"
 import { join, resolve } from "node:path"
-import { transformBuilderFunctions } from "./tools/builderFuncsTransformer"
-import { formatArkts } from "./tools/formatArkts"
-import { Ets2IdlResult } from "./commands/ets2idl"
+import { transformBuilderFunctions } from "./tools/builderFuncsTransformer.js"
+import { formatArkts } from "./tools/formatArkts.js"
+import { Ets2IdlResult } from "./commands/ets2idl.js"
 
 /////////////////////////////////////////////////
 
