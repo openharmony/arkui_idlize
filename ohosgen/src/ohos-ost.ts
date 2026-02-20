@@ -34,26 +34,22 @@ import {
     IMPL_PREFIX,
     readInteropTypesHeader,
     OhosSeed,
-    registerDefaultSelectors,
+    registerDefaultProducers,
     MakeSelector,
     moduleLike,
     lowLevelLike,
     OhosEffect,
     createOhosEffect,
-    LWKind
+    LWKind,
 } from "@idlizer/libohos"
 import { continueWith, onlyFor } from '@idlizer/kit'
-import { arkInterfaceProducer } from "./arkui/managed/interface"
-import { arkAttributeProducer } from "./arkui/managed/attribute"
+import { ArkUIRole, registerArkUIProducers } from "./arkui/arkui"
 
 export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
-    const selector = new MakeSelector()
-
-    ///ArkUI specifics
-    selector.register(arkAttributeProducer)
-    selector.register(arkInterfaceProducer)
-
-    registerDefaultSelectors(selector)
+    ///refac ArkUI specifics outta here
+    const selector = new MakeSelector<ArkUIRole<idl.IDLNode>>()
+    registerArkUIProducers(selector)
+    registerDefaultProducers(selector)
 
     // ignore predefined / synthetic files
     const files = library.files.filter(file =>
@@ -69,7 +65,7 @@ export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, M
         createEffect: createOhosEffect,
         library,
         roots: { seeds }},
-        onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
+        onlyFor(OhosSeed<ArkUIRole<idl.IDLNode>>, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
 
     console.log(`=== ${declarations.length} declarations {`)
     declarations
