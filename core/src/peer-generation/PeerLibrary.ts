@@ -374,7 +374,9 @@ export function cleanPrefix(name: string, prefix: string): string {
 }
 
 export function forceTypedefAsResource(resolver: ReferenceResolver, type: idl.IDLType, decl: idl.IDLTypedef): boolean {
-    if (generatorConfiguration().forceResource.includes(idl.getFQName(decl))) return true
+    if (idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)) return false
+    if (generatorConfiguration().forceResource.includes(decl.name) ||
+        generatorConfiguration().forceResource.includes(idl.getFQName(decl))) return true
     if (isCyclicTypeDef(resolver, decl)) {
         warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
         return true

@@ -51,6 +51,10 @@
         {
             "from": "arkui.Graphics.ColorMetrics",
             "to": "arkui.component.idlize.ColorMetricsExt"
+        },
+        {
+            "from": "ohos.base.RecordData",
+            "to": "(Object or undefined)"
         }
     ],
     "forceMaterialized": [
@@ -500,7 +504,9 @@
         "PinchGestureHandler",
         "TapGestureHandler",
         "RotationGestureHandler",
-        "SwipeGestureHandler"
+        "SwipeGestureHandler",
+        "CustomColors",
+        "CustomDarkColors"
     ],
     "boundProperties": {
         "Checkbox": [
