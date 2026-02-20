@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { capitalize } from "@idlizer/core";
 import * as idl from "@idlizer/core/idl"
-import { E, T, Builders, managedName, Ts, createProducer, expectType, expectExpr, argConvertor, Hs } from "@idlizer/libohos";
+import { T, Builders, managedName, Ts, createProducer, expectType, OhosSeed, E, FunctionDeclaration, OhosProducerContext, Hs } from "@idlizer/libohos";
+import { ArkUIRole } from "..";
 
 function isComponentAttribute(node: idl.IDLInterface) {
   return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Component)
@@ -29,175 +29,108 @@ function isAttributeModifier(prop: idl.IDLProperty) {
   return prop.name === 'attributeModifier'
 }
 
-export const arkAttributeProducer = createProducer(
+export const attributeProducer = createProducer(
   { is: idl.isInterface, predicate: isComponentAttribute, role: 'managed' },
   (node, ctx) => {
-    const packageName = idl.getPackageName(node)
-    const componentName = node.name
-    const baseName = managedName(idl.getFQName(node)).replace(/Attribute$/, '')
-
-    // Filter properties with [CommonMethod] attribute
-    const commonMethodProps = node.properties.filter(isCommonMethodProperty)
-
-    // Build peer class with set{Name}Attribute methods
-    const peerClass = Builders.class(baseName + 'Peer')
-      // create()
-      .method('create').static()
-        .returns(T.c(baseName + 'Peer'))
-        .param('component').typeStr('ComponentBase').$()
-        .param('flags').type(Ts.prim.i32).$()
-        .block()
-          .decl('peerId').value().call('nextId').receiver('PeerNode').$().$().$()
-          .decl('peerPtr').value().call(`_${componentName}_construct`).receiver(ctx.getEffect().nativeModuleName)
-            .arg('peerId').arg('flags').$().$().$()
-          .decl('peer').value().ctor(componentName + 'Peer')
-            .arg('peerPtr').arg('peerId').arg(componentName).arg('flags').$().$().$()
-          .call('setPeer').receiver('component').arg('peer').$()
-          .return().value('peer').$().$().$()
-
-    // For each [CommonMethod] property, add a set{Name}Attribute method to the peer
-    for (const prop of commonMethodProps) {
-      if (isAttributeModifier(prop)) {
-        // attributeModifier is a no-op in the peer - no native call needed
-        continue
-      }
-      const propName = capitalize(prop.name)
-      const propType = expectType(ctx, prop.type, 'managed')
-      const serializerName = 'thisSerializer'
-
-      // Build serialization body using argConvertor
-      const writeStmts = argConvertor(ctx, prop.type).write(E.v('value'), E.v(serializerName), false)
-
-      // NativeModule call: ArkUIGeneratedNativeModule._BlankAttribute_setColor(this.peer.ptr, thisSerializer.asBuffer(), thisSerializer.length())
-      const syntheticMethod = idl.createMethod(`set${propName}`, [idl.createParameter('value', prop.type)], idl.createPrimitiveType('void'), undefined, {
-        extendedAttributes: node.extendedAttributes
-      })
-      syntheticMethod.parent = node
-      const nativeModuleCall = Builders.call(
-        expectExpr(ctx, syntheticMethod, 'native-module'))
-        .arg().access('ptr').receiver().access('peer').receiver('this').excl().$().$().$().$()
-        .arg().call('asBuffer').receiver(serializerName).$().$()
-        .arg().call('length').receiver(serializerName).$().$().$()
-
-      peerClass.method(`set${propName}Attribute`)
-        .param('value').type(propType).$()
-        .returns(Ts.prim.void)
-        .block()
-          .decl(serializerName, T.c('SerializerBase'))
-            .value().call('hold').receiver('SerializerBase').$().$().$()
-          .statements(writeStmts)
-          .call(nativeModuleCall).$()
-          .call('release').receiver(serializerName).$().$().$().$()
-    }
-
-    // Build BlankAttribute interface extending CommonMethod
-    const superType = node.inheritance.length > 0
-      ? expectType(ctx, node.inheritance[0], 'managed')
-      : undefined
-    const attrInterface = Builders.class(baseName + 'Attribute')
-      .interface()
-    if (superType) {
-      attrInterface.extends(superType)
-    }
-    for (const prop of commonMethodProps) {
-      const propType = expectType(ctx, prop.type, 'managed')
-      attrInterface.method(prop.name)
-        .param('value').type(propType).$()
-        .returns(Ts.prim.self).$().$()
-        /// interface method has no body, right?
-        // .block()
-        //   .return().value('this').$().$().$().$()
-    }
-
-    // Build ArkBlankComponent class
-    const componentClass = Builders.class(baseName + 'Component')
-    if (superType) {
-      componentClass.extends(T.c(managedName(`${packageName}.${node.inheritance[0].name}Component`)))
-    }
-    componentClass.implements(T.c(baseName + 'Attribute'))
-
-    // getPeer()
-    componentClass.method('getPeer')
-      .returns(T.c(baseName + 'Peer'))
-      .block()
-        .return().cast(T.c(baseName + 'Peer')).value().access('peer').receiver('this').$().$().$().$().$().$()
-
-    // For each [CommonMethod] property, add delegation method
-    for (const prop of commonMethodProps) {
-      ///ccreate IDLMethod and delegate to function producer
-      const propName = prop.name
-      const propType = expectType(ctx, prop.type, 'managed')
-
-      if (isAttributeModifier(prop)) {
-        // attributeModifier just returns this
-        componentClass.method(propName)
-          .param('value').type(propType).$()
-          .returns(Ts.prim.self)
-          .block()
-            .return().value('this').$().$().$().$()
-      } else {
-        // Regular property: cast and delegate to peer
-        componentClass.method(propName)
-          .param('value').type(propType).$()
-          .returns(Ts.prim.self)
-          .block()
-            .decl('valueCasted').value().cast(propType).value('value').$().$().$()
-            .call(`set${capitalize(propName)}Attribute`).receiver().call('getPeer').receiver('this').$().$()
-              .arg('valueCasted').$()
-            .return().value('this').$().$().$().$()
-      }
-    }
-
-    // applyAttributesFinish and applyOptionsFinish
-    componentClass.method('applyAttributesFinish')///needed? just calls super
-      .returns(Ts.prim.void)
-      .block()
-        .call('applyAttributesFinish').receiver('@base').$().$().$().$()
-
-    componentClass.method('applyOptionsFinish')///needed? just calls super
-      .param('traceName').type(Ts.prim.str).$()
-      .returns(Ts.prim.void)
-      .block()
-        .call('applyOptionsFinish').receiver('@base').arg('traceName').$().$().$().$()
-
-    // Build BlankImpl function
-    const shortComponentName = baseName.split('.').pop()!
-    const rememberCall = E.call(
-      E.v('remember'),
-      [Builders.lambda()
-        .body().return().ctor(shortComponentName + 'Component').$().$().$().$()],
-      [T.c(baseName + 'Component')]
-    )
-    const createLambda = Builders.lambda()
-      .body().return().call('create').receiver(E.v(shortComponentName + 'Peer', [Hs.isType()]))
-        .arg('receiver').$().$().$().$()
-    const bodyLambda = Builders.lambda()
-      .param('_').type(T.c(baseName + 'Peer')).$()
-      .body().block()
-        .call('style').arg('receiver').$()
-        .call('content_').$().$().$().$()
-    const nodeAttachCall = E.call(
-      E.v('NodeAttach'),
-      [createLambda, bodyLambda],
-      [T.c(baseName + 'Peer')]
-    )
-    const implFunc = Builders.func(baseName + 'Impl')
-      .param('style').type(Ts.optional(T.fn([['attributes', T.c(baseName)]], Ts.prim.void))).$()
-      .param('content_').type(Ts.optional(T.fn([], Ts.prim.void))).$()
-      .returns(Ts.prim.void)
-      .annotation('memo')
-      .block()
-        .decl('receiver').value(rememberCall).$()
-        .call(nodeAttachCall).$().$()
-
+    const attrName = managedName(idl.getFQName(node))
     return {
-      continuation: T.c(baseName),
+      continuation: T.c(attrName),
       declarations: [
-        peerClass.$(),
-        attrInterface.$(),
-        componentClass.$(),
-        implFunc.$()
+        Builders.class(attrName).interface()
+          .extends(node.inheritance.length
+              ? expectType(ctx, node.inheritance[0], 'managed')
+              : undefined)
+          .$(),
+        createImpl(ctx, node, attrName)
+      ],
+      trigger: node.properties
+        .filter(it => !isAttributeModifier(it))
+        .map(it => new OhosSeed(it, 'peer'))
+        ///add attrModifier()
+    }
+  }
+)
+
+export const peerFromAttributeProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
+  { is: idl.isInterface, predicate: isComponentAttribute, role: 'peer' },
+  (node, ctx) => {
+    const name = managedName(idl.getFQName(node)).replace(/Attribute$/, 'Peer')
+    return {
+      continuation: T.c(name),
+      declarations: [
+        Builders.class(name)
+          .extends(node.inheritance.length
+              ? expectType(ctx, node.inheritance[0], 'peer')
+              : undefined)
+          /// ctor
+//       .method('create').static()
+//         .returns(T.c(baseName + 'Peer'))
+//         .param('component').typeStr('ComponentBase').$()
+//         .param('flags').type(Ts.prim.i32).$()
+//         .block()
+//           .decl('peerId').value().call('nextId').receiver('PeerNode').$().$().$()
+//           .decl('peerPtr').value().call(`_${componentName}_construct`).receiver(ctx.getEffect().nativeModuleName)
+//             .arg('peerId').arg('flags').$().$().$()
+//           .decl('peer').value().ctor(componentName + 'Peer')
+//             .arg('peerPtr').arg('peerId').arg(componentName).arg('flags').$().$().$()
+//           .call('setPeer').receiver('component').arg('peer').$()
+//           .return().value('peer').$().$().$()
+          .$()
       ]
     }
   }
 )
+
+export const componentFromAttributeProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
+  { is: idl.isInterface, predicate: isComponentAttribute, role: 'component' },
+  (node, ctx) => {
+    const name = managedName(idl.getFQName(node)).replace(/Attribute$/, 'Component')
+    const peerType = expectType(ctx, node, 'peer');
+    return {
+      continuation: T.c(name),
+      declarations: [
+        Builders.class(name)
+          .extends(node.inheritance.length
+            ? expectType(ctx, node.inheritance[0], 'component')
+            : undefined)
+          .implements(expectType(ctx, node, 'managed'))
+          .method('getPeer')
+            .returns(peerType)
+            .block()
+            .return().cast(peerType).value().access('peer').receiver('this').$().$().$().$().$().$().$()
+      ]
+    }
+  }
+)
+
+function createImpl(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrName: string): FunctionDeclaration {
+  const name = attrName.replace(/Attribute$/, '')
+  const peerType = expectType(ctx, attrNode, 'peer')
+  const componentType = expectType(ctx, attrNode, 'component')
+  const rememberCall = E.call(
+    E.v('remember'),
+    [Builders.lambda().body().block().return().ctor(name + 'Component').$().$().$().$().$()],
+    [componentType]
+  )
+  const nodeAttachCall = E.call(
+    E.v('NodeAttach'),
+    [
+      Builders.lambda().body()
+        .call('create')
+          .receiver(E.v(name + 'Peer', [Hs.isType()]))
+          .arg('receiver').$().$().$(),
+      Builders.lambda().param('_').type(peerType).$().body().block()
+        .call('style').arg('receiver').$()
+        .call('content_').$().$().$().$()
+    ],
+    [peerType]
+  )
+  return Builders.func(name + 'Impl')
+    .param('style').type(Ts.optional(T.fn([['attributes', T.c(attrName)]], Ts.prim.void))).$()
+    .param('content_').type(Ts.optional(T.fn([], Ts.prim.void))).$()
+    .returns(Ts.prim.void)
+    .annotation('memo')
+    .block()
+      .decl('receiver').value(rememberCall).$()
+      .call(nodeAttachCall).$().$().$()
+}

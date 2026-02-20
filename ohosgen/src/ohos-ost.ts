@@ -43,7 +43,7 @@ import {
     LWKind,
 } from "@idlizer/libohos"
 import { continueWith, onlyFor } from '@idlizer/kit'
-import { ArkUIRole, registerArkUIProducers } from "./arkui/arkui"
+import { ArkUIRole, registerArkUIProducers } from "./arkui"
 
 export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
     ///refac ArkUI specifics outta here

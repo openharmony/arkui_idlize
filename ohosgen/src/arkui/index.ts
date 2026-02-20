@@ -15,18 +15,23 @@
 
 import * as idl from "@idlizer/core/idl"
 import { MakeSelector, OhosSeed, Role } from "@idlizer/libohos"
-import { arkAttributeProducer } from "./managed/attribute"
+import { attributeProducer, componentFromAttributeProducer, peerFromAttributeProducer } from "./managed/attribute"
+import { propertyProducer } from "./managed/property"
 
-type ArkUIInterfaceRole<N extends idl.IDLNode> =
+type ArkUISpecificRole<N extends idl.IDLNode> =
   N extends idl.IDLInterface ? 'component' | 'peer' :
+  N extends idl.IDLProperty ? 'peer' :
   never
 
-export type ArkUIRole<N extends idl.IDLNode> = Role<N> | ArkUIInterfaceRole<N>
+export type ArkUIRole<N extends idl.IDLNode> = Role<N> | ArkUISpecificRole<N>
 
 export type ArkUISeed = OhosSeed<ArkUIRole<idl.IDLNode>>
 
 export const producers = [
-  arkAttributeProducer,
+  attributeProducer,
+  peerFromAttributeProducer,
+  componentFromAttributeProducer,
+  propertyProducer,
 ]
 
 export function registerArkUIProducers(selector: MakeSelector<ArkUIRole<idl.IDLNode>>) {

@@ -1854,7 +1854,7 @@ class ClassBuilder extends StructLikeBuilder {
      *   .$();
      * ```
      */
-    extends(type: LWType) { this._oop!.base = type; return this }
+    extends(type: LWType | undefined) { this._oop!.base = type; return this }
     /**
      * Add an interface that this class implements.
      * Can be called multiple times to implement multiple interfaces.
