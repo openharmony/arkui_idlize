@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { createDefaultTypescriptWriter } from "../../utils/idl"
-import { Config } from "../../general/Config"
-import { PeersConstructions } from "../../constuctions/PeersConstructions"
+import { createDefaultTypescriptWriter } from "../../utils/idl.js"
+import { Config } from "../../general/Config.js"
+import { PeersConstructions } from "../../constuctions/PeersConstructions.js"
 import * as path from "node:path"
 
 export class Importer {

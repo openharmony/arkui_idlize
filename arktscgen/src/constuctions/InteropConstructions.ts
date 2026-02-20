@@ -14,7 +14,7 @@
  */
 
 import { capitalize, createPrimitiveType, createReferenceType, IDLPrimitiveType } from "@idlizer/core"
-import { isCreateOrUpdate, splitCreateOrUpdate } from "../general/common"
+import { isCreateOrUpdate, splitCreateOrUpdate } from "../general/common.js"
 
 export class InteropConstructions {
     static get receiver(): string {

@@ -34,8 +34,8 @@ import {
     resolveNamedNode,
     throwException
 } from "@idlizer/core"
-import { Config } from "./Config"
-import { flatParentsImpl, fqName, nodeType } from "../utils/idl"
+import { Config } from "./Config.js"
+import { flatParentsImpl, fqName, nodeType } from "../utils/idl.js"
 
 export class Typechecker {
     private namespaces: IDLNamespace[]

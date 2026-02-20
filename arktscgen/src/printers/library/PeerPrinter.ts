@@ -41,7 +41,7 @@ import {
     makeEnoughQualifiedName,
     isSequence,
     isString,
-} from "../../utils/idl"
+} from "../../utils/idl.js"
 import {
     isAbstract,
     isCreate,
@@ -53,17 +53,17 @@ import {
     makeMethodName,
     mangleIfKeyword,
     peerMethod
-} from "../../general/common"
-import { Importer } from "./Importer"
-import { pascalToCamel } from "../../utils/string"
-import { PeersConstructions } from "../../constuctions/PeersConstructions"
-import { Typechecker } from "../../general/Typechecker"
-import { BindingParameterTypeConvertor } from "../../type-convertors/top-level/peers/BindingParameterTypeConvertor"
-import { unpackWrapper, hasTypeHintArgument, typeHintArgument, hasFactoryArgument } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor"
-import { Config } from "../../general/Config"
-import { ExtraParameter } from "../../options/ExtraParameters"
-import { CommonGenerator } from "../Generator"
-import { Filter } from "../Filter";
+} from "../../general/common.js"
+import { Importer } from "./Importer.js"
+import { pascalToCamel } from "../../utils/string.js"
+import { PeersConstructions } from "../../constuctions/PeersConstructions.js"
+import { Typechecker } from "../../general/Typechecker.js"
+import { BindingParameterTypeConvertor } from "../../type-convertors/top-level/peers/BindingParameterTypeConvertor.js"
+import { unpackWrapper, hasTypeHintArgument, typeHintArgument, hasFactoryArgument } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor.js"
+import { Config } from "../../general/Config.js"
+import { ExtraParameter } from "../../options/ExtraParameters.js"
+import { CommonGenerator } from "../Generator.js"
+import { Filter } from "../Filter.js";
 
 export class PeerPrinter {
     private bindingParameterTypeConvertor = new BindingParameterTypeConvertor(this.typechecker)

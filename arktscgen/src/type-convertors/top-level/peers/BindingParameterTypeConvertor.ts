@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { TopLevelTypeConvertor } from "../TopLevelTypeConvertor"
-import { Typechecker } from "../../../general/Typechecker"
+import { TopLevelTypeConvertor } from "../TopLevelTypeConvertor.js"
+import { Typechecker } from "../../../general/Typechecker.js"
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType } from "@idlizer/core"
-import { PeersConstructions } from "../../../constuctions/PeersConstructions"
-import { Config } from "../../../general/Config"
-import { isString } from "../../../utils/idl"
+import { PeersConstructions } from "../../../constuctions/PeersConstructions.js"
+import { Config } from "../../../general/Config.js"
+import { isString } from "../../../utils/idl.js"
 
 export class BindingParameterTypeConvertor extends TopLevelTypeConvertor<
     (parameter: string) => string | string[]

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
-import { Config } from "../../../general/Config"
+import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer.js"
+import { Config } from "../../../general/Config.js"
 import { IDLFile, IDLInterface } from "@idlizer/core"
-import { nodeNamespace } from "../../../utils/idl"
+import { nodeNamespace } from "../../../utils/idl.js"
 
 export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
     constructor(

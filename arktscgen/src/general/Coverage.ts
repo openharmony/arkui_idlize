@@ -14,7 +14,7 @@
  */
 
 import * as core from "@idlizer/core"
-import { nodeNamespace } from "../utils/idl"
+import { nodeNamespace } from "../utils/idl.js"
 
 type Coverage = {
     interfaceNumberTotal: number,

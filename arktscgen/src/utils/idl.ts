@@ -48,9 +48,9 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import * as idl from "@idlizer/core"
-import { Config } from "../general/Config"
-import { mangleIfKeyword } from "../general/common"
-import { dropPrefix } from "./string"
+import { Config } from "../general/Config.js"
+import { mangleIfKeyword } from "../general/common.js"
+import { dropPrefix } from "./string.js"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === `String`

@@ -15,10 +15,10 @@
 
 import { createEmptyReferenceResolver, IndentedPrinter, isEnum, throwException, TSLanguageWriter } from "@idlizer/core"
 import { createTypedef, IDLEntry, IDLEnum, IDLInterface, IDLType, IDLTypedef, isTypedef, isUnionType, printType } from "@idlizer/core/idl"
-import { SingleFilePrinter } from "../SingleFilePrinter"
-import { isNumber } from "../../utils/types"
-import { fixEnumPrefix } from "../../general/common"
-import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
+import { SingleFilePrinter } from "../SingleFilePrinter.js"
+import { isNumber } from "../../utils/types.js"
+import { fixEnumPrefix } from "../../general/common.js"
+import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor.js"
 
 export class EnumsPrinter extends SingleFilePrinter {
     protected converter = new LibraryTypeConvertor(this.typechecker)

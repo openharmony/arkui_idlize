@@ -14,12 +14,12 @@
  */
 
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, throwException, isInterface } from "@idlizer/core"
-import { Typechecker } from "../../../general/Typechecker"
-import { BaseTypeConvertor } from "../../BaseTypeConvertor"
-import { BridgesConstructions } from "../../../constuctions/BridgesConstructions"
-import { NativeTypeConvertor } from "./NativeTypeConvertor"
-import { Config } from "../../../general/Config"
-import { baseName, innerType, isString, nativeType } from "../../../utils/idl"
+import { Typechecker } from "../../../general/Typechecker.js"
+import { BaseTypeConvertor } from "../../BaseTypeConvertor.js"
+import { BridgesConstructions } from "../../../constuctions/BridgesConstructions.js"
+import { NativeTypeConvertor } from "./NativeTypeConvertor.js"
+import { Config } from "../../../general/Config.js"
+import { baseName, innerType, isString, nativeType } from "../../../utils/idl.js"
 
 export class CastTypeConvertor extends BaseTypeConvertor<string> {
     private castToTypeConvertor = new CastToTypeConvertor(this.typechecker)

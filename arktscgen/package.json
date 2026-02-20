@@ -2,10 +2,15 @@
     "name": "@idlizer/arktscgen",
     "version": "2.2.2+devel",
     "description": "",
-    "main": "lib/index.js",
-    "bin": "lib/index.js",
+    "type": "module",
+    "main": "build/lib/src/main.js",
+    "bin": "build/lib/src/main.js",
+    "exports": "./build/lib/src/index.js",
+    "types": "./build/lib/src/index.d.ts",
     "files": [
-        "lib/*.js",
+        "build/**/*.js",
+        "build/**/*.map",
+        "build/**/*.d.ts",
         "templates/*",
         "./build/libarkts-copy/src",
         "./build/libarkts-copy/native",
@@ -23,10 +28,6 @@
         "typescript": "^4.9.5"
     },
     "devDependencies": {
-        "@rollup/plugin-commonjs": "^26.0.1",
-        "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-terser": "^0.4.4",
-        "@rollup/plugin-typescript": "^11.1.6",
         "@types/json5": "^2.2.0",
         "@types/node": "^18.19.127",
         "json5": "^2.2.3",
@@ -35,7 +36,7 @@
     "scripts": {
         "clean": "rimraf lib build",
         "compile:core": "npm run --prefix ../core compile",
-        "compile:self": "rollup -c",
+        "compile:self": "tsc -b .",
         "compile": "npm run compile:core && npm run compile:self",
         "external:test": "npm run --prefix ../external/libarkts run:current",
         "external:clean": "rimraf ../external/libarkts/generated",

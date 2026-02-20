@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { createUpdatedInterface, innerTypeIfContainer } from "../../../utils/idl"
+import { createUpdatedInterface, innerTypeIfContainer } from "../../../utils/idl.js"
 import { createFile, createNamespace, IDLEntry, IDLFile, IDLInterface, IDLMethod, isInterface, isNamespace, isReferenceType } from "@idlizer/core"
-import { Transformer } from "../../Transformer"
-import { Typechecker } from "../../../general/Typechecker"
-import { gCoverage } from "../../../general/Coverage";
+import { Transformer } from "../../Transformer.js"
+import { Typechecker } from "../../../general/Typechecker.js"
+import { gCoverage } from "../../../general/Coverage.js";
 
 export abstract class BaseInterfaceFilterTransformer extends Transformer {
     constructor(file: IDLFile, removeNamespaces: boolean = false) {

@@ -14,11 +14,11 @@
  */
 
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, isEnum, isTypedef } from "@idlizer/core"
-import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
-import { Typechecker } from "../../general/Typechecker"
-import { fqName, innerType, makeEnoughQualifiedName, makeFullyQualifiedName } from "../../utils/idl"
-import { Config } from "../../general/Config"
-import { fixEnumPrefix } from "../../general/common"
+import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor.js"
+import { Typechecker } from "../../general/Typechecker.js"
+import { fqName, innerType, makeEnoughQualifiedName, makeFullyQualifiedName } from "../../utils/idl.js"
+import { Config } from "../../general/Config.js"
+import { fixEnumPrefix } from "../../general/common.js"
 
 class _LibraryTypeConvertor extends TopLevelTypeConvertor<string> {
     constructor(

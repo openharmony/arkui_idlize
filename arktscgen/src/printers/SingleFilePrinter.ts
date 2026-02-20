@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../general/Typechecker"
+import { Typechecker } from "../general/Typechecker.js"
 import { IDLEntry, IDLEnum, IDLFile, IDLInterface, IDLNode, IDLTypedef, isEnum, isFile, isInterface, isNamespace, isTypedef } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core"
-import { Importer } from "./library/Importer";
+import { Importer } from "./library/Importer.js";
 
 export abstract class AbstractVisitor {
     protected abstract visit(entry: IDLNode): void

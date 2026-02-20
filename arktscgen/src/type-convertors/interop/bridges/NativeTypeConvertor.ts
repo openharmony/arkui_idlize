@@ -14,9 +14,9 @@
  */
 
 import { IDLContainerType, IDLContainerUtils, IDLPrimitiveType } from "@idlizer/core"
-import { InteropTypeConvertor } from "../InteropTypeConvertor"
-import { Typechecker } from "../../../general/Typechecker"
-import { isString } from "../../../utils/idl"
+import { InteropTypeConvertor } from "../InteropTypeConvertor.js"
+import { Typechecker } from "../../../general/Typechecker.js"
+import { isString } from "../../../utils/idl.js"
 
 export class NativeTypeConvertor extends InteropTypeConvertor {
     constructor(

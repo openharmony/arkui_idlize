@@ -26,11 +26,11 @@ import {
 } from "@idlizer/core"
 import { IDLInterface, IDLType, } from "@idlizer/core/idl"
 import { IDLFile } from "@idlizer/core"
-import { InteropPrinter } from "./InteropPrinter"
-import { BindingsConstructions } from "../../constuctions/BindingsConstructions"
-import { BindingsTypeConvertor } from "../../type-convertors/interop/bindings/BindingsTypeConvertor"
-import { ReturnTypeConvertor } from "../../type-convertors/interop/bindings/ReturnTypeConvertor"
-import { BridgesPrinter } from "./BridgesPrinter"
+import { InteropPrinter } from "./InteropPrinter.js"
+import { BindingsConstructions } from "../../constuctions/BindingsConstructions.js"
+import { BindingsTypeConvertor } from "../../type-convertors/interop/bindings/BindingsTypeConvertor.js"
+import { ReturnTypeConvertor } from "../../type-convertors/interop/bindings/ReturnTypeConvertor.js"
+import { BridgesPrinter } from "./BridgesPrinter.js"
 
 export class BindingsPrinter extends InteropPrinter {
     constructor(idl: IDLFile) {

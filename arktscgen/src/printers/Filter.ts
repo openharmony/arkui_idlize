@@ -1,9 +1,9 @@
 import * as core from "@idlizer/core";
 import { dropSuffix } from "@idlizer/core";
-import { isContext } from "../general/common";
-import { Config } from "../general/Config";
-import { Typechecker } from "../general/Typechecker";
-import { isSequence, makeMethod } from "../utils/idl";
+import { isContext } from "../general/common.js";
+import { Config } from "../general/Config.js";
+import { Typechecker } from "../general/Typechecker.js";
+import { isSequence, makeMethod } from "../utils/idl.js";
 
 export class Filter {
     public static makeMethod(

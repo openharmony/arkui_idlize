@@ -28,8 +28,8 @@ import {
     throwException,
     TypeConvertor
 } from "@idlizer/core"
-import { isSequence } from "../utils/idl"
-import { Typechecker } from "../general/Typechecker"
+import { isSequence } from "../utils/idl.js"
+import { Typechecker } from "../general/Typechecker.js"
 
 export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
     protected constructor(

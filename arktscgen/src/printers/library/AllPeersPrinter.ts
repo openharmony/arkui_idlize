@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { MultiFilePrinter, MultiFileOutput } from "../MultiFilePrinter"
+import { MultiFilePrinter, MultiFileOutput } from "../MultiFilePrinter.js"
 import {
     createEmptyReferenceResolver,
     getOrPut,
@@ -30,16 +30,16 @@ import {
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
-import { Importer } from "./Importer"
-import { PeerPrinter } from "./PeerPrinter"
-import { Config } from "../../general/Config"
-import { createDefaultTypescriptWriter, fqName } from "../../utils/idl"
-import { PeersConstructions } from "../../constuctions/PeersConstructions"
-import { convertAndImport } from "../../type-convertors/top-level/ImporterTypeConvertor"
-import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
-import { Typechecker } from "../../general/Typechecker"
-import { isImplInterface } from "../../general/common"
-import { pascalToCamel } from "../../utils/string"
+import { Importer } from "./Importer.js"
+import { PeerPrinter } from "./PeerPrinter.js"
+import { Config } from "../../general/Config.js"
+import { createDefaultTypescriptWriter, fqName } from "../../utils/idl.js"
+import { PeersConstructions } from "../../constuctions/PeersConstructions.js"
+import { convertAndImport } from "../../type-convertors/top-level/ImporterTypeConvertor.js"
+import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor.js"
+import { Typechecker } from "../../general/Typechecker.js"
+import { isImplInterface } from "../../general/common.js"
+import { pascalToCamel } from "../../utils/string.js"
 
 export class AllPeersPrinter extends MultiFilePrinter {
     private static FlattenNamespaces = [Config.irNamespace]

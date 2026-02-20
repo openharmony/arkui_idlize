@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { IgnoreOptions, IrHackOptions } from "../options/IgnoreOptions"
-import { NonNullableOptions } from "../options/NonNullableOptions"
-import { CodeFragmentOptions } from "../options/CodeFragmentOptions";
-import { ExtraParameters } from "../options/ExtraParameters";
-import { Aliases } from "../options/Aliases";
+import { IgnoreOptions, IrHackOptions } from "../options/IgnoreOptions.js"
+import { NonNullableOptions } from "../options/NonNullableOptions.js"
+import { CodeFragmentOptions } from "../options/CodeFragmentOptions.js";
+import { ExtraParameters } from "../options/ExtraParameters.js";
+import { Aliases } from "../options/Aliases.js";
 
 export class Config {
     constructor(

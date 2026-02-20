@@ -28,17 +28,17 @@ import {
     PrimitiveTypeList
 } from "@idlizer/core"
 import { createReferenceType, IDLFile, IDLInterface, IDLType } from "@idlizer/core/idl"
-import { BridgesConstructions } from "../../constuctions/BridgesConstructions"
-import { InteropPrinter } from "./InteropPrinter"
-import { isSequence, isString, makeSignature, makeStatement, nodeNamespace } from "../../utils/idl"
-import { ReturnTypeConvertor } from "../../type-convertors/interop/bridges/ReturnTypeConvertor"
-import { InteropMacroTypeConvertor } from "../../type-convertors/interop/bridges/InteropMacroTypeConvertor"
-import { NativeTypeConvertor } from "../../type-convertors/interop/bridges/NativeTypeConvertor"
-import { CastTypeConvertor } from "../../type-convertors/interop/bridges/CastTypeConvertor"
-import { Config } from "../../general/Config"
-import { isCreateOrUpdate, isImplInterface, mangleIfKeyword } from "../../general/common"
-import { InteropConstructions } from "../../constuctions/InteropConstructions"
-import { BaseTypeConvertor } from "../../type-convertors/BaseTypeConvertor"
+import { BridgesConstructions } from "../../constuctions/BridgesConstructions.js"
+import { InteropPrinter } from "./InteropPrinter.js"
+import { isSequence, isString, makeSignature, makeStatement, nodeNamespace } from "../../utils/idl.js"
+import { ReturnTypeConvertor } from "../../type-convertors/interop/bridges/ReturnTypeConvertor.js"
+import { InteropMacroTypeConvertor } from "../../type-convertors/interop/bridges/InteropMacroTypeConvertor.js"
+import { NativeTypeConvertor } from "../../type-convertors/interop/bridges/NativeTypeConvertor.js"
+import { CastTypeConvertor } from "../../type-convertors/interop/bridges/CastTypeConvertor.js"
+import { Config } from "../../general/Config.js"
+import { isCreateOrUpdate, isImplInterface, mangleIfKeyword } from "../../general/common.js"
+import { InteropConstructions } from "../../constuctions/InteropConstructions.js"
+import { BaseTypeConvertor } from "../../type-convertors/BaseTypeConvertor.js"
 
 export class BridgesPrinter extends InteropPrinter {
     constructor(private config: Config, file: IDLFile) {

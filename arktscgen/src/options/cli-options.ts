@@ -16,6 +16,7 @@
 import { program } from "commander"
 import { throwException } from "@idlizer/core"
 import path from "node:path"
+import { DIR_NAME } from "../utils/utils.js"
 
 type CliOptions = {
     pandaSdkPath: string
@@ -37,7 +38,7 @@ export function cliOptions(): CliOptions {
     return {
         pandaSdkPath: cliOptions.pandaSdkPath ?? throwException(`panda-sdk-path is mandatory parameter`),
         outputDir: cliOptions.outputDir ?? throwException(`output-dir is mandatory parameter`),
-        optionsFile: cliOptions.optionsFile ?? path.join(__dirname, `../build/libarkts-copy/generator/options.json5`),
+        optionsFile: cliOptions.optionsFile ?? path.join(DIR_NAME, `../build/libarkts-copy/generator/options.json5`),
         debug: cliOptions.debug ?? false,
         initialize: cliOptions.initialize ?? false
     }

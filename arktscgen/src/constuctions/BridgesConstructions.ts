@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Config } from "../general/Config"
+import { Config } from "../general/Config.js"
 
 export class BridgesConstructions {
     static castedParameter(name: string): string {

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseTypeConvertor } from "../BaseTypeConvertor"
+import { BaseTypeConvertor } from "../BaseTypeConvertor.js"
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, throwException } from "@idlizer/core"
-import { Typechecker } from "../../general/Typechecker"
+import { Typechecker } from "../../general/Typechecker.js"
 
 export abstract class TopLevelTypeConvertor<T> extends BaseTypeConvertor<T> {
     protected constructor(
