@@ -14,7 +14,7 @@
         "removeComments": false,
         "outDir": "build/lib",
         "rootDirs": ["src"],
-        "module": "commonjs",
+        "module": "esnext",
     },
     "include": ["src/**/*"]
 }
