@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url"
 /////////////////////////////////////////////////
 // CONSTANTS
 
-const DIR_NAME = resolve(fileURLToPath(import.meta.url), "../../../..");
+const DIR_NAME = resolve(fileURLToPath(import.meta.url), "../../..");
 export const WORKING_DIR = resolve(DIR_NAME, '..', 'out')
 export const CONFIGS_DIR = resolve(DIR_NAME, '..', 'configs')
 export const SDK_PATCH_DIR = join(DIR_NAME, '..', 'patches')
