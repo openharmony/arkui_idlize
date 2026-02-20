@@ -51,7 +51,7 @@ export const attributeProducer = createProducer(
   }
 )
 
-export const peerFromAttributeProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
+export const peerProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
   { is: idl.isInterface, predicate: isComponentAttribute, role: 'peer' },
   (node, ctx) => {
     const name = managedName(idl.getFQName(node)).replace(/Attribute$/, 'Peer')
@@ -81,7 +81,7 @@ export const peerFromAttributeProducer = createProducer<idl.IDLInterface, ArkUIR
   }
 )
 
-export const componentFromAttributeProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
+export const componentProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
   { is: idl.isInterface, predicate: isComponentAttribute, role: 'component' },
   (node, ctx) => {
     const name = managedName(idl.getFQName(node)).replace(/Attribute$/, 'Component')

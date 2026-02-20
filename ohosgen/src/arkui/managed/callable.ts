@@ -13,38 +13,36 @@
  * limitations under the License.
  */
 
-import { capitalize } from "@idlizer/core"
 import * as idl from "@idlizer/core/idl"
 import { E, Builders, managedName, Ts, createProducer, expectType, OhosSeed } from "@idlizer/libohos"
 import { ArkUIRole } from ".."
 
-export const propertyProducer = createProducer<idl.IDLProperty, ArkUIRole<idl.IDLProperty>>(
-  { is: idl.isProperty, role: 'peer' },
-  (prop, ctx) => {
-    const attrName = managedName(idl.getFQName(prop.parent!))
-    const parentName = (prop.parent as idl.IDLInterface).name
-    const propMethod = idl.createMethod(
-        'set' + capitalize(prop.name),
-        [idl.createParameter('value', prop.type)],
-        idl.createPrimitiveType('void'))
-    const peerClass = idl.createInterface(parentName.replace(/Attribute$/, 'Peer'), idl.IDLInterfaceSubkind.Class)
+export const optionsProducer = createProducer<idl.IDLCallable, ArkUIRole<idl.IDLCallable>>(
+  { is: idl.isCallable, role: 'peer' },
+  (callsig, ctx) => {
+    const attrName = managedName(idl.getFQName(callsig.parent!)).replace(/Interface$/, '')
+    const parentName = (callsig.parent as idl.IDLInterface).name.replace(/Interface$/, '')
+    const methodName = `set${parentName}Options`;
+    const idlParams = callsig.parameters.slice(0, -1);
+    const propMethod = idl.createMethod(methodName, idlParams, idl.createPrimitiveType('void'))
+    const peerClass = idl.createInterface(parentName + 'Peer', idl.IDLInterfaceSubkind.Class)
     propMethod.parent = peerClass
-    peerClass.parent = idl.getFileFor(prop)
+    peerClass.parent = idl.getFileFor(callsig)
 
-    const propType = expectType(ctx, prop.type, 'managed')
+    const params = idlParams.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') }))
     return {
-      continuation: E.v(prop.name),
+      continuation: E.v(methodName),
       declarations: [
-        Builders.class(attrName).interface()
-          .method(prop.name)
-            .param('value').type(propType).$()
+        Builders.class(attrName + 'Attribute').interface()
+          .method(methodName)
+            .parameters(params)
             .returns(Ts.prim.self).$().$(),
-        Builders.class(attrName.replace(/Attribute$/, 'Component'))
-          .method(prop.name)
-            .param('value').type(propType).$()
+        Builders.class(attrName + 'Component')
+          .method(methodName)
+            .parameters(params)
             .returns(Ts.prim.self)
             .block()
-              .call(propMethod.name).arg('value').receiver()
+              .call(propMethod.name).args(params.map(it => E.v(it.name))).receiver()
                 .call('getPeer').receiver('this').$().$().$()
               .return().value('this').$().$().$().$()
       ],
