@@ -1546,6 +1546,8 @@ OH_UNIT_UnionSampleGenericTypeInterface GlobalScope_checkUnionGenericTypeSampleI
     return *value;
 
 }
+void GlobalScope_cyclic_entryImpl(const OH_Object* a1, const OH_Object* a2, const OH_Object* a3) {
+}
 void GlobalScope_generics_callWithDefaultsBImpl(const OH_UNIT_generics_WithDefaultsB_generics_WithDefaultsA_Number* value) {
 }
 

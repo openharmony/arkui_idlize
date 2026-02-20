@@ -1427,7 +1427,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Array': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'Date': return idl.createPrimitiveType('date')
                 case 'date': return idl.createPrimitiveType('date')
-                case 'Partial': return idl.createPrimitiveType('Object')
+                case 'Partial': return idl.createReferenceType('idlize.stdlib.Partial', typeArgs)
                 case 'Object': return idl.createPrimitiveType('Object')
                 case 'object': return idl.createPrimitiveType('Object')
                 case 'ArrayBuffer': return idl.createPrimitiveType('buffer')
