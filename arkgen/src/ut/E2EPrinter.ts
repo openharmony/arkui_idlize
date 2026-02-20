@@ -14,10 +14,10 @@
  */
 
 import { PeerLibrary } from '@idlizer/core'
-import { LibaceInstall } from '../ArkoalaInstall'
-import { AceTypesTs } from './AceTypes'
-import { printTsFixtures, Target } from './E2EFixturesPrinter'
-import { printTsSuites } from './E2ESuitesPrint'
+import { LibaceInstall } from '../ArkoalaInstall.js'
+import { AceTypesTs } from './AceTypes.js'
+import { printTsFixtures, Target } from './E2EFixturesPrinter.js'
+import { printTsSuites } from './E2ESuitesPrint.js'
 
 export function printEndToEndTests(
     peerLibrary: PeerLibrary, libace: LibaceInstall, target: Target, aceTypesJson?: string

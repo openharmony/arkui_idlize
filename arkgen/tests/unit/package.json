@@ -14,7 +14,8 @@
     "@koalaui/compat": "panda-next",
     "@koalaui/common": "panda-next",
     "@koalaui/interop": "panda-next",
-    "@idlizer/arkgen-tests-template-arkts": "file:../../tests-template/arkts"
+    "@idlizer/arkgen-tests-template-arkts": "file:../../tests-template/arkts",
+    "commander": "^10.0.0"
   },
   "devDependencies": {
     "@koalaui/smart-arkts": "panda-next"

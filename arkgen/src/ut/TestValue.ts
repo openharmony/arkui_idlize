@@ -14,8 +14,8 @@
  */
 
 import { camelCaseToUpperSnakeCase, capitalize, IDLKind } from '@idlizer/core'
-import { AceTypes } from './AceTypes'
-import { TypeHelper } from './TypeHelper'
+import { AceTypes } from './AceTypes.js'
+import { TypeHelper } from './TypeHelper.js'
 
 export class TestValue {
     name: string

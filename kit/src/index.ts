@@ -13,24 +13,21 @@
  * limitations under the License.
  */
 
-export * from './cli/application'
-export * from './cli/logger'
-export * from './cli/error'
-export * from './cli/utils'
+export * from './cli/index.js'
 
 ///
 
-export * from './legacy'
-export * from './appBuilder'
+export * from './legacy.js'
+export * from './appBuilder.js'
 
 ///
 
-export * from './engine'
+export * from './engine/index.js'
 
 ///
 
-export * from './processors/declarations'
-export * as lowLevelLike from './processors/lowLevelLike'
-export * as moduleLike from './processors/moduleLike'
-export * from './processors/sorts'
-export * from './processors/transformers'
+export * from './processors/declarations.js'
+export * as lowLevelLike from './processors/lowLevelLike.js'
+export * as moduleLike from './processors/moduleLike.js'
+export * from './processors/sorts.js'
+export * from './processors/transformers.js'

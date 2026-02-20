@@ -17,7 +17,7 @@ import { AggregateConvertor, ArrayConvertor, CallbackConvertor, CustomTypeConver
     Method, MethodModifier, OptionConvertor, PeerLibrary, PeerMethod, PeerMethodSignature, TupleConvertor, TypeAliasConvertor,
     UnionConvertor } from '@idlizer/core'
 import * as idl from '@idlizer/core/idl'
-import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
+import { peerGeneratorConfiguration } from '../../DefaultConfiguration.js'
 
 function isDirectConvertedType(originalType: idl.IDLType|undefined, library: PeerLibrary): boolean {
     const debug = false

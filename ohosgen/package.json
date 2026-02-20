@@ -2,10 +2,15 @@
     "name": "@idlizer/ohosgen",
     "version": "2.2.2+devel",
     "description": "",
-    "main": "lib/cli.js",
-    "bin": "lib/cli.js",
-    "exports": "./build/lib/src/index.js",
+    "type": "module",
+    "main": "build/lib/src/main.js",
+    "bin": "build/lib/src/main.js",
     "types": "./build/lib/src/index.d.ts",
+    "exports": {
+        ".": [
+            "./build/lib/src/index.js"
+        ]
+    },
     "files": [
         "build/**/*.ts",
         "build/**/*.js",
@@ -19,27 +24,23 @@
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
-        "@idlizer/core": "2.2.2+devel",
         "@idlizer/kit": "2.2.2+devel",
-        "@idlizer/libohos": "2.2.2+devel",
         "@idlizer/ost": "2.2.2+devel",
+        "@idlizer/core": "2.2.2+devel",
+        "@idlizer/libohos": "2.2.2+devel",
         "@types/node": "^18.19.127",
         "commander": "^10.0.0",
         "typescript": "^4.9.5"
     },
     "devDependencies": {
         "@koalaui/smart-arkts": "panda-next",
-        "@rollup/plugin-commonjs": "^26.0.1",
-        "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-terser": "^0.4.4",
-        "@rollup/plugin-typescript": "^11.1.6",
         "@types/node": "^18.19.127",
         "@koalaui/interop": "panda-next",
         "@idlizer/rimraf": "2.2.2+devel"
     },
     "scripts": {
-        "clean": "rimraf lib .rollup.cache build",
-        "compile:self": "tsc && rollup -c",
+        "clean": "rimraf lib",
+        "compile:self": "tsc -b .",
         "compile": "npm run --prefix ../dtsgen compile && npm run --prefix ../libohos compile && npm run compile:self",
         "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",
         "panda:sdk:check-install": "npm run panda:sdk:check-install --prefix ../external/incremental/tools/panda",

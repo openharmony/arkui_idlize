@@ -32,16 +32,16 @@ import {
     sorted,
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
-import { getHookMethod } from '../../DefaultConfiguration';
-import { customBridgeDeclaration, generatedBridgeDeclaration, bridgeHeaderCustomDeclaration, bridgeHeaderGeneratedDeclaration } from "../FileGenerators";
-import { ExpressionStatement } from "../LanguageWriters";
+import { getHookMethod } from '../../DefaultConfiguration.js';
+import { customBridgeDeclaration, generatedBridgeDeclaration, bridgeHeaderCustomDeclaration, bridgeHeaderGeneratedDeclaration } from "../FileGenerators.js";
+import { ExpressionStatement } from "../LanguageWriters/index.js";
 import { forceAsNamedNode, isPrimitiveType } from '@idlizer/core/idl'
-import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
-import { makeInteropMethod } from "./NativeModulePrinter";
-import { collectPeersForFile } from "../PeersCollector";
-import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
-import { isDirectMethod, isVMContextMethod } from './MethodUtils';
-import { getDeclarationUniqueName } from "./NativeUtils";
+import { createGlobalScopeLegacy } from "../GlobalScopeUtils.js";
+import { makeInteropMethod } from "./NativeModulePrinter.js";
+import { collectPeersForFile } from "../PeersCollector.js";
+import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector.js";
+import { isDirectMethod, isVMContextMethod } from './MethodUtils.js';
+import { getDeclarationUniqueName } from "./NativeUtils.js";
 
 export function peerApiCall(library: PeerLibrary, context: idl.IDLEntry): [string, string] {
     if (idl.isInterface(context) && isComponentDeclaration(library, context)) {

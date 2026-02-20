@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as ts from "typescript"
+import ts from "typescript"
 
 export interface GenerateOptions<T> {
     compilerOptions: ts.CompilerOptions

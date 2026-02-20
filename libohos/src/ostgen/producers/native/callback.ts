@@ -15,9 +15,9 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, Op, T, Ts } from "@idlizer/ost";
-import { bridgeName, cApiName, expectType } from "../common";
-import { argConvertor } from "../components/argConvertor";
-import { createProducer } from "../../engine";
+import { bridgeName, cApiName, expectType } from "../common.js";
+import { argConvertor } from "../components/argConvertor.js";
+import { createProducer } from "../../engine/index.js";
 
 export const callbackProducer = createProducer(
   { is: idl.isCallback, role: 'capi' },

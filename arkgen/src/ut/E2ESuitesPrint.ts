@@ -17,11 +17,11 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { ETSLanguageWriter, PeerLibrary } from '@idlizer/core'
 import { cStyleCopyright } from '@idlizer/libohos'
-import { LibaceInstall } from '../ArkoalaInstall'
-import { AceTypesTs } from './AceTypes'
-import { Argument, ArgumentObj, E2ESuitesCreator, Enum, Suite, Test } from './E2ESuitesCreator'
-import { createEtsWriter, makeTsImports, printEtsResource, quoted1 } from './PrinterUtils'
-import { Target } from './E2EFixturesPrinter'
+import { LibaceInstall } from '../ArkoalaInstall.js'
+import { AceTypesTs } from './AceTypes.js'
+import { Argument, ArgumentObj, E2ESuitesCreator, Enum, Suite, Test } from './E2ESuitesCreator.js'
+import { createEtsWriter, makeTsImports, printEtsResource, quoted1 } from './PrinterUtils.js'
+import { Target } from './E2EFixturesPrinter.js'
 
 export function printTsSuites(
     aceTypes: AceTypesTs, peerLibrary: PeerLibrary, libace: LibaceInstall, target: Target

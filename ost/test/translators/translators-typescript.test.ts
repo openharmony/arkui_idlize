@@ -1,5 +1,5 @@
-import { E, S, T, D } from '../../src/builders/original.js';
-import { processNPrintTS } from '../../src/printers/translators/typescript.js';
+import { E, S, T, D } from '@idlizer/ost';
+import { processNPrintTS } from '@idlizer/ost';
 import { suite, test, assert } from "@koalaui/harness";
 
 // Test TypeScript translator

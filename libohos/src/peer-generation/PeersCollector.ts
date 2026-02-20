@@ -1,9 +1,9 @@
 import * as path from "path"
 import { ArgumentModifier, capitalize, getSuper, isDefined, LibraryInterface, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature, warn } from "@idlizer/core";
 import * as idl from "@idlizer/core/idl"
-import { collectComponents, findComponentByDeclaration, findComponentByType, IdlComponentDeclaration } from "./ComponentsCollector";
-import { getMethodModifiers } from "./idl/IdlPeerGeneratorVisitor";
-import { peerGeneratorConfiguration } from "../DefaultConfiguration";
+import { collectComponents, findComponentByDeclaration, findComponentByType, IdlComponentDeclaration } from "./ComponentsCollector.js";
+import { getMethodModifiers } from "./idl/IdlPeerGeneratorVisitor.js";
+import { peerGeneratorConfiguration } from "../DefaultConfiguration.js";
 
 const collectPeers_cache = new Map<LibraryInterface, PeerClass[]>()
 export function collectPeers(library: PeerLibrary): PeerClass[] {

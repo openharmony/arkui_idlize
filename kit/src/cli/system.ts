@@ -14,9 +14,9 @@
  */
 
 import { access, cp, mkdir, readdir, readFile, rm, RmOptions, stat, writeFile } from "node:fs"
-import { output, OutputWriteOptions } from "./systems/output"
+import { output, OutputWriteOptions } from "./systems/output.js"
 import { F_OK } from "node:constants"
-import { scan } from "./utils"
+import { scan } from "./utils.js"
 import { exec, ExecOptions } from "node:child_process"
 
 export enum SystemMessageKind {

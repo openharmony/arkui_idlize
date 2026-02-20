@@ -14,10 +14,10 @@
  */
 
 import { PeerClass, PeerMethod } from '@idlizer/core'
-import { AceTypesTs, Fixture } from './AceTypes'
-import { ComponentOptions, MultiFileVisitor, OPTIONAL_FIXTURE, TestData, UNION_UNDEF_FIXTURE } from './MultiFileVisitor'
-import { TestValue } from './TestValue'
-import { TypeHelper } from './TypeHelper'
+import { AceTypesTs, Fixture } from './AceTypes.js'
+import { ComponentOptions, MultiFileVisitor, OPTIONAL_FIXTURE, TestData, UNION_UNDEF_FIXTURE } from './MultiFileVisitor.js'
+import { TestValue } from './TestValue.js'
+import { TypeHelper } from './TypeHelper.js'
 
 // Printable data for all tests regarding suits.
 export interface Suite {

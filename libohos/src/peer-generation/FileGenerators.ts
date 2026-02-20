@@ -14,15 +14,17 @@
  */
 import * as fs from "node:fs"
 import * as path from "node:path"
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { IndentedPrinter, Language, PeerLibrary, createLanguageWriter, LibraryInterface } from "@idlizer/core"
-import { PrinterLike } from "./LanguageWriters"
+import { PrinterLike } from "./LanguageWriters/index.js"
 import { LanguageWriter } from "@idlizer/core";
-import { peerGeneratorConfiguration } from "../DefaultConfiguration";
-import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/CallbacksPrinter"
-import { generateStructs } from "./printers/StructPrinter"
-import { createCSerializerPrinter } from "./printers/SerializerPrinter";
-import { collectPeersForFile } from "./PeersCollector";
-import { cStyleCopyright, sharpCopyright } from "./FileGeneratorsUtils";
+import { peerGeneratorConfiguration } from "../DefaultConfiguration.js";
+import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/CallbacksPrinter.js"
+import { generateStructs } from "./printers/StructPrinter.js"
+import { createCSerializerPrinter } from "./printers/SerializerPrinter.js";
+import { collectPeersForFile } from "./PeersCollector.js";
+import { cStyleCopyright, sharpCopyright } from "./FileGeneratorsUtils.js";
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -45,6 +47,8 @@ import {
     pointer
 } from "@koalaui/interop"
 `.trim()
+
+const DIR_NAME = path.resolve(fileURLToPath(import.meta.url), "../../../..")
 
 export function libraryDeclaration(options?: { removeCopyright?: boolean}): string {
     let content = readTemplate('library_template.cpp')
@@ -216,7 +220,7 @@ const TEMPLATES_CACHE = new Map<string, string>()
 export function readTemplate(name: string): string {
     let template = TEMPLATES_CACHE.get(name);
     if (template == undefined) {
-        template = fs.readFileSync(path.join(__dirname, `../../libohos/templates/${name}`), 'utf8')
+        template = fs.readFileSync(path.join(DIR_NAME, `../../libohos/templates/${name}`), 'utf8')
         TEMPLATES_CACHE.set(name, template)
     }
     return template
@@ -224,6 +228,7 @@ export function readTemplate(name: string): string {
 
 
 function getInteropRootPath() {
+    const require = createRequire(import.meta.url)
     const interopPackagePath = require.resolve('@koalaui/interop')
     return path.resolve(interopPackagePath, '..', '..', '..', '..', '..')
 }
@@ -251,12 +256,12 @@ function useLangExtIfNeeded(file: string, lang: Language): string {
 
 export function readLangTemplate(name: string, lang: Language): string {
     name = useLangExtIfNeeded(name, lang)
-    return fs.readFileSync(path.join(__dirname, `../../libohos/templates/${lang.directory}/${name}`), 'utf8')
+    return fs.readFileSync(path.join(DIR_NAME, `../../libohos/templates/${lang.directory}/${name}`), 'utf8')
 }
 
 export function maybeReadLangTemplate(name: string, lang: Language): string | undefined {
     name = useLangExtIfNeeded(name, lang)
-    const file = path.join(__dirname, `../../libohos/templates/${lang.directory}/${name}`)
+    const file = path.join(DIR_NAME, `../../libohos/templates/${lang.directory}/${name}`)
     if (!fs.existsSync(file))
         return undefined
     return fs.readFileSync(file, 'utf8')

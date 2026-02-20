@@ -1,6 +1,7 @@
-import { dirname, join } from "node:path";
+import { resolve, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-export const OHOSGEN_ROOT = join(dirname(require.resolve('@idlizer/ohosgen')), '../../..')
+const OHOSGEN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
 
 export function ohosgenDefaultConfigurationPaths(): string[] {
     return [

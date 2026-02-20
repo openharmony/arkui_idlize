@@ -14,8 +14,8 @@
  */
 
 import { isMainThread, MessageChannel, Worker, workerData, MessagePort, threadId } from "node:worker_threads"
-import { output } from "./systems/output"
-import { runSystem, SystemResponse, SystemResponseFail, SystemMessage, SystemMessageKind, SystemMessageWrite } from "./system"
+import { output } from "./systems/output.js"
+import { runSystem, SystemResponse, SystemResponseFail, SystemMessage, SystemMessageKind, SystemMessageWrite } from "./system.js"
 import { RmOptions, Stats } from "node:fs"
 import { ExecOptions } from "node:child_process"
 

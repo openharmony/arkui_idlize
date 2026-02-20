@@ -1,6 +1,6 @@
-import { Builders } from '../../src/builders/advanced.js';
-import { T } from '../../src/builders/original.js';
-import { LWKind } from '../../src/lws.js';
+import { Builders } from '@idlizer/ost';
+import { T } from '@idlizer/ost';
+import { LWKind } from '@idlizer/ost';
 import { suite, test, assert } from "@koalaui/harness";
 
 // Test Advanced Builders - simplified tests that compile

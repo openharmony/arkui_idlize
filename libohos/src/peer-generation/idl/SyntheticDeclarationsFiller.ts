@@ -8,9 +8,9 @@ import { generateSyntheticFunctionName, getInternalClassName, isMaterialized,
     Language,
     LayoutManager,
     toDeclaration} from "@idlizer/core";
-import { componentToPeerClass } from '../printers/PeersPrinter';
-import { findComponentByDeclaration, isComponentDeclaration } from '../ComponentsCollector';
-import { NativeModule } from '../NativeModule';
+import { componentToPeerClass } from '../printers/PeersPrinter.js';
+import { findComponentByDeclaration, isComponentDeclaration } from '../ComponentsCollector.js';
+import { NativeModule } from '../NativeModule.js';
 import { compareNodes } from '@idlizer/core';
 
 // TODO I think must be package specific

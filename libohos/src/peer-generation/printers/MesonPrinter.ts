@@ -14,8 +14,8 @@
  */
 
 import { IndentedPrinter, PeerClass, MaterializedClass, PeerLibrary } from '@idlizer/core'
-import { makeFileNameFromClassName } from "../FileGenerators"
-import { collectPeersForFile } from '../PeersCollector'
+import { makeFileNameFromClassName } from "../FileGenerators.js"
+import { collectPeersForFile } from '../PeersCollector.js'
 
 export class MesonVisitor {
     printer = new IndentedPrinter()

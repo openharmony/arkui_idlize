@@ -55,11 +55,11 @@ import {
     generateLibaceFromIdl,
     generateLibaceUnitTests,
     generateLibaceEndToEndTests,
-} from "./arkoala"
-import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
-import { makeInteropBridges } from "./InteropBridges"
-import { loadKnownReferences } from "./knownReferences"
-import { arkgenDefaultConfigurationPaths } from "./config"
+} from "./arkoala.js"
+import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary.js"
+import { makeInteropBridges } from "./InteropBridges.js"
+import { loadKnownReferences } from "./knownReferences.js"
+import { arkgenDefaultConfigurationPaths } from "./config.js"
 
 export function arkgen(argv:string[]) {
     const command = createCommand()

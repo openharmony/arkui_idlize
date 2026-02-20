@@ -15,9 +15,9 @@
 
 import * as idl from "@idlizer/core/idl";
 import { Builders, E, Md, S, T, lw } from "@idlizer/ost";
-import { expectExpr, expectType, managedName } from "../common";
-import { argConvertor } from "../components/argConvertor";
-import { createProducer } from "../../engine";
+import { expectExpr, expectType, managedName } from "../common.js";
+import { argConvertor } from "../components/argConvertor.js";
+import { createProducer } from "../../engine/index.js";
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'managed' },

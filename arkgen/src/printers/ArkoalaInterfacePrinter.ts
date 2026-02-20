@@ -17,8 +17,8 @@ import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinDeclarationConvertor, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { DeclarationConvertor, getSuper, indentedBy, isMethodOverridden, Language, LanguageWriter, maybeRestoreThrows, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, ReferenceResolver, stringOrNone } from "@idlizer/core"
-import { generateAttributeModifierSignature } from "./ComponentsPrinter"
-import { componentToAttributesInterface, isPropertyBasedMethodOverridden } from "./PeersPrinter"
+import { generateAttributeModifierSignature } from "./ComponentsPrinter.js"
+import { componentToAttributesInterface, isPropertyBasedMethodOverridden } from "./PeersPrinter.js"
 
 function collectParentsPropertiesNames(int: idl.IDLInterface, resolver: ReferenceResolver): Set<string> {
     const result = new Set<string>()

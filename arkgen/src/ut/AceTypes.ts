@@ -15,7 +15,10 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-
+import { createRequire } from "node:module";
+// TBD:
+// import JSON5 from 'json5'
+const require = createRequire(import.meta.url)
 const JSON5 = require('json5')
 
 type Enums = Record<string, string>

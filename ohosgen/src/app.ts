@@ -51,9 +51,9 @@ import { loadPeerConfiguration,
     NativeModule,
     syntheticTransformer,
 } from "@idlizer/libohos"
-import { generateOhos } from "./ohos"
-import { suggestLibraryName } from "./OhosNativeVisitor"
-import { ohosgenDefaultConfigurationPaths } from "./config"
+import { generateOhos } from "./ohos.js"
+import { suggestLibraryName } from "./OhosNativeVisitor.js"
+import { ohosgenDefaultConfigurationPaths } from "./config.js"
 
 export function ohosgen(args: string[]) {
     const command = createCommand()

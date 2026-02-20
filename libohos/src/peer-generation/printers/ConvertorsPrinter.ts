@@ -14,7 +14,7 @@
  */
 
 import { LanguageWriter, PeerLibrary, PrimitiveTypeList } from "@idlizer/core";
-import { DeclarationTargets } from "../DeclarationTargetCollector";
+import { DeclarationTargets } from "../DeclarationTargetCollector.js";
 
 export const SELECTOR_ID_PREFIX = "SELECTOR_ID_"
 

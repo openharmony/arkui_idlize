@@ -16,10 +16,10 @@
 import * as path from 'path'
 import { camelCaseToLowerSnakeCase, ETSLanguageWriter, PeerLibrary } from '@idlizer/core'
 import { cStyleCopyright } from '@idlizer/libohos'
-import { LibaceInstall } from '../ArkoalaInstall'
-import { AceTypesTs, Fixture, Import } from './AceTypes'
-import { Enum } from './E2ESuitesCreator'
-import { createEtsWriter, makeTsImports, printEtsResource, quoted1 } from './PrinterUtils'
+import { LibaceInstall } from '../ArkoalaInstall.js'
+import { AceTypesTs, Fixture, Import } from './AceTypes.js'
+import { Enum } from './E2ESuitesCreator.js'
+import { createEtsWriter, makeTsImports, printEtsResource, quoted1 } from './PrinterUtils.js'
 
 export enum Target { ETS, ARK_TS_1_2 }
 

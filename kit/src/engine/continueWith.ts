@@ -14,7 +14,7 @@
  */
 
 import { E, IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType, T } from "@idlizer/ost"
-import { Seed, showHistory, withProcessingSeed } from "./seed"
+import { Seed, showHistory, withProcessingSeed } from "./seed.js"
 
 export class ContinueWithGenerationError extends Error {
     constructor(

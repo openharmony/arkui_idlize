@@ -16,8 +16,8 @@
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration } from "@idlizer/core"
 import { E, Hs, LWExpression, LWType, Ts, lw } from "@idlizer/ost"
-import { MakeSelector, moduleName, OhosProducerContext, OhosSeed, Role } from "../engine"
-import { producers } from "."
+import { MakeSelector, moduleName, OhosProducerContext, OhosSeed, Role } from "../engine/index.js"
+import { producers } from "./index.js"
 
 export const MANAGED_PREFIX = 'managed'
 export const C_API_PREFIX = 'capi'

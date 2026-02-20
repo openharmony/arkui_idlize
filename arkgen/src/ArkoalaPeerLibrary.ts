@@ -28,9 +28,9 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     ETSTypeNameConvertor,
     maybeRestoreThrows
 } from "@idlizer/core";
-import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor } from './ArkoalaArgConvertors';
-import { ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
-import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType';
+import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor } from './ArkoalaArgConvertors.js';
+import { ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors.js';
+import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType.js';
 import { isNonTrivialModifier, peerGeneratorConfiguration } from '@idlizer/libohos';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {

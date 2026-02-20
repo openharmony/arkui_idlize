@@ -48,9 +48,9 @@ import {
     PrinterFunction,
     extractContentParameter,
 } from '@idlizer/libohos'
-import { getReferenceTo } from '../knownReferences'
-import { componentToAttributesInterface } from './PeersPrinter'
-import { HandwrittenModule } from '../ArkoalaLayout'
+import { getReferenceTo } from '../knownReferences.js'
+import { componentToAttributesInterface } from './PeersPrinter.js'
+import { HandwrittenModule } from '../ArkoalaLayout.js'
 
 export function shiftIfIsNotEmpty(line:string): string {
     if (line.length > 0) {

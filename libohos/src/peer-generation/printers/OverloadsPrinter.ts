@@ -19,7 +19,7 @@ import {
     Method,
     MethodModifier,
     NamedMethodSignature
-} from "../LanguageWriters";
+} from "../LanguageWriters/index.js";
 import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, copyMethod, hasAccessModifier,
     PeerMethodSignature, maybeRestoreThrows, 
     isMaterializedMethodOverridden,
@@ -27,8 +27,8 @@ import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifie
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { UndefinedConvertor } from "@idlizer/core"
 import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
-import { getHookMethod, peerGeneratorConfiguration } from '../../DefaultConfiguration';
-import { injectPatch } from '../common';
+import { getHookMethod, peerGeneratorConfiguration } from '../../DefaultConfiguration.js';
+import { injectPatch } from '../common.js';
 
 function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
     let returnType: idl.IDLType = collapseTypes(types)

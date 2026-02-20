@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "@idlizer/core"
-import { ImportFeature } from "../../ImportsCollector"
+import { ImportFeature } from "../../ImportsCollector.js"
 
 class CJImportsCollector implements TypeConvertor<ImportFeature[]> {
     convertOptional(type: idl.IDLOptionalType): ImportFeature[] {

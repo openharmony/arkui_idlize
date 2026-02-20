@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { getEnv, getIO } from "./application";
+import { getEnv, getIO } from "./application.js";
 
 type ToUnion<Ts> = Ts extends readonly [infer H, ...infer Rest] ? H | ToUnion<Rest> : never
 

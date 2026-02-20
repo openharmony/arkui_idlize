@@ -15,8 +15,8 @@
 
 import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from "@idlizer/ost"
 import { generatorConfiguration, zipStrip } from "@idlizer/core";
-import { callbackKindDeclaration, monoName } from "./postprocess";
-import { bridgeName, cApiName, implName } from "../producers/common";
+import { callbackKindDeclaration, monoName } from "./postprocess.js";
+import { bridgeName, cApiName, implName } from "../producers/common.js";
 import { lowLevelLike } from "@idlizer/kit";
 
 export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>, callbacks: string[]): Map<string, lw.LWDeclaration[]> {

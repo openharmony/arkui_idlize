@@ -14,10 +14,10 @@
  */
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized, isInCurrentModule, maybeTransformManagedCallback, getSuper, maybeRestoreGenerics } from "@idlizer/core";
-import { isComponentDeclaration } from "./ComponentsCollector";
-import { UnionFlatteningMode, DependencySorter } from "./idl/DependencySorter";
+import { isComponentDeclaration } from "./ComponentsCollector.js";
+import { UnionFlatteningMode, DependencySorter } from "./idl/DependencySorter.js";
 import { IdlNameConvertor } from "@idlizer/core";
-import { peerGeneratorConfiguration } from "../DefaultConfiguration";
+import { peerGeneratorConfiguration } from "../DefaultConfiguration.js";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
 const collectDeclarationTargets_cache_flatten = new Map<LibraryInterface, idl.IDLNode[]>()

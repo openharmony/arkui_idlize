@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGeneratorsUtils"
-import { ImportsCollector } from "../ImportsCollector"
-import { CppLanguageWriter } from "../LanguageWriters"
+import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGeneratorsUtils.js"
+import { ImportsCollector } from "../ImportsCollector.js"
+import { CppLanguageWriter } from "../LanguageWriters/index.js"
 import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, KotlinLanguageWriter, PeerLibrary } from "@idlizer/core"
 
 export abstract class SourceFile {

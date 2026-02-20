@@ -15,8 +15,8 @@
 
 import { Language, MaterializedClass, MaterializedMethod, Method, MethodModifier, NamedMethodSignature, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature } from "@idlizer/core";
 import { createInterface, createMethod, getFQName, getNamespacesPathFor, IDLInterface, IDLInterfaceSubkind, IDLMethod, maybeOptional } from "@idlizer/core/idl";
-import { groupOverloadsIDL } from "./printers/OverloadsPrinter";
-import { peerGeneratorConfiguration } from "../DefaultConfiguration";
+import { groupOverloadsIDL } from "./printers/OverloadsPrinter.js";
+import { peerGeneratorConfiguration } from "../DefaultConfiguration.js";
 
 export const GlobalScopePeerName = 'GlobalScope'
 

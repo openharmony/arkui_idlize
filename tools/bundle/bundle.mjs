@@ -35,7 +35,8 @@ const idlizer_dependencies = [
     "@idlizer/arkgen",
     "@idlizer/ohosgen",
     "@idlizer/ost",
-    "@idlizer/runner"
+    "@idlizer/runner",
+    "@idlizer/kit",
 ]
 
 const INSTALL_JS_TEXT = `

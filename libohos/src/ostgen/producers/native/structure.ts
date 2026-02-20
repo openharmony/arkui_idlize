@@ -15,11 +15,11 @@
 
 import { D, Md, T, Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { cApiName } from "../common"
+import { cApiName } from "../common.js"
 import { isMaterialized } from "@idlizer/core"
-import { createProducer } from "../../engine"
-import { expectType } from "../common"
-import { OhosProducerContext } from "../../engine"
+import { createProducer } from "../../engine/index.js"
+import { expectType } from "../common.js"
+import { OhosProducerContext } from "../../engine/index.js"
 
 export const structureProducer = createProducer(
   { is: idl.isInterface, role: 'capi' },

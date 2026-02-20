@@ -1,8 +1,8 @@
 import * as idl from "@idlizer/core"
 import { Language, LayoutNodeRole, PeerClass, PeerLibrary } from "@idlizer/core";
 import { collapseSameNamedMethods, collectComponents, componentToPeerClass, ImportsCollector, PrinterResult, readLangTemplate, OverloadsPrinter, peerGeneratorConfiguration, groupOverloads, collectPeersForFile } from "@idlizer/libohos";
-import { ArkoalaPeerLibrary } from "../ArkoalaPeerLibrary";
-import { generateArkComponentName, shiftIfIsNotEmpty } from "./ComponentsPrinter";
+import { ArkoalaPeerLibrary } from "../ArkoalaPeerLibrary.js";
+import { generateArkComponentName, shiftIfIsNotEmpty } from "./ComponentsPrinter.js";
 
 function printETSComponent(library: PeerLibrary, peer: PeerClass, isDeclaration: boolean): PrinterResult{
     const component = collectComponents(library).find(it => it.name === peer.componentName)!

@@ -16,9 +16,9 @@
 import * as idl from "@idlizer/core/idl"
 import { isMaterialized } from "@idlizer/core"
 import { Builders, E, Hs, LWExpression, LWStatement, LWType, lw, Op, S, std, T, Ts, Vs } from "@idlizer/ost"
-import { cApiName, expectExpr, expectType, managedName, typeNameExpr } from "../common"
-import { OhosProducerContext } from "../../engine"
-import { monoName } from "../../postprocess/postprocess"
+import { cApiName, expectExpr, expectType, managedName, typeNameExpr } from "../common.js"
+import { OhosProducerContext } from "../../engine/index.js"
+import { monoName } from "../../postprocess/postprocess.js"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {

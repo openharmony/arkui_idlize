@@ -14,8 +14,8 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { produceSerializer } from "../components/serializer";
-import { createProducer } from "../../engine"
+import { produceSerializer } from "../components/serializer.js";
+import { createProducer } from "../../engine/index.js"
 
 export const serializerProducer = createProducer(
   { is: idl.isInterface, role: 'native-serde' },

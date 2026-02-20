@@ -15,9 +15,9 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
-import { bridgeName, expectExpr, expectType, isDirectInteropType } from "../common"
-import { createProducer, fqName, OhosProducerContext } from "../../engine"
-import { argConvertor } from "../components/argConvertor"
+import { bridgeName, expectExpr, expectType, isDirectInteropType } from "../common.js"
+import { createProducer, fqName, OhosProducerContext } from "../../engine/index.js"
+import { argConvertor } from "../components/argConvertor.js"
 
 export const nativeModuleMaterializedProducer = createProducer(
   { is: idl.isInterface, role: 'native-module' },

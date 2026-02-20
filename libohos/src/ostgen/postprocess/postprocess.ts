@@ -15,7 +15,7 @@
 
 import { hashCodeFromString } from "@idlizer/core";
 import { Builders, lw, std } from "@idlizer/ost"
-import { C_API_PREFIX } from "../producers/common";
+import { C_API_PREFIX } from "../producers/common.js";
 
 export function monoName(type: lw.LWType, prefix: string = C_API_PREFIX): string {
     prefix += '.synthetic.mono.instance.'

@@ -14,16 +14,16 @@
 //  */
 
 // import { removeExt, renameClassToBuilderClass, Language, generifiedTypeName, LayoutNodeRole, MethodSignature } from '@idlizer/core'
-// import { MethodModifier, Method, Field, NamedMethodSignature } from "../LanguageWriters";
+// import { MethodModifier, Method, Field, NamedMethodSignature } from "../LanguageWriters/index.js";
 // import { LanguageWriter, PeerLibrary,
 //     BuilderClass, methodsGroupOverloads
 // } from "@idlizer/core";
-// import { collapseSameNamedMethods } from "./OverloadsPrinter";
-// import { TargetFile } from "./TargetFile"
-// import { ImportsCollector } from "../ImportsCollector"
+// import { collapseSameNamedMethods } from "./OverloadsPrinter.js";
+// import { TargetFile } from "./TargetFile.js"
+// import { ImportsCollector } from "../ImportsCollector.js"
 // import { createOptionalType, createReferenceType, forceAsNamedNode, IDLType, IDLVoidType, isOptionalType } from '@idlizer/core/idl'
-// import { collectDeclDependencies } from "../ImportsCollectorUtils";
-// import { PrinterResult } from '../LayoutManager';
+// import { collectDeclDependencies } from "../ImportsCollectorUtils.js";
+// import { PrinterResult } from '../LayoutManager.js';
 
 // interface BuilderClassFileVisitor {
 //     printFile(): PrinterResult[]

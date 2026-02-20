@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { ImportsCollector } from "../ImportsCollector"
-import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
+import { ImportsCollector } from "../ImportsCollector.js"
+import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils.js"
 import { NamedMethodSignature, PeerLibrary, LanguageWriter, getInitializerDefaultValue } from "@idlizer/core"
 import * as idl from '@idlizer/core'
-import { collapseSameMethodsIDL, groupOverloadsIDL, OverloadsPrinter } from "./OverloadsPrinter"
-import { PrinterResult } from "../LayoutManager"
-import { writePeerMethod } from "./PeersPrinter"
-import { NativeModule } from "../NativeModule"
-import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration"
+import { collapseSameMethodsIDL, groupOverloadsIDL, OverloadsPrinter } from "./OverloadsPrinter.js"
+import { PrinterResult } from "../LayoutManager.js"
+import { writePeerMethod } from "./PeersPrinter.js"
+import { NativeModule } from "../NativeModule.js"
+import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils.js"
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js"
 
 export function printGlobal(library: PeerLibrary): PrinterResult[] {
 

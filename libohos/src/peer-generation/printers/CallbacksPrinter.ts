@@ -14,17 +14,17 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
+import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters/index.js";
 import { generatorTypePrefix, LanguageExpression, LanguageStatement, LanguageWriter, LayoutNodeRole, maybeRestoreGenerics, maybeRestoreThrows, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
-import { ImportsCollector } from "../ImportsCollector"
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
+import { ImportsCollector } from "../ImportsCollector.js"
 import { Language, LibraryInterface } from  '@idlizer/core'
 import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlizer/core";
 import { PrintHint } from "@idlizer/core";
-import { CppSourceFile, SourceFile } from "./SourceFile";
-import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
-import { collectDeclarationTargets } from '../DeclarationTargetCollector';
-import { PrinterFunction, PrinterResult } from '../LayoutManager';
+import { CppSourceFile, SourceFile } from "./SourceFile.js";
+import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils.js";
+import { collectDeclarationTargets } from '../DeclarationTargetCollector.js';
+import { PrinterFunction, PrinterResult } from '../LayoutManager.js';
 
 export function collectUniqueCallbacks(library: LibraryInterface, options?: { transformCallbacks?: boolean }) {
     const uniqueCallbacks: idl.IDLCallback[] = []

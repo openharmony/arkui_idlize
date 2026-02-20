@@ -14,9 +14,9 @@
  */
 import * as idl from "@idlizer/core/idl"
 import { LibraryInterface, PeerClass, PeerLibrary, ReferenceResolver } from "@idlizer/core"
-import { getSuperComponent } from './ComponentsCollector'
-import { collectPeers } from './PeersCollector'
-import { peerGeneratorConfiguration } from "../DefaultConfiguration"
+import { getSuperComponent } from './ComponentsCollector.js'
+import { collectPeers } from './PeersCollector.js'
+import { peerGeneratorConfiguration } from "../DefaultConfiguration.js"
 
 export class ModifierInfo {
     constructor(

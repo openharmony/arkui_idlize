@@ -15,7 +15,7 @@
 import * as idl from "@idlizer/core/idl"
 import { getSuper, LibraryInterface } from "@idlizer/core"
 import { isDefined } from "@idlizer/core"
-import { peerGeneratorConfiguration } from "../DefaultConfiguration"
+import { peerGeneratorConfiguration } from "../DefaultConfiguration.js"
 
 export class IdlComponentDeclaration {
     constructor(

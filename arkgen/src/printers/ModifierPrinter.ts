@@ -20,9 +20,9 @@ import { getHookMethod, collectDeclDependencies, collectDeclItself, collectPeers
     findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector,
     peerGeneratorConfiguration, PrinterResult, collectModifiers,
     ModifierInfo } from "@idlizer/libohos";
-import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter';
-import { getReferenceTo } from '../knownReferences';
-import { HandwrittenModule } from '../ArkoalaLayout'
+import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter.js';
+import { getReferenceTo } from '../knownReferences.js';
+import { HandwrittenModule } from '../ArkoalaLayout.js'
 
 
 function findPeerByComponentDeclaration(library: PeerLibrary, component: IdlComponentDeclaration): PeerClass | undefined {

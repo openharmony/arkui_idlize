@@ -51,7 +51,7 @@ import {
     peerGeneratorConfiguration,
     writePeerMethod
 } from "@idlizer/libohos";
-import { HandwrittenModule } from '../ArkoalaLayout';
+import { HandwrittenModule } from '../ArkoalaLayout.js';
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`

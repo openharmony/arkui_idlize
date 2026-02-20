@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as ts from "typescript"
+import ts from "typescript"
 import * as fs from "fs"
 import * as path from "path"
-import { GenerateOptions } from "./options"
+import { GenerateOptions } from "./options.js"
 import { isDefined } from "@idlizer/core"
 
 export interface GenerateVisitor<T> {

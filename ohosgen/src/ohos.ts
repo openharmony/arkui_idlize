@@ -43,11 +43,11 @@ import {
     installFiles,
     OutputFile,
 } from '@idlizer/libohos'
-import { OhosInstall } from "./OhosInstall"
-import { generateNativeOhos } from './OhosNativeVisitor';
-import { ohosLayout } from './OhosLayout';
-import { printDataClasses } from './OhosDataClassVisitor';
-import { printOstFiles } from './ohos-ost';
+import { OhosInstall } from "./OhosInstall.js"
+import { generateNativeOhos } from './OhosNativeVisitor.js';
+import { ohosLayout } from './OhosLayout.js';
+import { printDataClasses } from './OhosDataClassVisitor.js';
+import { printOstFiles } from './ohos-ost.js';
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary, useOst: boolean, config: PeerGeneratorConfiguration) {
     const origGenConfig = generatorConfiguration()

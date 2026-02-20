@@ -15,7 +15,7 @@
 
 import { capitalize } from "@idlizer/core";
 import { getQualifiedName, IDLEntry } from "@idlizer/core/idl";
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
 
 
 export function getDeclarationUniqueName(declaration:IDLEntry) {

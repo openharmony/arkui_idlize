@@ -3,7 +3,13 @@
     "version": "2.2.2+devel",
     "description": "",
     "main": "build/lib/src/index.js",
+    "type": "module",
     "types": "build/lib/src/index.d.ts",
+    "exports": {
+        ".": [
+            "./build/lib/src/index.js"
+        ]
+    },
     "files": [
         "build/lib/**/*.js",
         "build/lib/**/*.d.ts"
@@ -25,6 +31,6 @@
     "scripts": {
         "clean": "rimraf -g build",
         "compile:self": "tsc -b .",
-        "compile": "npm run -C ../ost compile && npm run -C ../core compile && npm run compile:self"
+        "compile": "npm run -C ../core compile && npm run -C ../ost compile && npm run compile:self"
     }
 }

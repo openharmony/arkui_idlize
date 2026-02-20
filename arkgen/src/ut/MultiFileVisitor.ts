@@ -17,9 +17,9 @@ import * as idl from '@idlizer/core/idl'
 
 import { capitalize, groupBy, PeerClass, PeerLibrary, PeerMethod } from '@idlizer/core'
 import { collectPeersForFile } from '@idlizer/libohos'
-import { AceTypes, Component } from './AceTypes'
-import { TestValue } from './TestValue'
-import { TypeHelper } from './TypeHelper'
+import { AceTypes, Component } from './AceTypes.js'
+import { TestValue } from './TestValue.js'
+import { TypeHelper } from './TypeHelper.js'
 
 const OPTIONS_NAME = 'options'
 export const OPTIONAL_FIXTURE = '_optional'
