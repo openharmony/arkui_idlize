@@ -1,0 +1,11 @@
+package test_cyclic;
+
+typedef CyclicTypedef1 = (undefined or String or sequence<CyclicTypedef1>);
+typedef CyclicTypedef2 = (undefined or String or ([AsRecord] record<String, CyclicTypedef2>));
+typedef CyclicTypedefForceResource = (undefined or String or sequence<CyclicTypedef1> or ([AsRecord] record<String, CyclicTypedef1>));
+
+void cyclic_entry(
+    CyclicTypedef1 a1,
+    CyclicTypedef2 a2,
+    CyclicTypedefForceResource a3
+);

@@ -37,6 +37,7 @@
                 "test_const",
                 "test_constants",
                 "test_constructor",
+                "test_cyclic",
                 "test_data_class",
                 "test_declare_type",
                 "test_duplicates",
@@ -103,7 +104,8 @@
         "test_hooks.HookInterface"
     ],
     "forceResource": [
-       "ContentModifier"
+       "ContentModifier",
+       "test_cyclic.CyclicTypedefForceResource"
     ],
     "forceContext": [
         "test_force_context.ForceContext.method_",
