@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core"
-import { IdlNodeAny, IdlNodePattern } from "./idltypes";
+import { IdlNodeAny, IdlNodePattern } from "./idltypes.js";
 
 /**
  * Checks that object is provided.

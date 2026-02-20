@@ -20,9 +20,9 @@ import {
     zip
 } from "@idlizer/core"
 import { asString, GenerateVisitor, getDeclarationsByNode, getLineNumberString, identName, isAbstract,
-    isCommonMethodOrSubclass, isStatic, nameOrNull } from "./util"
-import { LinterWhitelist } from "./LinterWhitelist"
-import { LinterError, LinterMessage } from "./LinterMessage"
+    isCommonMethodOrSubclass, isStatic, nameOrNull } from "./util.js"
+import { LinterWhitelist } from "./LinterWhitelist.js"
+import { LinterError, LinterMessage } from "./LinterMessage.js"
 
 const suppressed = new Set([
     LinterError.UNION_CONTAINS_ENUM,

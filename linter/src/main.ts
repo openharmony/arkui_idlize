@@ -17,10 +17,10 @@ import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
 
-import { LinterVisitor, toLinterString } from "./linter"
-import { LinterMessage } from "./LinterMessage"
+import { LinterVisitor, toLinterString } from "./linter.js"
+import { LinterMessage } from "./LinterMessage.js"
 import { patchDefaultConfiguration, findVersion, scanInputDirs } from "@idlizer/core"
-import { generate } from "./util"
+import { generate } from "./util.js"
 
 const options = createCommand()
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')

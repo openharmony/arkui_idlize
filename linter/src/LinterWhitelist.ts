@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { LinterError, LinterMessage } from "./LinterMessage";
+import { LinterError, LinterMessage } from "./LinterMessage.js";
 
 import * as fs from "fs"
-import { identName } from "./util"
+import { identName } from "./util.js"
 
 export class LinterWhitelist {
     suppressErrors = new Set<LinterError>()

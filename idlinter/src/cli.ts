@@ -17,9 +17,9 @@ import * as fs from "fs"
 import * as path from "path"
 import { Command } from "commander"
 import { DiagnosticMessageGroup, outputDiagnosticResultsFormatted } from "@idlizer/core"
-import { idlManager } from "./idlprocessing"
+import { idlManager } from "./idlprocessing.js"
 import "./validator"
-import { checkCompat } from "./compat"
+import { checkCompat } from "./compat.js"
 
 function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
 

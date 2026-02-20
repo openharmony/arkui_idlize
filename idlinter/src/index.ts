@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export * from "./idltypes"
-export * from "./idlprocessing"
-export * from "./validator"
-export * from "./cli"
+export * from "./idltypes.js"
+export * from "./idlprocessing.js"
+export * from "./validator.js"
+export * from "./cli.js"

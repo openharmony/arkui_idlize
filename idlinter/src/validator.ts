@@ -15,8 +15,8 @@
 
 import * as idl from "@idlizer/core"
 import * as fs from "fs"
-import { idlManager } from "./idlprocessing"
-import { IdlNodeAny } from "./idltypes"
+import { idlManager } from "./idlprocessing.js"
+import { IdlNodeAny } from "./idltypes.js"
 
 export enum KnownFeatures {
     ohos = 'ohos',
