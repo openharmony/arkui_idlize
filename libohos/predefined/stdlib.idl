@@ -14,6 +14,7 @@ interface VMContext {};
 interface Null {};
 [TSType=Set]
 interface <T> Set {};
+interface <T> Partial {};
 interface <T> ThrowsWrapper {
     attribute T value;
 };
