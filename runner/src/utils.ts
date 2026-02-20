@@ -16,7 +16,8 @@
 import { execSync } from "child_process"
 import { readdirSync, readFileSync, statSync } from "fs"
 import { writeFileSync } from "node:fs"
-import { join, resolve } from "node:path"
+import { join, resolve, dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 
 type RecursiveStrings = string | RecursiveStrings[]
 export function flat(xs:RecursiveStrings): string[] {
@@ -58,7 +59,7 @@ export function run(runner:(ctx:RunContext) => void) {
     })
 }
 
-const TEMPLATE_DIR = resolve(__dirname, '..', 'template')
+const TEMPLATE_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'template')
 export function installTemplate(name:string, installPath:string, replacements:Map<string, string>) {
     let content = readFileSync(join(TEMPLATE_DIR, name + '.template'), 'utf-8')
     replacements.forEach((val, key) => {

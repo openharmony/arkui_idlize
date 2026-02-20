@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { withCWD } from "../utils"
-import { SCRAPER_CWD } from "../shared"
-import { runScraper } from "../tools/scraper"
+import { withCWD } from "../utils.js"
+import { SCRAPER_CWD } from "../shared.js"
+import { runScraper } from "../tools/scraper.js"
 import { resolve } from "path"
 
 interface ScrapeOptions {

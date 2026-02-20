@@ -14,13 +14,15 @@
  */
 
 import { join, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 
 /////////////////////////////////////////////////
 // CONSTANTS
 
-export const WORKING_DIR = resolve(__dirname, '..', 'out')
-export const CONFIGS_DIR = resolve(__dirname, '..', 'configs')
-export const SDK_PATCH_DIR = join(__dirname, '..', 'patches')
+const DIR_NAME = resolve(fileURLToPath(import.meta.url), "../../..");
+export const WORKING_DIR = resolve(DIR_NAME, '..', 'out')
+export const CONFIGS_DIR = resolve(DIR_NAME, '..', 'configs')
+export const SDK_PATCH_DIR = join(DIR_NAME, '..', 'patches')
 export const SDK_PATCH_FILE = resolve(SDK_PATCH_DIR, '_default.patch')
 export const GENERATED_IDL_DIR = join(WORKING_DIR, 'idl')
 export const CLONED_SDK_DIR = join(WORKING_DIR, 'original-sdk')

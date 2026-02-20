@@ -14,10 +14,10 @@
  */
 
 import { join, relative, resolve, sep } from "node:path"
-import { scan } from "../utils"
+import { scan } from "../utils.js"
 import { readFileSync, writeFileSync } from "node:fs"
 import { ConfigTypeInfer, D } from "@idlizer/core"
-import { CONFIG_RESULT_DIR } from "../shared"
+import { CONFIG_RESULT_DIR } from "../shared.js"
 
 export const SDK2ConfigScheme = D.object({
     rewriteArkConfigPath: D.default(D.map(D.string(), D.array(D.string())), new Map<string, string[]>()),

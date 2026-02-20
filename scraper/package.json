@@ -1,8 +1,9 @@
 {
   "name": "@idlizer/scraper",
   "version": "2.2.2+devel",
-  "main": "build/lib/main.js",
-  "bin": "build/lib/main.js",
+  "type": "module",
+  "main": "build/lib/src/main.js",
+  "bin": "build/lib/src/main.js",
   "typesVersions": {
     "*": {
       "app": [
@@ -10,13 +11,14 @@
       ]
     }
   },
+  "types": "./build/lib/src/index.d.ts",
   "exports": {
     "./app": [
-      "./build/lib/library.js"
+      "./build/lib/src/library.js"
     ]
   },
   "scripts": {
-    "compile:self": "tsc && rollup -c",
+    "compile:self": "tsc -b .",
     "compile": "npm run -C ../core compile && npm run compile:self",
     "chmod": "chmod +x ./out/go-main.sh",
     "go": "npm run compile && node . ../etsgen/out/idl && npm run chmod",
@@ -34,10 +36,6 @@
   },
   "devDependencies": {
     "@types/node": "^18.19.127",
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "@rollup/plugin-commonjs": "^26.0.1",
-    "rollup": "^4.24.4",
     "typescript": "^4.9.5",
     "@idlizer/rimraf": "2.2.2+devel"
   }

@@ -14,11 +14,11 @@
  */
 
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs"
-import { installTemplate, run } from "../utils"
-import { CLONED_SDK_BUILD_TOOLS, CLONED_SDK_DIR, PREPARED_SDK_ARKTS_ARKUI_COMPONENT, PREPARED_SDK_ARKTS_INTERNAL, PREPARED_SDK_DIR_ARKTS, PREPARED_SDK_DIR_TS, SDK_PATCH_DIR, SDK_PATCH_FILE, WORKING_DIR } from "../shared"
+import { installTemplate, run } from "../utils.js"
+import { CLONED_SDK_BUILD_TOOLS, CLONED_SDK_DIR, PREPARED_SDK_ARKTS_ARKUI_COMPONENT, PREPARED_SDK_ARKTS_INTERNAL, PREPARED_SDK_DIR_ARKTS, PREPARED_SDK_DIR_TS, SDK_PATCH_DIR, SDK_PATCH_FILE, WORKING_DIR } from "../shared.js"
 import { join } from "node:path"
 import { EOL } from "node:os"
-import { transformBuilderFunctions } from "../tools/builderFuncsTransformer"
+import { transformBuilderFunctions } from "../tools/builderFuncsTransformer.js"
 
 export interface PrepareSdkConfig {
     sdkPath: string

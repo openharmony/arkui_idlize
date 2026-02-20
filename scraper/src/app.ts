@@ -15,8 +15,8 @@
 
 import { Command } from "commander"
 import { existsSync, mkdirSync, readFileSync } from "node:fs"
-import { solve } from "./algorithm"
-import { ADDITIONAL_CONFIG_DIR, AppConfigSchema, CONFIG_PATH, OUT_DIR } from "./shared"
+import { solve } from "./algorithm.js"
+import { ADDITIONAL_CONFIG_DIR, AppConfigSchema, CONFIG_PATH, OUT_DIR } from "./shared.js"
 
 function prepare() {
     if (!existsSync(OUT_DIR)) {

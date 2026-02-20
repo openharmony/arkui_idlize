@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { flat, over, run, scan } from "../utils"
+import { flat, over, run, scan } from "../utils.js"
 import { join } from "node:path"
-import { GENERATED_IDL_DIR } from "../shared"
+import { GENERATED_IDL_DIR } from "../shared.js"
 import { execSync } from "node:child_process"
 
 export interface Ets2IdlConfig {

@@ -16,9 +16,9 @@
 import { Language, NativeModuleType, PeerLibrary, throwException, parseIDLFile } from "@idlizer/core";
 import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, BASIC_MODULES_CONFIG_PATH, CONFIG_PATH, OUT_DIR, SUMMARY_PATH, Ui2AbcConfig } from "./shared";
+import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, BASIC_MODULES_CONFIG_PATH, CONFIG_PATH, OUT_DIR, SUMMARY_PATH, Ui2AbcConfig } from "./shared.js";
 import { dirname, join, relative, basename, resolve, sep } from "node:path";
-import { scan } from "./utils";
+import { scan } from "./utils.js";
 
 interface SummaryResultRecord {
     fileName: string
@@ -71,7 +71,7 @@ export function solve(root: string, options:AppConfig) {
         fileNames.add(getFileFor(entry)?.fileName ?? '<...>')
         forEachChild(entry, (node) => {
             if (isReferenceType(node)) {
-                const resolved = resolver.resolveTypeReference(node, true)
+                const resolved = resolver.resolveTypeReference(node, { terminalImports: true })
                 if (resolved) {
                     queue.push(resolved)
                 } else {

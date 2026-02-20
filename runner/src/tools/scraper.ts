@@ -17,7 +17,7 @@ import { ConfigTypeInfer, D, Language, NativeModuleType, PeerLibrary, throwExcep
 import { createFile, createNamespace, DebugUtils, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, basename, resolve, sep } from "node:path";
-import { scan } from "../utils";
+import { scan } from "../utils.js";
 
 export const ScraperConfigSchema = D.object({
     target: D.default(D.array(D.string()), []),

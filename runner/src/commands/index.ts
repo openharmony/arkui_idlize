@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { absoluteSdk } from "./absoluteSdk";
-import { ets2idl } from "./ets2idl";
-import { idl2ohos, idl2peer } from "./idl2peer";
-import { install } from "./install";
-import { scrape } from "./scrape";
-import { prepareSdk } from "./sdk";
+import { absoluteSdk } from "./absoluteSdk.js";
+import { ets2idl } from "./ets2idl.js";
+import { idl2ohos, idl2peer } from "./idl2peer.js";
+import { install } from "./install.js";
+import { scrape } from "./scrape.js";
+import { prepareSdk } from "./sdk.js";
 
 export const commands = {
     prepareSdk,

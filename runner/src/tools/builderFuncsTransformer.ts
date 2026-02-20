@@ -14,7 +14,7 @@
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { scan } from "../utils";
+import { scan } from "../utils.js";
 
 function transformText(text: string, fileName: string): string {
     const lines = text.split('\n')

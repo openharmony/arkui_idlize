@@ -14,7 +14,7 @@
  */
 
 import { dirname, join, relative } from "node:path"
-import { scan } from "../utils"
+import { scan } from "../utils.js"
 import { copyFileSync, existsSync, mkdirSync } from "node:fs"
 
 export interface InstallConfig {
