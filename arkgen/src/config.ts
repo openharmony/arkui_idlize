@@ -1,8 +1,7 @@
-import { dirname, join } from "node:path";
-import { createRequire } from "node:module";
+import { resolve, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const require = createRequire(import.meta.url);
-export const ARKGEN_ROOT = join(dirname(require.resolve('@idlizer/arkgen')), '../../..')
+export const ARKGEN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
 
 export function arkgenDefaultConfigurationPaths(): string[] {
     return [

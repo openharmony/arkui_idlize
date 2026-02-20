@@ -14,12 +14,11 @@
  */
 
 import * as path from "node:path"
-import { createRequire } from "node:module"
+import { fileURLToPath } from "node:url";
 import { ConfigTypeInfer, CoreConfigurationSchema, D, parseConfigFiles } from "@idlizer/core";
 import  { IDLVisitorConfigurationSchema } from "./IDLVisitorConfig.js"
 
-const require = createRequire(import.meta.url)
-export const DTSGEN_ROOT = path.join(path.dirname(require.resolve('@idlizer/dtsgen')), '../../../')
+export const DTSGEN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
 
 export const DtsgenConfigurationSchema = D.combine(CoreConfigurationSchema, D.object({
     packageTransformation: D.maybe(D.map(D.string(), D.string())),
