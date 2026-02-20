@@ -15,9 +15,6 @@
         "node": ">= 18"
     },
     "keywords": [],
-    "dependencies": {
-        "@idlizer/ost": "2.2.2+devel"
-    },
     "devDependencies": {
         "@koalaui/harness": "panda-next",
         "@types/node": "^18.19.127",
