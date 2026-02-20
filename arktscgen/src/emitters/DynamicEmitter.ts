@@ -18,16 +18,17 @@ import * as fs from "node:fs"
 import * as ps from "node:child_process"
 import JSON5 from "json5"
 import { forceWriteFile, IDLFile, toIDLString } from "@idlizer/core"
-import { MultiFileOutput } from "../printers/MultiFilePrinter"
-import { Config } from "../general/Config"
-import { BridgesPrinter } from "../printers/interop/BridgesPrinter"
-import { EnumsPrinter } from "../printers/enums/EnumsPrinter"
-import { IndexPrinter } from "../printers/library/IndexPrinter"
-import { BindingsPrinter } from "../printers/interop/BindingsPrinter"
-import { AllPeersPrinter } from "../printers/library/AllPeersPrinter"
-import { FactoryPrinter } from "../printers/library/FactoryPrinter"
-import { OptionsFilterTransformer } from "../transformers/common/filter/OptionsFilterTransformer"
-import { Transformer } from "../transformers/Transformer"
+import { MultiFileOutput } from "../printers/MultiFilePrinter.js"
+import { Config } from "../general/Config.js"
+import { BridgesPrinter } from "../printers/interop/BridgesPrinter.js"
+import { EnumsPrinter } from "../printers/enums/EnumsPrinter.js"
+import { IndexPrinter } from "../printers/library/IndexPrinter.js"
+import { BindingsPrinter } from "../printers/interop/BindingsPrinter.js"
+import { AllPeersPrinter } from "../printers/library/AllPeersPrinter.js"
+import { FactoryPrinter } from "../printers/library/FactoryPrinter.js"
+import { OptionsFilterTransformer } from "../transformers/common/filter/OptionsFilterTransformer.js"
+import { Transformer } from "../transformers/Transformer.js"
+import { DIR_NAME } from "../utils/utils.js"
 
 class SingleFileEmitter {
     constructor(
@@ -56,7 +57,7 @@ export class DynamicEmitter {
         private shouldLog: boolean
     )
     {
-        const myJson = path.resolve(__dirname, '..', 'package.json')
+        const myJson = path.resolve(DIR_NAME, '..', 'package.json')
         if (fs.existsSync(myJson)) {
             this.generatorVersion = JSON5.parse(
                 fs.readFileSync(myJson).toString())?.version ?? `Unknown`
@@ -200,7 +201,7 @@ export class DynamicEmitter {
     }
 
     private readTemplate(name: string): string {
-        return fs.readFileSync(path.join(__dirname, `./../templates/${name}`), `utf8`)
+        return fs.readFileSync(path.join(DIR_NAME, `./../templates/${name}`), `utf8`)
     }
 
     private withLog(transformer: Transformer): IDLFile {

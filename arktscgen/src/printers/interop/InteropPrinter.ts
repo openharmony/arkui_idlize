@@ -16,9 +16,9 @@
 import { IDLKind, IDLMethod, isTypedef, LanguageWriter, throwException } from "@idlizer/core"
 import { IDLEntry, IDLInterface, IDLNode, isEnum, isInterface, isNamespace, } from "@idlizer/core/idl"
 import { IDLFile } from "@idlizer/core"
-import { Typechecker } from "../../general/Typechecker"
-import { AbstractVisitor } from "../SingleFilePrinter"
-import { Filter } from "../Filter"
+import { Typechecker } from "../../general/Typechecker.js"
+import { AbstractVisitor } from "../SingleFilePrinter.js"
+import { Filter } from "../Filter.js"
 
 export abstract class InteropPrinter extends AbstractVisitor {
     constructor(protected file: IDLFile) {

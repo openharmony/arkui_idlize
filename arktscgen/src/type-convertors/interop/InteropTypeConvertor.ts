@@ -14,8 +14,8 @@
 */
 
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, throwException } from "@idlizer/core"
-import { BaseTypeConvertor } from "../BaseTypeConvertor"
-import { Typechecker } from "../../general/Typechecker"
+import { BaseTypeConvertor } from "../BaseTypeConvertor.js"
+import { Typechecker } from "../../general/Typechecker.js"
 
 export abstract class InteropTypeConvertor extends BaseTypeConvertor<string> {
     protected constructor(

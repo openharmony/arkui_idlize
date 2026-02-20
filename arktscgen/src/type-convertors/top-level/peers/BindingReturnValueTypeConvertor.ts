@@ -26,11 +26,11 @@ import {
     isReferenceType,
     throwException
 } from "@idlizer/core"
-import { Config } from "../../../general/Config"
-import { Importer } from "../../../printers/library/Importer"
-import { PeersConstructions } from "../../../constuctions/PeersConstructions"
-import { isString } from "../../../utils/idl"
-import { Typechecker } from "../../../general/Typechecker"
+import { Config } from "../../../general/Config.js"
+import { Importer } from "../../../printers/library/Importer.js"
+import { PeersConstructions } from "../../../constuctions/PeersConstructions.js"
+import { isString } from "../../../utils/idl.js"
+import { Typechecker } from "../../../general/Typechecker.js"
 
 export function unpackWrapper(type: IDLType, typechecker: Typechecker): string | undefined {
     const isAstNode = (ref: IDLNamedNode): ref is IDLInterface =>

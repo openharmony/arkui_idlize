@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { Config } from "./Config"
+import { Config } from "./Config.js"
 import { capitalize, IDLInterface, IDLMethod, IDLParameter, isReferenceType, isVoidType, throwException } from "@idlizer/core"
-import { InteropConstructions } from "../constuctions/InteropConstructions"
-import { innerTypeCommon, nodeType, parent } from "../utils/idl"
-import { dropPostfix, dropPrefix, pascalToCamel } from "../utils/string"
+import { InteropConstructions } from "../constuctions/InteropConstructions.js"
+import { innerTypeCommon, nodeType, parent } from "../utils/idl.js"
+import { dropPostfix, dropPrefix, pascalToCamel } from "../utils/string.js"
 
 export function peerMethod(name: string): string {
     name = dropPostfix(name, Config.constPostfix)

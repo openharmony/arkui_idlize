@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { BindingsConstructions } from "./BindingsConstructions"
-import { InteropConstructions } from "./InteropConstructions"
-import { peerMethod } from "../general/common"
+import { BindingsConstructions } from "./BindingsConstructions.js"
+import { InteropConstructions } from "./InteropConstructions.js"
+import { peerMethod } from "../general/common.js"
 import { capitalize, createReferenceType } from "@idlizer/core"
-import { dropPrefix } from "../utils/string"
-import { Config } from "../general/Config"
+import { dropPrefix } from "../utils/string.js"
+import { Config } from "../general/Config.js"
 
 export class PeersConstructions {
     static peerName(name: string): string {

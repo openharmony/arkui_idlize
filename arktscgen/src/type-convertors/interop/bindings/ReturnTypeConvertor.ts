@@ -22,8 +22,8 @@ import {
     IDLType,
     throwException
 } from "@idlizer/core"
-import { Typechecker } from "../../../general/Typechecker"
-import { BaseTypeConvertor } from "../../BaseTypeConvertor"
+import { Typechecker } from "../../../general/Typechecker.js"
+import { BaseTypeConvertor } from "../../BaseTypeConvertor.js"
 
 export class ReturnTypeConvertor extends BaseTypeConvertor<IDLType> {
     constructor(

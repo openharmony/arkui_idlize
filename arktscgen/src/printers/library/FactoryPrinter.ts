@@ -30,18 +30,18 @@ import {
     Method,
     TSLanguageWriter
 } from "@idlizer/core"
-import { SingleFilePrinter } from "../SingleFilePrinter"
-import { makeFullyQualifiedName, makeSignature } from "../../utils/idl"
-import { isCreate, mangleIfKeyword, peerMethod } from "../../general/common"
-import { PeersConstructions } from "../../constuctions/PeersConstructions"
-import { convertAndImport } from "../../type-convertors/top-level/ImporterTypeConvertor"
-import { Importer } from "./Importer"
-import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
-import { id } from "../../utils/types"
-import { FactoryConstructions } from "../../constuctions/FactoryConstructions"
-import { Config } from "../../general/Config"
-import { Filter } from "../Filter"
-import { CommonGenerator } from "../Generator"
+import { SingleFilePrinter } from "../SingleFilePrinter.js"
+import { makeFullyQualifiedName, makeSignature } from "../../utils/idl.js"
+import { isCreate, mangleIfKeyword, peerMethod } from "../../general/common.js"
+import { PeersConstructions } from "../../constuctions/PeersConstructions.js"
+import { convertAndImport } from "../../type-convertors/top-level/ImporterTypeConvertor.js"
+import { Importer } from "./Importer.js"
+import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor.js"
+import { id } from "../../utils/types.js"
+import { FactoryConstructions } from "../../constuctions/FactoryConstructions.js"
+import { Config } from "../../general/Config.js"
+import { Filter } from "../Filter.js"
+import { CommonGenerator } from "../Generator.js"
 
 export class FactoryPrinter extends SingleFilePrinter {
     protected importer = new Importer(`peers`)

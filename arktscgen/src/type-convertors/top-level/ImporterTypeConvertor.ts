@@ -14,11 +14,11 @@
  */
 
 import { IDLContainerUtils, IDLType, isContainerType, isEnum, isInterface, isOptionalType, isReferenceType, isTypedef } from "@idlizer/core"
-import { Config } from "../../general/Config"
-import { Importer } from "../../printers/library/Importer"
-import { fqName } from "../../utils/idl"
-import { dropPrefix } from "../../utils/string"
-import { BaseTypeConvertor } from "../BaseTypeConvertor"
+import { Config } from "../../general/Config.js"
+import { Importer } from "../../printers/library/Importer.js"
+import { fqName } from "../../utils/idl.js"
+import { dropPrefix } from "../../utils/string.js"
+import { BaseTypeConvertor } from "../BaseTypeConvertor.js"
 
 export function convertAndImport(importer: Importer, converter: BaseTypeConvertor<string>, type: IDLType, config: Config): string {
     const result = converter.convertType(type)

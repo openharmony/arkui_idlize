@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../general/Typechecker"
+import { Typechecker } from "../general/Typechecker.js"
 import { IDLFile, IDLInterface, IDLNode, isInterface } from "@idlizer/core"
-import { AbstractVisitor } from "./SingleFilePrinter"
+import { AbstractVisitor } from "./SingleFilePrinter.js"
 
 export type MultiFileOutput = { exports: string[], fileName: string, output: string }
 

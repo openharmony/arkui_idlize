@@ -14,10 +14,10 @@
  */
 
 import { IDLFile, IDLInterface, isInterface } from "@idlizer/core"
-import { SingleFilePrinter } from "../SingleFilePrinter"
-import { createDefaultTypescriptWriter, fqName } from "../../utils/idl"
-import { dropPrefix } from "../../utils/string"
-import { Config } from "../../general/Config"
+import { SingleFilePrinter } from "../SingleFilePrinter.js"
+import { createDefaultTypescriptWriter, fqName } from "../../utils/idl.js"
+import { dropPrefix } from "../../utils/string.js"
+import { Config } from "../../general/Config.js"
 
 export class IndexPrinter extends SingleFilePrinter {
     constructor(private config: Config, idl: IDLFile) {

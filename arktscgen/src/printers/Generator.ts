@@ -1,10 +1,10 @@
 import * as core from "@idlizer/core";
 import assert from "assert";
-import { isContext, isGetter, isRegular, peerMethod } from "../general/common";
-import { Config } from "../general/Config";
-import { Typechecker } from "../general/Typechecker";
-import { ExtraParameter } from "../options/ExtraParameters";
-import { isSequence, makeMethod } from "../utils/idl";
+import { isContext, isGetter, isRegular, peerMethod } from "../general/common.js";
+import { Config } from "../general/Config.js";
+import { Typechecker } from "../general/Typechecker.js";
+import { ExtraParameter } from "../options/ExtraParameters.js";
+import { isSequence, makeMethod } from "../utils/idl.js";
 
 export class CommonGenerator {
     public static resolveProperty(

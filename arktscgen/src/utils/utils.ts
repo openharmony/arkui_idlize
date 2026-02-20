@@ -12,24 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { fileURLToPath } from "node:url";
+import path from "node:path"
 
-import { id } from "./types.js"
-
-export function withInserted<T>(array: T[], index: number, value: T): T[] {
-    return [
-        ...array.slice(0, index),
-        value,
-        ...array.slice(index)
-    ]
-}
-
-export function remove<T>(array: T[], value: T): void {
-    array.splice(array.findIndex(it => it === value), 1)
-}
-
-export function reversed<T>(array: T[]): T[] {
-    return array.reduce(
-        (a, b) => [b].concat(a),
-        id<T[]>([])
-    )
-}
+export const DIR_NAME = path.resolve(fileURLToPath(import.meta.url), "../../../..")

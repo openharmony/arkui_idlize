@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +17,16 @@
 
 import * as path from "node:path"
 import { parseIDLFile } from "@idlizer/core"
-import { DynamicEmitter } from "./emitters/DynamicEmitter"
-import { Config } from "./general/Config"
-import { IgnoreOptions, IrHackOptions } from "./options/IgnoreOptions"
-import { StaticEmitter } from "./emitters/StaticEmitter"
-import { cliOptions } from "./options/cli-options"
-import { NonNullableOptions } from "./options/NonNullableOptions"
-import { CodeFragmentOptions } from "./options/CodeFragmentOptions"
-import { ExtraParameters } from "./options/ExtraParameters"
-import { Aliases } from "./options/Aliases"
-import { gCoverage } from "./general/Coverage"
+import { DynamicEmitter } from "./emitters/DynamicEmitter.js"
+import { Config } from "./general/Config.js"
+import { IgnoreOptions, IrHackOptions } from "./options/IgnoreOptions.js"
+import { StaticEmitter } from "./emitters/StaticEmitter.js"
+import { cliOptions } from "./options/cli-options.js"
+import { NonNullableOptions } from "./options/NonNullableOptions.js"
+import { CodeFragmentOptions } from "./options/CodeFragmentOptions.js"
+import { ExtraParameters } from "./options/ExtraParameters.js"
+import { Aliases } from "./options/Aliases.js"
+import { gCoverage } from "./general/Coverage.js"
 
 const pandaSdkIdlFilePath = `ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl`
 

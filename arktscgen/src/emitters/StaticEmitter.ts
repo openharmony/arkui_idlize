@@ -15,6 +15,7 @@
 
 import fs from "node:fs"
 import path from "node:path"
+import { DIR_NAME } from "../utils/utils.js"
 
 export class StaticEmitter {
     constructor(
@@ -22,7 +23,7 @@ export class StaticEmitter {
         private pandaSdkPath: string
     ) {}
 
-    private copyFrom = path.join(__dirname, `../build/libarkts-copy`)
+    private copyFrom = path.join(DIR_NAME, `../build/libarkts-copy`)
 
     private copyTo = path.join(this.outDir, `libarkts`)
 
