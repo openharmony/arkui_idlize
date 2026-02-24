@@ -8,11 +8,7 @@
         "@koalaui/interop": "panda-next"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next",
-        "@rollup/plugin-inject": "^5.0.5",
-        "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-typescript": "^11.1.6",
-        "rollup": "^4.24.4"
+        "@koalaui/smart-arkts": "panda-next"
     },
     "scripts": {
         "_meson:setup": "meson setup ./${TEST_CASE}/build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} -Dtest_case=${TEST_CASE}",

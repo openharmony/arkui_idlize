@@ -1,16 +1,28 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
+        "target": "es2017",
+        "lib": ["ESNext", "ESNext.WeakRef"],
+        "module": "commonjs",
         "moduleResolution": "node",
-        "outDir": "build/ts",
+        "composite": false,
+        "incremental": false,
+        "declarationMap": true,
         "sourceMap": true,
+        "declaration": true,
+        "noEmitOnError": false,
+        "strict": false,
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "removeComments": false,
+        "outDir": "build/node",
+        "rootDirs": ["src"],
         "baseUrl": ".",
         "paths": {
             "#compat": ["./src/node/compat.ts"],
             "@bundleManager/*": ["src/modules/bundleManager/*"],
             "@ohos.base": ["src/modules/internal/components"]
-        }
+        },
+        "allowSyntheticDefaultImports": true
     },
-    "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"],
+    "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"]
 }

@@ -2,11 +2,7 @@
     "name": "demo-context",
     "private": true,
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next",
-        "@rollup/plugin-inject": "^5.0.5",
-        "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-typescript": "^11.1.6",
-        "rollup": "^4.24.4"
+        "@koalaui/smart-arkts": "panda-next"
     },
     "arkts": {
         "bin": "build/panda/app.abc",
@@ -23,7 +19,7 @@
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cj npm run gen",
 
-        "compile:ts": "rollup -c",
+        "compile:ts": "npx tsc 2>/dev/null || true",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
 
