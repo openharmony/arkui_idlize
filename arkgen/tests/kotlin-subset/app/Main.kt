@@ -23,6 +23,10 @@ import kotlinx.cinterop.*
 import koalaui.arkoala.*
 import koalaui.interop.*
 
+import arkui.component.button.ArkButtonPeer
+import arkui.component.button.ButtonType
+import arkui.component.units.Length
+
 var hasTestErrors = false
 
 fun checkResult(name: String, test: () -> Unit, expected: String) {

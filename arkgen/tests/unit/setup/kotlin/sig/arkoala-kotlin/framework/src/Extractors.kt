@@ -15,11 +15,11 @@
 
 package handwritten
 
-import koalaui.arkoala.SampleTransformSrcI
-import koalaui.arkoala.SampleTransformDstI
+import arkui.component.check.transform.SampleTransformSrcI
+import arkui.component.check.transform.SampleTransformDstI
 
-import koalaui.arkoala.TransformSrcCallbackI
-import koalaui.arkoala.TransformDstCallbackI
+import arkui.component.check.transform.TransformSrcCallbackI
+import arkui.component.check.transform.TransformDstCallbackI
 
 class extractors { companion object {
     fun transform_Ark_SampleTransformSrcI_to_Ark_SampleTransformDstI(src: SampleTransformSrcI): SampleTransformDstI {

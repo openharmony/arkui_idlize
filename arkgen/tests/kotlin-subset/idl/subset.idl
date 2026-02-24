@@ -1,4 +1,4 @@
-package arkui.component;
+package arkui.component.idlize;
 
 interface DrawContext {};
 [Synthetic]
@@ -8,24 +8,6 @@ interface DrawModifier {
     [Optional]
     attribute Callback_DrawContext_Void drawBehind;
     constructor();
-};
-
-enum ColorMode {
-    number LIGHT = 0;
-    number DARK = 1;
-};
-
-enum LayoutDirection {
-    number LTR = 0;
-    number RTL = 1;
-    [OriginalEnumMemberName=Auto]
-    number AUTO = 2;
-};
-
-[Entity=Class]
-interface EventEmulator {
-  static void emitClickEvent(pointer node, ClickEvent event);
-  static void emitTextInputEvent(pointer node, String text);
 };
 
 [Component="Root"]

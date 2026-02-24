@@ -1689,6 +1689,8 @@ export function generateCallbackKindAccess(callback: idl.IDLCallback, language: 
     const name = generateCallbackKindName(callback)
     if (language == Language.CPP)
         return name
+    if (language == Language.KOTLIN)
+        return `${CallbackKind}.${name}.value`
     return `${CallbackKind}.${name}`
 }
 

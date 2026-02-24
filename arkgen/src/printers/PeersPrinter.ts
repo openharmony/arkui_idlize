@@ -331,6 +331,7 @@ class KotlinPeerFileVisitor extends PeerFileVisitor {
     protected getDefaultPeerImports(lang: Language, imports: ImportsCollector) {
         imports.addFeatures(["nullptr", "KPointer", "KInt", "KBoolean", "KStringPtr", "RuntimeType"], "koalaui.interop")
         imports.addFeature("Instant", "kotlin.time")
+        imports.addFeatures(["ComponentBase", "PeerNode"], "koalaui.arkoala")
     }
 }
 

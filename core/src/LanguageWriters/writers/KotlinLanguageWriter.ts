@@ -71,21 +71,21 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
 
         const isStringEnum = this.enumEntity.elements.some(it => typeof it.initializer == "string")
 
-        writer.writeClass(this.enumEntity.name, () => {
-            writer.writeStaticEntitiesBlock(() => {
-                const mapping = new Map<number, string>()
-                this.writeEnumMembers(writer, members, isStringEnum, mapping)
-                this.writeValuesMap(writer, mapping)
-            })
-            this.writeFields(writer, isStringEnum)
-            this.writeConstructor(writer, isStringEnum)
+        writer.writeLines(`class ${this.enumEntity.name} ${this.getMainConstructor(writer, isStringEnum)} {`)
+        writer.pushIndent()
+
+        writer.writeStaticEntitiesBlock(() => {
+            const mapping = new Map<number, string>()
+            this.writeEnumMembers(writer, members, isStringEnum, mapping)
+            this.writeValuesMap(writer, mapping)
         })
+
+        writer.popIndent()
+        writer.writeLines(`}`)
     }
     protected writeEnumMembers(writer: LanguageWriter, members: EnumMember[],
         isStringEnum: boolean, mapping: Map<number, string>
     ): void {
-        const enumType = idl.createReferenceType(this.enumEntity)
-        const modifiers = [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.READONLY, FieldModifier.FINAL]
         for (let i = 0; i < members.length; i++) {
             const it = members[i]
             let initializer: string
@@ -99,50 +99,25 @@ export class KotlinEnumWithGetter extends TsEnumEntityStatement implements Langu
                     `${this.enumEntity.name}(${enumValue})`
                 mapping.set(it.numberId, it.name)
             }
-            writer.writeFieldDeclaration(it.name, enumType, modifiers, false, writer.makeString(initializer))
+            writer.writeLines(`val ${it.name}: ${this.enumEntity.name} = ${initializer}`)
         }
     }
     protected writeValuesMap(writer: LanguageWriter, mapping: Map<number, string>): void {
-        const enumType = idl.createReferenceType(this.enumEntity)
+        const mapType = `Map<${writer.getNodeName(this.getEnumBinaryType())}, ${this.enumEntity.name}>`
         const mappingStr: string[] = Array.from(mapping).map(it => `${this.convertEnumValue(it[0], writer)} to ${it[1]}`)
-        const mapType = idl.createContainerType("record", [this.getEnumBinaryType(), enumType])
-        const modifiers = [FieldModifier.PUBLIC, FieldModifier.READONLY, FieldModifier.FINAL]
-        const initExpr = writer.makeString(`mutableMapOf(${mappingStr.join(", ")})`)
-        writer.writeFieldDeclaration(KotlinEnumWithGetter.values, mapType, modifiers, false, initExpr)
+        const initExpr = `mapOf(${mappingStr.join(", ")})`
+        writer.writeLines(`val ${KotlinEnumWithGetter.values}: ${mapType} = ${initExpr}`)
     }
-    protected writeConstructor(writer: LanguageWriter, isStringEnum: boolean): void {
-        const modifiers = [MethodModifier.PRIVATE]
+    protected getMainConstructor(writer: LanguageWriter, isStringEnum: boolean): string {
+        let params: string
         if (isStringEnum) {
-            const signature = new MethodSignature(idl.createPrimitiveType('void'), [this.getEnumBinaryType(), idl.createPrimitiveType('String')])
-            writer.writeConstructorImplementation("constructor", signature, () => {
-                const initExpr = [0, 1].map(i => writer.makeString(signature.argName(i)))
-                writer.writeStatement(
-                    writer.makeAssign(KotlinEnumWithGetter.ordinal, undefined, initExpr[0], false)
-                )
-                writer.writeStatement(
-                    writer.makeAssign(KotlinEnumWithGetter.value, undefined, initExpr[1], false)
-                )
-            }, undefined, modifiers)
+            params = `public val ${KotlinEnumWithGetter.ordinal}: ${writer.getNodeName(this.getEnumBinaryType())}, ` +
+                `public val ${KotlinEnumWithGetter.value}: ${writer.getNodeName(idl.createPrimitiveType('String'))}`
         }
         else {
-            const signature = new MethodSignature(idl.createPrimitiveType('void'), [this.getEnumBinaryType()])
-            writer.writeConstructorImplementation("constructor", signature, () => {
-                const initExpr = writer.makeString(signature.argName(0))
-                writer.writeStatement(
-                    writer.makeAssign(`this.${KotlinEnumWithGetter.value}`, undefined, initExpr, false)
-                )
-            }, undefined, modifiers)
+            params = `public val ${KotlinEnumWithGetter.value}: ${writer.getNodeName(this.getEnumBinaryType())}`
         }
-    }
-    protected writeFields(writer: LanguageWriter, isStringEnum: boolean): void {
-        const modifiers = [FieldModifier.PUBLIC, FieldModifier.READONLY, FieldModifier.FINAL]
-        if (isStringEnum) {
-            writer.writeFieldDeclaration(KotlinEnumWithGetter.ordinal, this.getEnumBinaryType(), modifiers, true)
-            writer.writeFieldDeclaration(KotlinEnumWithGetter.value, idl.createPrimitiveType('String'), modifiers, true)
-        }
-        else {
-            writer.writeFieldDeclaration(KotlinEnumWithGetter.value, this.getEnumBinaryType(), modifiers, true)
-        }
+        return `private constructor(${params})`
     }
     private getEnumBinaryType(): idl.IDLPrimitiveType {
         return idl.enumBinaryRepresentation(this.enumEntity)

@@ -1,4 +1,4 @@
-package arkui.component;
+package arkui.component.common;
 
 [Entity=Interface]
 interface BaseEvent {

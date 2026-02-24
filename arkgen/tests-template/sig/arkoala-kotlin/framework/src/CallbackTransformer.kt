@@ -14,11 +14,12 @@
  */
 package koalaui.arkoala
 
-import koalaui.arkoala.ArkComponentRootPeer
-import koalaui.arkoala.CustomBuilder
-import koalaui.arkoala.CustomNodeBuilder
 import koalaui.arkoala.PeerNode
 import koalaui.interop.KPointer
+
+import arkui.component.builder.CustomBuilder
+import arkui.component.idlize.ArkComponentRootPeer
+import arkui.component.idlize.CustomNodeBuilder
 
 typealias UIDetachedRootCreator = (
     peerFactory: () -> PeerNode,

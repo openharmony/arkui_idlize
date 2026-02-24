@@ -18,6 +18,8 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import koalaui.interop.pointer
 
+import arkui.component.idlize.ArkRootPeer
+
 // add inheritance from NativePeerNode
 public open class PeerNode(peerPtr: pointer, val id: Int, val name: String, flags: Int) {
     public val peer: NativePeerNode

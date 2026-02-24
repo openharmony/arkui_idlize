@@ -15,7 +15,7 @@
 
 package handwritten
 
-import koalaui.arkoala.ArkCheckHooksComponent
+import arkui.component.check.hooks.ArkCheckHooksComponent
 
 fun hookCheckHooksText(receiver: ArkCheckHooksComponent, text: String?): Unit {
     receiver.checkHookResult("Check hook text: $text")

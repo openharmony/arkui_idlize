@@ -426,7 +426,17 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
             "KInteropReturnBuffer",
             "KSerializerBuffer",
         ], "koalaui.interop")
-        imports.addFeature("*", "kotlinx.cinterop")
+        imports.addFeatures([
+            "addressOf",
+            "CPointed",
+            "ExperimentalForeignApi",
+            "pin",
+            "toByte",
+            "toCPointer",
+            "toKString",
+            "toLong",
+            "useContents",
+        ], "kotlinx.cinterop")
     }
 }
 
