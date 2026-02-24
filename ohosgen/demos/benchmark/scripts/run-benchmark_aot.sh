@@ -2,8 +2,7 @@
 
 echo $(pwd)
 
-external_dir=../../../external
-interop_dir="${external_dir}/interop/src/cpp"
+external_dir=../../../external/koala_projects
 arkts_dir="${external_dir}/incremental/tools/panda/arkts"
 
 cpp_dir="./src/cpp"

@@ -3,7 +3,7 @@ import { sep, join, dirname, resolve, relative } from 'node:path'
 import { execSync } from 'node:child_process'
 
 const ALTERNATIVES = {
-    "@koalaui/libarkts": [ "file:../../../developtools/ace_ets2bundle/ets1.2/libarkts", "file:external/libarkts" ]
+    "@koalaui/libarkts": [ "file:../../../developtools/ace_ets2bundle/ets1.2/libarkts", "file:node_modules/@koalaui/libarkts" ]
 }
 
 function glob(path, allowFailure = false) {

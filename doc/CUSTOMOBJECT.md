@@ -27,7 +27,7 @@ Instruction for adding idl declaration which are
 
 - generate idl declation from whole sdk to `full-idl` dir:
 ```
-node . --dts2idl --input-dir ./interface_sdk-js/api,./interface_sdk-js/api/\@internal/component/ets,./interface_sdk-js/api/global --output-dir ./full-idl --default-idl-package ohos --verify-idl
+node . --dts2idl --input-dir ./external/interface_sdk-js/api,./external/interface_sdk-js/api/\@internal/component/ets,./external/interface_sdk-js/api/global --output-dir ./full-idl --default-idl-package ohos --verify-idl
 ```
 
 - find an idl declaration for necessary CustomObject in the `full-idl` dir.

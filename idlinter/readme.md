@@ -42,7 +42,7 @@ For architecture overview and extensions how-to see [architecture-and-extensions
 
 ### Example: Checking ArkUI
 
-`node idlinter check runner/out/idl --load libohos/predefined/stdlib.idl external/arkoala-arkts/arkui/idl --features arkui`
+`node idlinter check runner/out/idl --load libohos/predefined/stdlib.idl external/koala_projects/arkoala-arkts/arkui/idl --features arkui`
 
 ## API Compatibility Checker
 

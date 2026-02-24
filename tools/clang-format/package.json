@@ -5,14 +5,11 @@
   "license": "Apache-2.0",
   "keywords": [],
   "config": {
-    "sig_path": "../../external/interop/src/cpp/ ../../external/incremental/graphics/native/platform/cpp ../../external/subset/arkoala-arkts/framework/native/src/generated ../../external/libarkts/native/src",
     "patch_path": "./tools/clang-format/patches/clang-format.patch"
   },
   "scripts": {
     "check-format": "bash ./check-format.sh ${DIR_PATH}",
     "apply-format": "bash ./apply-correct-format.sh ${DIR_PATH}",
-    "check-format:external": "DIR_PATH=$npm_package_config_sig_path npm run check-format",
-    "apply-format:external": "DIR_PATH=$npm_package_config_sig_path npm run apply-format",
     "apply-patch": "cd ../../ && git apply --stat --apply --unsafe-paths --verbose $npm_package_config_patch_path"
   }
 }

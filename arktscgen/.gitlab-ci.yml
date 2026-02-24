@@ -3,27 +3,29 @@ test arktscgen:
   tags:
     - idlize-ci
     - koala-ci
+  needs:
+    - download koala_projects
   # before_script:
   #   - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
   script:
     - !reference [.npm, script]
-    - npm i -C external --prefer-offline --no-audit --no-fund
-    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
-    - npm run -C external sdk:all
-    - npm run compile --prefix external/common
-    - npm run compile --prefix external/compat
-    - npm run compile --prefix external/interop
-    - npm run compile --prefix external/smart-arkts
-    - npm run compile --prefix external/fast-arktsc
-    - npm run compile -C external/libarkts
-    - npm run build:all -C external/ui2abc
-    - npm run compile --prefix external/incremental/runtime
-    - npm run build --prefix external/interop
-    - npm run build --prefix external/incremental
-    - npm run compile --prefix external/incremental/harness
-    - npm run build --prefix external/incremental/harness
-    - npm run test --prefix external/libarkts
-    - npm run test:all --prefix external/ui2abc/memo-plugin-ng
+    - npm i -C external/koala_projects --prefer-offline --no-audit --no-fund
+    - npm run panda:sdk:install --prefix ./external/koala_projects/incremental/tools/panda
+    - npm run -C external/koala_projects sdk:all
+    - npm run compile --prefix external/koala_projects/common
+    - npm run compile --prefix external/koala_projects/compat
+    - npm run compile --prefix external/koala_projects/interop
+    - npm run compile --prefix external/koala_projects/smart-arkts
+    - npm run compile --prefix external/koala_projects/fast-arktsc
+    - npm run compile -C external/koala_projects/libarkts
+    - npm run build:all -C external/koala_projects/ui2abc
+    - npm run compile --prefix external/koala_projects/incremental/runtime
+    - npm run build --prefix external/koala_projects/interop
+    - npm run build --prefix external/koala_projects/incremental
+    - npm run compile --prefix external/koala_projects/incremental/harness
+    - npm run build --prefix external/koala_projects/incremental/harness
+    - npm run test --prefix external/koala_projects/libarkts
+    - npm run test:all --prefix external/koala_projects/ui2abc/memo-plugin-ng
 
 pack idlize-arktscgen:
   extends:

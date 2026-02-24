@@ -3,7 +3,7 @@ set -e
 shopt -s globstar
 
 build_type=peers
-external_dir=../external
+external_dir=../external/koala_projects
 out_dir=out/kotlin-$build_type
 
 mkdir -p $out_dir/generated/modules

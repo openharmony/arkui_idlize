@@ -1,6 +1,6 @@
 /.idea/
 /.vscode/
-/interface_sdk-js/
+/external/interface_sdk-js/
 /sdk-patched/
 /sdk-patched-arkts/
 /absolute-sdk-patched-arkts/
@@ -22,6 +22,7 @@ node_modules
 /arktscgen/out/
 /arktscgen/build/
 /bundle/
+/external/koala_projects/
 *.tgz
 *.rej
 *.orig

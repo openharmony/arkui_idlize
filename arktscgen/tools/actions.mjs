@@ -21,7 +21,7 @@ const paths = {
     arktscgen: `.`,
     build: `./build`,
     unpacked: `./build/libarkts`,
-    libarkts: `../external/arkoala-arkts/libarkts/`
+    libarkts: `../external/koala_projects/arkoala-arkts/libarkts/`
 }
 
 export function assertNoUncommitedChanges() {
@@ -29,7 +29,7 @@ export function assertNoUncommitedChanges() {
         paths.arktscgen,
         paths.libarkts
     ].forEach(path => {
-        if (execSync(`cd ${path} && git diff -- . ':(exclude)./external'`).toString().length > 0) {
+        if (execSync(`cd ${path} && git diff -- . ':(exclude)./external/koala_projects'`).toString().length > 0) {
             throw new Error(`Uncommited changes at ${path}`)
         }
     })
@@ -69,7 +69,7 @@ export function testPacked() {
         paths.idlize,
         [
             `npx --yes ./arktscgen/build/idlizer-arktscgen-*.tgz`,
-            `--panda-sdk-path ./external/incremental/tools/panda/node_modules/@panda/sdk`,
+            `--panda-sdk-path ./external/koala_projects/incremental/tools/panda/node_modules/@panda/sdk`,
             `--output-dir ./arktscgen/build`,
         ].join(' ')
     )

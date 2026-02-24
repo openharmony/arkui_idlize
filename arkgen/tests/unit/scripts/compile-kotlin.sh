@@ -3,7 +3,7 @@ set -e
 shopt -s globstar
 
 build_type=$1
-external_dir=../../../external
+external_dir=../../../external/koala_projects
 generated_dir=generated
 
 cinterop \

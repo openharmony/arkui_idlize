@@ -6,7 +6,6 @@ import { execSync } from "child_process"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 export const IDLIZE_HOME = path.resolve(path.join(__dirname, ".."))
-export const EXTERNAL_HOME = path.resolve(path.join(__dirname, "../external"))
 
 export class Package {
     constructor(path) {
@@ -69,7 +68,7 @@ export class Package {
         publish("latest")
     }
 
-    externalDependencies = ["@idlizer/ost", "@idlizer/kit", "@idlizer/core", "@idlizer/libohos", "@koalaui/interop"]
+    idlizerDependencies = ["@idlizer/ost", "@idlizer/kit", "@idlizer/core", "@idlizer/libohos"]
 }
 
 export const all_packages = [

@@ -5,7 +5,7 @@ import { execSync } from 'child_process';
 
 const CWD = process.cwd()
 const options = program
-    .option(`--template [ts_subset|ts_peers|ts_ohos|arkts_subset_tsc|arkts_peers_tsc]`)
+    .option(`--template [ts_subset|ts_peers|ts_ohos]`)
     .option(`--out <path>`)
     .parse()
     .opts()
@@ -36,7 +36,7 @@ function installExternal() {
 }
 
 function symlinkSdk() {
-    const from = path.join(CWD, './interface_sdk-js/api/\@internal/component/ets')
+    const from = path.join(CWD, './external/interface_sdk-js/api/\@internal/component/ets')
     const to = path.join(CWD, options.out, 'sdk')
     try {
         fs.symlinkSync(from, to)
@@ -50,11 +50,6 @@ function main() {
     const templatesHandlers = {
         ts_subset: installExternal,
         ts_peers: () => {
-            installExternal()
-            symlinkSdk()
-        },
-        arkts_subset_tsc: installExternal,
-        arkts_peers_tsc: () => {
             installExternal()
             symlinkSdk()
         },

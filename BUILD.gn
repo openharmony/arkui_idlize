@@ -28,7 +28,7 @@ group("all") {
         "dtsgen:all",
         "etsgen:all",
         "idlinter:all",
-        "tools:all",
+        "external:all",
     ]
 }
 

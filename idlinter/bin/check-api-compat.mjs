@@ -24,12 +24,12 @@ process.chdir(`${path.dirname(process.argv[1])}/../..`)
 if (isIdlize) {
     // The following is an adapter. Because our CI runs on one workspace (idlize), but checks another
     // one (interface_sdk-js), we hereby translate idlize commit hashes into corresponding hashes in
-    // the SDK workspace. This is done by examining the tools/download-sdk.json file.
+    // the SDK workspace. This is done by examining the external/download-sdk.json file.
     //
     // In normal operation, when CI runs on SDK workspace itself, just use `base` and `commit` as is.
     function getSdkCommit(commit) {
         exec(`git fetch origin ${commit}`)
-        const downloadSdkJson = execSync(`git show origin/${commit}:tools/download-sdk.json`).toString()
+        const downloadSdkJson = execSync(`git show origin/${commit}:external/download-sdk.json`).toString()
         return JSON.parse(downloadSdkJson).ref.slice(0, 8)
     }
     base = getSdkCommit(base)

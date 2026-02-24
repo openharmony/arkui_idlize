@@ -3,7 +3,7 @@ set -e
 shopt -s globstar
 
 build_type=subset
-external_dir=../external
+external_dir=../external/koala_projects
 out_dir=out/kotlin-$build_type
 
 cinterop -def $out_dir/generated/sig/arkoala-arkts/framework/native/src/generated/interop.def \

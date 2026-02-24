@@ -2,7 +2,7 @@
 set -e
 shopt -s globstar
 
-external_dir=../../../external
+external_dir=../../../external/koala_projects
 out_dir=build/kotlin
 
 atomic_version=`npm pkg get -C $external_dir/interop/ config.kotlin_atomic_version`

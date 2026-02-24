@@ -51,10 +51,10 @@ arktsconfig_json_contents = '''
         "paths": {
             "#compat": ["./src/panda/compat"],
             "#components": ["./src/panda/components"],
-            "@koalaui/interop": ["../../../external/interop/src/arkts"],
-            "@koalaui/common": ["../../../external/common/src"],
-            "@koalaui/compat": ["../../../external/compat/src/arkts"],
-            "@koalaui/runtime": ["../../../external/incremental/runtime/src"]
+            "@koalaui/interop": ["../../../external/koala_projects/interop/src/arkts"],
+            "@koalaui/common": ["../../../external/koala_projects/common/src"],
+            "@koalaui/compat": ["../../../external/koala_projects/compat/src/arkts"],
+            "@koalaui/runtime": ["../../../external/koala_projects/incremental/runtime/src"]
         }
     },
     "include": ["src/*.ts", "src/panda/**/*.ts", "generated/arkts/**/*.ts"],
@@ -74,10 +74,10 @@ arktsconfig_main_json_contents = '''
         "paths": {
             "#compat": ["./src/panda/compat"],
             "#components": ["./src/panda/components"],
-            "@koalaui/interop": ["../../../external/interop/src/arkts"],
-            "@koalaui/common": ["../../../external/common/src"],
-            "@koalaui/compat": ["../../../external/compat/src/arkts"],
-            "@koalaui/runtime": ["../../../external/incremental/runtime/src"]
+            "@koalaui/interop": ["../../../external/koala_projects/interop/src/arkts"],
+            "@koalaui/common": ["../../../external/koala_projects/common/src"],
+            "@koalaui/compat": ["../../../external/koala_projects/compat/src/arkts"],
+            "@koalaui/runtime": ["../../../external/koala_projects/incremental/runtime/src"]
         }
     },
     "include": ["src/panda/main.ts"]
