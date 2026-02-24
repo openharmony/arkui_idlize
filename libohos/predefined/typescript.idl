@@ -1,0 +1,22 @@
+package idlize.typescript;
+
+namespace Intl {
+    interface Locale {};
+};
+interface Error {};
+interface Type {};
+
+typedef Int8Array = buffer;
+typedef Int32Array = buffer;
+typedef Int64Array = buffer;
+typedef Uint8ClampedArray = buffer;
+typedef Uint8Array = buffer;
+typedef Uint32Array = buffer;
+typedef Uint64Array = buffer;
+typedef Float32Array = buffer;
+typedef Float64Array = buffer;
+typedef BigInt64Array = buffer;
+typedef BigUint64Array = buffer;
+typedef <T> FixedArray = buffer;
+typedef <T> ReadonlyArray = buffer;
+typedef DataView = buffer;

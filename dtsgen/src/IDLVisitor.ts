@@ -295,18 +295,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             ["Boolean", () => idl.createPrimitiveType('boolean')], // nasty typo in SDK
             ["ArrayBuffer", () => idl.createPrimitiveType('buffer')],
             ["DataView", () => idl.createPrimitiveType('buffer')],
-            ["Int8Array", () => idl.createPrimitiveType('buffer')], // ["Int8Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('i8')])],
-            ["Uint8Array", () => idl.createPrimitiveType('buffer')], // ["Uint8Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u8')])],
-            ["Uint8ClampedArray", () => idl.createPrimitiveType('buffer')], // ["Uint8ClampedArray", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u8')])],
-            ["Int16Array", () => idl.createPrimitiveType('buffer')], // ["Int16Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('i16')])],
-            ["Uint16Array", () => idl.createPrimitiveType('buffer')], // ["Uint16Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u16')])],
-            ["Int32Array", () => idl.createPrimitiveType('buffer')], // ["Int32Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('i32')])],
-            ["Uint32Array", () => idl.createPrimitiveType('buffer')], // ["Uint32Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u32')])],
-            ["Float16Array", () => idl.createPrimitiveType('buffer')], // ["Float16Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('f16')])],
-            ["Float32Array", () => idl.createPrimitiveType('buffer')], // ["Float32Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('f32')])],
-            ["Float64Array", () => idl.createPrimitiveType('buffer')], // ["Float64Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('f64')])],
-            ["BigInt64Array", () => idl.createPrimitiveType('buffer')], // ["BigInt64Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('i64')])],
-            ["BigUint64Array", () => idl.createPrimitiveType('buffer')], // ["BigUint64Array", () => idl.createContainerType('sequence', [idl.createPrimitiveType('u64')])],
             ["Date", () => idl.createPrimitiveType('date')],
             ["Array", (type, name) => this.makeContainerType("sequence", type, name)],
             ["IterableIterator", (type) => this.makeContainerType("sequence", type)],
@@ -319,7 +307,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             // TODO: rethink that
             ["\"2d\"", () => idl.createPrimitiveType('String')],
             ["\"auto\"", () => idl.createPrimitiveType('String')],
-            ["BusinessError", (type) => idl.createReferenceType("BusinessError")],
 
             ["int32", () => idl.createPrimitiveType('i32')],
             ["uint32", () => idl.createPrimitiveType('u32')],

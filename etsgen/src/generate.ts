@@ -1431,21 +1431,16 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Object': return idl.createPrimitiveType('Object')
                 case 'object': return idl.createPrimitiveType('Object')
                 case 'ArrayBuffer': return idl.createPrimitiveType('buffer')
-                case 'Uint8Array': return idl.createPrimitiveType('buffer')
-                case 'Uint8ClampedArray': return idl.createPrimitiveType('buffer')
                 case 'Boolean': return idl.createPrimitiveType('boolean')
-                case 'Int32Array': return idl.createContainerType('sequence', [idl.createPrimitiveType('i32')])
                 case 'IterableIterator': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
-                case 'ReadonlyArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
-                case 'FixedArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'number': return idl.createPrimitiveType('number')
                 case 'Required':
                 case 'Readonly': return typeArgs![0]
                 case 'Optional': return idl.createOptionalType(typeArgs![0])
                 case 'ESValue': return idl.createPrimitiveType('Object')
-                case 'Intl.Locale': return idl.createReferenceType('idlize.stdlib.Intl.Locale')
-                case 'Error': return idl.createReferenceType('idlize.stdlib.Error')
-                case 'Type': return idl.createReferenceType('idlize.stdlib.Type')
+                case 'Intl.Locale': return idl.createReferenceType('idlize.typescript.Intl.Locale')
+                case 'Error': return idl.createReferenceType('idlize.typescript.Error')
+                case 'Type': return idl.createReferenceType('idlize.typescript.Type')
                 case 'ParticleTuple': {
                     const typeParameters = new Set<string>()
                     typeArgs?.forEach(arg => {

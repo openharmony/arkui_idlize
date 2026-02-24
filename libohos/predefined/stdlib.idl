@@ -18,9 +18,3 @@ interface <T> Partial {};
 interface <T> ThrowsWrapper {
     attribute T value;
 };
-
-namespace Intl {
-    interface Locale {};
-};
-interface Error {};
-interface Type {};

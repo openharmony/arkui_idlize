@@ -259,6 +259,12 @@ export class PeerLibrary implements LibraryInterface {
                 case 'KStringPtr': return new StringConvertor(param, idl.createPrimitiveType('String'))
                 case 'number': return new NumberConvertor(param, idl.createPrimitiveType('number'))
                 case 'KPointer': return new PointerConvertor(param, idl.createPrimitiveType('pointer'))
+                case 'Int8Array': case 'Int16Array': case 'Int32Array':
+                case 'Uint8ClampedArray': case 'Uint8Array': case 'Uint16Array': case 'Uint32Array':
+                case 'Float16Array': case 'Float32Array': case 'Float64Array':
+                case 'BigInt64Array': case 'BigUint64Array':
+                case 'FixedArray': case 'ReadonlyArray':
+                case 'DataView': return new BufferConvertor(param, idl.createPrimitiveType('buffer'))
             }
             if (generatorConfiguration().forceResource.includes(type.name)) {
                 return new ObjectConvertor(param, type)

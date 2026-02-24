@@ -196,6 +196,7 @@ export namespace DeclarationTargets {
         const nativeNameConvertorInstance: IdlNameConvertor = library.createTypeNameConvertor(Language.CPP)
         const data = collectDeclarationTargets(library, unionFlatteningMode)
             .filter(it => !idl.isPrimitiveType(it, 'void'))
+            .filter(it => !idl.isEntry(it) || !idl.isInIdlizeTypescript(it))
             .filter(it => {
                 if (idl.isOptionalType(it)) it = it.type
                 if (idl.isReferenceType(it)) {
