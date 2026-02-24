@@ -1,0 +1,10 @@
+{
+    "name": "@idlizer/external",
+    "private": true,
+    "version": "2.1.7",
+    "description": "external submodules downloading",
+    "license": "Apache-2.0",
+    "scripts": {
+        "download:koala_projects": "node ./download-koala_projects.mjs"
+    }
+}

@@ -36,7 +36,7 @@ function installExternal() {
 }
 
 function symlinkSdk() {
-    const from = path.join(CWD, './interface_sdk-js/api/\@internal/component/ets')
+    const from = path.join(CWD, './external/interface_sdk-js/api/\@internal/component/ets')
     const to = path.join(CWD, options.out, 'sdk')
     try {
         fs.symlinkSync(from, to)

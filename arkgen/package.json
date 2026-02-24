@@ -47,7 +47,7 @@
         "compile": "npm run --prefix ../libohos compile && npm run compile:self",
         "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json",
         "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out",
-        "download:koala_projects": "npm run download:koala_projects -C ..",
+        "download:koala_projects": "npm run download:koala_projects -C ../external",
         "TRACKER": "#------------------------",
         "tracker:ets": "npm run compile && node . --idl2peer --reference-names generation-config/references/ets-sdk.refs.json --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir ../doc --generator-target tracker --tracker-status ../doc/COMPONENTS_STATUS.md",
         "tracker:ets:all": "npm run tracker:ets",

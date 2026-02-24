@@ -81,7 +81,7 @@ To run
 cd idlize/linter
 npm i
 npm run compile
-node . --input-dir ../interface_sdk-js/api/@internal/component/ets/
+node . --input-dir ../external/interface_sdk-js/api/@internal/component/ets/
 ```
 
 Results are in `./<outputDir>/linter.txt` if  `--output-dir` parameter specified, otherwise printed to stdout.

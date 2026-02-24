@@ -19,11 +19,12 @@ import { fileURLToPath } from 'url'
 import { downloadFromGit } from './download-from-git.mjs'
 
 const __thisScript = fileURLToPath(import.meta.url)
+const __thisDir = path.dirname(__thisScript)
 const __setupFile = path.format({ ...path.parse(__thisScript), base: '', ext: '.json' })
 const setup = JSON.parse(fs.readFileSync(__setupFile))
 console.log("use setup:", setup)
-const idlizeDir = path.join(path.dirname(__thisScript), '..')
-const repoDir = path.join(idlizeDir, `interface_sdk-js`)
+const idlizeDir = path.join(__thisDir, '..')
+const repoDir = path.join(__thisDir, `interface_sdk-js`)
 
 downloadFromGit(setup.url, setup.ref, repoDir)
 // repo ready

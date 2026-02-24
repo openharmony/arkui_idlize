@@ -32,13 +32,12 @@
     "postinstall": "node ./tools/postinstall.mjs",
     "clean": "npm run clean --ws --if-present -s",
     "bundle": "read -p 'Enter bundle version, e.g. 22.22.22-work-conf-999: ' BUNDLE_VERSION && read -p 'Enter bundle out directory: ' BUNDLE_OUT && node ./tools/bundle.mjs $BUNDLE_VERSION $BUNDLE_OUT",
-    "tracker": "./tracker/track interface_sdk-js sdk-patched-arkts",
+    "tracker": "./tracker/track external/interface_sdk-js sdk-patched-arkts",
     "release": "npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && npm run -c arktscgen compile && npm run -C idlinter compile && node tools/release.mjs",
     "sanity": "npm run -C arkgen sanity && npm run -C linter run",
     "setup-out": "node tools/setup/setup.mjs",
     "gn:gen": "gn gen out/dir",
     "gn:targets": "ninja -C out/dir -t targets all",
-    "gn": "npm run gn:gen && ninja -C out/dir :all",
-    "download:koala_projects": "node ./tools/download-koala_projects.mjs"
+    "gn": "npm run gn:gen && ninja -C out/dir :all"
   }
 }

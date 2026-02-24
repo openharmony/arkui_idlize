@@ -38,7 +38,7 @@
         "compile:core": "npm run --prefix ../core compile",
         "compile:self": "tsc -b .",
         "compile": "npm run compile:core && npm run compile:self",
-        "external:download": "npm run download:koala_projects -C ..",
+        "external:download": "npm run download:koala_projects -C ../external",
         "external:test": "npm run --prefix ../external/koala_projects/libarkts run:current",
         "external:clean": "rimraf ../external/koala_projects/libarkts/generated",
         "external:generate": "npm run compile && node . --panda-sdk-path ../external/koala_projects/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/koala_projects/ui2abc/ --options-file ../external/koala_projects/libarkts/generator/options.json5 --debug --no-initialize",

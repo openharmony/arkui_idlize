@@ -4,7 +4,7 @@ set -e
 
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <interface_sdk-js-path> <sdk-patched-arkts-path>"
-    echo "Example: $0 ../interface_sdk-js ../sdk-patched-arkts"
+    echo "Example: $0 ../external/interface_sdk-js ../sdk-patched-arkts"
     exit 1
 fi
 

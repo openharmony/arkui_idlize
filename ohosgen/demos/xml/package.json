@@ -59,6 +59,6 @@
         "all:ts": "TARGET=ts npm run all",
         "all:arkts": "TARGET=arkts npm run all",
         "all:cj": "TARGET=cj npm run all",
-        "all:kt": "npm run download:koala_projects -C ../../.. && TARGET=kt npm run all"
+        "all:kt": "npm run download:koala_projects -C ../../../external && TARGET=kt npm run all"
     }
 }

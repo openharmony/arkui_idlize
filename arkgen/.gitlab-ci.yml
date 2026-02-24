@@ -1,16 +1,3 @@
-download koala_projects:
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - !reference [.npm, script]
-  script:
-    - npm run download:koala_projects
-  artifacts:
-    paths:
-    - external/koala_projects
-
 <ArkTS> koala-projects integration test:
   stage: test
   tags:
