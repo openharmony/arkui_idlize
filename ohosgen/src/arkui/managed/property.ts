@@ -22,12 +22,12 @@ export const propertyProducer = createProducer<idl.IDLProperty, ArkUIRole<idl.ID
   { is: idl.isProperty, role: 'peer' },
   (prop, ctx) => {
     const attrName = managedName(idl.getFQName(prop.parent!))
-    const parentName = (prop.parent as idl.IDLInterface).name
     const propMethod = idl.createMethod(
         'set' + capitalize(prop.name),
         [idl.createParameter('value', prop.type)],
         idl.createPrimitiveType('void'))
-    const peerClass = idl.createInterface(parentName.replace(/Attribute$/, 'Peer'), idl.IDLInterfaceSubkind.Class)
+    const peerName = idl.getQualifiedName(prop.parent!, 'name').replace(/(Attribute)?$/, 'Peer')
+    const peerClass = idl.createInterface(peerName, idl.IDLInterfaceSubkind.Class)
     propMethod.parent = peerClass
     peerClass.parent = idl.getFileFor(prop)
 
@@ -39,7 +39,7 @@ export const propertyProducer = createProducer<idl.IDLProperty, ArkUIRole<idl.ID
           .method(prop.name)
             .param('value').type(propType).$()
             .returns(Ts.prim.self).$().$(),
-        Builders.class(attrName.replace(/Attribute$/, 'Component'))
+        Builders.class(attrName.replace(/(Attribute)?$/, 'Component'))
           .method(prop.name)
             .param('value').type(propType).$()
             .returns(Ts.prim.self)

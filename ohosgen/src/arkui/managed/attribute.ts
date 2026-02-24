@@ -14,8 +14,9 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { T, Builders, managedName, Ts, createProducer, expectType, OhosSeed, E, FunctionDeclaration, OhosProducerContext, Hs } from "@idlizer/libohos";
-import { ArkUIRole } from "..";
+import { T, Builders, managedName, Ts, createProducer, expectType, OhosSeed, E, FunctionDeclaration, OhosProducerContext, Hs, LWType } from "@idlizer/libohos"
+import { ArkUIRole } from ".."
+import { isDefined } from "@idlizer/core"
 
 function isComponentAttribute(node: idl.IDLInterface) {
   return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Component)
@@ -27,6 +28,12 @@ function isCommonMethodProperty(prop: idl.IDLProperty) {
 
 function isAttributeModifier(prop: idl.IDLProperty) {
   return prop.name === 'attributeModifier'
+}
+
+function superClassForRole(node: idl.IDLInterface, role: 'peer' | 'component', ctx: OhosProducerContext): LWType | undefined {
+  return node.name === 'CommonMethod'
+    ? T.c(role === 'peer' ? 'PeerNode' : 'ComponentBase')
+    : expectType(ctx, node.inheritance[0], role)
 }
 
 export const attributeProducer = createProducer(
@@ -42,7 +49,7 @@ export const attributeProducer = createProducer(
               : undefined)
           .$(),
         createImpl(ctx, node, attrName)
-      ],
+      ].filter(isDefined),
       trigger: node.properties
         .filter(it => !isAttributeModifier(it))
         .map(it => new OhosSeed(it, 'peer'))
@@ -54,14 +61,11 @@ export const attributeProducer = createProducer(
 export const peerProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
   { is: idl.isInterface, predicate: isComponentAttribute, role: 'peer' },
   (node, ctx) => {
-    const name = managedName(idl.getFQName(node)).replace(/Attribute$/, 'Peer')
+    const name = managedName(idl.getFQName(node).replace(/(Attribute)?$/, 'Peer'))
     return {
       continuation: T.c(name),
       declarations: [
-        Builders.class(name)
-          .extends(node.inheritance.length
-              ? expectType(ctx, node.inheritance[0], 'peer')
-              : undefined)
+        Builders.class(name).extends(superClassForRole(node, 'peer', ctx))
           /// ctor
 //       .method('create').static()
 //         .returns(T.c(baseName + 'Peer'))
@@ -84,15 +88,13 @@ export const peerProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLIn
 export const componentProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
   { is: idl.isInterface, predicate: isComponentAttribute, role: 'component' },
   (node, ctx) => {
-    const name = managedName(idl.getFQName(node)).replace(/Attribute$/, 'Component')
+    const name = managedName(idl.getFQName(node).replace(/(Attribute)?$/, 'Component'))
     const peerType = expectType(ctx, node, 'peer');
     return {
       continuation: T.c(name),
       declarations: [
         Builders.class(name)
-          .extends(node.inheritance.length
-            ? expectType(ctx, node.inheritance[0], 'component')
-            : undefined)
+          .extends(superClassForRole(node, 'component', ctx))
           .implements(expectType(ctx, node, 'managed'))
           .method('getPeer')
             .returns(peerType)
@@ -103,7 +105,9 @@ export const componentProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.
   }
 )
 
-function createImpl(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrName: string): FunctionDeclaration {
+function createImpl(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrName: string): FunctionDeclaration | undefined {
+  if (attrNode.name === 'CommonMethod')
+    return undefined
   const name = attrName.replace(/Attribute$/, '')
   const peerType = expectType(ctx, attrNode, 'peer')
   const componentType = expectType(ctx, attrNode, 'component')

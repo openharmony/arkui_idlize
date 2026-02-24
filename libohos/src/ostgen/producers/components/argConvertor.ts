@@ -277,10 +277,8 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
                 .cond().binary(Op.lt).left('i').right().access('length').receiver(accessor).$().$().$().$()
                 .step().binary('=').left('i').right().binary(Op.add).left('i').right(1).$().$().$().$()
                 .body().block()
-                    .statements(argConvertor(this.ctx, this.type.elementType[0]).write(
-                        Builders.access().receiver(accessor).index('i').$(),
-                        serializerName,
-                        native)).$().$().$()
+                    .decl('item').value().access().receiver(accessor).index('i').$().$().$()
+                    .statements(argConvertor(this.ctx, this.type.elementType[0]).write(E.v('item'), serializerName, native)).$().$().$()
         ]
     }
 
