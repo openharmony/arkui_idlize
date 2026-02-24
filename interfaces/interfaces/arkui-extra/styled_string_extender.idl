@@ -1,0 +1,15 @@
+package arkui.component.idlize;
+
+import arkui.component.styledString;
+
+interface CustomSpanWrapper {
+    attribute Object managed;
+    attribute CustomSpanNative nativeObj;
+    attribute Callback_CustomSpanMeasureInfo_CustomSpanMetrics onMeasure_callback;
+    attribute Callback_DrawContext_CustomSpanDrawInfo_Void onDraw_callback;
+};
+
+[Entity=Class]
+interface CustomSpanNative {
+    void invalidate();
+};
