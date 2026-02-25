@@ -33,6 +33,7 @@ import {
     maybeRestoreGenerics,
     getInitializerDefaultValue,
     getSyntheticTypesFileName,
+    flattenUnionType,
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager.js'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration.js'
@@ -1233,6 +1234,12 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             if (!syntheticEntriesToPrint.has(key)) {
                 syntheticEntriesToPrint.set(key, entry)
             }
+            if (idl.isUnionType(entry)) {
+                const flattened = flattenUnionType(this.peerLibrary, entry)
+                if (idl.isUnionType(flattened) && !syntheticEntriesToPrint.has(flattened.name)) {
+                   syntheticEntriesToPrint.set(flattened.name, flattened)
+                }
+            }
         }
 
         const syntheticGenerator = new KotlinSyntheticGenerator(this.peerLibrary, registerEntry, registerSyntheticEntry)
@@ -1547,7 +1554,8 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private printPropertyType(prop: idl.IDLProperty): string {
-        const type = this.convertType(prop.type)
+        const flattenUnions = true
+        const type = this.convertType(prop.type, flattenUnions)
         const optionalMark = prop.isOptional && !type.endsWith("?") ? "?" : ""
         return `${type}${optionalMark}`
     }
@@ -1571,7 +1579,10 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
     }
 
-    private convertType(idlType: idl.IDLType): string {
+    private convertType(idlType: idl.IDLType, flattenUnions?: boolean): string {
+        if (flattenUnions && idl.isUnionType(idlType)) {
+            idlType = flattenUnionType(this.peerLibrary, idlType)
+        }
         return this.writer.getNodeName(idlType)
     }
 
