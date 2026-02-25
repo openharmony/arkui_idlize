@@ -142,7 +142,7 @@ class RefSearcher extends IdentityTransformer {
             const source = this.mapToPackage(mapFileName(record))
             const conflictingNames = this.seenNames.get(baseName)
             if (conflictingNames) {
-                const alias = source + '_' + baseName
+                const alias = source.replace('.', '_') + '_' + baseName
                 if (!conflictingNames.includes(source)) {
                     conflictingNames.push(source)
                     this.imports.addFeature(baseName, source, alias)
