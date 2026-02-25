@@ -98,7 +98,7 @@ export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, M
 
 function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Language, packages: Set<string>): Map<string, OutputFile> {
     decls = moduleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
-    const files = moduleLike.formFiles(packages, decls)
+    const files = moduleLike.formFiles(packages, decls, {knownReference: new Map(), knownImports: new Map, onUnknownImport: arkuiDefaultImports})
     const result: Map<string, OutputFile> = new Map()
     const printer = language === Language.ARKTS ? processNPrintArkTS : processNPrintTS
     files.forEach((content, fileName) => {
@@ -159,4 +159,17 @@ function dumpCLike(decls: LWDeclaration[], effect: OhosEffect, moduleName: strin
         [new TargetFile(`${moduleName.toLowerCase()}Impl_temp.cpp`), ''],
         [new TargetFile(`${moduleName.toLowerCase()}ApiImpl_temp.cpp`), apiImpl],
     ])
+}
+
+const arkuiDefaultImports: moduleLike.OnUnknownImport = (name: string) => {
+    switch (name) {
+        case 'PeerNode':
+        case 'ComponentBase': return {name, source: '@arkui.base'}
+        case 'memo':
+        case 'memo_stable':
+        case 'memo_skip': return {name, source: 'arkui.incremental.annotation'}
+        case 'remember': return {name, source: 'arkui.incremental.runtime.memo.remember'}
+        case 'NodeAttach': return {name, source: 'arkui.incremental.runtime.memo.node'}
+    }
+    return undefined
 }
