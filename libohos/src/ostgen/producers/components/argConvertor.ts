@@ -109,7 +109,7 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
                     : new DataConvertor(ctx, type, resolved)
             }
             if (idl.isEnum(resolved))
-                return new EnumConvertor(ctx, type)
+                return new EnumConvertor(ctx, resolved.elements[0]?.type ?? idl.createPrimitiveType('i32'))
             if (idl.isCallback(resolved))
                 return new CallbackConvertor(ctx, type, resolved)
         }
@@ -167,26 +167,30 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
     }
 }
 
-class EnumConvertor extends ArgConvertor<idl.IDLReferenceType> {
+class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
     interopType(native: boolean): lw.LWType {
-        return Ts.prim.i32
+        return this.type.name === 'String' ? Ts.prim.str : Ts.prim.i32
     }
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
         return super.returnFromInterop(resultVarName, native)///toEnum()?
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
-        return [Builders.expr().call('writeInt32')
-            .receiver(serializerName)
-            .arg().call('valueOf').receiver(accessor).$().$().$().$stmt()
+        return [
+            Builders.expr().call('write' + this.elementTypeName())
+                .receiver(serializerName)
+                .arg().call('valueOf').receiver(accessor).$().$().$().$stmt()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         return [
             [Builders.decl(name)
                 .value().call('fromValue').receiver(typeNameExpr(this.type.name))
-                .arg().call('readInt32').receiver(serializerName).$().$().$().$().$()],
+                .arg().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()],
             E.v(name)
         ]
+    }
+    elementTypeName(): string {
+        return this.type.name === 'String' ? 'String' : 'Int32'
     }
 }
 

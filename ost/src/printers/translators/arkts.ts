@@ -29,7 +29,7 @@ export class ConvertArkTSTypes extends ConvertTSTypes {
       case std.names.types.bigint: return T.c('long')
       case std.names.types.pointer: return T.c('long')
       case std.names.types.nativePointer: return T.c('long')
-      case std.names.types.string: return T.c('String')
+      case std.names.types.string: return T.c('string')
       case std.names.types.vector: return T.c('FixedArray', ...type.args.map(e => this.goType(e)))
     }
     return super.goValueType(type)
