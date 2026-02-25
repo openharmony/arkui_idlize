@@ -12,7 +12,8 @@
         "commander": "^10.0.0"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next"
+        "@koalaui/smart-arkts": "panda-next",
+        "esbuild": "^0.27.3"
     },
     "scripts": {
         "clean:ts": "rm -rf generated/ts",
@@ -27,7 +28,7 @@
         "gen:cj": "TARGET=cj npm run gen",
         "gen:kt": "TARGET=kt npm run gen",
 
-        "compile:ts": "npx tsc 2>/dev/null || true",
+        "compile:ts": "esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/*",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
         "compile:kt": "bash scripts/build-kotlin.sh",

@@ -8,6 +8,9 @@
     "devDependencies": {
         "@koalaui/smart-arkts": "panda-next"
     },
+    "imports": {
+        "#compat": "./build/node/src/node/compat.js"
+    },
     "scripts": {
         "clean:ts": "rm -rf generated/ts",
         "clean:arkts": "rm -rf generated/arkts",
@@ -19,7 +22,7 @@
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cj npm run gen",
 
-        "compile:ts": "npx tsc",
+        "compile:ts": "npx esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/* --tsconfig=tsconfig.json",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
 

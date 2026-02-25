@@ -1,5 +1,5 @@
 
-import { dtsDummy, idlDummy } from "./node/compat.js"
+import { dtsDummy, idlDummy } from "#compat"
 // import { DTSDummyClass } from "#compat"
 // import { IDLDummyClass } from "#compat"
 

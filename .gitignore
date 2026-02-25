@@ -32,3 +32,4 @@ node_modules
 *.pyc
 *.smart-arkts.json
 *.ninja_log
+.claude
