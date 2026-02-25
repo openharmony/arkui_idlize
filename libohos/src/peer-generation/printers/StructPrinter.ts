@@ -96,7 +96,6 @@ export class StructPrinter {
         const forwardDeclarations = this.library.createLanguageWriter(Language.CPP)
         const concreteDeclarations = this.library.createLanguageWriter(Language.CPP)
         const seenNames = new Set<string>()
-        seenNames.clear()
         const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
         const declTargets = collectDeclarationTargets(this.library, true)
         for (const target of declTargets) {
@@ -113,13 +112,15 @@ export class StructPrinter {
             if (!nameAssigned) {
                 throw new Error(`No assigned name for an ${idl.IDLKind[target.kind!]}`)
             }
-            if (seenNames.has(nameAssigned)) {
-                continue
+            if (!idl.isOptionalType(target)) {
+                // optional types handled inside printOptionalIfNeeded
+                if (seenNames.has(nameAssigned)) {
+                    continue
+                }
+                seenNames.add(nameAssigned)
             }
-            seenNames.add(nameAssigned)
             if (target == idl.IDLObjectType) {
                 // Object type is already defined as interop resource
-                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.IDLObjectType, seenNames)
                 continue
             }
             if (idl.isInterface(target) && generatorConfiguration().forceResource.includes(target.name)) {
@@ -134,7 +135,8 @@ export class StructPrinter {
             let isAccessor = idl.isInterface(target) && isMaterialized(target, this.library)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
             if (idl.isOptionalType(target)) {
-                continue
+                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target.type, seenNames)
+                continue;
             } else if (idl.isEnum(target) || idl.isEnumMember(target)) {
                 const enumTarget = idl.isEnumMember(target) ? target.parent : target
                 const stringEnum = isStringEnum(enumTarget)
@@ -242,12 +244,9 @@ export class StructPrinter {
         const nameOptional = idl.isType(target)
             ? concreteDeclarations.getNodeName(idl.createOptionalType(target))
             : generatorConfiguration().OptionalPrefix + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), generatorTypePrefix())
-        if (forceOptional || nameOptional.includes("Opt_CustomObject")) {
-            if (seenNames.has(nameOptional)) {
-                return
-            }
+        if (seenNames.has(nameOptional)) {
+            return
         }
-
         seenNames.add(nameOptional)
 
         if (nameAssigned !== "Optional" && nameAssigned !== "RelativeIndexable") {

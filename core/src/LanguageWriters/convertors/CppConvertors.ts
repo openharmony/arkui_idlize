@@ -102,9 +102,6 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     convertOptional(type: idl.IDLOptionalType): ConvertResult {
         const converted = this.convertNode(type.type)
         const prefix = generatorConfiguration().OptionalPrefix
-        if (idl.isOptionalType(converted.resolvedType)) {
-            return converted
-        }
         return this.make(prefix + converted.text, type, true)
     }
     convertUnion(type: idl.IDLUnionType): ConvertResult {
