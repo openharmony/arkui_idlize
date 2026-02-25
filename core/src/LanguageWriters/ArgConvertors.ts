@@ -1177,8 +1177,10 @@ export class UnionConvertor extends BaseArgConvertor {
             const stmt = new BlockStatement([
                 writer.makeSetUnionSelector(bufferName, `${index}`),
                 it.convertorDeserialize(`${bufferName}BufU`, deserializerName, (expr) => {
-                    if (writer.language == Language.CJ || writer.language == Language.KOTLIN) {
+                    if (writer.language == Language.CJ) {
                         return writer.makeAssign(receiver, undefined, writer.makeFunctionCall(writer.getNodeName(this.type), [expr]), false)
+                    } if (writer.language == Language.KOTLIN) {
+                        return writer.makeAssign(receiver, undefined, writer.makeMethodCall(writer.getNodeName(this.type), `create${index}`, [expr]), false)
                     } else {
                         return writer.makeAssign(receiver, undefined, expr, false)
                     }

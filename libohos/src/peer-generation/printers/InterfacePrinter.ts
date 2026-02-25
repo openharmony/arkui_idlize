@@ -1412,44 +1412,58 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     makeUnion(writer: LanguageWriter, type: idl.IDLUnionType): void {
         const name = this.convertType(type)
         const members = type.types.map(it => it)
-        writer.writeClass(name, () => {
-            const intType = idl.createPrimitiveType('i32')
-            const selector = 'selector'
-            writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
-            writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
-                writer.writeStatement(
-                    writer.makeReturn(
-                        writer.makeString(selector)
-                    )
-                )
-            })
+        const selector = 'selector'
+        const intType = idl.createPrimitiveType('i32')
 
-            const param = 'param'
+        writer.writeLines(`class ${name} private constructor(private val ${selector}: ${writer.getNodeName(intType)}) {`)
+        writer.pushIndent()
+
+        writer.writeStaticEntitiesBlock(() => {
             for (const [index, memberType] of members.entries()) {
                 const memberName = `value${index}`
-                writer.writeFieldDeclaration(memberName, idl.maybeOptional(memberType, true), [FieldModifier.PRIVATE], true, writer.makeNull())
+                const param = "param"
 
-                writer.writeConstructorImplementation(
-                    'constructor',
-                    new NamedMethodSignature(idl.createPrimitiveType('void'), [memberType], [param]),
-                    () => {
-                        writer.writeStatement(
-                            writer.makeAssign(memberName, undefined, writer.makeString(param), false)
-                        )
-                        writer.writeStatement(
-                            writer.makeAssign(selector, undefined, writer.makeString(index.toString()), false)
-                        )
-                    }
+                writer.writeLines(`fun create${index}(${param}: ${writer.getNodeName(memberType)}): ${name} {`)
+                writer.pushIndent()
+
+                const obj = "unionObject"
+                writer.writeStatement(
+                    writer.makeAssign(obj, undefined, writer.makeNewObject(name, [writer.makeString(`${index}`)]), true)
+                )
+                writer.writeStatement(
+                    writer.makeAssign(`${obj}.${memberName}`, undefined, writer.makeString(param), false)
+                )
+                writer.writeStatement(
+                    writer.makeReturn(writer.makeString(obj))
                 )
 
-                writer.writeMethodImplementation(
-                    new Method(`getValue${index}`, new MethodSignature(memberType, []), [MethodModifier.PUBLIC]),
-                    () => {
-                        writer.print(`return requireNotNull(${memberName})`)
-                    }
-                )
+                writer.popIndent()
+                writer.writeLines(`}`)
             }
         })
+
+        writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
+            writer.writeStatement(
+                writer.makeReturn(
+                    writer.makeString(selector)
+                )
+            )
+        })
+
+        for (const [index, memberType] of members.entries()) {
+            const memberName = `value${index}`
+            writer.writeFieldDeclaration(memberName, idl.maybeOptional(memberType, true), [FieldModifier.PRIVATE], true, writer.makeNull())
+
+            writer.writeMethodImplementation(
+                new Method(`getValue${index}`, new MethodSignature(memberType, []), [MethodModifier.PUBLIC]),
+                () => {
+                    writer.print(`return requireNotNull(${memberName})`)
+                }
+            )
+        }
+
+        writer.popIndent()
+        writer.writeLines("}")
     }
 
     private convertInheritance(type: idl.IDLReferenceType): string {

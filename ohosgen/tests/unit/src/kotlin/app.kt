@@ -141,14 +141,14 @@ fun checkEnum() {
 }
 
 fun checkLength() {
-    var res = testLength(1.0, Length("length"))
+    var res = testLength(1.0, Length.create0("length"))
     assertEQ(true, res)
-    res = testLength(1.0, Length(123.0))
+    res = testLength(1.0, Length.create1(123.0))
     assertEQ(true, res)
 
-    res = testLength(2.0, Length(""))
+    res = testLength(2.0, Length.create0(""))
     assertEQ(true, res)
-    res = testLength(2.0, Length(456.789))
+    res = testLength(2.0, Length.create1(456.789))
     assertEQ(true, res)
 }
 
@@ -218,92 +218,92 @@ typealias Union04 = Union_Number_String_Synthetic_UnionSampleTupleNumberString_A
 typealias Union05 = Union_Number_String_Test_union_SingleGenericType_Number_Test_union_SingleGenericType_String_Test_union_DoubleGenericType_Boolean_Number_Test_union_DoubleGenericType_Number_String
 
 fun checkUnions() {
-    // Enum 
+    // Enum
     checkEQ(0.0, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(0.0) }).prop.getValue0())
+        override var prop = Union01.create0(0.0) }).prop.getValue0())
     checkEQ(1.0, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(1.0) }).prop.getValue0())
+        override var prop = Union01.create0(1.0) }).prop.getValue0())
     checkEQ(10.0, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(10.0) }).prop.getValue0())
+        override var prop = Union01.create0(10.0) }).prop.getValue0())
     checkEQ(11.0, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(11.0) }).prop.getValue0())
+        override var prop = Union01.create0(11.0) }).prop.getValue0())
     checkEQ(12.0, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(12.0) }).prop.getValue0())
+        override var prop = Union01.create0(12.0) }).prop.getValue0())
     checkEQ(UnionSampleEnum.A, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(UnionSampleEnum.A)}).prop.getValue1())
+        override var prop = Union01.create1(UnionSampleEnum.A)}).prop.getValue1())
     checkEQ(UnionSampleEnum.B, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(UnionSampleEnum.B)}).prop.getValue1())
+        override var prop = Union01.create1(UnionSampleEnum.B)}).prop.getValue1())
     checkEQ(UnionSampleEnum.C, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(UnionSampleEnum.C)}).prop.getValue1())
+        override var prop = Union01.create1(UnionSampleEnum.C)}).prop.getValue1())
     checkEQ(UnionSampleEnum.D, checkUnionEnumSample(object: UnionSampleEnumInterface {
-        override var prop = Union01(UnionSampleEnum.D)}).prop.getValue1())
+        override var prop = Union01.create1(UnionSampleEnum.D)}).prop.getValue1())
 
     // Array union
     checkEQ(false, checkUnionArraySample(object: UnionSampleArrayInterface {
-        override var prop = Union02(false) }).prop.getValue0())
+        override var prop = Union02.create0(false) }).prop.getValue0())
     checkEQ(true, checkUnionArraySample(object: UnionSampleArrayInterface {
-        override var prop = Union02(true) }).prop.getValue0())
+        override var prop = Union02.create0(true) }).prop.getValue0())
     checkEQ("abc", checkUnionArraySample(object: UnionSampleArrayInterface {
-        override var prop = Union02("abc") }).prop.getValue2())
+        override var prop = Union02.create2("abc") }).prop.getValue2())
 
     assertDoubleEQ(1.23, checkUnionArraySample(object: UnionSampleArrayInterface {
-        override var prop = Union02(1.23) }).prop.getValue1())
+        override var prop = Union02.create1(1.23) }).prop.getValue1())
 
     checkEQ(UnionSampleEnum.A, checkUnionArraySample(object: UnionSampleArrayInterface {
-        override var prop = Union02(UnionSampleEnum.A) }).prop.getValue3())
+        override var prop = Union02.create3(UnionSampleEnum.A) }).prop.getValue3())
     checkEQ(UnionSampleEnum.B, checkUnionArraySample(object: UnionSampleArrayInterface {
-        override var prop = Union02(UnionSampleEnum.B) }).prop.getValue3())
+        override var prop = Union02.create3(UnionSampleEnum.B) }).prop.getValue3())
 
     checkEQ(arrayOf(true, false), checkUnionArraySample(object: UnionSampleArrayInterface {
-        override var prop = Union02(arrayOf(true, false)) }).prop.getValue4())
+        override var prop = Union02.create4(arrayOf(true, false)) }).prop.getValue4())
     checkEQ(arrayOf(UnionSampleEnum.A, UnionSampleEnum.B), checkUnionArraySample(object: UnionSampleArrayInterface {
-        override var prop = Union02(arrayOf(UnionSampleEnum.A, UnionSampleEnum.B)) }).prop.getValue5())
+        override var prop = Union02.create5(arrayOf(UnionSampleEnum.A, UnionSampleEnum.B)) }).prop.getValue5())
 
     // Number Array union
     checkEQ(5.0, checkUnionNumberArraySample(object: UnionSampleNumberArrayInterface {
-        override var prop = Union03(5.0) }).prop.getValue0())
+        override var prop = Union03.create0(5.0) }).prop.getValue0())
     checkEQ(arrayOf(1.0, 2.0, 3.0), checkUnionNumberArraySample(object: UnionSampleNumberArrayInterface {
-        override var prop = Union03(arrayOf(1.0, 2.0, 3.0)) }).prop.getValue1())
+        override var prop = Union03.create1(arrayOf(1.0, 2.0, 3.0)) }).prop.getValue1())
 
     // Tuple Array union
     checkEQ(5.0, checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
-        override var prop = Union04(5.0) }).prop.getValue0())
+        override var prop = Union04.create0(5.0) }).prop.getValue0())
     checkEQ("five", checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
-        override var prop = Union04("five") }).prop.getValue1())
+        override var prop = Union04.create1("five") }).prop.getValue1())
     val tuple = UnionSampleTupleNumberString(7.0, "seven")
     checkEQ(tuple, checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
-        override var prop = Union04(tuple) }).prop.getValue2())
+        override var prop = Union04.create2(tuple) }).prop.getValue2())
     val tuples = arrayOf(UnionSampleTupleNumberString(8.0, "eight"), UnionSampleTupleNumberString(9.0, "nine"))
     checkEQ(tuples, checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
-        override var prop = Union04(tuples) }).prop.getValue3())
+        override var prop = Union04.create3(tuples) }).prop.getValue3())
 
     // GenericType union
     checkEQ(7.0, checkUnionGenericTypeSample(object: UnionSampleGenericTypeInterface {
-        override var prop = Union05(7.0) }).prop.getValue0())
+        override var prop = Union05.create0(7.0) }).prop.getValue0())
     checkEQ("seven", checkUnionGenericTypeSample(object: UnionSampleGenericTypeInterface {
-        override var prop = Union05("seven") }).prop.getValue1())
+        override var prop = Union05.create1("seven") }).prop.getValue1())
 
     val valueNumber: SingleGenericType<Double> = object: SingleGenericType<Double> { override var value = 9.0 }
     val resultNumber = checkUnionGenericTypeSample(object: UnionSampleGenericTypeInterface {
-        override var prop = Union05(valueNumber) }).prop.getValue2()
+        override var prop = Union05.create2(valueNumber) }).prop.getValue2()
     checkEQ(9.0, resultNumber.value)
 
     val valueString: SingleGenericType<String> = object: SingleGenericType<String> { override var value = "nine" }
     val resultString = checkUnionGenericTypeSample(object: UnionSampleGenericTypeInterface {
-        override var prop = Union05(valueString) }).prop.getValue3()
+        override var prop = Union05.create3(valueString) }).prop.getValue3()
     checkEQ("nine", resultString.value)
 
     val valueBooleanNumber: DoubleGenericType<Boolean, Double> = object: DoubleGenericType<Boolean, Double> {
         override var valueT = true; override var valueS = 11.0 }
     val resultBooleanNumber = checkUnionGenericTypeSample(object: UnionSampleGenericTypeInterface {
-        override var prop = Union05(valueBooleanNumber) }).prop.getValue4()
+        override var prop = Union05.create4(valueBooleanNumber) }).prop.getValue4()
     checkEQ(true, resultBooleanNumber.valueT)
     checkEQ(11.0, resultBooleanNumber.valueS)
 
     val valueNumberString: DoubleGenericType<Double, String> = object: DoubleGenericType<Double, String> {
         override var valueT = 33.0; override var valueS = "thirty three" }
     val resultNumberString = checkUnionGenericTypeSample(object: UnionSampleGenericTypeInterface {
-        override var prop = Union05(valueNumberString) }).prop.getValue5()
+        override var prop = Union05.create5(valueNumberString) }).prop.getValue5()
     checkEQ(33.0, resultNumberString.valueT)
     checkEQ("thirty three", resultNumberString.valueS)
 }
