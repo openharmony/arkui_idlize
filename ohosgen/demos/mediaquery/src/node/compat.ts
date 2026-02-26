@@ -32,7 +32,7 @@ export function runEventLoop() {
 }
 
 export function getLong(): bigint {
-    return 2n
+    return BigInt(2)
 }
 
 export function toPaddedString(v: number, leftPad: number = 0): string {

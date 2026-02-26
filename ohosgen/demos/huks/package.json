@@ -24,7 +24,7 @@
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
 
-        "compile:ts": "npx tsc",
+        "compile:ts": "esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/*",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
 
@@ -33,7 +33,7 @@
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
 
-        "exec:ts": "node build/node/src/node/main.js",
+        "exec:ts": "LD_LIBRARY_PATH=build/node:$LD_LIBRARY_PATH node build/node/index.js",
         "exec:arkts": "bash scripts/run-panda.sh",
         "exec:cj": "bash scripts/run-cj.sh",
 

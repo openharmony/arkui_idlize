@@ -11,7 +11,8 @@
         "@koalaui/interop": "panda-next"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next"
+        "@koalaui/smart-arkts": "panda-next",
+        "esbuild": "^0.27.3"
     },
     "scripts": {
         "clean:ts": "rm -rf generated/ts",
@@ -24,7 +25,7 @@
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
 
-        "compile:ts": "npx tsc",
+        "compile:ts": "esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/*",
         "compile:arkts": "smart-arkts compile --config arktsconfig.json",
         "compile:cj": "",
 
