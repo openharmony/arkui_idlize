@@ -39,6 +39,8 @@ import handwritten.TransformSrcCallbackC
 import test_transform.TransformDstCallbackC
 import test_transform.TransformSrcCallbackI
 import test_transform.TransformDstCallbackI
+import test_transform.WithOptional
+import test_transform.TransformMeToWithOptional
 
 class ExternalClassImpl: ExternalClass {
     override var ptr: Long
@@ -169,5 +171,13 @@ class extractors { companion object {
             override var flag = callback(true)
         }
         return result
+    }
+
+    fun transform_OH_UNIT_TransformMeToWithOptional_to_Opt_String(from: TransformMeToWithOptional): WithOptional {
+        return ""
+    }
+
+    fun transform_Opt_String_to_OH_UNIT_TransformMeToWithOptional(from: WithOptional): TransformMeToWithOptional {
+        return TransformMeToWithOptional.create0("")
     }
 } }
