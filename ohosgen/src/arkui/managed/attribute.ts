@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { T, Builders, managedName, Ts, createProducer, expectType, OhosSeed, E, FunctionDeclaration, OhosProducerContext, Hs, LWType } from "@idlizer/libohos"
+import { T, Builders, managedName, Ts, createProducer, expectType, OhosSeed, E, FunctionDeclaration, OhosProducerContext, Hs, LWType, Md, expectExpr } from "@idlizer/libohos"
 import { ArkUIRole } from ".."
 import { isDefined } from "@idlizer/core"
 
@@ -61,24 +61,37 @@ export const attributeProducer = createProducer(
 export const peerProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLInterface>>(
   { is: idl.isInterface, predicate: isComponentAttribute, role: 'peer' },
   (node, ctx) => {
-    const name = managedName(idl.getFQName(node).replace(/(Attribute)?$/, 'Peer'))
+    const name = managedName(idl.getFQName(node).replace(/(Attribute)?$/, ''))
+    const componentName = name.split('.').pop()!
+    const peerName = name + 'Peer'
+    const ctor = idl.createConstructor([
+        idl.createParameter('peerPtr', idl.createPrimitiveType('i32')),
+        idl.createParameter('id', idl.createPrimitiveType('i32')),
+      ], undefined)
+    ctor.parent = node
+    const nativeModuleCall = expectExpr(ctx, ctor, 'native-module')
     return {
-      continuation: T.c(name),
+      continuation: T.c(peerName),
       declarations: [
-        Builders.class(name).extends(superClassForRole(node, 'peer', ctx))
-          /// ctor
-//       .method('create').static()
-//         .returns(T.c(baseName + 'Peer'))
-//         .param('component').typeStr('ComponentBase').$()
-//         .param('flags').type(Ts.prim.i32).$()
-//         .block()
-//           .decl('peerId').value().call('nextId').receiver('PeerNode').$().$().$()
-//           .decl('peerPtr').value().call(`_${componentName}_construct`).receiver(ctx.getEffect().nativeModuleName)
-//             .arg('peerId').arg('flags').$().$().$()
-//           .decl('peer').value().ctor(componentName + 'Peer')
-//             .arg('peerPtr').arg('peerId').arg(componentName).arg('flags').$().$().$()
-//           .call('setPeer').receiver('component').arg('peer').$()
-//           .return().value('peer').$().$().$()
+        Builders.class(peerName)
+          .extends(superClassForRole(node, 'peer', ctx))
+          .ctor()
+            .param('peerPtr').type(Ts.prim.pointer).$()
+            .param('id').type(Ts.prim.i32).$()
+            .param('name').type(Ts.prim.str).$()
+            .param('flags').type(Ts.prim.i32).$()
+            .block()
+              .call('super').arg('peerPtr').arg('id').arg('name').arg('flags').$().$().$()
+          .method('create').static()
+            .returns(T.c(peerName))
+            .param('component').typeStr('ComponentBase').$()
+            .param('flags').type(Ts.prim.i32).$()
+            .block()
+              .decl('peerId').value().call('nextId').receiver('PeerNode').$().$().$()
+              .decl('peerPtr').value().call(nativeModuleCall).arg('peerId').arg('flags').$().$().$()
+              .decl('peer').value().ctor(peerName).arg('peerPtr').arg('peerId').arg(E.c(`'${componentName}'`)).arg('flags').$().$().$()
+              .call('setPeer').receiver('component').arg('peer').$()
+              .return().value('peer').$().$().$()
           .$()
       ]
     }
