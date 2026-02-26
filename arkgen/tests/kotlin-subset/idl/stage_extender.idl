@@ -1,4 +1,4 @@
-package arkui.component.stage_extender;
+package arkui.component.idlize;
 
 enum PageTransitionType {
     number ENTER = 0;

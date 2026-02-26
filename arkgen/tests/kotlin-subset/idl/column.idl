@@ -1,4 +1,4 @@
-package arkui.component;
+package arkui.component.column;
 
 [Entity=Class, Component="Column"]
 interface ColumnAttribute: [Extends, TypeArguments="ColumnAttribute"] CommonMethod {

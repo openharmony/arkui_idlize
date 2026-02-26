@@ -317,6 +317,10 @@ typedef struct Opt_DuplicateInteraceParent Opt_DuplicateInteraceParent;
 typedef struct Ark_DuplicateInteraceSubChild Ark_DuplicateInteraceSubChild;
 typedef struct Opt_DuplicateInteraceSubChild Opt_DuplicateInteraceSubChild;
 typedef struct Opt_Float64 Opt_Float64;
+typedef struct Ark_Iface1 Ark_Iface1;
+typedef struct Opt_Iface1 Opt_Iface1;
+typedef struct Ark_Iface2 Ark_Iface2;
+typedef struct Opt_Iface2 Opt_Iface2;
 typedef struct Opt_NativePointer Opt_NativePointer;
 typedef struct Opt_Number Opt_Number;
 typedef struct Ark_SampleI Ark_SampleI;
@@ -324,8 +328,22 @@ typedef struct Opt_SampleI Opt_SampleI;
 typedef struct Ark_SampleTransformDstI Ark_SampleTransformDstI;
 typedef struct Opt_SampleTransformDstI Opt_SampleTransformDstI;
 typedef struct Opt_String Opt_String;
+typedef struct Ark_Union_Iface1_Iface1 Ark_Union_Iface1_Iface1;
+typedef struct Opt_Union_Iface1_Iface1 Opt_Union_Iface1_Iface1;
+typedef struct Ark_Union_Iface1_Iface1_Iface2 Ark_Union_Iface1_Iface1_Iface2;
+typedef struct Opt_Union_Iface1_Iface1_Iface2 Opt_Union_Iface1_Iface1_Iface2;
+typedef struct Ark_Union_Iface1_Iface2 Ark_Union_Iface1_Iface2;
+typedef struct Opt_Union_Iface1_Iface2 Opt_Union_Iface1_Iface2;
 typedef struct Ark_Union_SampleI_SampleTransformDstI Ark_Union_SampleI_SampleTransformDstI;
 typedef struct Opt_Union_SampleI_SampleTransformDstI Opt_Union_SampleI_SampleTransformDstI;
+typedef struct Ark_Union_String_I32 Ark_Union_String_I32;
+typedef struct Opt_Union_String_I32 Opt_Union_String_I32;
+typedef struct Ark_Union_String_I32_Iface1 Ark_Union_String_I32_Iface1;
+typedef struct Opt_Union_String_I32_Iface1 Opt_Union_String_I32_Iface1;
+typedef struct Ark_Union_String_String Ark_Union_String_String;
+typedef struct Opt_Union_String_String Opt_Union_String_String;
+typedef struct Ark_Union_String_String_I32 Ark_Union_String_String_I32;
+typedef struct Opt_Union_String_String_I32 Opt_Union_String_String_I32;
 typedef struct Callback_Boolean_Void Callback_Boolean_Void;
 typedef struct Opt_Callback_Boolean_Void Opt_Callback_Boolean_Void;
 typedef struct Callback_DrawContext_Void Callback_DrawContext_Void;
@@ -336,14 +354,38 @@ typedef struct PageTransitionCallback PageTransitionCallback;
 typedef struct Opt_PageTransitionCallback Opt_PageTransitionCallback;
 typedef struct TransformDstCallbackI TransformDstCallbackI;
 typedef struct Opt_TransformDstCallbackI Opt_TransformDstCallbackI;
+typedef struct Ark_AggregatedPrimitives1Different Ark_AggregatedPrimitives1Different;
+typedef struct Opt_AggregatedPrimitives1Different Opt_AggregatedPrimitives1Different;
+typedef struct Ark_AggregatedPrimitives2Different Ark_AggregatedPrimitives2Different;
+typedef struct Opt_AggregatedPrimitives2Different Opt_AggregatedPrimitives2Different;
+typedef struct Ark_AggregatedReferences1Different Ark_AggregatedReferences1Different;
+typedef struct Opt_AggregatedReferences1Different Opt_AggregatedReferences1Different;
+typedef struct Ark_AggregatedReferences2Different Ark_AggregatedReferences2Different;
+typedef struct Opt_AggregatedReferences2Different Opt_AggregatedReferences2Different;
 typedef struct Ark_DatebookOptions Ark_DatebookOptions;
 typedef struct Opt_DatebookOptions Opt_DatebookOptions;
+typedef struct Ark_NoConflicts Ark_NoConflicts;
+typedef struct Opt_NoConflicts Opt_NoConflicts;
 typedef struct Ark_PageTransitionOptions Ark_PageTransitionOptions;
 typedef struct Opt_PageTransitionOptions Opt_PageTransitionOptions;
+typedef struct Ark_Union_NoConflicts_I32 Ark_Union_NoConflicts_I32;
+typedef struct Opt_Union_NoConflicts_I32 Opt_Union_NoConflicts_I32;
+typedef struct Ark_Union_NoConflicts_Iface1 Ark_Union_NoConflicts_Iface1;
+typedef struct Opt_Union_NoConflicts_Iface1 Opt_Union_NoConflicts_Iface1;
 typedef struct Throws_void Throws_void;
 typedef struct Opt_Throws_void Opt_Throws_void;
+typedef struct Ark_AggregateTypedefPrimitive Ark_AggregateTypedefPrimitive;
+typedef struct Opt_AggregateTypedefPrimitive Opt_AggregateTypedefPrimitive;
+typedef struct Ark_AggregateTypedefReference Ark_AggregateTypedefReference;
+typedef struct Opt_AggregateTypedefReference Opt_AggregateTypedefReference;
+typedef struct Ark_AggregateTypedefTypedef Ark_AggregateTypedefTypedef;
+typedef struct Opt_AggregateTypedefTypedef Opt_AggregateTypedefTypedef;
+typedef struct Ark_IfaceWithFlattenedAttributes Ark_IfaceWithFlattenedAttributes;
+typedef struct Opt_IfaceWithFlattenedAttributes Opt_IfaceWithFlattenedAttributes;
 typedef struct Ark_TransitionParam Ark_TransitionParam;
 typedef struct Opt_TransitionParam Opt_TransitionParam;
+typedef struct Ark_AllCases Ark_AllCases;
+typedef struct Opt_AllCases Opt_AllCases;
 typedef struct Opt_Object Opt_Object;
 typedef enum Ark_AttributeUpdaterFlag: InteropUInt8 {
     ARK_ATTRIBUTE_UPDATER_FLAG_INITIAL = 0,
@@ -505,6 +547,22 @@ typedef struct Opt_Float64 {
     Ark_Tag tag;
     Ark_Float64 value;
 } Opt_Float64;
+typedef struct Ark_Iface1 {
+    /* kind: Interface */
+    void *handle;
+} Ark_Iface1;
+typedef struct Opt_Iface1 {
+    Ark_Tag tag;
+    Ark_Iface1 value;
+} Opt_Iface1;
+typedef struct Ark_Iface2 {
+    /* kind: Interface */
+    void *handle;
+} Ark_Iface2;
+typedef struct Opt_Iface2 {
+    Ark_Tag tag;
+    Ark_Iface2 value;
+} Opt_Iface2;
 typedef struct Opt_NativePointer {
     Ark_Tag tag;
     Ark_NativePointer value;
@@ -533,6 +591,43 @@ typedef struct Opt_String {
     Ark_Tag tag;
     Ark_String value;
 } Opt_String;
+typedef struct Ark_Union_Iface1_Iface1 {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_Iface1 value0;
+        Ark_Iface1 value1;
+    };
+} Ark_Union_Iface1_Iface1;
+typedef struct Opt_Union_Iface1_Iface1 {
+    Ark_Tag tag;
+    Ark_Union_Iface1_Iface1 value;
+} Opt_Union_Iface1_Iface1;
+typedef struct Ark_Union_Iface1_Iface1_Iface2 {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_Iface1 value0;
+        Ark_Iface1 value1;
+        Ark_Iface2 value2;
+    };
+} Ark_Union_Iface1_Iface1_Iface2;
+typedef struct Opt_Union_Iface1_Iface1_Iface2 {
+    Ark_Tag tag;
+    Ark_Union_Iface1_Iface1_Iface2 value;
+} Opt_Union_Iface1_Iface1_Iface2;
+typedef struct Ark_Union_Iface1_Iface2 {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_Iface1 value0;
+        Ark_Iface2 value1;
+    };
+} Ark_Union_Iface1_Iface2;
+typedef struct Opt_Union_Iface1_Iface2 {
+    Ark_Tag tag;
+    Ark_Union_Iface1_Iface2 value;
+} Opt_Union_Iface1_Iface2;
 typedef struct Ark_Union_SampleI_SampleTransformDstI {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -545,6 +640,56 @@ typedef struct Opt_Union_SampleI_SampleTransformDstI {
     Ark_Tag tag;
     Ark_Union_SampleI_SampleTransformDstI value;
 } Opt_Union_SampleI_SampleTransformDstI;
+typedef struct Ark_Union_String_I32 {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_String value0;
+        Ark_Int32 value1;
+    };
+} Ark_Union_String_I32;
+typedef struct Opt_Union_String_I32 {
+    Ark_Tag tag;
+    Ark_Union_String_I32 value;
+} Opt_Union_String_I32;
+typedef struct Ark_Union_String_I32_Iface1 {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_String value0;
+        Ark_Int32 value1;
+        Ark_Iface1 value2;
+    };
+} Ark_Union_String_I32_Iface1;
+typedef struct Opt_Union_String_I32_Iface1 {
+    Ark_Tag tag;
+    Ark_Union_String_I32_Iface1 value;
+} Opt_Union_String_I32_Iface1;
+typedef struct Ark_Union_String_String {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_String value0;
+        Ark_String value1;
+    };
+} Ark_Union_String_String;
+typedef struct Opt_Union_String_String {
+    Ark_Tag tag;
+    Ark_Union_String_String value;
+} Opt_Union_String_String;
+typedef struct Ark_Union_String_String_I32 {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_String value0;
+        Ark_String value1;
+        Ark_Int32 value2;
+    };
+} Ark_Union_String_String_I32;
+typedef struct Opt_Union_String_String_I32 {
+    Ark_Tag tag;
+    Ark_Union_String_String_I32 value;
+} Opt_Union_String_String_I32;
 typedef struct Callback_Boolean_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
@@ -595,6 +740,56 @@ typedef struct Opt_TransformDstCallbackI {
     Ark_Tag tag;
     TransformDstCallbackI value;
 } Opt_TransformDstCallbackI;
+typedef struct Ark_AggregatedPrimitives1Different {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_String value0;
+        Ark_String value1;
+    };
+} Ark_AggregatedPrimitives1Different;
+typedef struct Opt_AggregatedPrimitives1Different {
+    Ark_Tag tag;
+    Ark_AggregatedPrimitives1Different value;
+} Opt_AggregatedPrimitives1Different;
+typedef struct Ark_AggregatedPrimitives2Different {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_String value0;
+        Ark_String value1;
+        Ark_Int32 value2;
+    };
+} Ark_AggregatedPrimitives2Different;
+typedef struct Opt_AggregatedPrimitives2Different {
+    Ark_Tag tag;
+    Ark_AggregatedPrimitives2Different value;
+} Opt_AggregatedPrimitives2Different;
+typedef struct Ark_AggregatedReferences1Different {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_Iface1 value0;
+        Ark_Iface1 value1;
+    };
+} Ark_AggregatedReferences1Different;
+typedef struct Opt_AggregatedReferences1Different {
+    Ark_Tag tag;
+    Ark_AggregatedReferences1Different value;
+} Opt_AggregatedReferences1Different;
+typedef struct Ark_AggregatedReferences2Different {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_Iface1 value0;
+        Ark_Iface1 value1;
+        Ark_Iface2 value2;
+    };
+} Ark_AggregatedReferences2Different;
+typedef struct Opt_AggregatedReferences2Different {
+    Ark_Tag tag;
+    Ark_AggregatedReferences2Different value;
+} Opt_AggregatedReferences2Different;
 typedef struct Ark_DatebookOptions {
     /* kind: Interface */
     Opt_DatebookType type;
@@ -604,6 +799,19 @@ typedef struct Opt_DatebookOptions {
     Ark_Tag tag;
     Ark_DatebookOptions value;
 } Opt_DatebookOptions;
+typedef struct Ark_NoConflicts {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_String value0;
+        Ark_Int32 value1;
+        Ark_Iface1 value2;
+    };
+} Ark_NoConflicts;
+typedef struct Opt_NoConflicts {
+    Ark_Tag tag;
+    Ark_NoConflicts value;
+} Opt_NoConflicts;
 typedef struct Ark_PageTransitionOptions {
     /* kind: Interface */
     Opt_RouteType type;
@@ -614,6 +822,30 @@ typedef struct Opt_PageTransitionOptions {
     Ark_Tag tag;
     Ark_PageTransitionOptions value;
 } Opt_PageTransitionOptions;
+typedef struct Ark_Union_NoConflicts_I32 {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_NoConflicts value0;
+        Ark_Int32 value1;
+    };
+} Ark_Union_NoConflicts_I32;
+typedef struct Opt_Union_NoConflicts_I32 {
+    Ark_Tag tag;
+    Ark_Union_NoConflicts_I32 value;
+} Opt_Union_NoConflicts_I32;
+typedef struct Ark_Union_NoConflicts_Iface1 {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_NoConflicts value0;
+        Ark_Iface1 value1;
+    };
+} Ark_Union_NoConflicts_Iface1;
+typedef struct Opt_Union_NoConflicts_Iface1 {
+    Ark_Tag tag;
+    Ark_Union_NoConflicts_Iface1 value;
+} Opt_Union_NoConflicts_Iface1;
 typedef struct Throws_void {
     /* kind: Interface */
     Ark_Boolean hasException;
@@ -625,6 +857,57 @@ typedef struct Opt_Throws_void {
     Ark_Tag tag;
     Throws_void value;
 } Opt_Throws_void;
+typedef struct Ark_AggregateTypedefPrimitive {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_NoConflicts value0;
+        Ark_Int32 value1;
+    };
+} Ark_AggregateTypedefPrimitive;
+typedef struct Opt_AggregateTypedefPrimitive {
+    Ark_Tag tag;
+    Ark_AggregateTypedefPrimitive value;
+} Opt_AggregateTypedefPrimitive;
+typedef struct Ark_AggregateTypedefReference {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_NoConflicts value0;
+        Ark_Iface1 value1;
+    };
+} Ark_AggregateTypedefReference;
+typedef struct Opt_AggregateTypedefReference {
+    Ark_Tag tag;
+    Ark_AggregateTypedefReference value;
+} Opt_AggregateTypedefReference;
+typedef struct Ark_AggregateTypedefTypedef {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_NoConflicts value0;
+        Ark_Iface1 value1;
+    };
+} Ark_AggregateTypedefTypedef;
+typedef struct Opt_AggregateTypedefTypedef {
+    Ark_Tag tag;
+    Ark_AggregateTypedefTypedef value;
+} Opt_AggregateTypedefTypedef;
+typedef struct Ark_IfaceWithFlattenedAttributes {
+    /* kind: Interface */
+    Ark_Union_String_I32 aggregatedPrimitives2Different;
+    Ark_String aggregatedPrimitives1Different;
+    Ark_Union_Iface1_Iface2 aggregatedReferences2Different;
+    Ark_Iface1 aggregatedReferences1Different;
+    Ark_Union_String_I32_Iface1 noConflicts;
+    Ark_Union_String_I32_Iface1 aggregateTypedefPrimitive;
+    Ark_Union_String_I32_Iface1 aggregateTypedefReference;
+    Ark_Union_String_I32_Iface1 aggregateTypedefTypedef;
+} Ark_IfaceWithFlattenedAttributes;
+typedef struct Opt_IfaceWithFlattenedAttributes {
+    Ark_Tag tag;
+    Ark_IfaceWithFlattenedAttributes value;
+} Opt_IfaceWithFlattenedAttributes;
 typedef struct Ark_TransitionParam {
     /* kind: Interface */
     Ark_PageTransitionOptions pageTransitionOptions;
@@ -636,6 +919,22 @@ typedef struct Opt_TransitionParam {
     Ark_Tag tag;
     Ark_TransitionParam value;
 } Opt_TransitionParam;
+typedef struct Ark_AllCases {
+    /* kind: Interface */
+    Ark_AggregatedPrimitives1Different aggregatedPrimitives1Different;
+    Ark_AggregatedPrimitives2Different aggregatedPrimitives2Different;
+    Ark_AggregatedReferences2Different aggregatedReferences2Different;
+    Ark_AggregatedReferences1Different aggregatedReferences1Different;
+    Ark_NoConflicts noConflicts;
+    Ark_AggregateTypedefPrimitive aggregateTypedefPrimitive;
+    Ark_AggregateTypedefReference aggregateTypedefReference;
+    Ark_AggregateTypedefTypedef aggregateTypedefTypedef;
+    Ark_IfaceWithFlattenedAttributes ifaceWithFlattenedAttributes;
+} Ark_AllCases;
+typedef struct Opt_AllCases {
+    Ark_Tag tag;
+    Ark_AllCases value;
+} Opt_AllCases;
 typedef struct Opt_Object {
     Ark_Tag tag;
     Ark_Object value;
@@ -836,6 +1135,10 @@ typedef struct GENERATED_ArkUIStageExtenderAccessor {
                               const Ark_TransitionParam* param);
 } GENERATED_ArkUIStageExtenderAccessor;
 
+typedef struct GENERATED_ArkUIGlobalScopeAccessor {
+    void (*entry)(const Ark_AllCases* value);
+} GENERATED_ArkUIGlobalScopeAccessor;
+
 
 /**
  * An API to control an implementation. When making changes modifying binary
@@ -865,6 +1168,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIDrawContextAccessor* (*getDrawContextAccessor)();
     const GENERATED_ArkUIDrawModifierAccessor* (*getDrawModifierAccessor)();
     const GENERATED_ArkUIStageExtenderAccessor* (*getStageExtenderAccessor)();
+    const GENERATED_ArkUIGlobalScopeAccessor* (*getGlobalScopeAccessor)();
 } GENERATED_ArkUIAccessors;
 
 typedef struct GENERATED_ArkUIGraphicsAPI {

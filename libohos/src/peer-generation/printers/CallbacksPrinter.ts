@@ -52,6 +52,9 @@ export function printCallbacksKindsImports(language: Language, writer: LanguageW
     if (language === Language.CJ) {
         writer.print('package idlize\n')
     }
+    if (language === Language.KOTLIN) {
+        writer.print('package koalaui.arkoala\n')
+    }
 }
 
 export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter): void {
@@ -419,7 +422,7 @@ class DeserializeCallbacksVisitor {
                         ? [`thisArray`, `thisLength`]
                         : [`thisDeserializer`]
                     const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
-                    writer.print(`${generateCallbackKindValue(callback)}/*${callbackKindValue}*/ -> deserializeAndCall${callback.name}(${args.join(', ')});`)
+                    writer.print(`${callbackKindValue} -> deserializeAndCall${callback.name}(${args.join(', ')});`)
                 }
                 writer.print(`else -> error("Unknown callback kind")`)
                 writer.popIndent()

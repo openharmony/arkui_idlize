@@ -16,6 +16,12 @@ package koalaui.arkoala
 
 import koalaui.interop.*
 
+import arkui.component.common.ClickEvent
+import arkui.component.common.ClickEventInternal
+import arkui.component.idlize.ArkRoutedPagePeer
+import arkui.component.idlize.EventEmulator
+import arkui.component.idlize.StageExtender
+
 typealias UserViewFactory = (appUrl: String) -> UserView
 
 enum class EventType(val value: Int) {

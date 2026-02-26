@@ -18,6 +18,18 @@ import kotlin.system.exitProcess
 import koalaui.arkoala.*
 import koalaui.interop.*
 
+import arkui.component.check.duplicates.*
+import arkui.component.check.enum.*
+import arkui.component.check.exeception.*
+import arkui.component.check.flattenUnions.*
+import arkui.component.check.hierarchy.*
+import arkui.component.check.hooks.*
+import arkui.component.check.modifiers.*
+import arkui.component.check.optional.*
+import arkui.component.check.transform.*
+import arkui.component.common.*
+import arkui.component.datebook.*
+
 var hasTestErrors = false
 
 fun checkResult(name: String, test: () -> Unit, expected: String) {

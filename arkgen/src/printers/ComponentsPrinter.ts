@@ -492,6 +492,29 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
 
     private printImports(peer: PeerClass, component: IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
+        imports.addFeature("ComponentBase", "koalaui.arkoala")
+        imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
+        if (peer.originalParentFilename) {
+            let [parentRef] = component.attributeDeclaration.inheritance
+            let parentDecl = this.library.resolveTypeReference(parentRef)
+            while (parentDecl) {
+                const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
+                const parentPackage = this.library.layout.resolve({
+                    node: parentDecl,
+                    role: LayoutNodeRole.COMPONENT
+                })
+                if (!this.options.isDeclared)
+                    imports.addFeature(generateArkComponentName(parentComponent.name), parentPackage)
+
+                if (parentComponent.attributeDeclaration.inheritance.length) {
+                    let [parentRef] = parentComponent.attributeDeclaration.inheritance
+                    parentDecl = this.library.resolveTypeReference(parentRef)
+                } else {
+                    parentDecl = undefined
+                }
+            }
+        }
+
         return imports
     }
 
@@ -542,7 +565,7 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
                     writer.writeMethodCall("super", applyOptionsFinish, [applyOptionsFinishSignature.argName(0)])
                 })
             }, parentComponentClassName, [componentInterface])
-            return { content: printer, imports}
+            return { content: printer, imports }
         }
         return [{
             generate,
@@ -578,6 +601,7 @@ class KotlinGlobalComponentVisitor implements GlobalComponentVisitor {
 
         const generateFunctions = () => {
             const printer = this.library.createLanguageWriter()
+            const imports = this.printImports()
             this.peers.forEach(peer => {
                 printer.writeLines(readLangTemplate(`component_builder_function`, this.library.language)
                     .replaceAll("%COMPONENT_NAME%", peer.componentName)
@@ -592,7 +616,7 @@ class KotlinGlobalComponentVisitor implements GlobalComponentVisitor {
             })
             printer.popIndent()
             printer.writeLines(readLangTemplate(`component_builder_class_epilogue`, this.library.language))
-            return printer
+            return { content: printer, imports }
         }
 
         const firstComponent = findComponentByName(this.library, this.peers[0].componentName)!
@@ -604,6 +628,18 @@ class KotlinGlobalComponentVisitor implements GlobalComponentVisitor {
                 hint: 'component.function'
             }
         }]
+    }
+
+    private printImports(): ImportsCollector {
+        const imports = new ImportsCollector()
+        imports.addFeature("ComponentBase", "koalaui.arkoala")
+        this.peers.forEach(peer => {
+            const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+            const module = this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER})
+            imports.addFeature(component.attributeDeclaration.name, module)
+            imports.addFeature(generateArkComponentName(peer.componentName), module)
+        })
+        return imports
     }
 }
 

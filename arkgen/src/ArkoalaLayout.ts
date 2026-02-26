@@ -239,9 +239,12 @@ export class KotlinLayout extends CommonLayoutBase {
         if (idl.isSyntheticEntry(target.node)) {
             return getSyntheticTypesFileName()
         }
+        if (target.hint === "component.function") {
+            return "arkui.component.builder.dsl"
+        }
         const packageName = idl.getPackageNameSafe(target.node) ?? "idlize"
-        const arkuiPackages = ["arkui.component", "idlize"]
-        for (const pkg of arkuiPackages) {
+        const arkuiInternalPackages = ["idlize"]
+        for (const pkg of arkuiInternalPackages) {
             if (packageName === pkg || packageName.startsWith(`${pkg}.`)) {
                 return "koalaui.arkoala"
             }

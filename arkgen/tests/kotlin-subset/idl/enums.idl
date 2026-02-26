@@ -1,4 +1,4 @@
-package arkui.component;
+package arkui.component.enums;
 
 enum Color {
     [OriginalEnumMemberName=White]

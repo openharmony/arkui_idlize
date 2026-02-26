@@ -23,6 +23,10 @@ import kotlinx.cinterop.*
 import koalaui.arkoala.*
 import koalaui.interop.*
 
+import arkui.component.button.ArkButtonPeer
+import arkui.component.button.ButtonType
+import arkui.component.units.Length
+
 var hasTestErrors = false
 
 fun checkResult(name: String, test: () -> Unit, expected: String) {
@@ -41,7 +45,7 @@ fun checkResult(name: String, test: () -> Unit, expected: String) {
 
 fun checkPerf3(count: Int): Unit {
     val peer = ArkButtonPeer.create(null)
-    val length = Length("10lpx")
+    val length = Length.create0("10lpx")
     val (_, duration) = measureTimedValue {
         for (i in 0..<count) {
             peer.setWidthAttribute(length)

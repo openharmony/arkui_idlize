@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { IdlNameConvertor, NodeConvertor, convertNode, convertType, getSyntheticTypesFileName, maybeRestoreGenerics } from "@idlizer/core"
+import { IdlNameConvertor, NodeConvertor, convertNode, convertType, flattenUnionType, getSyntheticTypesFileName, maybeRestoreGenerics } from "@idlizer/core"
 import { LibraryInterface, PeerLibrary } from '@idlizer/core'
 import { Language } from '@idlizer/core'
 
@@ -216,6 +216,13 @@ export class KotlinDependenciesCollector extends DependenciesCollector {
         const result = super.convertUnion(type)
         const unionEntry = this.synthesizeUnionEntry(type)
         result.push(unionEntry)
+
+        const flattened = flattenUnionType(this.library, type)
+        if (idl.isUnionType(flattened) && type.name !== flattened.name) {
+            const flattenedUnionEntry = this.synthesizeUnionEntry(flattened)
+            result.push(flattenedUnionEntry)
+        }
+
         return result
     }
     private synthesizeUnionEntry(type: idl.IDLUnionType): idl.IDLEntry {

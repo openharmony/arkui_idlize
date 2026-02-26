@@ -334,6 +334,9 @@ export function generateArkoalaFromIdl(config: {
             path.join(arkoala.managedDir, NativeModule.Test.name + peerLibrary.language.extension),
             printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString()
         )
+        writeFile(path.join(arkoala.managedDir, 'CallbackKind' + peerLibrary.language.extension),
+            makeCallbacksKinds(peerLibrary, peerLibrary.language),
+        )
     }
 
     // native code
