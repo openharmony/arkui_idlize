@@ -38,20 +38,21 @@ export const nativeModuleFunctionProducer = createProducer(
     const funcName = fqName(method)
     const className = ctx.getEffect().nativeModuleName
     const returnType = argConvertor(ctx, method.returnType).interopType(false)
-    const nativeModuleMethod = Builders.func('_' + funcName)
-        .native().static()
-        ///no annotation for vmContext methods, see MethodUtils
-        .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
-        .param('buffer').type(Ts.prim.serializerBuffer).$()
-        .param('length').type(Ts.prim.i32).$()
-        .returns(returnType).$()
-    if (!method.isFree && !method.isStatic)
-      nativeModuleMethod.parameters.unshift(
-        { name: 'ptr', type: Ts.prim.pointer })
+    const params = [
+      ...method.isFree || method.isStatic ? [] : [{ name: 'ptr', type: Ts.prim.pointer }],
+      { name: 'buffer', type: Ts.prim.serializerBuffer },
+      { name: 'length', type: Ts.prim.i32 }
+    ]
     return {
       continuation: E.get(E.v(className, [Hs.isType()]), '_' + funcName),
       declarations: [
-        D.class(className, [], [nativeModuleMethod]),
+        Builders.class(className)
+          .method('_' + funcName)
+            .native().static()
+            ///no annotation for vmContext methods, see MethodUtils
+            .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
+            .parameters(params)
+            .returns(returnType).$().$(),
         makeBridge(funcName, method, ctx)
       ]
     }
@@ -73,9 +74,9 @@ export const nativeModuleConstructorProducer = createProducer(
         // native module
         Builders.class(nativeModuleClassName)
           .method('_' + funcName)
-          .native().static().annotation('ani.unsafe.Direct')
-          .returns(Ts.prim.pointer)
-          .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') }))).$().$(),
+            .native().static().annotation('ani.unsafe.Direct')
+            .returns(Ts.prim.pointer)
+            .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') }))).$().$(),
         // bridge
         Builders.func(bridgeName('impl_' + funcName))
           .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
