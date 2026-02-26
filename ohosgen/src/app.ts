@@ -70,7 +70,7 @@ export function ohosgen(args: string[]) {
         .option('--version')
         .option('--plugin <file>', 'File with generator\'s plugin')
         .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
-        .option('--use-ost', 'Generate output using syntax trees (EXPERIMENTAL)')
+        .option('--feature <name>', '=ost for OST generation, =arkui for ArkUI [EXPERIMENTAL]')
         .option('--options-file <path...>', 'Paths to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
@@ -111,7 +111,6 @@ export function ohosgen(args: string[]) {
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
-            .concat(skoalaPredefinedFiles())
         const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
         idlInputFiles.forEach(idlFilename => {
             idlFilename = path.resolve(idlFilename)
@@ -144,7 +143,7 @@ export function ohosgen(args: string[]) {
         idlLibrary.files = files
         initLibraryName(idlLibrary)
         new IdlPeerProcessor(idlLibrary).process()
-        generateTarget(idlLibrary, outDir, options.useOst)
+        generateTarget(idlLibrary, outDir, options.feature)
 
         didJob = true
     }
@@ -191,8 +190,8 @@ export function ohosgen(args: string[]) {
         NativeModule.Generated = new NativeModuleType(name + 'NativeModule')
     }
 
-    function generateTarget(idlLibrary: PeerLibrary, outDir: string, useOst: boolean) {
-        generateOhos(outDir, idlLibrary, useOst, {
+    function generateTarget(idlLibrary: PeerLibrary, outDir: string, feature: string | undefined) {
+        generateOhos(outDir, idlLibrary, feature, {
             ...peerGeneratorConfiguration(),
             LibraryPrefix: `${idlLibrary.name.toUpperCase()}_`,
             GenerateUnused: true,
@@ -208,9 +207,4 @@ export function ohosgen(args: string[]) {
                 .catch(error => console.error(`Plugin ${options.plugin} not found: ${error}`))
         }
     }
-}
-
-function skoalaPredefinedFiles(): string[] {
-    const PREDEFINED_PATH = path.resolve('tests', 'skoala', 'predefined')
-    return scanInputDirs([PREDEFINED_PATH])
 }

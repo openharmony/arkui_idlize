@@ -49,7 +49,7 @@ import { ohosLayout } from './OhosLayout.js';
 import { printDataClasses } from './OhosDataClassVisitor.js';
 import { printOstFiles } from './ohos-ost.js';
 
-export function generateOhos(outDir: string, peerLibrary: PeerLibrary, useOst: boolean, config: PeerGeneratorConfiguration) {
+export function generateOhos(outDir: string, peerLibrary: PeerLibrary, feature: string | undefined, config: PeerGeneratorConfiguration) {
     const origGenConfig = generatorConfiguration()
     setDefaultConfiguration(config)
     peerLibrary.setFileLayout(ohosLayout(peerLibrary))
@@ -59,8 +59,8 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, useOst: b
     let managedFiles: Map<string, OutputFile>
     let nativeFiles: Map<TargetFile, string> | undefined
 
-    if (useOst) {
-        [managedFiles, nativeFiles] = printOstFiles(peerLibrary)
+    if (feature) {
+        [managedFiles, nativeFiles] = printOstFiles(peerLibrary, feature)
     } else {
         // MANAGED
         /////////////////////////////////////////
