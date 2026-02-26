@@ -294,8 +294,9 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void {
-        const inheritance = superInterfaces ? (superInterfaces.length > 0 ? `: ${superInterfaces.join(', ')}` : '') : ''
-        this.printer.print(`public interface ${name}${inheritance} {`)
+        const genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
+        const inheritance = superInterfaces?.length ? (superInterfaces.length > 0 ? `: ${superInterfaces.join(', ')}` : '') : ''
+        this.printer.print(`public interface ${name}${genericsClause}${inheritance} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
