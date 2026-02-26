@@ -198,6 +198,10 @@
         {
             "from": "test_transform.TransformSrcCallbackC",
             "to": "test_transform.TransformDstCallbackC"
+        },
+        {
+            "from": "test_transform.TransformMeToWithOptional",
+            "to": "test_transform.WithOptional"
         }
     ],
     "materialized": {

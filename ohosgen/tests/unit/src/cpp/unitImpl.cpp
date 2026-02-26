@@ -434,6 +434,10 @@ OH_UNIT_BinEnum GlobalScope_checkBinEnumsImpl(OH_UNIT_BinEnum value1, OH_UNIT_Bi
     return OH_UNIT_BIN_ENUM_E10010;
 }
 
+OH_UNIT_CheckDoubleOptional GlobalScope_checkDoubleOptionalImpl(const OH_UNIT_CheckDoubleOptional* value) {
+    return {};
+}
+
 OH_UNIT_DuplicateIntEnum GlobalScope_checkDuplicateIntEnumsImpl(OH_UNIT_DuplicateIntEnum value1, OH_UNIT_DuplicateIntEnum value2) {
     if (value2 != OH_UNIT_DUPLICATE_INT_ENUM_SECOND) {
         INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_SECOND: %d", value1, OH_UNIT_DUPLICATE_INT_ENUM_SECOND);

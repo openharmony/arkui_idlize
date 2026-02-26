@@ -350,6 +350,7 @@ typedef struct Callback_DrawContext_Void Callback_DrawContext_Void;
 typedef struct Opt_Callback_DrawContext_Void Opt_Callback_DrawContext_Void;
 typedef struct Callback_Void Callback_Void;
 typedef struct Opt_Callback_Void Opt_Callback_Void;
+typedef struct Opt_Object Opt_Object;
 typedef struct PageTransitionCallback PageTransitionCallback;
 typedef struct Opt_PageTransitionCallback Opt_PageTransitionCallback;
 typedef struct TransformDstCallbackI TransformDstCallbackI;
@@ -386,7 +387,6 @@ typedef struct Ark_TransitionParam Ark_TransitionParam;
 typedef struct Opt_TransitionParam Opt_TransitionParam;
 typedef struct Ark_AllCases Ark_AllCases;
 typedef struct Opt_AllCases Opt_AllCases;
-typedef struct Opt_Object Opt_Object;
 typedef enum Ark_AttributeUpdaterFlag: InteropUInt8 {
     ARK_ATTRIBUTE_UPDATER_FLAG_INITIAL = 0,
     ARK_ATTRIBUTE_UPDATER_FLAG_UPDATE = 1,
@@ -720,6 +720,10 @@ typedef struct Opt_Callback_Void {
     Ark_Tag tag;
     Callback_Void value;
 } Opt_Callback_Void;
+typedef struct Opt_Object {
+    Ark_Tag tag;
+    Ark_Object value;
+} Opt_Object;
 typedef struct PageTransitionCallback {
     /* kind: Callback */
     Ark_CallbackResource resource;
@@ -935,10 +939,6 @@ typedef struct Opt_AllCases {
     Ark_Tag tag;
     Ark_AllCases value;
 } Opt_AllCases;
-typedef struct Opt_Object {
-    Ark_Tag tag;
-    Ark_Object value;
-} Opt_Object;
 
 
 
