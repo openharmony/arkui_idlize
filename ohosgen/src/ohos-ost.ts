@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
+import { ImportsCollector, Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
     MANAGED_PREFIX,
@@ -36,14 +36,14 @@ import {
     OhosSeed,
     registerDefaultProducers,
     MakeSelector,
-    moduleLike,
+    moduleLike as libohosModuleLike,
     lowLevelLike,
     OhosEffect,
     createOhosEffect,
     LWKind,
     Role,
 } from "@idlizer/libohos"
-import { continueWith, onlyFor } from '@idlizer/kit'
+import { continueWith, moduleLike, onlyFor } from '@idlizer/kit'
 import { ArkUIRole, registerArkUIProducers } from "./arkui"
 
 type Feature<R> = {
@@ -100,6 +100,18 @@ const Features = new Map([
     ['arkui', ArkUIFeature]]
 )
 
+function defaultImports(): ImportsCollector {
+    const imports = new ImportsCollector()
+    imports.addFeatures([
+        'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
+        'SerializerBase', 'DeserializerBase', 'MaterializedBase',
+        'Finalizable', 'toPeerPtr',
+        'RuntimeType', 'ResourceHolder',
+        'loadNativeModuleLibrary', 'registerApiEventHandler',
+    ], '@koalaui/interop')
+    return imports
+}
+
 export function printOstFiles(library: PeerLibrary, featureName: string): [Map<string, OutputFile>, Map<TargetFile, string>] {
     const feature = Features.get(featureName)
     if (!feature)
@@ -148,8 +160,8 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
 function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Language,
     packages: Set<string>, onUnknownImport?: moduleLike.OnUnknownImport
 ): Map<string, OutputFile> {
-    decls = moduleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
-    const files = moduleLike.formFiles(packages, decls, {knownReference: new Map(), knownImports: new Map(), onUnknownImport})
+    decls = libohosModuleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
+    const files = moduleLike.formFiles(packages, decls, {knownReference: new Map(), knownImports: new Map(), defaultImports, onUnknownImport})
     const result: Map<string, OutputFile> = new Map()
     const printer = language === Language.ARKTS ? processNPrintArkTS : processNPrintTS
     files.forEach((content, fileName) => {
