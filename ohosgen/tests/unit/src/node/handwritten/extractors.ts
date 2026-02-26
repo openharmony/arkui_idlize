@@ -15,6 +15,8 @@ import {
     TransformDstCallbackI,
     TransformSrcCallbackC,
     TransformDstCallbackC,
+    TransformMeToWithOptional,
+    WithOptional,
 } from "#compat"
 
 class ExternalClassImpl implements ExternalClass {
@@ -132,5 +134,13 @@ export namespace extractors {
             flag: callback(true)
         }
         return result
+    }
+
+    export function transform_OH_UNIT_TransformMeToWithOptional_to_Opt_String(from: TransformMeToWithOptional): WithOptional {
+        return `transformed from ` + from
+    }
+
+    export function transform_Opt_String_to_OH_UNIT_TransformMeToWithOptional(from: WithOptional): TransformMeToWithOptional {
+        return from
     }
 }

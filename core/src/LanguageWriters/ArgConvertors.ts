@@ -995,9 +995,6 @@ export class OptionConvertor extends BaseArgConvertor {
         while (currentConv instanceof ProxyConvertor) {
             currentConv = currentConv.convertor
         }
-        if (currentConv instanceof OptionConvertor) {
-            conv = currentConv.typeConvertor
-        }
         let runtimeTypes = conv.runtimeTypes;
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
             runtimeTypes.push(RuntimeType.UNDEFINED)

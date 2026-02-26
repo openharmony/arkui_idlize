@@ -37,6 +37,16 @@ interface TransformSrcCallbackC {
 callback TransformDstCallbackI = boolean (boolean value);
 callback TransformDstCallbackC = boolean (boolean value);
 
+typedef WithOptional = (undefined or String);
+typedef TransformMeToWithOptional = (String or number);
+
+interface CheckDoubleOptional {
+    optional attribute WithOptional withOptional;
+    optional attribute TransformMeToWithOptional transformedWithOptional;
+};
+
+CheckDoubleOptional checkDoubleOptional(CheckDoubleOptional value);
+
 TransformSrcI checkTransformDstI(TransformSrcI value, boolean flag);
 TransformSrcC checkTransformDstC(TransformSrcC value, boolean flag);
 

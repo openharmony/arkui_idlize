@@ -94,6 +94,8 @@ export {
     TransformDstCallbackI,
     TransformSrcCallbackC,
     TransformDstCallbackC,
+    TransformMeToWithOptional,
+    WithOptional,
     checkTransformDstI,
     checkTransformDstC,
     checkTransformSrcIToCallback,
