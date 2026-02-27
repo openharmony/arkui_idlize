@@ -423,13 +423,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
         const decl: idl.IDLInterface = clazz.decl
-        const superClass = clazz.superClass
-        var superInterfaces: string[] | undefined = undefined
-        if (superClass) {
-            const nameConvertor = this.library.createTypeNameConvertor(writer.language)
-            const superClassName = nameConvertor.convert(superClass)
-            superInterfaces = [superClassName]
-        }
+        const nameConvertor = this.library.createTypeNameConvertor(writer.language)
+        var superInterfaces: string[] | undefined = clazz.decl.inheritance.map(it => nameConvertor.convert(it))
         writer.writeInterface(this.mangle(decl.name), () => {
             writer.writeStaticEntitiesBlock(() => {
                 for (const p of decl.properties.filter(p => p.isStatic)) {
