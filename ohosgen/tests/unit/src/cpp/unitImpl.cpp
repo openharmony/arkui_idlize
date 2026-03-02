@@ -1704,6 +1704,10 @@ OH_UNIT_ChildI GlobalScope_testChildInterfaceHierarchyImpl(const OH_UNIT_ChildI*
     return *arg;
 }
 
+OH_UNIT_ChildI2 GlobalScope_testChildInterface2HierarchyImpl(const OH_UNIT_ChildI2* arg) {
+    return *arg;
+}
+
 OH_UNIT_ParentC GlobalScope_testParentClassHierarchyImpl(OH_UNIT_ParentC arg) {
     return arg;
 }

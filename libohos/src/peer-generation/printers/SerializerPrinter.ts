@@ -198,6 +198,11 @@ class SerializerPrinter {
                         collectDeclItself(this.library, type, imports)
                     }
                 }
+                else {
+                    if (this.language === Language.KOTLIN) {
+                        collectDeclDependencies(this.library, type, imports)
+                    }
+                }
                 let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
                 writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}TmpBuf`, `valueDeserializer`, (expr) => {
                     if (writer.language === Language.CPP)
