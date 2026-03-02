@@ -122,7 +122,7 @@ export class StructPrinter {
                 // Object type is already defined as interop resource
                 continue
             }
-            if (idl.isInterface(target) && generatorConfiguration().forceResource.includes(target.name)) {
+            if (this.isResource(target)) {
                 typedefDeclarations.print(`typedef ${DECL_RESOURCE} ${nameAssigned};`)
                 // idl.createOptionalType(...)
                 const optNameAssigned = `${generatorConfiguration().OptionalPrefix}${target.name}`
@@ -134,6 +134,10 @@ export class StructPrinter {
             let isAccessor = idl.isInterface(target) && isMaterialized(target, this.library)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
             if (idl.isOptionalType(target)) {
+                if (idl.isReferenceType(target.type)) {
+                    const entry = this.library.resolveTypeReference(target.type)
+                    if (entry && this.isResource(entry)) continue
+                }
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target.type, seenNames)
                 continue;
             } else if (idl.isEnum(target) || idl.isEnumMember(target)) {
@@ -568,6 +572,10 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         if (idl.isEntry(target) && idl.isInIdlizeTypescript(target)) return true
         if (isImportAttr(target)) return true
         return false
+    }
+
+    private isResource(target: idl.IDLNode): target is idl.IDLNamedNode {
+        return idl.isInterface(target) && generatorConfiguration().forceResource.includes(target.name)
     }
 }
 
