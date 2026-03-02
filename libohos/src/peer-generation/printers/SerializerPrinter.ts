@@ -442,6 +442,9 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             "KUint8ArrayPtr",
         ], "koalaui.interop")
         collector.addFeature("Instant", "kotlin.time")
+        if (library.name === "arkoala") {
+            collector.addFeature("CallbackTransformer", "koalaui.arkoala")
+        }
     }
 }
 

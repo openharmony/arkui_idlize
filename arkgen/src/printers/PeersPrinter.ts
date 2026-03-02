@@ -133,6 +133,9 @@ class PeerFileVisitor {
             if ([Language.TS, Language.ARKTS].includes(this.library.language)) {
                 imports.addFeature('CallbackTransformer', './CallbackTransformer')
             }
+            else if (this.library.language === Language.KOTLIN) {
+                imports.addFeature("CallbackTransformer", "koalaui.arkoala")
+            }
             collectDeclItself(this.library, idl.createReferenceType("idlize.internal.CallbackKind"), imports)
             collectDeclItself(this.library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), imports)
 

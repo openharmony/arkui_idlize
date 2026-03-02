@@ -801,6 +801,9 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
             "Promise",
         ], "koalaui.interop")
         this.collector.addFeature("Instant", "kotlin.time")
+        if (this.library.name === "arkoala") {
+            this.collector.addFeature("CallbackTransformer", "koalaui.arkoala")
+        }
 
         const hookMethods = peerGeneratorConfiguration().hooks.get(this.clazz.className)
         const handwrittenPackage = this.library.layout.handwrittenPackage()
