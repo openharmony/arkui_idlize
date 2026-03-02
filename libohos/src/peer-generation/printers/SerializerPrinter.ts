@@ -207,7 +207,8 @@ class SerializerPrinter {
                 writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}TmpBuf`, `valueDeserializer`, (expr) => {
                     if (writer.language === Language.CPP)
                         return writer.makeAssign(`value.${writer.escapeKeyword(it.name)}`, undefined, expr, false)
-                    return writer.makeAssign(`${it.name}TmpResult`, typeConvertor.nativeType(), expr, true, true)
+                    const resultType = writer.language === Language.KOTLIN ? undefined : idl.maybeOptional(it.type, it.isOptional)
+                    return writer.makeAssign(`${it.name}TmpResult`, resultType, expr, true, true)
                 }, writer))
             })
             if (writer.language !== Language.CPP) {
