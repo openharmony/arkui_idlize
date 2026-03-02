@@ -122,7 +122,7 @@ export class StructPrinter {
                 // Object type is already defined as interop resource
                 continue
             }
-            if (this.isResource(target)) {
+            if (this.resourceTarget(target)) {
                 typedefDeclarations.print(`typedef ${DECL_RESOURCE} ${nameAssigned};`)
                 // idl.createOptionalType(...)
                 const optNameAssigned = `${generatorConfiguration().OptionalPrefix}${target.name}`
@@ -136,7 +136,8 @@ export class StructPrinter {
             if (idl.isOptionalType(target)) {
                 if (idl.isReferenceType(target.type)) {
                     const entry = this.library.resolveTypeReference(target.type)
-                    if (entry && this.isResource(entry)) continue
+                    if (entry && (this.resourceTarget(entry) || this.ignoreTarget(entry)))
+                        continue
                 }
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target.type, seenNames)
                 continue;
@@ -574,7 +575,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         return false
     }
 
-    private isResource(target: idl.IDLNode): target is idl.IDLNamedNode {
+    private resourceTarget(target: idl.IDLNode): target is idl.IDLNamedNode {
         return idl.isInterface(target) && generatorConfiguration().forceResource.includes(target.name)
     }
 }
