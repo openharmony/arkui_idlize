@@ -15,10 +15,10 @@
 
 import * as idl from "@idlizer/core/idl"
 import { MakeSelector, OhosSeed, Role } from "@idlizer/libohos"
-import { attributeProducer, componentProducer, peerProducer } from "./managed/attribute"
-import { propertyProducer } from "./managed/property"
-import { interfaceProducer } from "./managed/interface"
-import { optionsProducer } from "./managed/callable"
+import { attributeProducer, componentProducer, peerProducer } from "./managed/attribute.js"
+import { propertyProducer } from "./managed/property.js"
+import { interfaceProducer } from "./managed/interface.js"
+import { optionsProducer } from "./managed/callable.js"
 
 type ArkUISpecificRole<N extends idl.IDLNode> =
   N extends idl.IDLInterface ? 'component' | 'peer' :

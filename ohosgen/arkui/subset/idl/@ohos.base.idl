@@ -5,11 +5,11 @@ callback <T> ErrorCallback = void (T err);
 [TypeParametersDefaults="void"]
 callback <T, E> AsyncCallback = void ((BusinessError<E> or idlize.stdlib.Null) err, (T or undefined) data);
 [Entity=Class, TypeParametersDefaults="void"]
-interface <T> BusinessError: [Extends] idlize.stdlib.Error {
+interface <T> BusinessError: [Extends] idlize.typescript.Error {
     constructor();
-    constructor(i32 code, idlize.stdlib.Error error);
-    constructor(i32 code, T data, idlize.stdlib.Error error);
+    constructor(i32 code, idlize.typescript.Error error);
+    constructor(i32 code, T data, idlize.typescript.Error error);
     constructor(i32 code, String message, optional T data);
-//    optional attribute (T or undefined) data;
+    // optional attribute (T or undefined) data;
 };
 typedef RecordData = ((idlize.stdlib.Null or Object) or undefined);

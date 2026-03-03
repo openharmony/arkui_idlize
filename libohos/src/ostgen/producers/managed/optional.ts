@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Ts } from "@idlizer/ost"
-import { createProducer, OhosSeed } from "../../engine"
+import { createProducer, OhosSeed } from "../../engine/index.js"
 
 export const optionalProducer = createProducer(
   { is: idl.isOptionalType },

@@ -19,7 +19,7 @@ import { T, Ts, E, S, Hs, LWType, Builders, FunctionDeclaration,
   ClassDeclaration, managedName, createProducer, expectExpr, expectType,
   OhosSeed, OhosProducerContext
 } from "@idlizer/libohos"
-import { ArkUIRole } from ".."
+import { ArkUIRole } from "../index.js"
 
 function isComponentAttribute(node: idl.IDLInterface) {
   return isRoot(node.name) ||

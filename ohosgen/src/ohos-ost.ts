@@ -44,7 +44,7 @@ import {
     Role,
 } from "@idlizer/libohos"
 import { continueWith, moduleLike, onlyFor } from '@idlizer/kit'
-import { ArkUIRole, registerArkUIProducers } from "./arkui"
+import { ArkUIRole, registerArkUIProducers } from "./arkui/index.js"
 
 type Feature<R> = {
     name: string

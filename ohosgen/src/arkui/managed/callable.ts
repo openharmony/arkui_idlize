@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { E, Builders, managedName, Ts, createProducer, expectType, OhosSeed } from "@idlizer/libohos"
-import { ArkUIRole } from ".."
+import { ArkUIRole } from "../index.js"
 
 export const optionsProducer = createProducer<idl.IDLCallable, ArkUIRole<idl.IDLCallable>>(
   { is: idl.isCallable, role: 'peer' },

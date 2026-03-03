@@ -16,7 +16,7 @@
 import { capitalize } from "@idlizer/core"
 import * as idl from "@idlizer/core/idl"
 import { Builders, managedName, Ts, createProducer, expectType, expectExpr } from "@idlizer/libohos"
-import { ArkUIRole } from ".."
+import { ArkUIRole } from "../index.js"
 
 export const propertyProducer = createProducer<idl.IDLProperty, ArkUIRole<idl.IDLProperty>>(
   { is: idl.isProperty, role: 'peer' },
