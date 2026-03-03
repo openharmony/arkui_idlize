@@ -4,6 +4,74 @@
 
 The `ohosgen` code generator transforms IDL interface definitions into TypeScript/ArkTS code using a **producer** system that maps IDL nodes to LW (Lightweight) AST declarations, which are then printed by language-specific printers.
 
+## Builder Style Guidelines
+
+### Always prefer fluent APIs
+
+When constructing AST nodes, **always use the fluent builder API** (method chaining with `.$()` finalization) rather than constructing raw AST objects manually. Raw object literals with `kind: LWKind.*` fields are harder to read, error-prone, and require `as any` casts to satisfy the type system.
+
+❌ **Avoid** — raw AST object construction:
+```typescript
+{
+  kind: LWKind.SwitchStatement,
+  selector: E.get(E.v('flagArray'), E.c(i)),
+  cases: [
+    { value: E.c(1), body: [S.e(E.call(E.get(E.v('this'), prop.name), [...])), S.e(E.v('break'))] },
+  ],
+  default: [S.e(E.call(E.get(E.v('this'), prop.name), [E.v('undefined')])), S.e(E.v('break'))]
+} as any
+```
+
+✅ **Prefer** — fluent builder API:
+```typescript
+Builders.switch()
+  .selector().access(E.c(i)).receiver('flagArray').$().$()
+  .case(1)
+    .call(prop.name).receiver('this').arg().access(fieldName).receiver('modifier').$().$().$()
+    .break().$()
+  .default([
+    Builders.stmt().call(prop.name).receiver('this').arg('undefined').$().$(),
+    S.break(),
+  ]).$()
+```
+
+### Prefer advanced builders (`Builders`) over original ones (`E`, `S`)
+
+Use the **advanced builder classes** from `Builders` (defined in `ost/src/builders/advanced.ts`) for all non-trivial constructs. The original factories (`E`, `S`, `T`) should only be used for the most primitive, leaf-level constructs:
+
+**Use original builders (`E`, `S`, `T`) only for:**
+- Constants and variable names: `E.c(42)`, `E.c(i)`, `E.v('name')`
+- Simple type references: `T.c('ClassName')`, `Ts.prim.void`
+- Break statements: `S.break()`
+
+**Use advanced builders (`Builders`) for everything else:**
+- Expressions: `Builders.expr().binary('+').left(1).right(2).$()` instead of `E.bin('+', E.c(1), E.c(2))`
+- Statements: `Builders.stmt().call('f').arg(x).$().$()` instead of `S.e(E.call(E.v('f'), [x]))`
+- Conditions: `.cond().binary('==').left().access(...).right(0).$().$()` instead of `.condition(E.bin('==', E.get(...), E.c(0)))`
+- Assignments: `.binary('=').left().access('field').receiver('this').$().$().right(1).$()` instead of `.binary('=').left(E.get(E.v('this'), 'field')).right(E.c(1)).$()`
+- Declarations, classes, functions, lambdas, switches, loops, if-statements — always use `Builders.*`
+
+**Use `.methods()` with `.map()` instead of `forEach` loops:**
+
+❌ **Avoid:**
+```typescript
+props.forEach((prop, i) => {
+  classBuilder.method(prop.name)
+    .param('value').type(propTypes[i]).$()
+    .block().$().$()
+})
+```
+
+✅ **Prefer:**
+```typescript
+classBuilder.methods(props.map((prop, i) =>
+  Builders.func(prop.name)
+    .param('value').type(propTypes[i]).$()
+    .block().$().$()))
+```
+
+This keeps the entire class construction as a single fluent chain rather than breaking it into imperative mutation steps.
+
 ## Key Concepts
 
 ### Producers
@@ -76,9 +144,9 @@ S.return(expr)                     // ReturnStatement (for function bodies)
 S.declaration(name, type, const, initExpr) // DeclarationStatement (const name: type = init)
 S.if(condition, thenStmt)          // IfStatement
 S.block([stmts])                   // CompoundStatement: { stmts }
+S.break()                          // BreakStatement
 ```
 
-**Note:** There is no `S.break()`. Use `S.e(E.v('break'))` to emit a `break` keyword.
 **Note:** There is no `S.throw()`. Use `S.e(E.v('throw new Error("message")'))` to emit a throw statement.
 
 ### Class Builder
@@ -158,34 +226,58 @@ Inside `.block()`:
 .return().cast(type).value().access('f').receiver('this').$().$().$().$()
                                              // return (this.f as type)
 .return().ctor('ClassName').$().$()         // return new ClassName()
+.break()                                    // break (in switch/loop)
 .statements([stmt1, stmt2, ...])            // Add raw LWStatement array
 ```
 
-### Switch Statement (Raw AST)
+### Switch Builder
 
-There is no builder for switch statements. Construct them as raw objects:
+Use `Builders.switch()` to create switch statements with the fluent builder API:
 
 ```typescript
-{
-  kind: LWKind.SwitchStatement,
-  selector: E.get(E.v('flagArray'), E.c(i)),
-  cases: [
-    {
-      value: E.c(1),               // ConstantExpression for case value
-      body: [                      // Array of LWStatement
-        S.e(someExpr),
-        S.e(E.v('break')),         // break statement
-      ]
-    }
-  ],
-  default: [                       // Array of LWStatement for default case
-    S.e(someExpr),
-    S.e(E.v('break')),
-  ]
-} as any  // Cast needed since SwitchStatement isn't in the builder type system
+Builders.switch()
+  .selector().var('x').$()         // switch (x)
+  .case(0)                         // case 0:
+    .call('handleZero').$()        //   handleZero()
+    .break()                       //   break; — also finalizes the case
+  .case(1).case(2)                 // case 1: case 2: (fall-through)
+    .call('handleSmall').$()       //   handleSmall()
+    .break()                       //   break;
+  .default([S.e(E.call(E.v('handleOther'), []))])  // default: handleOther()
+  .$()                             // Finalize → SwitchStatement
 ```
 
-**Important:** The TypeScript printer does NOT add newlines between statements in switch case bodies. Multiple statements in a case body will be concatenated on the same line.
+**CaseBuilder** extends `BlockBuilder`, so all block methods are available inside a case body (`call`, `decl`, `return`, `if`, `loop`, `binary`, `unary`, `switch`, `block`, `statements`, `break`).
+
+Key `CaseBuilder` methods:
+- `.case(value)` — add another case value to the same group (fall-through)
+- `.values([v1, v2, ...])` — add multiple case values at once
+- `.break()` — add a `break` statement and finalize the case, returning to the `SwitchBuilder`
+- `.$()` — finalize the case without a break (fall-through to next case)
+
+You can also construct switch statements inside blocks:
+```typescript
+.block()
+  .switch()
+    .selector().var('flag').$()
+    .case(1).return().value('one').$().$()   // case 1: return 'one'
+    .case(2).return().value('two').$().$()   // case 2: return 'two'
+    .$()
+  .$()
+```
+
+Or construct raw `SwitchStatement` objects using `S.break()` for break statements:
+```typescript
+const switchStmt: SwitchStatement = {
+  kind: LWKind.SwitchStatement,
+  selector: E.v('x'),
+  cases: [
+    { value: E.c(1), body: [S.e(someExpr), S.break()] },
+    { value: [E.c(2), E.c(3)], body: [S.e(otherExpr), S.break()] },  // multi-value case
+  ],
+  default: [S.e(defaultExpr), S.break()]
+}
+```
 
 ## IDL Node Access
 
@@ -249,9 +341,8 @@ Output goes to: `ohosgen/arkui/subset/out/generated/arkts/`
 
 ## Printer Limitations
 
-1. **Switch case bodies:** The TypeScript printer does not add newlines between statements in switch case bodies. All statements in a case body appear on the same line.
-2. **No semicolons:** The printer generally omits semicolons after expression statements.
-3. **Lambda bodies:** A lambda with `S.return(expr)` body prints `() => return expr`. Use `S.e(expr)` for expression-body lambdas: `() => expr`.
+1. **No semicolons:** The printer generally omits semicolons after expression statements.
+2. **Lambda bodies:** A lambda with `S.return(expr)` body prints `() => return expr`. Use `S.e(expr)` for expression-body lambdas: `() => expr`.
 
 ## Imports Available from `@idlizer/libohos`
 
