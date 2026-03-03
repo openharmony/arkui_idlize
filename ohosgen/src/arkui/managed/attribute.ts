@@ -177,37 +177,23 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
   const attrModProps = attrNode.properties.filter(it => isAttributeModifier(it))
 
   // Resolve types for regular properties
-  const propTypes = regularProps.map(prop => expectType(ctx, prop.type, 'managed'))
-
-  // Build fields with initializers
-  const fields: ClassDeclaration['fields'] = [
-    { name: '_instanceId', type: Ts.prim.number, expression: E.c(-1) },
-    { name: '_state', type: T.c('ModifierState'), expression: E.instance('ModifierState', []) },
-    { name: '_addr', type: T.c('ArrayBuffer'), expression: E.instance('ArrayBuffer', [E.c(4096)]) },
-    { name: '_flagArray', type: T.c('Uint8Array'), expression: E.instance('Uint8Array', [E.get(E.v('this'), '_addr')]) },
-  ]
-
-  // Add per-property value fields
-  regularProps.forEach((prop, i) => {
-    fields.push({
-      name: modifierFieldName(prop.name, i),
-      type: Ts.optional(propTypes[i]),
-    })
-  })
-
-  // isUpdater: () => boolean = () => false
-  fields.push({
-    name: 'isUpdater',
-    type: T.fn([], Ts.prim.boolean),
-    expression: E.lambda([], S.e(E.c('false'))),
-  })
+  const propTypes = regularProps.map(prop => expectType(ctx, prop.type, 'managed'))///
 
   const applyMethods = ['applyNormalAttribute', 'applyPressedAttribute', 'applyFocusedAttribute', 'applyDisabledAttribute', 'applySelectedAttribute']
   return Builders.class(modifierName)
     .extends(T.c(parentModifierName))
     .implements(T.c(attrName))
     .implements(T.c('AttributeModifier', T.c(attrName)))
-    .fields(fields)
+    .field('_instanceId').type(Ts.prim.number).value(-1).$()
+    .field('_state').type(T.c('ModifierState')).value().ctor('ModifierState').$().$().$()
+    .field('_addr').type(T.c('ArrayBuffer')).value().ctor('ArrayBuffer').arg(4096).$().$().$()
+    .field('_flagArray').type(T.c('Uint8Array')).value().ctor('Uint8Array').arg().access('_addr').receiver('this').$().$().$().$().$()
+    // per-property value fields
+    .fields(regularProps.map((prop, i) =>
+      Builders.field(modifierFieldName(prop.name, i)).type(Ts.optional(propTypes[i])).$()))
+    // isUpdater: () => boolean = () => false
+    .field('isUpdater').funcType().returns(Ts.prim.boolean).$().value(E.lambda([], S.e(E.c('false')))).$()
+
     // Constructor: super() + fill flagArray with 0
     .ctor().block()
       .call('super').$()

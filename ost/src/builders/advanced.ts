@@ -1560,7 +1560,7 @@ class FunctionBuilder<P> {
         private _name: string
     ) {}
     private _modifiers: Modifier[] = []
-    private _parameters: { name: string, type: LWType }[] = []
+    private _parameters: FunctionDeclaration['parameters'] = []
     private _returnType?: LWType
     private _body?: LWStatement
     private _annotations: Annotation[] = []
@@ -1698,14 +1698,15 @@ class FunctionBuilder<P> {
  */
 class FieldBuilder<P> {
     /**
-     * @param _cont - Continuation function that receives the field name, type, and modifiers
+     * @param _cont - Continuation function that receives the field name, type, modifiers, and optional expression
      * @param _name - Field name
      */
     constructor(
-        private _cont: (name: string, type: LWType, modifiers?: Modifier[]) => P,
+        private _cont: (name: string, type: LWType, modifiers?: Modifier[], expression?: LWExpression) => P,
         private _name: string
     ) {}
     private _type?: LWType
+    private _value?: LWExpression
     private _modifiers: Modifier[] = []
     /**
      * Add static modifier to the field (class-level member).
@@ -1745,11 +1746,16 @@ class FieldBuilder<P> {
      *
      * @returns FunctionTypeBuilder for deferred functional type specification
      */
-    funcType(): FunctionTypeBuilder<FieldBuilder<P>> {
+    funcType(): FunctionTypeBuilder<this> {
         return new FunctionTypeBuilder(type => {
             this._type = type
             return this
         })
+    }
+    value(value: ExpressionLike): this
+    value(): ExpressionBuilder<this>
+    value(value?: ExpressionLike): this | ExpressionBuilder<this> {
+        return assign(this, '_value', value)
     }
     /**
      * Finalize the builder and return the field to the parent builder.
@@ -1759,7 +1765,7 @@ class FieldBuilder<P> {
      */
     $(): P {
         check("Field", this._name, this._type)
-        return this._cont(this._name!, this._type!, this._modifiers)
+        return this._cont(this._name!, this._type!, this._modifiers, this._value)
     }
 }
 
@@ -1781,8 +1787,8 @@ class StructLikeBuilder {
      * @param _name - Structure name
      */
     constructor(protected _name: string) {}
-    protected _fields: StructureDeclaration['members'] = []
-    fields(fields: StructureDeclaration['members']) { this._fields.push(...fields); return this }
+    protected _fields: ClassDeclaration['fields'] = []
+    fields(fields: ClassDeclaration['fields']) { this._fields.push(...fields); return this }
     /**
      * Add a field to the structure.
      * Returns a FieldBuilder for specifying field type and modifiers.
@@ -1791,8 +1797,8 @@ class StructLikeBuilder {
      * @returns FieldBuilder for deferred field specification
      */
     field(name: string): FieldBuilder<this> {
-        return new FieldBuilder((name, type, modifiers) => {
-            this._fields.push({name, type, modifiers})
+        return new FieldBuilder((name, type, modifiers, expression) => {
+            this._fields.push({name, type, modifiers, expression})
             return this
         }, name)
     }
@@ -2173,6 +2179,24 @@ export class Builders {
      * ```
      */
     static func(name: string): FunctionBuilder<FunctionDeclaration> { return new FunctionBuilder(id, name) }
+    /**
+     * Create a field builder for standalone field construction.
+     *
+     * @param name - Field name
+     * @returns FieldBuilder for creating a field declaration (as used in ClassDeclaration.fields)
+     *
+     * @example
+     * ```typescript
+     * const field = Builders.field('count')
+     *   .type(Ts.prim.number)
+     *   .value(0)
+     *   .$();
+     * // { name: 'count', type: ..., modifiers: [], expression: ... }
+     * ```
+     */
+    static field(name: string): FieldBuilder<ClassDeclaration['fields'][number]> {
+        return new FieldBuilder((name, type, modifiers, expression) => ({name, type, modifiers, expression}), name)
+    }
     /**
      * Create a structure builder.
      *
