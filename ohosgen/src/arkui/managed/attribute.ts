@@ -160,26 +160,19 @@ function createImpl(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrNa
       .call(nodeAttachCall).$().$().$()
 }
 
-function modifierFieldName(propName: string, index: number): string {
-  return `_${propName}_${index}_value`
-}
-
 function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrName: string): ClassDeclaration {
   const baseName = attrName.replace(/Attribute$/, '')
   const modifierName = baseName + 'Modifier'
   const parentModifierName = attrNode.inheritance.length
     ? managedName((attrNode.inheritance[0] as idl.IDLReferenceType).name.replace(/(Attribute)?$/, 'Modifier'))
-    : modifierName // fallback, e.g. CommonMethod extends itself
-  const peerName = baseName + 'Peer'
+    : modifierName /// fallback, e.g. CommonMethod extends itself
+  const valueFieldName = (propName: string, index: number) => `_${propName}_${index}_value`
 
   // Separate regular properties from attributeModifier
   const regularProps = attrNode.properties.filter(it => !isAttributeModifier(it))
   const attrModProps = attrNode.properties.filter(it => isAttributeModifier(it))
-
-  // Resolve types for regular properties
-  const propTypes = regularProps.map(prop => expectType(ctx, prop.type, 'managed'))///
-
   const applyMethods = ['applyNormalAttribute', 'applyPressedAttribute', 'applyFocusedAttribute', 'applyDisabledAttribute', 'applySelectedAttribute']
+
   return Builders.class(modifierName)
     .extends(T.c(parentModifierName))
     .implements(T.c(attrName))
@@ -190,7 +183,7 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
     .field('_flagArray').type(T.c('Uint8Array')).value().ctor('Uint8Array').arg().access('_addr').receiver('this').$().$().$().$().$()
     // per-property value fields
     .fields(regularProps.map((prop, i) =>
-      Builders.field(modifierFieldName(prop.name, i)).type(Ts.optional(propTypes[i])).$()))
+      Builders.field(valueFieldName(prop.name, i)).type(Ts.optional(expectType(ctx, prop.type, 'managed'))).$()))
     // isUpdater: () => boolean = () => false
     .field('isUpdater').funcType().returns(Ts.prim.boolean).$().value(E.lambda([], S.e(E.c('false')))).$()
 
@@ -217,7 +210,7 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
       .block()
         .call('applyModifierPatch').receiver('super').arg(E.v('node')).$()
         .call('addRef').receiver().access('_state').receiver('this').$().$().$()
-        .decl('peer').value().cast(T.c(peerName)).value('node').$().$().$()
+        .decl('peer').value().cast(T.c(baseName + 'Peer')).value('node').$().$().$()
         .decl('flagArray').value().access('_flagArray').receiver('this').$().$().$()
         .statements(regularProps.map((prop, i) =>
           Builders.if()
@@ -229,7 +222,7 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
                 .selector().access(E.c(i)).receiver('flagArray').$().$()
                 .case(1)
                   .call().function().access('set' + capitalize(prop.name)).receiver('peer').$().$()
-                    .arg().access(modifierFieldName(prop.name, i)).receiver('this').$().$().$()
+                    .arg().access(valueFieldName(prop.name, i)).receiver('this').$().$().$()
                   .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(2).$()
                   .break().$()
                 .case(3)
@@ -259,7 +252,7 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
                 .selector().access(E.c(i)).receiver('flagArray').$().$()
                 .case(1, 3)
                   .call(prop.name).receiver('this')
-                    .arg().access(modifierFieldName(prop.name, i)).receiver('modifier').$().$().$()
+                    .arg().access(valueFieldName(prop.name, i)).receiver('modifier').$().$().$()
                   .break().$()
                 .default()
                   .call(prop.name).receiver('this').arg('undefined').$()
@@ -268,7 +261,7 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
     // Per-property setter methods
     .methods(regularProps.map((prop, i) =>
       Builders.func(prop.name)
-        .param('value').type(propTypes[i]).$()
+        .param('value').type(expectType(ctx, prop.type, 'managed')).$()
         .returns(Ts.prim.self)
         .block()
           .if()
@@ -280,7 +273,7 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
                 .left().access(E.c(i)).receiver().access('_flagArray').receiver('this').$().$().$().$()
                 .right(1).$()
               .binary('=')
-                .left().access(modifierFieldName(prop.name, i)).receiver('this').$().$()
+                .left().access(valueFieldName(prop.name, i)).receiver('this').$().$()
                 .right('value').$()
               .call('fireChange').receiver().access('_state').receiver('this').$().$().$()
               .$().$()
