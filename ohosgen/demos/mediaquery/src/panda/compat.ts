@@ -27,5 +27,5 @@ export function getLong(): long {
 }
 
 export function toPaddedString(v: number, leftPad: number = 0): string {
-    return StringBuilder.toString(v as long).padLeft(c' ', 10)
+    return StringBuilder.toString(v.toLong()).padLeft(c' ', 10)
 }
