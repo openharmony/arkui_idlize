@@ -6,6 +6,7 @@
 
 - [ ] Bugfix
 - [ ] Feature
+- [ ] Interfaces change (only for master and feature branches)
 
 ### Affected generated entities
 
