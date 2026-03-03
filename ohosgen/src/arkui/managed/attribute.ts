@@ -249,15 +249,11 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
                 .case(3)
                   .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(2).$()
                   .break().$()
-                .default([
-                  Builders.stmt().binary('=')
-                    .left().access(E.c(i)).receiver('flagArray').$().$()
-                    .right(0).$().$(),
-                  Builders.stmt().call()
-                    .function().access('set' + capitalize(prop.name)).receiver('peer').$().$()
-                    .arg('undefined').$().$(),
-                  S.break(),
-                ]).$().$().$().$())).$().$()
+                .default()
+                  .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(0).$()
+                  .call().function().access('set' + capitalize(prop.name)).receiver('peer').$().$()
+                    .arg('undefined').$()
+                  .break().$().$().$().$().$())).$().$()
 
     // mergeModifier method
     .method('mergeModifier')
@@ -275,18 +271,13 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
             .then().block()
               .switch()
                 .selector().access(E.c(i)).receiver('flagArray').$().$()
-                .case(1)
+                .case(1, 3)
                   .call(prop.name).receiver('this')
                     .arg().access(modifierFieldName(prop.name, i)).receiver('modifier').$().$().$()
                   .break().$()
-                .case(3)
-                  .call(prop.name).receiver('this')
-                    .arg().access(modifierFieldName(prop.name, i)).receiver('modifier').$().$().$()
-                  .break().$()
-                .default([
-                  Builders.stmt().call(prop.name).receiver('this').arg('undefined').$().$(),
-                  S.break(),
-                ]).$().$().$().$())).$().$()
+                .default()
+                  .call(prop.name).receiver('this').arg('undefined').$()
+                  .break().$().$().$().$().$())).$().$()
 
     // Per-property setter methods
     .methods(regularProps.map((prop, i) =>

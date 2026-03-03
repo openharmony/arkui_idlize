@@ -1125,85 +1125,6 @@ class BlockBuilder<P> {
     }
 }
 
-/**
- * Builder for creating switch statements.
- *
- * @typeParam P - The type returned by the continuation function (usually SwitchStatement or a parent builder)
- *
- * @example
- * ```typescript
- * const switchStmt = Builders.switch()
- *   .selector(b => b.expr().var('day'))
- *   .cases([
- *     {case: 1, body: b => b.expr().call('print').arg('Monday').$()},
- *     {case: 2, body: b => b.expr().call('print').arg('Tuesday').$()}
- *   ])
- *   .default([b => b.expr().call('print').arg('Other').$()])
- *   .$();
- * ```
- */
-/**
- * Builder for creating a case clause within a switch statement.
- * Supports chaining multiple case values (fall-through) and adding body statements.
- *
- * @typeParam P - The type of the parent SwitchBuilder
- *
- * @example
- * ```typescript
- * // Single case with break
- * Builders.switch().case(0).call('print').arg('zero').$().break().$()
- *
- * // Fall-through cases (case 0: case 1: ...)
- * Builders.switch().case(0).case(1).call('print').arg('small').$().$()
- * ```
- */
-class CaseBuilder<P> extends BlockBuilder<P> {
-    private _values: ConstantExpression[] = []
-
-    /**
-     * @param parent - The parent SwitchBuilder to return to when finalizing
-     * @param pushCase - Callback to push the completed case into the parent's cases array
-     * @param initialValue - The first case value
-     */
-    constructor(
-        parent: P,
-        pushCase: (c: { value: ConstantExpression | ConstantExpression[], body: LWStatement[] }) => void,
-        initialValue: ExpressionLike
-    ) {
-        super(stmts => {
-            pushCase({
-                value: this._values.length === 1 ? this._values[0] : this._values,
-                body: stmts
-            })
-            return parent
-        })
-        this._values.push(typeof initialValue === 'object' ? initialValue as ConstantExpression : E.c(initialValue))
-    }
-
-    /**
-     * Add another case value to the current case group (fall-through).
-     * Calling case on a CaseBuilder adds to the same group rather than creating a new one.
-     *
-     * @param value - Case value (number, string, or ConstantExpression)
-     * @returns This CaseBuilder for chaining
-     */
-    case(value: ExpressionLike): CaseBuilder<P> {
-        this._values.push(typeof value === 'object' ? value as ConstantExpression : E.c(value))
-        return this
-    }
-
-    /**
-     * Add multiple case values to the current case group (fall-through).
-     *
-     * @param values - Array of case values
-     * @returns This CaseBuilder for chaining
-     */
-    values(values: ExpressionLike[]): CaseBuilder<P> {
-        values.forEach(v => this.case(v))
-        return this
-    }
-}
-
 class SwitchBuilder<P> {
     /**
      * @param _cont - Continuation function that receives the built statement
@@ -1213,20 +1134,6 @@ class SwitchBuilder<P> {
     private _cases: SwitchStatement['cases'] = []
     private _default: LWStatement[] = []
     /**
-     * Add multiple case clauses to the switch statement.
-     *
-     * @param cases - Array of case clauses (case expression and body statements)
-     * @returns This builder for chaining
-     */
-    cases(cases: SwitchStatement['cases']) { this._cases.push(...cases); return this }
-    /**
-     * Add default clause statements to the switch statement.
-     *
-     * @param stmts - Array of statements for the default clause
-     * @returns This builder for chaining
-     */
-    default(stmts: LWStatement[]) { this._default.push(...stmts); return this }
-    /**
      * Set the selector expression using a deferred expression builder.
      * Returns an ExpressionBuilder for specifying the selector expression.
      *
@@ -1235,6 +1142,13 @@ class SwitchBuilder<P> {
     selector(): ExpressionBuilder<this> {
         return new ExpressionBuilder(saveInto(this, '_selector'))
     }
+    /**
+     * Add multiple case clauses to the switch statement.
+     *
+     * @param cases - Array of case clauses (case expression and body statements)
+     * @returns This builder for chaining
+     */
+    cases(cases: SwitchStatement['cases']) { this._cases.push(...cases); return this }
     /**
      * Start a new case clause with the given value.
      * Returns a CaseBuilder for adding body statements and optionally more case values.
@@ -1251,8 +1165,25 @@ class SwitchBuilder<P> {
      *   .$()
      * ```
      */
-    case(value: ExpressionLike): CaseBuilder<this> {
-        return new CaseBuilder(this, c => this._cases.push(c), value)
+    case(...values: (string | number | ConstantExpression)[]): BlockBuilder<this> {
+        return new BlockBuilder(body => {
+            this._cases.push({
+                value: values.map(it => typeof it === 'object' ? it : E.c(it)),
+                body
+            })
+            return this
+        })
+    }
+    /**
+     * Start a default clause.
+     *
+     * @returns CaseBuilder for building the default clause
+     */
+    default(): BlockBuilder<this> {
+        return new BlockBuilder(body => {
+            this._default.push(...body)
+            return this
+        })
     }
     /**
      * Finalize the builder and return the constructed switch statement.

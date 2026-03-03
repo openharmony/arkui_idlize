@@ -240,20 +240,12 @@ Builders.switch()
   .case(0)                         // case 0:
     .call('handleZero').$()        //   handleZero()
     .break()                       //   break; — also finalizes the case
-  .case(1).case(2)                 // case 1: case 2: (fall-through)
+  .case(1, 2)                 // case 1: case 2: (fall-through)
     .call('handleSmall').$()       //   handleSmall()
     .break()                       //   break;
   .default([S.e(E.call(E.v('handleOther'), []))])  // default: handleOther()
   .$()                             // Finalize → SwitchStatement
 ```
-
-**CaseBuilder** extends `BlockBuilder`, so all block methods are available inside a case body (`call`, `decl`, `return`, `if`, `loop`, `binary`, `unary`, `switch`, `block`, `statements`, `break`).
-
-Key `CaseBuilder` methods:
-- `.case(value)` — add another case value to the same group (fall-through)
-- `.values([v1, v2, ...])` — add multiple case values at once
-- `.break()` — add a `break` statement and finalize the case, returning to the `SwitchBuilder`
-- `.$()` — finalize the case without a break (fall-through to next case)
 
 You can also construct switch statements inside blocks:
 ```typescript
@@ -264,19 +256,6 @@ You can also construct switch statements inside blocks:
     .case(2).return().value('two').$().$()   // case 2: return 'two'
     .$()
   .$()
-```
-
-Or construct raw `SwitchStatement` objects using `S.break()` for break statements:
-```typescript
-const switchStmt: SwitchStatement = {
-  kind: LWKind.SwitchStatement,
-  selector: E.v('x'),
-  cases: [
-    { value: E.c(1), body: [S.e(someExpr), S.break()] },
-    { value: [E.c(2), E.c(3)], body: [S.e(otherExpr), S.break()] },  // multi-value case
-  ],
-  default: [S.e(defaultExpr), S.break()]
-}
 ```
 
 ## IDL Node Access
