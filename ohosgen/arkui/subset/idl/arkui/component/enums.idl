@@ -1,0 +1,28 @@
+package arkui.component.enums;
+
+dictionary Color {
+    [OriginalEnumMemberName=White]
+    String WHITE = "#FFFFFFFF";
+    [OriginalEnumMemberName=Black]
+    String BLACK = "#FF000000";
+    [OriginalEnumMemberName=Blue]
+    String BLUE = "#FF0000FF";
+    [OriginalEnumMemberName=Brown]
+    String BROWN = "#FFA52A2A";
+    [OriginalEnumMemberName=Gray]
+    String GRAY = "#FF808080";
+    [OriginalEnumMemberName=Green]
+    String GREEN = "#FF008000";
+    [OriginalEnumMemberName=Grey]
+    String GREY = "#FF808080";
+    [OriginalEnumMemberName=Orange]
+    String ORANGE = "#FFFFA500";
+    [OriginalEnumMemberName=Pink]
+    String PINK = "#FFFFC0CB";
+    [OriginalEnumMemberName=Red]
+    String RED = "#FFFF0000";
+    [OriginalEnumMemberName=Yellow]
+    String YELLOW = "#FFFFFF00";
+    [OriginalEnumMemberName=Transparent]
+    String TRANSPARENT = "#00000000";
+};

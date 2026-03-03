@@ -1,0 +1,17 @@
+package arkui.component.blank;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+[Component]
+interface BlankAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (ResourceColor or undefined) color;
+    [CommonMethod]
+    attribute ((AttributeModifier<BlankAttribute> or AttributeModifier<CommonMethod>) or undefined) attributeModifier;
+};
+[ComponentInterface]
+interface BlankInterface {
+    [CallSignature]
+    ([CallSignature] BlankAttribute) invoke(optional (f64 or String) min, optional CustomBuilder content_);
+};

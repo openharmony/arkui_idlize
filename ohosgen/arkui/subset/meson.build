@@ -3,14 +3,14 @@ project('ArkUI', 'c', 'cpp',
     default_options: ['cpp_std=c++17', 'buildtype=release']
 )
 
-external_interop_build_dir = meson.current_source_dir() / '../node_modules/@koalaui/interop/build'
-external_interop_dir = '../node_modules/@koalaui/interop/src/cpp'
+external_interop_build_dir = '../../node_modules/@koalaui/interop/build'
+external_interop_dir = '../../node_modules/@koalaui/interop/src/cpp'
 
 cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []
 
 include_dirs = [
-    './subset/out/generated/native',
+    './out/generated/native',
     external_interop_dir,
     external_interop_dir / 'types',
     external_interop_dir / 'ani',
@@ -18,9 +18,9 @@ include_dirs = [
 ]
 
 sources = [
-    './subset/out/generated/native/arkui.cpp',
-    './subset/out/generated/native/arkuiApiImpl_temp.cpp',
-    './subset/out/generated/native/arkuiImpl_temp.cpp',
+    './out/generated/native/arkui.cpp',
+    './out/generated/native/arkuiApiImpl_temp.cpp',
+    './out/generated/native/arkuiImpl_temp.cpp',
     external_interop_dir / 'common-interop.cpp',
     external_interop_dir / 'callback-resource.cpp',
     external_interop_dir / 'interop-logging.cpp',
@@ -65,7 +65,7 @@ name_prefix = [] # default value
 name_suffix = [] # default value
 
 library_name = 'ArkUINativeModule'
-platform_build_dir = 'subset/build/panda'
+platform_build_dir = 'build/panda'
 
 cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name]
 cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=arkui.generated.arkts.arkui.INTERNAL.']

@@ -1,0 +1,4 @@
+package arkui.component.builder;
+import ohos.base.Callback as Callback;
+[TypeAnnotations=Builder]
+callback CustomBuilder = void ();
