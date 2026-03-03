@@ -1116,6 +1116,16 @@ class BlockBuilder<P> {
         return this
     }
     /**
+     * Add a "throw new Error("Not implemented")" statement to the block.
+     * Convenience method for stub/unimplemented method bodies.
+     *
+     * @returns This builder for chaining
+     */
+    unimplemented(): BlockBuilder<P> {
+        this._body.push(S.e(E.v('throw new Error("Not implemented")')))
+        return this
+    }
+    /**
      * Finalize the builder and return the constructed block statement.
      *
      * @returns The built block statement (array of statements)

@@ -291,8 +291,6 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
       Builders.func(prop.name)
         .param('value').type(expectType(ctx, prop.type, 'managed')).$()
         .returns(Ts.prim.self)
-        .block()
-          .statements([S.e(E.v('throw new Error("Not implemented")'))])
-          .$().$()))
+        .block().unimplemented().$().$()))
     .$()
 }

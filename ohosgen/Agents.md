@@ -147,7 +147,7 @@ S.block([stmts])                   // CompoundStatement: { stmts }
 S.break()                          // BreakStatement
 ```
 
-**Note:** There is no `S.throw()`. Use `S.e(E.v('throw new Error("message")'))` to emit a throw statement.
+**Note:** There is no `S.throw()`. Use `S.e(E.v('throw new Error("message")'))` to emit a throw statement, or use `.unimplemented()` in a block builder for the common "Not implemented" stub pattern.
 
 ### Class Builder
 
@@ -227,6 +227,7 @@ Inside `.block()`:
                                              // return (this.f as type)
 .return().ctor('ClassName').$().$()         // return new ClassName()
 .break()                                    // break (in switch/loop)
+.unimplemented()                            // throw new Error("Not implemented")
 .statements([stmt1, stmt2, ...])            // Add raw LWStatement array
 ```
 
