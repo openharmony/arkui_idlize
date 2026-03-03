@@ -15,7 +15,7 @@
 
 import { capitalize } from "@idlizer/core"
 import * as idl from "@idlizer/core/idl"
-import { E, Builders, managedName, Ts, createProducer, expectType, OhosSeed } from "@idlizer/libohos"
+import { Builders, managedName, Ts, createProducer, expectType, expectExpr } from "@idlizer/libohos"
 import { ArkUIRole } from ".."
 
 export const propertyProducer = createProducer<idl.IDLProperty, ArkUIRole<idl.IDLProperty>>(
@@ -33,7 +33,7 @@ export const propertyProducer = createProducer<idl.IDLProperty, ArkUIRole<idl.ID
 
     const propType = expectType(ctx, prop.type, 'managed')
     return {
-      continuation: E.v(prop.name),
+      continuation: expectExpr(ctx, propMethod, 'managed'),
       declarations: [
         Builders.class(attrName).interface()
           .method(prop.name)
@@ -47,8 +47,7 @@ export const propertyProducer = createProducer<idl.IDLProperty, ArkUIRole<idl.ID
               .call(propMethod.name).arg('value').receiver()
                 .call('getPeer').receiver('this').$().$().$()
               .return().value('this').$().$().$().$()
-      ],
-      trigger: [new OhosSeed(propMethod, 'managed')]
+      ]
     }
   }
 )

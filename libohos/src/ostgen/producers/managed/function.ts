@@ -62,7 +62,7 @@ export const functionProducer = createProducer(
       decl = clazz
     }
     return {
-      continuation: E.v(managedName(idl.getFQName(method))),
+      continuation: E.v(declName),
       declarations: [decl]
     }
   }

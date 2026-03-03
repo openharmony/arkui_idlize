@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { isDefined, isRoot, capitalize } from "@idlizer/core"
-import { T, Ts, E, S, Hs, LWType, LWExpression, LWKind, Builders, FunctionDeclaration,
+import { T, Ts, E, S, Hs, LWType, Builders, FunctionDeclaration,
   ClassDeclaration, managedName, createProducer, expectExpr, expectType,
   OhosSeed, OhosProducerContext
 } from "@idlizer/libohos"
@@ -202,156 +202,127 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
     expression: E.lambda([], S.e(E.c('false'))),
   })
 
-  // Build the class
-  const classBuilder = Builders.class(modifierName)
+  const applyMethods = ['applyNormalAttribute', 'applyPressedAttribute', 'applyFocusedAttribute', 'applyDisabledAttribute', 'applySelectedAttribute']
+  return Builders.class(modifierName)
     .extends(T.c(parentModifierName))
     .implements(T.c(attrName))
     .implements(T.c('AttributeModifier', T.c(attrName)))
     .fields(fields)
-
-  // Constructor: super() + fill flagArray with 0
-  classBuilder.ctor()
-    .block()
+    // Constructor: super() + fill flagArray with 0
+    .ctor().block()
       .call('super').$()
-      .call('fill').receiver().access('_flagArray').receiver('this').$().$().arg(E.c(0)).$()
-      .$().$()
-
-  // setInstanceId method
-  classBuilder.method('setInstanceId')
-    .param('instanceId').type(Ts.prim.number).$()
-    .returns(Ts.prim.void)
-    .block()
-      .binary('=').left(E.get(E.v('this'), '_instanceId')).right(E.v('instanceId')).$()
-      .$().$()
-
-  // applyNormalAttribute, applyPressedAttribute, applyFocusedAttribute, applyDisabledAttribute, applySelectedAttribute
-  for (const methodName of ['applyNormalAttribute', 'applyPressedAttribute', 'applyFocusedAttribute', 'applyDisabledAttribute', 'applySelectedAttribute']) {
-    classBuilder.method(methodName)
-      .param('instance').type(T.c(attrName)).$()
+      .call('fill').receiver().access('_flagArray').receiver('this').$().$().arg(E.c(0)).$().$().$()
+    // setInstanceId method
+    .method('setInstanceId')
+      .param('instanceId').type(Ts.prim.number).$()
       .returns(Ts.prim.void)
-      .block().$().$()
-  }
+      .block().binary('=').left(E.get(E.v('this'), '_instanceId')).right(E.v('instanceId')).$().$().$()
+    // apply*Attribute methods
+    .methods(applyMethods.map(it =>
+      Builders.func(it)
+        .param('instance').type(T.c(attrName)).$()
+        .returns(Ts.prim.void)
+        .block().$().$()))
 
-  // applyModifierPatch method
-  classBuilder.method('applyModifierPatch')
-    .param('node').typeStr('PeerNode').$()
-    .returns(Ts.prim.void)
-    .block()
-      .call('applyModifierPatch').receiver('super').arg(E.v('node')).$()
-      .call('addRef').receiver().access('_state').receiver('this').$().$().$()
-      .statements([
-        S.declaration('peer', T.c('Ark' + peerName.split('.').pop()!), false, E.cast(E.v('node'), T.c('Ark' + peerName.split('.').pop()!))),
-        S.declaration('flagArray', T.c('Uint8Array'), false, E.get(E.v('this'), '_flagArray')),
-        ...regularProps.map((prop, i) =>
-          S.if(
-            E.bin('!=', E.get(E.v('flagArray'), E.c(i)), E.c(0)),
-            S.block([
-              {
-                kind: LWKind.SwitchStatement,
-                selector: E.get(E.v('flagArray'), E.c(i)),
-                cases: [
-                  {
-                    value: E.c(1),
-                    body: [
-                      S.e(E.call(E.get(E.v('peer'), 'set' + capitalize(prop.name) + 'Attribute'), [E.get(E.v('this'), modifierFieldName(prop.name, i))])),
-                      S.e(E.bin('=', E.get(E.v('flagArray'), E.c(i)), E.c(2))),
-                      S.e(E.v('break')),
-                    ]
-                  },
-                  {
-                    value: E.c(3),
-                    body: [
-                      S.e(E.bin('=', E.get(E.v('flagArray'), E.c(i)), E.c(2))),
-                      S.e(E.v('break')),
-                    ]
-                  }
-                ],
-                default: [
-                  S.e(E.bin('=', E.get(E.v('flagArray'), E.c(i)), E.c(0))),
-                  S.e(E.call(E.get(E.v('peer'), 'set' + capitalize(prop.name) + 'Attribute'), [E.v('undefined')])),
-                  S.e(E.v('break')),
-                ]
-              } as any
-            ])
-          )
-        )
-      ])
-      .$().$()
-
-  // mergeModifier method
-  classBuilder.method('mergeModifier')
-    .param('modifier').type(T.c(modifierName)).$()
-    .returns(Ts.prim.void)
-    .block()
-      .call('mergeModifier').receiver('super').arg(E.v('modifier')).$()
-      .binary('=').left(E.get(E.v('this'), '_state')).right(E.get(E.v('modifier'), '_state')).$()
-      .statements([
-        S.declaration('flagArray', T.c('Uint8Array'), false, E.get(E.v('modifier'), '_flagArray')),
-        ...regularProps.map((prop, i) =>
-          S.if(
-            E.bin('!=', E.get(E.v('flagArray'), E.c(i)), E.c(0)),
-            S.block([
-              {
-                kind: LWKind.SwitchStatement,
-                selector: E.get(E.v('flagArray'), E.c(i)),
-                cases: [
-                  {
-                    value: E.c(1),
-                    body: [
-                      S.e(E.call(E.get(E.v('this'), prop.name), [E.get(E.v('modifier'), modifierFieldName(prop.name, i))])),
-                      S.e(E.v('break')),
-                    ]
-                  },
-                  {
-                    value: E.c(3),
-                    body: [
-                      S.e(E.call(E.get(E.v('this'), prop.name), [E.get(E.v('modifier'), modifierFieldName(prop.name, i))])),
-                      S.e(E.v('break')),
-                    ]
-                  }
-                ],
-                default: [
-                  S.e(E.call(E.get(E.v('this'), prop.name), [E.v('undefined')])),
-                  S.e(E.v('break')),
-                ]
-              } as any
-            ])
-          )
-        )
-      ])
-      .$().$()
-
-  // Per-property setter methods
-  regularProps.forEach((prop, i) => {
-    classBuilder.method(prop.name)
-      .param('value').type(propTypes[i]).$()
-      .returns(Ts.prim.self)
+    // applyModifierPatch method
+    .method('applyModifierPatch')
+      .param('node').typeStr('PeerNode').$()
+      .returns(Ts.prim.void)
       .block()
-        .if()
-          .condition(E.bin('==', E.get(E.get(E.v('this'), '_flagArray'), E.c(i)), E.c(0)))
-          .then().block()
-            .binary('=').left(E.get(E.get(E.v('this'), '_flagArray'), E.c(i))).right(E.c(1)).$()
-            .binary('=').left(E.get(E.v('this'), modifierFieldName(prop.name, i))).right(E.v('value')).$()
-            .call('fireChange').receiver().access('_state').receiver('this').$().$().$()
-            .$().$()
-          .else().block()
-            .binary('=').left(E.get(E.get(E.v('this'), '_flagArray'), E.c(i))).right(E.c(3)).$()
-            .$().$()
-          .$()
-        .return().value('this').$()
-        .$().$()
-  })
+        .call('applyModifierPatch').receiver('super').arg(E.v('node')).$()
+        .call('addRef').receiver().access('_state').receiver('this').$().$().$()
+        .decl('peer').value().cast(T.c(peerName)).value('node').$().$().$()
+        .decl('flagArray').value().access('_flagArray').receiver('this').$().$().$()
+        .statements(regularProps.map((prop, i) =>
+          Builders.if()
+            .cond().binary('!=')
+              .left().access(E.c(i)).receiver('flagArray').$().$()
+              .right(0).$().$()
+            .then().block()
+              .switch()
+                .selector().access(E.c(i)).receiver('flagArray').$().$()
+                .case(1)
+                  .call().function().access('set' + capitalize(prop.name)).receiver('peer').$().$()
+                    .arg().access(modifierFieldName(prop.name, i)).receiver('this').$().$().$()
+                  .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(2).$()
+                  .break().$()
+                .case(3)
+                  .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(2).$()
+                  .break().$()
+                .default([
+                  Builders.stmt().binary('=')
+                    .left().access(E.c(i)).receiver('flagArray').$().$()
+                    .right(0).$().$(),
+                  Builders.stmt().call()
+                    .function().access('set' + capitalize(prop.name)).receiver('peer').$().$()
+                    .arg('undefined').$().$(),
+                  S.break(),
+                ]).$().$().$().$())).$().$()
 
-  // attributeModifier stub methods
-  for (const prop of attrModProps) {
-    const propType = expectType(ctx, prop.type, 'managed')
-    classBuilder.method(prop.name)
-      .param('value').type(propType).$()
-      .returns(Ts.prim.self)
+    // mergeModifier method
+    .method('mergeModifier')
+      .param('modifier').type(T.c(modifierName)).$()
+      .returns(Ts.prim.void)
       .block()
-        .statements([S.e(E.v('throw new Error("Not implemented")'))])
-        .$().$()
-  }
+        .call('mergeModifier').receiver('super').arg(E.v('modifier')).$()
+        .binary('=').left(E.get(E.v('this'), '_state')).right(E.get(E.v('modifier'), '_state')).$()
+        .decl('flagArray', T.c('Uint8Array')).value().access('_flagArray').receiver('modifier').$().$().$()
+        .statements(regularProps.map((prop, i) =>
+          Builders.if()
+            .cond().binary('!=')
+              .left().access(E.c(i)).receiver('flagArray').$().$()
+              .right(0).$().$()
+            .then().block()
+              .switch()
+                .selector().access(E.c(i)).receiver('flagArray').$().$()
+                .case(1)
+                  .call(prop.name).receiver('this')
+                    .arg().access(modifierFieldName(prop.name, i)).receiver('modifier').$().$().$()
+                  .break().$()
+                .case(3)
+                  .call(prop.name).receiver('this')
+                    .arg().access(modifierFieldName(prop.name, i)).receiver('modifier').$().$().$()
+                  .break().$()
+                .default([
+                  Builders.stmt().call(prop.name).receiver('this').arg('undefined').$().$(),
+                  S.break(),
+                ]).$().$().$().$())).$().$()
 
-  return classBuilder.$()
+    // Per-property setter methods
+    .methods(regularProps.map((prop, i) =>
+      Builders.func(prop.name)
+        .param('value').type(propTypes[i]).$()
+        .returns(Ts.prim.self)
+        .block()
+          .if()
+            .cond().binary('==')
+              .left().access(E.c(i)).receiver().access('_flagArray').receiver('this').$().$().$().$()
+              .right(0).$().$()
+            .then().block()
+              .binary('=')
+                .left().access(E.c(i)).receiver().access('_flagArray').receiver('this').$().$().$().$()
+                .right(1).$()
+              .binary('=')
+                .left().access(modifierFieldName(prop.name, i)).receiver('this').$().$()
+                .right('value').$()
+              .call('fireChange').receiver().access('_state').receiver('this').$().$().$()
+              .$().$()
+            .else().block()
+              .binary('=')
+                .left().access(E.c(i)).receiver().access('_flagArray').receiver('this').$().$().$().$()
+                .right(3).$()
+              .$().$()
+            .$()
+          .return().value('this').$()
+          .$().$()))
+
+    // attributeModifier stub methods
+    .methods(attrModProps.map(prop =>
+      Builders.func(prop.name)
+        .param('value').type(expectType(ctx, prop.type, 'managed')).$()
+        .returns(Ts.prim.self)
+        .block()
+          .statements([S.e(E.v('throw new Error("Not implemented")'))])
+          .$().$()))
+    .$()
 }
