@@ -26,3 +26,6 @@ node_modules
 *.orig
 .DS_Store
 __pycache__/
+
+bundled/
+out/
