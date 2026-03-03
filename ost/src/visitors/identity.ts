@@ -170,10 +170,15 @@ export class IdentityTransformer {
       kind: stmt.kind,
       selector: this.goExpression(stmt.selector),
       cases: stmt.cases.map(c => ({
-        value: this.goConstantExpression(c.value),
+        value: Array.isArray(c.value) ? c.value.map(v => this.goConstantExpression(v)) : this.goConstantExpression(c.value),
         body: c.body.map(s => this.goStatement(s))
       })),
-      default: stmt.default.map(s => this.goStatement(s))
+      default: stmt.default?.map(s => this.goStatement(s))
+    }
+  }
+  goBreakStatement(stmt: lw.BreakStatement): lw.BreakStatement {
+    return {
+      kind: stmt.kind,
     }
   }
   goNoneStatement(stmt: lw.NoneStatement): lw.NoneStatement {
@@ -190,6 +195,7 @@ export class IdentityTransformer {
       case lw.LWKind.LoopStatement: return this.goLoopStatement(stmt)
       case lw.LWKind.IfStatement: return this.goIfStatement(stmt)
       case lw.LWKind.SwitchStatement: return this.goSwitchStatement(stmt)
+      case lw.LWKind.BreakStatement: return this.goBreakStatement(stmt)
       case lw.LWKind.NoneStatement: return this.goNoneStatement(stmt)
     }
   }

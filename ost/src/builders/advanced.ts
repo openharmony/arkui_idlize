@@ -20,7 +20,7 @@ import {
     IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier,
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
-    EnumDeclaration, SwitchStatement
+    EnumDeclaration, SwitchStatement, ConstantExpression, BreakStatement
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -974,6 +974,144 @@ class IfBuilder<P> {
  *   .$();
  * ```
  */
+/**
+ * Builder for creating a case clause within a switch statement.
+ * Supports chaining multiple case values (fall-through) and adding body statements.
+ *
+ * @typeParam P - The type of the parent SwitchBuilder
+ *
+ * @example
+ * ```typescript
+ * // Single case with break
+ * Builders.switch().case(0).call('print').arg('zero').$().break().$()
+ *
+ * // Fall-through cases (case 0: case 1: ...)
+ * Builders.switch().case(0).case(1).call('print').arg('small').$().$()
+ * ```
+ */
+class CaseBuilder<P> {
+    private _values: ConstantExpression[] = []
+    private _body: LWStatement[] = []
+
+    /**
+     * @param _parent - The parent SwitchBuilder to return to when finalizing
+     * @param _pushCase - Callback to push the completed case into the parent's cases array
+     * @param initialValue - The first case value
+     */
+    constructor(
+        private _parent: P,
+        private _pushCase: (c: { value: ConstantExpression | ConstantExpression[], body: LWStatement[] }) => void,
+        initialValue: ExpressionLike
+    ) {
+        this._values.push(typeof initialValue === 'object' ? initialValue as ConstantExpression : E.c(initialValue))
+    }
+
+    /**
+     * Add another case value to the current case group (fall-through).
+     * Calling case on a CaseBuilder adds to the same group rather than creating a new one.
+     *
+     * @param value - Case value (number, string, or ConstantExpression)
+     * @returns This CaseBuilder for chaining
+     */
+    case(value: ExpressionLike): CaseBuilder<P> {
+        this._values.push(typeof value === 'object' ? value as ConstantExpression : E.c(value))
+        return this
+    }
+
+    /**
+     * Add a function call statement to the case body.
+     * Returns a CallBuilder for specifying function, receiver, and arguments.
+     *
+     * @param func - Optional function name or expression
+     * @returns CallBuilder for deferred construction
+     */
+    call(func?: string | LWExpression): CallBuilder<CaseBuilder<P>> {
+        return new CallBuilder(expr => {
+            this._body.push(S.e(expr))
+            return this
+        }, func)
+    }
+
+    /**
+     * Add a return statement to the case body.
+     * Returns a ReturnBuilder for specifying the return value.
+     *
+     * @param type - Optional return type
+     * @returns ReturnBuilder for deferred construction
+     */
+    return(type?: LWType): ReturnBuilder<CaseBuilder<P>> {
+        return new ReturnBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        }, type)
+    }
+
+    /**
+     * Add a variable declaration statement to the case body.
+     * Returns a DeclarationBuilder for specifying variable properties and initial value.
+     *
+     * @param name - Variable name
+     * @param type - Optional variable type
+     * @returns DeclarationBuilder for deferred construction
+     */
+    decl(name: string, type?: LWType): DeclarationBuilder<CaseBuilder<P>> {
+        return new DeclarationBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        }, name, type)
+    }
+
+    /**
+     * Add a block/compound statement to the case body.
+     * Returns a BlockBuilder for specifying multiple statements.
+     *
+     * @returns BlockBuilder for deferred construction
+     */
+    block(): BlockBuilder<CaseBuilder<P>> {
+        return new BlockBuilder(stmts => {
+            this._body.push(S.block(stmts))
+            return this
+        })
+    }
+
+    /**
+     * Add pre-built statements to the case body.
+     *
+     * @param stmts - Array of statements to add
+     * @returns This CaseBuilder for chaining
+     */
+    statements(stmts: LWStatement[]) { this._body.push(...stmts); return this }
+
+    /**
+     * Add a break statement to the case body and finalize the case group.
+     * Returns the parent SwitchBuilder for further chaining.
+     *
+     * @returns The parent SwitchBuilder
+     */
+    break(): P {
+        this._body.push(S.break())
+        this._pushCase({
+            value: this._values.length === 1 ? this._values[0] : this._values,
+            body: this._body
+        })
+        return this._parent
+    }
+
+    /**
+     * Finalize the case group without a break statement (fall-through).
+     * Returns the parent SwitchBuilder for further chaining.
+     *
+     * @returns The parent SwitchBuilder
+     */
+    $(): P {
+        this._pushCase({
+            value: this._values.length === 1 ? this._values[0] : this._values,
+            body: this._body
+        })
+        return this._parent
+    }
+}
+
 class SwitchBuilder<P> {
     /**
      * @param _cont - Continuation function that receives the built statement
@@ -1004,6 +1142,25 @@ class SwitchBuilder<P> {
      */
     selector(): ExpressionBuilder<this> {
         return new ExpressionBuilder(saveInto(this, '_selector'))
+    }
+    /**
+     * Start a new case clause with the given value.
+     * Returns a CaseBuilder for adding body statements and optionally more case values.
+     *
+     * @param value - Case value (number, string, or ConstantExpression)
+     * @returns CaseBuilder for building the case clause
+     *
+     * @example
+     * ```typescript
+     * Builders.switch()
+     *   .selector().var('x').$()
+     *   .case(0).call('handleZero').$().break()
+     *   .case(1).case(2).call('handleSmall').$().$()
+     *   .$()
+     * ```
+     */
+    case(value: ExpressionLike): CaseBuilder<this> {
+        return new CaseBuilder(this, c => this._cases.push(c), value)
     }
     /**
      * Finalize the builder and return the constructed switch statement.
@@ -1387,6 +1544,15 @@ class BlockBuilder<P> {
             this._stmts.push(stmt)
             return this
         }, type)
+    }
+    /**
+     * Add a break statement to the block.
+     *
+     * @returns This builder for chaining
+     */
+    break(): BlockBuilder<P> {
+        this._stmts.push(S.break())
+        return this
     }
     /**
      * Finalize the builder and return the constructed block statement.

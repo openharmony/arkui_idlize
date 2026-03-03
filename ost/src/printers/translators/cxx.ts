@@ -387,21 +387,39 @@ export class CXXPrinter {
       case lw.LWKind.SwitchStatement:
         this.p.put('switch', ' ', '(')
         this.printExpression(statement.selector)
-        this.p.put(')', ' ', '{').inc().newline()
+        this.p.put(')', ' ', '{').inc()
         statement.cases.forEach(({value, body}) => {
-          this.p.put('case', ' ')
-          this.printExpression(value)
-          this.p.put(':').inc().newline()
-          body.forEach(stmt => this.printStatement(stmt))
-          this.p.dec().newline()
+          const values = Array.isArray(value) ? value : [value]
+          values.forEach(v => {
+            this.p.newline()
+            this.p.put('case', ' ')
+            this.printExpression(v)
+            this.p.put(':')
+          })
+          this.p.inc()
+          body.forEach(stmt => {
+            this.p.newline()
+            this.printStatement(stmt)
+          })
+          this.p.dec()
         })
-        if (statement.default.length) {
-          this.p.put('default:').inc().newline()
-          statement.default.forEach(stmt => this.printStatement(stmt))
-          this.p.dec().newline()
+        if (statement.default && statement.default.length) {
+          this.p.newline()
+          this.p.put('default', ':')
+          this.p.inc()
+          statement.default.forEach(stmt => {
+            this.p.newline()
+            this.printStatement(stmt)
+          })
+          this.p.dec()
         }
-        this.p.dec().put('}')
+        this.p.dec().newline()
+        this.p.put('}')
         break;
+      case lw.LWKind.BreakStatement: {
+        this.p.put('break', ';')
+        break
+      }
       case lw.LWKind.LoopStatement: {
         this.p.put('for', ' ', '(')
         if (statement.init)

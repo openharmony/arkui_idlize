@@ -229,8 +229,39 @@ export class DumpPrinter {
       case lw.LWKind.SwitchStatement: {
         this.p.put('switch', '(')
         this.printExpression(statement.selector)
-        this.p.put(')', ' ')
-        // TODO: cases+ default
+        this.p.put(')', ' ', '{')
+        this.p.inc()
+        statement.cases.forEach(c => {
+          const values = Array.isArray(c.value) ? c.value : [c.value]
+          values.forEach(v => {
+            this.p.newline()
+            this.p.put('case', ' ')
+            this.printExpression(v)
+            this.p.put(':')
+          })
+          this.p.inc()
+          c.body.forEach(s => {
+            this.p.newline()
+            this.printStatement(s)
+          })
+          this.p.dec()
+        })
+        if (statement.default && statement.default.length > 0) {
+          this.p.newline()
+          this.p.put('default', ':')
+          this.p.inc()
+          statement.default.forEach(s => {
+            this.p.newline()
+            this.printStatement(s)
+          })
+          this.p.dec()
+        }
+        this.p.dec().newline()
+        this.p.put('}')
+        break
+      }
+      case lw.LWKind.BreakStatement: {
+        this.p.put('break', ';')
         break
       }
       case lw.LWKind.LoopStatement: {
