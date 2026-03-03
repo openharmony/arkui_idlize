@@ -32,7 +32,7 @@ export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string,
 function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[]): lw.LWDeclaration[] {
     const callbackKindEnum = callbackKindDeclaration(callbacks, s => managedName('engine.' + s))
     const caller = Builders.func(managedName('engine.deserializeAndCallCallback'))
-        .param('deserializer').typeStr('DeserializerBase').$()
+        .param('deserializer').type('DeserializerBase').$()
         .block()
             .decl('kind').value().call('readInt32').receiver('deserializer').$().$().$()
             .switch()

@@ -91,7 +91,7 @@ export const peerProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLIn
               .call('super').arg('peerPtr').arg('id').arg('name').arg('flags').$().$().$()
           .method('create').static()
             .returns(T.c(peerName))
-            .param('component').typeStr('ComponentBase').$()
+            .param('component').type('ComponentBase').$()
             .param('flags').type(Ts.prim.i32).$()
             .block()
               .decl('peerId').value().call('nextId').receiver('PeerNode').$().$().$()
@@ -226,7 +226,7 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
 
     // applyModifierPatch method
     .method('applyModifierPatch')
-      .param('node').typeStr('PeerNode').$()
+      .param('node').type('PeerNode').$()
       .returns(Ts.prim.void)
       .block()
         .call('applyModifierPatch').receiver('super').arg(E.v('node')).$()

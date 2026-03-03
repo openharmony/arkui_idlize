@@ -32,7 +32,7 @@ export const callbackProducer = createProducer(
           .parameters(callback.parameters.map(it => [it.name, expectType(ctx, it.type, 'managed')]))
           .returns(expectType(ctx, callback.returnType, 'managed')).$().$(),
         Builders.func(managedName('engine.deserializeAndCall' + callback.name))
-          .param('deserializer').typeStr('DeserializerBase').$()
+          .param('deserializer').type('DeserializerBase').$()
           .block()
             .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
             .decl('call').value().cast(T.c(generatedDeclName)).value().call('get')

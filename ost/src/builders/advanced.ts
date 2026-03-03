@@ -1448,18 +1448,10 @@ class ParamBuilder<P> {
     /**
      * Set the parameter type directly.
      *
-     * @param type - Parameter type
+     * @param type - Parameter type, or type name
      * @returns This builder for chaining
      */
-    type(type: LWType) { this._type = type; return this }
-    /**
-     * Set the parameter type using a type name (string).
-     * The string is converted to a ValueType using T.c().
-     *
-     * @param type - Type name as string
-     * @returns This builder for chaining
-     */
-    typeStr(type: string) { this._type = T.c(type); return this }
+    type(type: LWType | string) { this._type = typeof type === 'string' ? T.c(type) : type; return this }
     /**
      * Finalize the builder and return the parameter to the parent builder.
      *
