@@ -198,11 +198,17 @@ class SerializerPrinter {
                         collectDeclItself(this.library, type, imports)
                     }
                 }
+                else {
+                    if (this.language === Language.KOTLIN) {
+                        collectDeclDependencies(this.library, type, imports)
+                    }
+                }
                 let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
                 writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}TmpBuf`, `valueDeserializer`, (expr) => {
                     if (writer.language === Language.CPP)
                         return writer.makeAssign(`value.${writer.escapeKeyword(it.name)}`, undefined, expr, false)
-                    return writer.makeAssign(`${it.name}TmpResult`, typeConvertor.nativeType(), expr, true, true)
+                    const resultType = writer.language === Language.KOTLIN ? undefined : idl.maybeOptional(it.type, it.isOptional)
+                    return writer.makeAssign(`${it.name}TmpResult`, resultType, expr, true, true)
                 }, writer))
             })
             if (writer.language !== Language.CPP) {
@@ -442,6 +448,9 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             "KUint8ArrayPtr",
         ], "koalaui.interop")
         collector.addFeature("Instant", "kotlin.time")
+        if (library.name === "arkoala") {
+            collector.addFeature("CallbackTransformer", "koalaui.arkoala")
+        }
     }
 }
 

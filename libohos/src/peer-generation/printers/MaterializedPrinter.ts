@@ -296,7 +296,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                         }
                     }
                     const taggedCall = writer.makeMethodCall('this', tagged.name, tagged.parameters.map(it => writer.makeString(it.name)))
-                    const conditions = idl.fetchSignatureTags(tagged).map(it => writer.makeNaryOp("==", [writer.makeString(it.name), writer.makeString(it.value)]))
+                    const conditions = idl.fetchSignatureTags(tagged).
+                        map(it => writer.makeNaryOp("==", [writer.makeString(it.name), writer.makeString(this.processTag(it.value))]))
                     const condition = writer.makeNaryOp("||", conditions)
                     const block = writer.makeBlock([
                         writer.makeReturn(taggedCall)
@@ -476,6 +477,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
     protected mangle(className: string): string {
         return className
+    }
+
+    protected processTag(value: string): string {
+        return value
     }
 
     protected printMaterializedClass(clazz: MaterializedClass) {
@@ -801,6 +806,9 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
             "Promise",
         ], "koalaui.interop")
         this.collector.addFeature("Instant", "kotlin.time")
+        if (this.library.name === "arkoala") {
+            this.collector.addFeature("CallbackTransformer", "koalaui.arkoala")
+        }
 
         const hookMethods = peerGeneratorConfiguration().hooks.get(this.clazz.className)
         const handwrittenPackage = this.library.layout.handwrittenPackage()
@@ -818,6 +826,10 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
     override mangle(className: string): string {
         return className
+    }
+
+    protected override processTag(value: string): string {
+        return value.replaceAll(`'`, `"`)
     }
 
     override get namespacePrefix(): string {

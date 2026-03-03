@@ -1,5 +1,7 @@
 package test_hierarchy;
 
+import test_synthetics.test_synthetics;
+
 interface ParentI {
     attribute boolean parentFlag;
     attribute number parentCount;
@@ -10,6 +12,10 @@ interface ChildI: ParentI {
     attribute boolean childFlag;
     attribute number childCount;
     attribute String childText;
+};
+
+interface ChildI2: test_synthetics.TestSyntheticType {
+    attribute boolean childFlag;
 };
 
 [Entity=Class]
@@ -42,6 +48,7 @@ interface ChildC: ParentC {
 
 ParentI testParentInterfaceHierarchy(ParentI arg);
 ChildI testChildInterfaceHierarchy(ChildI arg);
+ChildI2 testChildInterface2Hierarchy(ChildI2 arg);
 // order in unions affects generation, but discrimination conditions must be
 // generated correctly in both cases
 (ChildI or ParentI) testInterfaceHierarchyUnion1((ChildI or ParentI) arg);

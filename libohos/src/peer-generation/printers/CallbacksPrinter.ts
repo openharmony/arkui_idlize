@@ -163,6 +163,9 @@ class DeserializeCallbacksVisitor {
                 "KSerializerBuffer", "NativeBuffer", "ThrowsWrapper",
             ], "koalaui.interop")
             this.imports.addFeature("Instant", "kotlin.time")
+            if (this.libraryName === "arkoala") {
+                this.imports.addFeature("CallbackTransformer", "koalaui.arkoala")
+            }
             for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
                 collectDeclItself(this.library, callback, this.imports)
                 collectDeclDependencies(this.library, callback, this.imports, { expandTypedefs: true })

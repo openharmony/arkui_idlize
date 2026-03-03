@@ -214,6 +214,9 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
             "Promise",
         ], "koalaui.interop")
         collector.addFeature("Instant", "kotlin.time")
+        if (library.name === "arkoala") {
+            collector.addFeature("CallbackTransformer", "koalaui.arkoala")
+        }
     }
     collectDeclItself(library, idl.createReferenceType('idlize.internal.CallbackKind'), collector)
     collectDeclItself(library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), collector)
