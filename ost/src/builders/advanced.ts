@@ -958,6 +958,174 @@ class IfBuilder<P> {
 }
 
 /**
+ * Builder for creating block/compound statements (sequences of statements).
+ *
+ * @typeParam P - The type returned by the continuation function (usually LWStatement[] or a parent builder)
+ *
+ * @example
+ * ```typescript
+ * // Create a block with multiple statements
+ * const block = Builders.block()
+ *   .statements([
+ *     S.declaration('x', T.number(), true, 1),
+ *     S.declaration('y', T.number(), true, 2)
+ *   ])
+ *   .$();
+ *
+ * // Create a block using builder methods
+ * const block2 = Builders.block()
+ *   .decl('x', T.number()).value(1).$()
+ *   .decl('y', T.number()).value(2).$()
+ *   .$();
+ * ```
+ */
+class BlockBuilder<P> {
+    /**
+     * @param _cont - Continuation function that receives the built statement array
+     */
+    constructor(private _cont: (stmts: LWStatement[]) => P) {}
+    protected _body: LWStatement[] = []
+    /**
+     * Add multiple statements to the block.
+     *
+     * @param stmts - Array of statements to add
+     * @returns This builder for chaining
+     */
+    statements(stmts: LWStatement[]) { this._body.push(...stmts); return this }
+    /**
+     * Create a binary expression statement and add it to the block.
+     * Returns a BinaryBuilder for specifying left and right operands.
+     *
+     * @param op - Binary operator (e.g., '+', '-', '*', '/', '&&', '||', '==', '<')
+     * @returns BinaryBuilder for deferred construction
+     */
+    binary(op: string): BinaryBuilder<BlockBuilder<P>> {
+        return new BinaryBuilder(stmt => {
+            this._body.push(S.e(stmt))
+            return this
+        }, op)
+    }
+    /**
+     * Create a unary expression statement and add it to the block.
+     * Returns a UnaryBuilder for specifying the operand.
+     *
+     * @param op - Unary operator (e.g., '-', '!', '~', '++', '--')
+     * @returns UnaryBuilder for deferred construction
+     */
+    unary(op: string): UnaryBuilder<BlockBuilder<P>> {
+        return new UnaryBuilder(stmt => {
+            this._body.push(S.e(stmt))
+            return this
+        }, op)
+    }
+    /**
+     * Create a nested block statement and add it to the block.
+     * Returns a BlockBuilder for specifying the nested block's statements.
+     *
+     * @returns BlockBuilder for deferred construction
+     */
+    block(): BlockBuilder<BlockBuilder<P>> {
+        return new BlockBuilder(stmts => {
+            this._body.push(S.block(stmts))
+            return this
+        })
+    }
+    /**
+     * Create a function call statement and add it to the block.
+     * Returns a CallBuilder for specifying function, receiver, and arguments.
+     *
+     * @param func - Optional function name or expression
+     * @returns CallBuilder for deferred construction
+     */
+    call(func?: string | LWExpression): CallBuilder<BlockBuilder<P>> {
+        return new CallBuilder(stmt => {
+            this._body.push(S.e(stmt))
+            return this
+        }, func)
+    }
+    /**
+     * Create a variable declaration statement and add it to the block.
+     * Returns a DeclarationBuilder for specifying variable properties and initial value.
+     *
+     * @param name - Variable name
+     * @param type - Optional variable type (defaults to auto)
+     * @returns DeclarationBuilder for deferred construction
+     */
+    decl(name: string, type?: LWType): DeclarationBuilder<BlockBuilder<P>> {
+        return new DeclarationBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        }, name, type)
+    }
+    /**
+     * Create an if statement and add it to the block.
+     * Returns an IfBuilder for specifying condition and branches.
+     *
+     * @returns IfBuilder for deferred construction
+     */
+    if(): IfBuilder<BlockBuilder<P>> {
+        return new IfBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        })
+    }
+    /**
+     * Create a switch statement and add it to the block.
+     * Returns a SwitchBuilder for specifying selector, cases, and default clause.
+     *
+     * @returns SwitchBuilder for deferred construction
+     */
+    switch(): SwitchBuilder<BlockBuilder<P>> {
+        return new SwitchBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        })
+    }
+    /**
+     * Create a loop statement and add it to the block.
+     * Returns a LoopBuilder for specifying initialization, condition, step, and body.
+     *
+     * @returns LoopBuilder for deferred construction
+     */
+    loop(): LoopBuilder<BlockBuilder<P>> {
+        return new LoopBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        })
+    }
+    /**
+     * Create a return statement or expression statement and add it to the block.
+     * Returns a ReturnBuilder for specifying the return value.
+     *
+     * @param type - Optional return type (void for expression statements)
+     * @returns ReturnBuilder for deferred construction
+     */
+    return(type?: LWType): ReturnBuilder<BlockBuilder<P>> {
+        return new ReturnBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        }, type)
+    }
+    /**
+     * Add a break statement to the block.
+     *
+     * @returns This builder for chaining
+     */
+    break(): BlockBuilder<P> {
+        this._body.push(S.break())
+        return this
+    }
+    /**
+     * Finalize the builder and return the constructed block statement.
+     *
+     * @returns The built block statement (array of statements)
+     */
+    $(): P {
+        return this._cont(this._body)
+    }
+}
+
+/**
  * Builder for creating switch statements.
  *
  * @typeParam P - The type returned by the continuation function (usually SwitchStatement or a parent builder)
@@ -989,20 +1157,26 @@ class IfBuilder<P> {
  * Builders.switch().case(0).case(1).call('print').arg('small').$().$()
  * ```
  */
-class CaseBuilder<P> {
+class CaseBuilder<P> extends BlockBuilder<P> {
     private _values: ConstantExpression[] = []
-    private _body: LWStatement[] = []
 
     /**
-     * @param _parent - The parent SwitchBuilder to return to when finalizing
-     * @param _pushCase - Callback to push the completed case into the parent's cases array
+     * @param parent - The parent SwitchBuilder to return to when finalizing
+     * @param pushCase - Callback to push the completed case into the parent's cases array
      * @param initialValue - The first case value
      */
     constructor(
-        private _parent: P,
-        private _pushCase: (c: { value: ConstantExpression | ConstantExpression[], body: LWStatement[] }) => void,
+        parent: P,
+        pushCase: (c: { value: ConstantExpression | ConstantExpression[], body: LWStatement[] }) => void,
         initialValue: ExpressionLike
     ) {
+        super(stmts => {
+            pushCase({
+                value: this._values.length === 1 ? this._values[0] : this._values,
+                body: stmts
+            })
+            return parent
+        })
         this._values.push(typeof initialValue === 'object' ? initialValue as ConstantExpression : E.c(initialValue))
     }
 
@@ -1019,96 +1193,14 @@ class CaseBuilder<P> {
     }
 
     /**
-     * Add a function call statement to the case body.
-     * Returns a CallBuilder for specifying function, receiver, and arguments.
+     * Add multiple case values to the current case group (fall-through).
      *
-     * @param func - Optional function name or expression
-     * @returns CallBuilder for deferred construction
-     */
-    call(func?: string | LWExpression): CallBuilder<CaseBuilder<P>> {
-        return new CallBuilder(expr => {
-            this._body.push(S.e(expr))
-            return this
-        }, func)
-    }
-
-    /**
-     * Add a return statement to the case body.
-     * Returns a ReturnBuilder for specifying the return value.
-     *
-     * @param type - Optional return type
-     * @returns ReturnBuilder for deferred construction
-     */
-    return(type?: LWType): ReturnBuilder<CaseBuilder<P>> {
-        return new ReturnBuilder(stmt => {
-            this._body.push(stmt)
-            return this
-        }, type)
-    }
-
-    /**
-     * Add a variable declaration statement to the case body.
-     * Returns a DeclarationBuilder for specifying variable properties and initial value.
-     *
-     * @param name - Variable name
-     * @param type - Optional variable type
-     * @returns DeclarationBuilder for deferred construction
-     */
-    decl(name: string, type?: LWType): DeclarationBuilder<CaseBuilder<P>> {
-        return new DeclarationBuilder(stmt => {
-            this._body.push(stmt)
-            return this
-        }, name, type)
-    }
-
-    /**
-     * Add a block/compound statement to the case body.
-     * Returns a BlockBuilder for specifying multiple statements.
-     *
-     * @returns BlockBuilder for deferred construction
-     */
-    block(): BlockBuilder<CaseBuilder<P>> {
-        return new BlockBuilder(stmts => {
-            this._body.push(S.block(stmts))
-            return this
-        })
-    }
-
-    /**
-     * Add pre-built statements to the case body.
-     *
-     * @param stmts - Array of statements to add
+     * @param values - Array of case values
      * @returns This CaseBuilder for chaining
      */
-    statements(stmts: LWStatement[]) { this._body.push(...stmts); return this }
-
-    /**
-     * Add a break statement to the case body and finalize the case group.
-     * Returns the parent SwitchBuilder for further chaining.
-     *
-     * @returns The parent SwitchBuilder
-     */
-    break(): P {
-        this._body.push(S.break())
-        this._pushCase({
-            value: this._values.length === 1 ? this._values[0] : this._values,
-            body: this._body
-        })
-        return this._parent
-    }
-
-    /**
-     * Finalize the case group without a break statement (fall-through).
-     * Returns the parent SwitchBuilder for further chaining.
-     *
-     * @returns The parent SwitchBuilder
-     */
-    $(): P {
-        this._pushCase({
-            value: this._values.length === 1 ? this._values[0] : this._values,
-            body: this._body
-        })
-        return this._parent
+    values(values: ExpressionLike[]): CaseBuilder<P> {
+        values.forEach(v => this.case(v))
+        return this
     }
 }
 
@@ -1393,174 +1485,6 @@ class StatementBuilder<P> {
     $(): P {
         check("Statement", this._stmt)
         return this._cont(this._stmt!)
-    }
-}
-
-/**
- * Builder for creating block/compound statements (sequences of statements).
- *
- * @typeParam P - The type returned by the continuation function (usually LWStatement[] or a parent builder)
- *
- * @example
- * ```typescript
- * // Create a block with multiple statements
- * const block = Builders.block()
- *   .statements([
- *     S.declaration('x', T.number(), true, 1),
- *     S.declaration('y', T.number(), true, 2)
- *   ])
- *   .$();
- *
- * // Create a block using builder methods
- * const block2 = Builders.block()
- *   .decl('x', T.number()).value(1).$()
- *   .decl('y', T.number()).value(2).$()
- *   .$();
- * ```
- */
-class BlockBuilder<P> {
-    /**
-     * @param _cont - Continuation function that receives the built statement array
-     */
-    constructor(private _cont: (stmts: LWStatement[]) => P) {}
-    private _stmts: LWStatement[] = []
-    /**
-     * Add multiple statements to the block.
-     *
-     * @param stmts - Array of statements to add
-     * @returns This builder for chaining
-     */
-    statements(stmts: LWStatement[]) { this._stmts.push(...stmts); return this }
-    /**
-     * Create a binary expression statement and add it to the block.
-     * Returns a BinaryBuilder for specifying left and right operands.
-     *
-     * @param op - Binary operator (e.g., '+', '-', '*', '/', '&&', '||', '==', '<')
-     * @returns BinaryBuilder for deferred construction
-     */
-    binary(op: string): BinaryBuilder<BlockBuilder<P>> {
-        return new BinaryBuilder(stmt => {
-            this._stmts.push(S.e(stmt))
-            return this
-        }, op)
-    }
-    /**
-     * Create a unary expression statement and add it to the block.
-     * Returns a UnaryBuilder for specifying the operand.
-     *
-     * @param op - Unary operator (e.g., '-', '!', '~', '++', '--')
-     * @returns UnaryBuilder for deferred construction
-     */
-    unary(op: string): UnaryBuilder<BlockBuilder<P>> {
-        return new UnaryBuilder(stmt => {
-            this._stmts.push(S.e(stmt))
-            return this
-        }, op)
-    }
-    /**
-     * Create a nested block statement and add it to the block.
-     * Returns a BlockBuilder for specifying the nested block's statements.
-     *
-     * @returns BlockBuilder for deferred construction
-     */
-    block(): BlockBuilder<BlockBuilder<P>> {
-        return new BlockBuilder(stmts => {
-            this._stmts.push(S.block(stmts))
-            return this
-        })
-    }
-    /**
-     * Create a function call statement and add it to the block.
-     * Returns a CallBuilder for specifying function, receiver, and arguments.
-     *
-     * @param func - Optional function name or expression
-     * @returns CallBuilder for deferred construction
-     */
-    call(func?: string | LWExpression): CallBuilder<BlockBuilder<P>> {
-        return new CallBuilder(stmt => {
-            this._stmts.push(S.e(stmt))
-            return this
-        }, func)
-    }
-    /**
-     * Create a variable declaration statement and add it to the block.
-     * Returns a DeclarationBuilder for specifying variable properties and initial value.
-     *
-     * @param name - Variable name
-     * @param type - Optional variable type (defaults to auto)
-     * @returns DeclarationBuilder for deferred construction
-     */
-    decl(name: string, type?: LWType): DeclarationBuilder<BlockBuilder<P>> {
-        return new DeclarationBuilder(stmt => {
-            this._stmts.push(stmt)
-            return this
-        }, name, type)
-    }
-    /**
-     * Create an if statement and add it to the block.
-     * Returns an IfBuilder for specifying condition and branches.
-     *
-     * @returns IfBuilder for deferred construction
-     */
-    if(): IfBuilder<BlockBuilder<P>> {
-        return new IfBuilder(stmt => {
-            this._stmts.push(stmt)
-            return this
-        })
-    }
-    /**
-     * Create a switch statement and add it to the block.
-     * Returns a SwitchBuilder for specifying selector, cases, and default clause.
-     *
-     * @returns SwitchBuilder for deferred construction
-     */
-    switch(): SwitchBuilder<BlockBuilder<P>> {
-        return new SwitchBuilder(stmt => {
-            this._stmts.push(stmt)
-            return this
-        })
-    }
-    /**
-     * Create a loop statement and add it to the block.
-     * Returns a LoopBuilder for specifying initialization, condition, step, and body.
-     *
-     * @returns LoopBuilder for deferred construction
-     */
-    loop(): LoopBuilder<BlockBuilder<P>> {
-        return new LoopBuilder(stmt => {
-            this._stmts.push(stmt)
-            return this
-        })
-    }
-    /**
-     * Create a return statement or expression statement and add it to the block.
-     * Returns a ReturnBuilder for specifying the return value.
-     *
-     * @param type - Optional return type (void for expression statements)
-     * @returns ReturnBuilder for deferred construction
-     */
-    return(type?: LWType): ReturnBuilder<BlockBuilder<P>> {
-        return new ReturnBuilder(stmt => {
-            this._stmts.push(stmt)
-            return this
-        }, type)
-    }
-    /**
-     * Add a break statement to the block.
-     *
-     * @returns This builder for chaining
-     */
-    break(): BlockBuilder<P> {
-        this._stmts.push(S.break())
-        return this
-    }
-    /**
-     * Finalize the builder and return the constructed block statement.
-     *
-     * @returns The built block statement (array of statements)
-     */
-    $(): P {
-        return this._cont(this._stmts)
     }
 }
 
