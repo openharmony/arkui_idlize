@@ -14,22 +14,29 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, D, E, Hs, Md, T, Ts } from "@idlizer/ost"
+import { Builders, E, Hs, Md, T, Ts } from "@idlizer/ost"
 import { expectType, managedName } from "../common.js"
 import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
-import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
+import { capitalize, getSuperType, isInExternalModule, isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine/index.js"
 import { ProducerResult } from "@idlizer/kit"
+import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
 
 export const structureProducer = createProducer(
   { is: idl.isInterface, role: 'managed' },
   (node, ctx) => {
     const declName = managedName(idl.getFQName(node))
-    return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx) :
-      isMaterialized(node, ctx.library) ? materializedInterface(node, declName, ctx) :
-      dataInterface(node, declName, ctx)
+    return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx)
+      : skip(node) ? { continuation: T.c(declName), declarations: [] }
+      : isMaterialized(node, ctx.library) ? materializedInterface(node, declName, ctx)
+      : dataInterface(node, declName, ctx)
   }
 )
+
+function skip(node: idl.IDLInterface): boolean {
+  return isInExternalModule(node) ||
+    peerGeneratorConfiguration().isHandWritten(node.name)
+}
 
 const tuple: OhosProducer<idl.IDLInterface, Role<idl.IDLInterface>> = (node, ctx) => {
   return {
@@ -40,27 +47,21 @@ const tuple: OhosProducer<idl.IDLInterface, Role<idl.IDLInterface>> = (node, ctx
 
 function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
   const superType = getSuperType(node, ctx.library)
-  const decl = D.class(name,
-    node.properties.map(prop => {
-      const modifiers = [
-        ...prop.isOptional ? [Md.optional()] : [],
-        ...prop.isReadonly ? [Md.readonly()] : [],
-        ...prop.isStatic ? [Md.static()] : [],
-      ]
-      return {
-        name: prop.name,
-        type: expectType(ctx, prop.type, 'managed'),
-        modifiers,
-      }
-    }),
-    [], {
-    kind: idl.isClassSubkind(node) ? 'class' : 'interface',
-    base: superType ? expectType(ctx, superType, 'managed') : undefined
-    }
-  )
   return {
     continuation: T.c(name),
-    declarations: [decl],
+    declarations: [
+      Builders.class(name)
+        .fields(node.properties.map(prop => {
+          const modifiers = [
+            ...prop.isOptional ? [Md.optional()] : [],
+            ...prop.isReadonly ? [Md.readonly()] : [],
+            ...prop.isStatic ? [Md.static()] : [],
+          ]
+          return Builders.field(prop.name).type(expectType(ctx, prop.type, 'managed')).modifiers(modifiers).$()
+        }))
+        .kind(idl.isClassSubkind(node) ? 'class' : 'interface')
+        .extends(superType ? expectType(ctx, superType, 'managed') : undefined).$()
+    ]
   }
 }
 
