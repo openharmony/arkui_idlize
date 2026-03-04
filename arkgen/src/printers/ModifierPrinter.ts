@@ -145,7 +145,9 @@ class ModifiersFileVisitor {
 
     castResetType(writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
         if (!sig.isArgOptional(index)) {
-            return writer.makeCast(writer.makeString(`undefined`), sig.args[index])
+            const type = sig.args[index]
+            const resetValue = idl.isOptionalType(type) ? writer.makeNull(type) : writer.makeUndefined()
+            return writer.makeCast(resetValue, type)
         }
         return writer.makeCast(writer.makeString(`undefined`), idl.createUnionType([sig.args[index], idl.createPrimitiveType('undefined')]))
     }

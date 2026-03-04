@@ -159,6 +159,15 @@ function checkOptional() {
     checkNativeLog("optional string undefined", () => comp.propStringOptional(undefined),
         `setPropStringOptional({.tag=INTEROP_TAG_UNDEFINED, .value={}})`)
 
+    checkNativeLog("numberOrUndefined undefined", () => comp.propNumberOrUndefined(undefined),
+        `setPropNumberOrUndefined({.tag=INTEROP_TAG_UNDEFINED, .value={}})`)
+    checkNativeLog("numberOrUndefined number", () => comp.propNumberOrUndefined(10),
+        `setPropNumberOrUndefined({.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=10}})`)
+    checkNativeLog("numberOrNull null", () => comp.propNumberOrNull(null),
+        `setPropNumberOrNull({.tag=INTEROP_TAG_UNDEFINED, .value={}})`)
+    checkNativeLog("numberOrNull number", () => comp.propNumberOrNull(11),
+        `setPropNumberOrNull({.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=11}})`)
+
     checkNativeLog("method", () => comp.method(true, 555, "i"),
         `setMethod(true, {.tag=102, .i32=555}, {.chars="i", .length=1})`)
     checkNativeLog("method ", () => comp.method(false, -555, "jk"),
