@@ -64,14 +64,18 @@ export function getOrPut<K, V>(map: Map<K, V>, key: K, create: (key: K) => V): V
     return created
 }
 
-export function indentedBy(input: string, indentedBy: number): string {
+export function indentedBy(input: string, indent: number): string {
     if (input.length > 0 || input.endsWith('\n')) {
         let space = ""
-        for (let i = 0; i < indentedBy; i++) space += "    "
+        for (let i = 0; i < indent; i++) space += "    "
         return `${space}${input}`
     } else {
         return ""
     }
+}
+
+export function indentedText(input: string, indent: number): string {
+    return input.split("\n").map(line => indentedBy(line, indent)).join("\n")
 }
 
 export function forEachExpanding<T>(array: T[], action: (element: T) => void): void {
