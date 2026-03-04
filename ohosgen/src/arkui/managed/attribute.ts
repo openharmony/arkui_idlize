@@ -222,16 +222,15 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
                 .selector().access(E.c(i)).receiver('flagArray').$().$()
                 .case(1)
                   .call().function().access('set' + capitalize(prop.name)).receiver('peer').$().$()
-                    .arg().access(valueFieldName(prop.name, i)).receiver('this').$().$().$()
-                  .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(2).$()
-                  .break().$()
+                    .arg().access(valueFieldName(prop.name, i)).receiver('this').$().$().$().$()
+                    // fallthrough
                 .case(3)
                   .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(2).$()
                   .break().$()
                 .default()
-                  .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(0).$()
                   .call().function().access('set' + capitalize(prop.name)).receiver('peer').$().$()
                     .arg('undefined').$()
+                  .binary('=').left().access(E.c(i)).receiver('flagArray').$().$().right(0).$()
                   .break().$().$().$().$().$())).$().$()
 
     // mergeModifier method
