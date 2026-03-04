@@ -33,7 +33,7 @@ export const optionsProducer = createProducer<idl.IDLCallable, ArkUIRole<idl.IDL
     return {
       continuation: E.v(methodName),
       declarations: [
-        Builders.class(attrName + 'Attribute').interface()
+        Builders.class(attrName + 'Attribute').kind('interface')
           .method(methodName)
             .parameters(params)
             .returns(Ts.prim.self).$().$(),

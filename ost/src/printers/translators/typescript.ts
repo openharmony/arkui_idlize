@@ -70,6 +70,7 @@ export class ConvertTSTypes extends IdentityTransformer {
         case std.names.types.array:
         case std.names.types.map:
         case std.names.types.vector:
+        case std.names.types.promise:
           return T.c(this.convertSpecialName(type.name), ...type.args)
       }
     }
@@ -97,6 +98,7 @@ export class ConvertTSTypes extends IdentityTransformer {
       case std.names.types.vector: return 'Array'
       case std.names.types.array: return 'Array'
       case std.names.types.map: return 'Map'
+      case std.names.types.promise: return 'Promise'
     }
     return name
   }

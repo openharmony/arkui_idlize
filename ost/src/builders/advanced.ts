@@ -1854,7 +1854,7 @@ class StructBuilder extends StructLikeBuilder {
  *
  * // Create an interface
  * const interface = Builders.class('Drawable')
- *   .interface()
+ *   .kind('interface')
  *   .method('draw')
  *     .returns(T.void())
  *     .$()
@@ -1910,14 +1910,14 @@ class ClassBuilder extends StructLikeBuilder {
      * @example
      * ```typescript
      * Builders.class('Drawable')
-     *   .interface()
+     *   .kind('interface')
      *   .method('draw')
      *     .returns(T.void())
      *     .$()
      *   .$();
      * ```
      */
-    interface() { this._oop!.kind = 'interface'; return this }
+    kind(kind: 'class' | 'interface') { this._oop!.kind = kind; return this }
     /**
      * Add a method to the class/interface.
      * Returns a FunctionBuilder for defining the method's signature and body.

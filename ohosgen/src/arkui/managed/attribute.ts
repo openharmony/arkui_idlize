@@ -49,7 +49,7 @@ export const attributeProducer = createProducer(
     return {
       continuation: T.c(attrName),
       declarations: [
-        Builders.class(attrName).interface()
+        Builders.class(attrName).kind('interface')
           .extends(node.inheritance.length
               ? expectType(ctx, node.inheritance[0], 'managed')
               : undefined)
@@ -285,11 +285,11 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
           .return().value('this').$()
           .$().$()))
 
-    // attributeModifier stub methods
-    .methods(attrModProps.map(prop =>
-      Builders.func(prop.name)
-        .param('value').type(expectType(ctx, prop.type, 'managed')).$()
-        .returns(Ts.prim.self)
-        .block().unimplemented().$().$()))
+    /// attributeModifier stub methods
+    // .methods(attrModProps.map(prop =>
+    //   Builders.func(prop.name)
+    //     .param('value').type(expectType(ctx, prop.type, 'managed')).$()
+    //     .returns(Ts.prim.self)
+    //     .block().unimplemented().$().$()))
     .$()
 }
