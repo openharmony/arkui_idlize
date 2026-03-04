@@ -20,14 +20,5 @@ node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
     --arkgen-interop-types ./runner/interop-types/src/cpp/interop-types.h \
     --scraper-options-file ./runner/configs/scraper-config.json \
     --arkgen "node arkgen" --etsgen "node etsgen" \
+    --target all \
     --output "./out"
-
-node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
-    --sdk-stage prepared \
-    --arkgen-options-file ./arkgen/generation-config/config.json \
-    --etsgen-options-file ./etsgen/generator-config.json \
-    --arkgen-interop-types ./runner/interop-types/src/cpp/interop-types.h \
-    --scraper-options-file ./runner/configs/scraper-config.json \
-    --arkgen "node arkgen" --etsgen "node etsgen" \
-    --target libace \
-    --output "./out/libace"
