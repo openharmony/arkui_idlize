@@ -92,7 +92,7 @@ export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
         const methods: lw.FunctionDeclaration[] = []
         const implementations: lw.LWType[] = []
         let base: lw.LWType | undefined
-        const kind = 'class'
+        let kind: 'interface' | 'class' = 'interface'
         records.forEach(rec => {
             if (rec.kind === lw.LWKind.ClassDeclaration) {
                 rec.modifiers.forEach(mod => {
@@ -102,9 +102,13 @@ export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
                 })
                 fields.push(...rec.fields)
                 methods.push(...rec.methods)
-                implementations.push(...rec.oop?.implementations ?? [])
-                if (rec.oop?.base)
-                    base = rec.oop.base
+                if (rec.oop) {
+                    implementations.push(...rec.oop.implementations ?? [])
+                    if (rec.oop.base)
+                        base = rec.oop.base
+                    if (rec.oop.kind === 'class')
+                        kind = 'class'
+                }
             } else {
                 fields.push(...rec.members)
             }

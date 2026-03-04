@@ -1,0 +1,2082 @@
+{
+  "compilerOptions": {
+    "package": "arkui",
+    "outDir": "./build",
+    "baseUrl": "./out.m3/sig/arkoala-arkts/arkui/generated",
+    "paths": {
+      "@koalaui/compat": [
+        "../../../../../../../../external/compat/src/arkts"
+      ],
+      "@koalaui/common": [
+        "../../../../../../../../external/common/src"
+      ],
+      "@koalaui/interop": [
+        "../../../../../../../../external/interop/src/arkts"
+      ],
+      "@ohos.InputMethodSubtype": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.InputMethodSubtype"
+      ],
+      "@ohos.UiTest": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.UiTest"
+      ],
+      "@ohos.WallpaperExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.WallpaperExtensionAbility"
+      ],
+      "@ohos.ability.errorCode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.ability.errorCode"
+      ],
+      "@ohos.ability.screenLockFileManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.ability.screenLockFileManager"
+      ],
+      "@ohos.abilityAccessCtrl": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.abilityAccessCtrl"
+      ],
+      "@ohos.accessibility.config": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.accessibility.config"
+      ],
+      "@ohos.accessibility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.accessibility"
+      ],
+      "@ohos.account.appAccount": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.account.appAccount"
+      ],
+      "@ohos.account.distributedAccount": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.account.distributedAccount"
+      ],
+      "@ohos.account.osAccount": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.account.osAccount"
+      ],
+      "@ohos.ai.intelligentVoice": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.ai.intelligentVoice"
+      ],
+      "@ohos.ai.mindSporeLite": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.ai.mindSporeLite"
+      ],
+      "@ohos.animation.windowAnimationManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.animation.windowAnimationManager"
+      ],
+      "@ohos.animator": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.animator"
+      ],
+      "@ohos.app.ability.Ability": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.Ability"
+      ],
+      "@ohos.app.ability.AbilityConstant": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.AbilityConstant"
+      ],
+      "@ohos.app.ability.AbilityLifecycleCallback": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.AbilityLifecycleCallback"
+      ],
+      "@ohos.app.ability.AbilityStage": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.AbilityStage"
+      ],
+      "@ohos.app.ability.ActionExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.ActionExtensionAbility"
+      ],
+      "@ohos.app.ability.ApplicationStateChangeCallback": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.ApplicationStateChangeCallback"
+      ],
+      "@ohos.app.ability.AtomicServiceOptions": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.AtomicServiceOptions"
+      ],
+      "@ohos.app.ability.AutoFillExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.AutoFillExtensionAbility"
+      ],
+      "@ohos.app.ability.CompletionHandler": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.CompletionHandler"
+      ],
+      "@ohos.app.ability.Configuration": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.Configuration"
+      ],
+      "@ohos.app.ability.ConfigurationConstant": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.ConfigurationConstant"
+      ],
+      "@ohos.app.ability.DriverExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.DriverExtensionAbility"
+      ],
+      "@ohos.app.ability.EnvironmentCallback": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.EnvironmentCallback"
+      ],
+      "@ohos.app.ability.ExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.ExtensionAbility"
+      ],
+      "@ohos.app.ability.InsightIntentContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.InsightIntentContext"
+      ],
+      "@ohos.app.ability.InsightIntentExecutor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.InsightIntentExecutor"
+      ],
+      "@ohos.app.ability.InteropAbilityLifecycleCallback": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.InteropAbilityLifecycleCallback"
+      ],
+      "@ohos.app.ability.MediaControlExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.MediaControlExtensionAbility"
+      ],
+      "@ohos.app.ability.OpenLinkOptions": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.OpenLinkOptions"
+      ],
+      "@ohos.app.ability.PhotoEditorExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.PhotoEditorExtensionAbility"
+      ],
+      "@ohos.app.ability.PrintExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.PrintExtensionAbility"
+      ],
+      "@ohos.app.ability.ServiceExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.ServiceExtensionAbility"
+      ],
+      "@ohos.app.ability.ShareExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.ShareExtensionAbility"
+      ],
+      "@ohos.app.ability.StartOptions": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.StartOptions"
+      ],
+      "@ohos.app.ability.UIAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.UIAbility"
+      ],
+      "@ohos.app.ability.UIExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.UIExtensionAbility"
+      ],
+      "@ohos.app.ability.UIExtensionContentSession": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.UIExtensionContentSession"
+      ],
+      "@ohos.app.ability.UserAuthExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.UserAuthExtensionAbility"
+      ],
+      "@ohos.app.ability.Want": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.Want"
+      ],
+      "@ohos.app.ability.abilityDelegatorRegistry": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.abilityDelegatorRegistry"
+      ],
+      "@ohos.app.ability.abilityManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.abilityManager"
+      ],
+      "@ohos.app.ability.appManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.appManager"
+      ],
+      "@ohos.app.ability.appRecovery": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.appRecovery"
+      ],
+      "@ohos.app.ability.application": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.application"
+      ],
+      "@ohos.app.ability.autoFillManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.autoFillManager"
+      ],
+      "@ohos.app.ability.autoStartupManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.autoStartupManager"
+      ],
+      "@ohos.app.ability.common": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.common"
+      ],
+      "@ohos.app.ability.contextConstant": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.contextConstant"
+      ],
+      "@ohos.app.ability.dataUriUtils": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.dataUriUtils"
+      ],
+      "@ohos.app.ability.dialogRequest": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.dialogRequest"
+      ],
+      "@ohos.app.ability.dialogSession": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.dialogSession"
+      ],
+      "@ohos.app.ability.insightIntent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.insightIntent"
+      ],
+      "@ohos.app.ability.insightIntentDriver": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.insightIntentDriver"
+      ],
+      "@ohos.app.ability.missionManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.missionManager"
+      ],
+      "@ohos.app.ability.wantAgent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.wantAgent"
+      ],
+      "@ohos.app.ability.wantConstant": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.ability.wantConstant"
+      ],
+      "@ohos.app.businessAbilityRouter": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.businessAbilityRouter"
+      ],
+      "@ohos.app.form.FormEditExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.form.FormEditExtensionAbility"
+      ],
+      "@ohos.app.form.FormExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.form.FormExtensionAbility"
+      ],
+      "@ohos.app.form.formBindingData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.form.formBindingData"
+      ],
+      "@ohos.app.form.formInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.form.formInfo"
+      ],
+      "@ohos.app.form.formProvider": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.app.form.formProvider"
+      ],
+      "@ohos.application.AccessibilityExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.application.AccessibilityExtensionAbility"
+      ],
+      "@ohos.application.BackupExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.application.BackupExtensionAbility"
+      ],
+      "@ohos.application.DataShareExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.application.DataShareExtensionAbility"
+      ],
+      "@ohos.application.StaticSubscriberExtensionAbility": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.application.StaticSubscriberExtensionAbility"
+      ],
+      "@ohos.application.StaticSubscriberExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.application.StaticSubscriberExtensionContext"
+      ],
+      "@ohos.application.formError": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.application.formError"
+      ],
+      "@ohos.application.testRunner": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.application.testRunner"
+      ],
+      "@ohos.application.uriPermissionManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.application.uriPermissionManager"
+      ],
+      "@ohos.arkui.ArcList": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.ArcList"
+      ],
+      "@ohos.arkui.ArcScrollBar": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.ArcScrollBar"
+      ],
+      "@ohos.arkui.ArcSwiper": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.ArcSwiper"
+      ],
+      "@ohos.arkui.Parallelize": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.Parallelize"
+      ],
+      "@ohos.arkui.Test": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.Test"
+      ],
+      "@ohos.arkui.UIContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.UIContext"
+      ],
+      "@ohos.arkui.advanced.ComposeListItem": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.ComposeListItem"
+      ],
+      "@ohos.arkui.advanced.ComposeTitleBar": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.ComposeTitleBar"
+      ],
+      "@ohos.arkui.advanced.Dialog": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.Dialog"
+      ],
+      "@ohos.arkui.advanced.DialogV2": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.DialogV2"
+      ],
+      "@ohos.arkui.advanced.EditableTitleBar": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.EditableTitleBar"
+      ],
+      "@ohos.arkui.advanced.ExceptionPrompt": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.ExceptionPrompt"
+      ],
+      "@ohos.arkui.advanced.Filter": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.Filter"
+      ],
+      "@ohos.arkui.advanced.FoldSplitContainer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.FoldSplitContainer"
+      ],
+      "@ohos.arkui.advanced.FullScreenLaunchComponent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.FullScreenLaunchComponent"
+      ],
+      "@ohos.arkui.advanced.GridObjectSortComponent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.GridObjectSortComponent"
+      ],
+      "@ohos.arkui.advanced.MultiNavigation": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.MultiNavigation"
+      ],
+      "@ohos.arkui.advanced.ProgressButton": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.ProgressButton"
+      ],
+      "@ohos.arkui.advanced.ProgressButtonV2": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.ProgressButtonV2"
+      ],
+      "@ohos.arkui.advanced.SelectTitleBar": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.SelectTitleBar"
+      ],
+      "@ohos.arkui.advanced.SelectionMenu": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.SelectionMenu"
+      ],
+      "@ohos.arkui.advanced.SplitLayout": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.SplitLayout"
+      ],
+      "@ohos.arkui.advanced.SubHeader": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.SubHeader"
+      ],
+      "@ohos.arkui.advanced.SubHeaderV2": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.SubHeaderV2"
+      ],
+      "@ohos.arkui.advanced.SwipeRefresher": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.SwipeRefresher"
+      ],
+      "@ohos.arkui.advanced.TabTitleBar": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.TabTitleBar"
+      ],
+      "@ohos.arkui.advanced.ToolBar": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.ToolBar"
+      ],
+      "@ohos.arkui.advanced.ToolBarV2": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.ToolBarV2"
+      ],
+      "@ohos.arkui.advanced.TreeView": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.advanced.TreeView"
+      ],
+      "@ohos.arkui.component": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.component"
+      ],
+      "@ohos.arkui.componentSnapshot": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.componentSnapshot"
+      ],
+      "@ohos.arkui.componentUtils": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.componentUtils"
+      ],
+      "@ohos.arkui.dragController": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.dragController"
+      ],
+      "@ohos.arkui.drawableDescriptor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.drawableDescriptor"
+      ],
+      "@ohos.arkui.inspector": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.inspector"
+      ],
+      "@ohos.arkui.modifier": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.modifier"
+      ],
+      "@ohos.arkui.node": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.node"
+      ],
+      "@ohos.arkui.observer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.observer"
+      ],
+      "@ohos.arkui.performanceMonitor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.performanceMonitor"
+      ],
+      "@ohos.arkui.shape": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.shape"
+      ],
+      "@ohos.arkui.stateManagement": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.stateManagement"
+      ],
+      "@ohos.arkui.stateManagement.joint": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.stateManagement.joint"
+      ],
+      "@ohos.arkui.theme": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.theme"
+      ],
+      "@ohos.arkui.uiExtension": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.arkui.uiExtension"
+      ],
+      "@ohos.base": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.base"
+      ],
+      "@ohos.batteryInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.batteryInfo"
+      ],
+      "@ohos.batteryStatistics": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.batteryStatistics"
+      ],
+      "@ohos.bluetooth.a2dp": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bluetooth.a2dp"
+      ],
+      "@ohos.bluetooth.access": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bluetooth.access"
+      ],
+      "@ohos.bluetooth.baseProfile": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bluetooth.baseProfile"
+      ],
+      "@ohos.bluetooth.ble": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bluetooth.ble"
+      ],
+      "@ohos.bluetooth.connection": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bluetooth.connection"
+      ],
+      "@ohos.bluetooth.constant": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bluetooth.constant"
+      ],
+      "@ohos.bluetooth.hfp": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bluetooth.hfp"
+      ],
+      "@ohos.bluetooth.hid": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bluetooth.hid"
+      ],
+      "@ohos.brightness": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.brightness"
+      ],
+      "@ohos.buffer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.buffer"
+      ],
+      "@ohos.bundle.appControl": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.appControl"
+      ],
+      "@ohos.bundle.bundleManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.bundleManager"
+      ],
+      "@ohos.bundle.bundleMonitor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.bundleMonitor"
+      ],
+      "@ohos.bundle.bundleResourceManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.bundleResourceManager"
+      ],
+      "@ohos.bundle.defaultAppManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.defaultAppManager"
+      ],
+      "@ohos.bundle.distributedBundleManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.distributedBundleManager"
+      ],
+      "@ohos.bundle.freeInstall": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.freeInstall"
+      ],
+      "@ohos.bundle.installer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.installer"
+      ],
+      "@ohos.bundle.launcherBundleManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.launcherBundleManager"
+      ],
+      "@ohos.bundle.overlay": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.overlay"
+      ],
+      "@ohos.bundle.shortcutManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.bundle.shortcutManager"
+      ],
+      "@ohos.charger": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.charger"
+      ],
+      "@ohos.commonEventManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.commonEventManager"
+      ],
+      "@ohos.configPolicy": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.configPolicy"
+      ],
+      "@ohos.cooperate": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.cooperate"
+      ],
+      "@ohos.curves": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.curves"
+      ],
+      "@ohos.customization.customConfig": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.customization.customConfig"
+      ],
+      "@ohos.data.DataShareResultSet": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.DataShareResultSet"
+      ],
+      "@ohos.data.ValuesBucket": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.ValuesBucket"
+      ],
+      "@ohos.data.dataShare": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.dataShare"
+      ],
+      "@ohos.data.dataSharePredicates": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.dataSharePredicates"
+      ],
+      "@ohos.data.distributedKVStore": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.distributedKVStore"
+      ],
+      "@ohos.data.preferences": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.preferences"
+      ],
+      "@ohos.data.relationalStore": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.relationalStore"
+      ],
+      "@ohos.data.unifiedDataChannel": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.unifiedDataChannel"
+      ],
+      "@ohos.data.uniformTypeDescriptor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.data.uniformTypeDescriptor"
+      ],
+      "@ohos.deviceInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.deviceInfo"
+      ],
+      "@ohos.deviceStatus.dragInteraction": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.deviceStatus.dragInteraction"
+      ],
+      "@ohos.display": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.display"
+      ],
+      "@ohos.distributedDeviceManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.distributedDeviceManager"
+      ],
+      "@ohos.distributedHardware.hardwareManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.distributedHardware.hardwareManager"
+      ],
+      "@ohos.driver.deviceManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.driver.deviceManager"
+      ],
+      "@ohos.effectKit": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.effectKit"
+      ],
+      "@ohos.enterprise.adminManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.enterprise.adminManager"
+      ],
+      "@ohos.enterprise.securityManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.enterprise.securityManager"
+      ],
+      "@ohos.events.emitter": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.events.emitter"
+      ],
+      "@ohos.file.cloudSync": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.cloudSync"
+      ],
+      "@ohos.file.cloudSyncManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.cloudSyncManager"
+      ],
+      "@ohos.file.environment": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.environment"
+      ],
+      "@ohos.file.fileuri": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.fileuri"
+      ],
+      "@ohos.file.fs": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.fs"
+      ],
+      "@ohos.file.hash": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.hash"
+      ],
+      "@ohos.file.keyManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.keyManager"
+      ],
+      "@ohos.file.photoAccessHelper": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.photoAccessHelper"
+      ],
+      "@ohos.file.securityLabel": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.securityLabel"
+      ],
+      "@ohos.file.statvfs": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.statvfs"
+      ],
+      "@ohos.file.storageStatistics": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.storageStatistics"
+      ],
+      "@ohos.file.volumeManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.file.volumeManager"
+      ],
+      "@ohos.fileshare": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.fileshare"
+      ],
+      "@ohos.font": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.font"
+      ],
+      "@ohos.fontManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.fontManager"
+      ],
+      "@ohos.geoLocationManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.geoLocationManager"
+      ],
+      "@ohos.graphics.colorSpaceManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.graphics.colorSpaceManager"
+      ],
+      "@ohos.graphics.common2D": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.graphics.common2D"
+      ],
+      "@ohos.graphics.displaySync": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.graphics.displaySync"
+      ],
+      "@ohos.graphics.drawing": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.graphics.drawing"
+      ],
+      "@ohos.graphics.hdrCapability": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.graphics.hdrCapability"
+      ],
+      "@ohos.graphics.scene": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.graphics.scene"
+      ],
+      "@ohos.graphics.text": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.graphics.text"
+      ],
+      "@ohos.graphics.uiEffect": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.graphics.uiEffect"
+      ],
+      "@ohos.hiSysEvent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.hiSysEvent"
+      ],
+      "@ohos.hiTraceChain": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.hiTraceChain"
+      ],
+      "@ohos.hiTraceMeter": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.hiTraceMeter"
+      ],
+      "@ohos.hichecker": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.hichecker"
+      ],
+      "@ohos.hidebug": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.hidebug"
+      ],
+      "@ohos.hilog": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.hilog"
+      ],
+      "@ohos.hiviewdfx.hiAppEvent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.hiviewdfx.hiAppEvent"
+      ],
+      "@ohos.i18n": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.i18n"
+      ],
+      "@ohos.inputMethod.Panel": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.inputMethod.Panel"
+      ],
+      "@ohos.inputMethod": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.inputMethod"
+      ],
+      "@ohos.intl": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.intl"
+      ],
+      "@ohos.logLibrary": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.logLibrary"
+      ],
+      "@ohos.matrix4": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.matrix4"
+      ],
+      "@ohos.measure": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.measure"
+      ],
+      "@ohos.mediaquery": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.mediaquery"
+      ],
+      "@ohos.multimedia.audio": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.audio"
+      ],
+      "@ohos.multimedia.audioHaptic": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.audioHaptic"
+      ],
+      "@ohos.multimedia.avCastPickerParam": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.avCastPickerParam"
+      ],
+      "@ohos.multimedia.avsession": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.avsession"
+      ],
+      "@ohos.multimedia.camera": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.camera"
+      ],
+      "@ohos.multimedia.cameraPicker": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.cameraPicker"
+      ],
+      "@ohos.multimedia.drm": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.drm"
+      ],
+      "@ohos.multimedia.image": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.image"
+      ],
+      "@ohos.multimedia.media": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.media"
+      ],
+      "@ohos.multimedia.systemSoundManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimedia.systemSoundManager"
+      ],
+      "@ohos.multimodalAwareness.metadataBinding": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalAwareness.metadataBinding"
+      ],
+      "@ohos.multimodalAwareness.roomLocation": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalAwareness.roomLocation"
+      ],
+      "@ohos.multimodalInput.gestureEvent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.gestureEvent"
+      ],
+      "@ohos.multimodalInput.infraredEmitter": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.infraredEmitter"
+      ],
+      "@ohos.multimodalInput.inputConsumer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.inputConsumer"
+      ],
+      "@ohos.multimodalInput.inputDevice": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.inputDevice"
+      ],
+      "@ohos.multimodalInput.inputDeviceCooperate": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.inputDeviceCooperate"
+      ],
+      "@ohos.multimodalInput.inputEvent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.inputEvent"
+      ],
+      "@ohos.multimodalInput.inputEventClient": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.inputEventClient"
+      ],
+      "@ohos.multimodalInput.inputMonitor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.inputMonitor"
+      ],
+      "@ohos.multimodalInput.intentionCode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.intentionCode"
+      ],
+      "@ohos.multimodalInput.keyCode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.keyCode"
+      ],
+      "@ohos.multimodalInput.keyEvent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.keyEvent"
+      ],
+      "@ohos.multimodalInput.mouseEvent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.mouseEvent"
+      ],
+      "@ohos.multimodalInput.pointer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.pointer"
+      ],
+      "@ohos.multimodalInput.shortKey": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.shortKey"
+      ],
+      "@ohos.multimodalInput.touchEvent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.multimodalInput.touchEvent"
+      ],
+      "@ohos.net.connection": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.net.connection"
+      ],
+      "@ohos.net.http": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.net.http"
+      ],
+      "@ohos.net.networkSecurity": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.net.networkSecurity"
+      ],
+      "@ohos.net.sharing": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.net.sharing"
+      ],
+      "@ohos.net.statistics": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.net.statistics"
+      ],
+      "@ohos.net.webSocket": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.net.webSocket"
+      ],
+      "@ohos.nfc.cardEmulation": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.nfc.cardEmulation"
+      ],
+      "@ohos.nfc.controller": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.nfc.controller"
+      ],
+      "@ohos.nfc.tag": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.nfc.tag"
+      ],
+      "@ohos.notificationManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.notificationManager"
+      ],
+      "@ohos.notificationSubscribe": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.notificationSubscribe"
+      ],
+      "@ohos.pasteboard": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.pasteboard"
+      ],
+      "@ohos.pluginComponent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.pluginComponent"
+      ],
+      "@ohos.power": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.power"
+      ],
+      "@ohos.print": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.print"
+      ],
+      "@ohos.privacyManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.privacyManager"
+      ],
+      "@ohos.promptAction": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.promptAction"
+      ],
+      "@ohos.reminderAgentManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.reminderAgentManager"
+      ],
+      "@ohos.request": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.request"
+      ],
+      "@ohos.resourceManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.resourceManager"
+      ],
+      "@ohos.resourceschedule.backgroundProcessManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.resourceschedule.backgroundProcessManager"
+      ],
+      "@ohos.resourceschedule.backgroundTaskManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.resourceschedule.backgroundTaskManager"
+      ],
+      "@ohos.resourceschedule.deviceStandby": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.resourceschedule.deviceStandby"
+      ],
+      "@ohos.resourceschedule.systemload": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.resourceschedule.systemload"
+      ],
+      "@ohos.resourceschedule.usageStatistics": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.resourceschedule.usageStatistics"
+      ],
+      "@ohos.resourceschedule.workScheduler": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.resourceschedule.workScheduler"
+      ],
+      "@ohos.router": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.router"
+      ],
+      "@ohos.rpc": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.rpc"
+      ],
+      "@ohos.runningLock": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.runningLock"
+      ],
+      "@ohos.screen": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.screen"
+      ],
+      "@ohos.screenLock": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.screenLock"
+      ],
+      "@ohos.screenshot": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.screenshot"
+      ],
+      "@ohos.security.cert": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.security.cert"
+      ],
+      "@ohos.security.certManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.security.certManager"
+      ],
+      "@ohos.security.certManagerDialog": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.security.certManagerDialog"
+      ],
+      "@ohos.security.cryptoFramework": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.security.cryptoFramework"
+      ],
+      "@ohos.security.huks": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.security.huks"
+      ],
+      "@ohos.sensor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.sensor"
+      ],
+      "@ohos.settings": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.settings"
+      ],
+      "@ohos.systemCapability": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.systemCapability"
+      ],
+      "@ohos.systemDateTime": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.systemDateTime"
+      ],
+      "@ohos.systemParameterEnhance": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.systemParameterEnhance"
+      ],
+      "@ohos.systemTimer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.systemTimer"
+      ],
+      "@ohos.telephony.call": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.telephony.call"
+      ],
+      "@ohos.telephony.data": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.telephony.data"
+      ],
+      "@ohos.telephony.esim": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.telephony.esim"
+      ],
+      "@ohos.telephony.observer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.telephony.observer"
+      ],
+      "@ohos.telephony.radio": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.telephony.radio"
+      ],
+      "@ohos.telephony.sim": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.telephony.sim"
+      ],
+      "@ohos.telephony.sms": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.telephony.sms"
+      ],
+      "@ohos.thermal": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.thermal"
+      ],
+      "@ohos.transfer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.transfer"
+      ],
+      "@ohos.uiAppearance": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.uiAppearance"
+      ],
+      "@ohos.uiExtensionHost": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.uiExtensionHost"
+      ],
+      "@ohos.update": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.update"
+      ],
+      "@ohos.uri": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.uri"
+      ],
+      "@ohos.url": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.url"
+      ],
+      "@ohos.usbManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.usbManager"
+      ],
+      "@ohos.usbManager.serial": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.usbManager.serial"
+      ],
+      "@ohos.userIAM.faceAuth": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.userIAM.faceAuth"
+      ],
+      "@ohos.userIAM.userAccessCtrl": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.userIAM.userAccessCtrl"
+      ],
+      "@ohos.userIAM.userAuth": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.userIAM.userAuth"
+      ],
+      "@ohos.util.ArrayList": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.ArrayList"
+      ],
+      "@ohos.util.Deque": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.Deque"
+      ],
+      "@ohos.util.HashMap": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.HashMap"
+      ],
+      "@ohos.util.HashSet": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.HashSet"
+      ],
+      "@ohos.util.LightWeightMap": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.LightWeightMap"
+      ],
+      "@ohos.util.LightWeightSet": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.LightWeightSet"
+      ],
+      "@ohos.util.LinkedList": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.LinkedList"
+      ],
+      "@ohos.util.List": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.List"
+      ],
+      "@ohos.util.PlainArray": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.PlainArray"
+      ],
+      "@ohos.util.Queue": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.Queue"
+      ],
+      "@ohos.util.Stack": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.Stack"
+      ],
+      "@ohos.util.TreeMap": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.TreeMap"
+      ],
+      "@ohos.util.TreeSet": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.TreeSet"
+      ],
+      "@ohos.util": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util"
+      ],
+      "@ohos.util.stream": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.util.stream"
+      ],
+      "@ohos.vibrator": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.vibrator"
+      ],
+      "@ohos.wallpaper": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.wallpaper"
+      ],
+      "@ohos.wantAgent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.wantAgent"
+      ],
+      "@ohos.web.netErrorList": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.web.netErrorList"
+      ],
+      "@ohos.web.webview": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.web.webview"
+      ],
+      "@ohos.wifi": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.wifi"
+      ],
+      "@ohos.wifiManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.wifiManager"
+      ],
+      "@ohos.window": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.window"
+      ],
+      "@ohos.xml": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.xml"
+      ],
+      "@ohos.zlib": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@ohos.zlib"
+      ],
+      "@system.mediaquery": [
+        "../../../../../../../../external/absolute-sdk-patched/api/@system.mediaquery"
+      ],
+      "ability.abilityResult": [
+        "../../../../../../../../external/absolute-sdk-patched/api/ability/abilityResult"
+      ],
+      "ability.connectOptions": [
+        "../../../../../../../../external/absolute-sdk-patched/api/ability/connectOptions"
+      ],
+      "ability.dataAbilityHelper": [
+        "../../../../../../../../external/absolute-sdk-patched/api/ability/dataAbilityHelper"
+      ],
+      "application.AbilityDelegator": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityDelegator"
+      ],
+      "application.AbilityFirstFrameStateData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityFirstFrameStateData"
+      ],
+      "application.AbilityFirstFrameStateObserver": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityFirstFrameStateObserver"
+      ],
+      "application.AbilityForegroundStateObserver": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityForegroundStateObserver"
+      ],
+      "application.AbilityMonitor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityMonitor"
+      ],
+      "application.AbilityRunningInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityRunningInfo"
+      ],
+      "application.AbilityStageContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityStageContext"
+      ],
+      "application.AbilityStageMonitor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityStageMonitor"
+      ],
+      "application.AbilityStartCallback": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityStartCallback"
+      ],
+      "application.AbilityStateData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AbilityStateData"
+      ],
+      "application.AccessibilityExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AccessibilityExtensionContext"
+      ],
+      "application.AppForegroundStateObserver": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AppForegroundStateObserver"
+      ],
+      "application.AppStateData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AppStateData"
+      ],
+      "application.ApplicationContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/ApplicationContext"
+      ],
+      "application.ApplicationStateObserver": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/ApplicationStateObserver"
+      ],
+      "application.AutoFillExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AutoFillExtensionContext"
+      ],
+      "application.AutoFillPopupConfig": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AutoFillPopupConfig"
+      ],
+      "application.AutoFillRect": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AutoFillRect"
+      ],
+      "application.AutoFillRequest": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AutoFillRequest"
+      ],
+      "application.AutoFillType": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AutoFillType"
+      ],
+      "application.AutoStartupCallback": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AutoStartupCallback"
+      ],
+      "application.AutoStartupInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/AutoStartupInfo"
+      ],
+      "application.BaseContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/BaseContext"
+      ],
+      "application.BusinessAbilityInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/BusinessAbilityInfo"
+      ],
+      "application.Context": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/Context"
+      ],
+      "application.CustomData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/CustomData"
+      ],
+      "application.DriverExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/DriverExtensionContext"
+      ],
+      "application.EventHub": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/EventHub"
+      ],
+      "application.ExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/ExtensionContext"
+      ],
+      "application.ExtensionRunningInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/ExtensionRunningInfo"
+      ],
+      "application.FormEditExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/FormEditExtensionContext"
+      ],
+      "application.FormExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/FormExtensionContext"
+      ],
+      "application.MediaControlExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/MediaControlExtensionContext"
+      ],
+      "application.MissionInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/MissionInfo"
+      ],
+      "application.MissionListener": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/MissionListener"
+      ],
+      "application.MissionSnapshot": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/MissionSnapshot"
+      ],
+      "application.MultiAppMode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/MultiAppMode"
+      ],
+      "application.PageNodeInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/PageNodeInfo"
+      ],
+      "application.PhotoEditorExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/PhotoEditorExtensionContext"
+      ],
+      "application.ProcessData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/ProcessData"
+      ],
+      "application.ProcessInformation": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/ProcessInformation"
+      ],
+      "application.RunningAppClone": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/RunningAppClone"
+      ],
+      "application.RunningMultiAppInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/RunningMultiAppInfo"
+      ],
+      "application.RunningMultiInstanceInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/RunningMultiInstanceInfo"
+      ],
+      "application.ServiceExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/ServiceExtensionContext"
+      ],
+      "application.UIAbilityContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/UIAbilityContext"
+      ],
+      "application.UIExtensionContext": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/UIExtensionContext"
+      ],
+      "application.ViewData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/ViewData"
+      ],
+      "application.abilityDelegatorArgs": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/abilityDelegatorArgs"
+      ],
+      "application.shellCmdResult": [
+        "../../../../../../../../external/absolute-sdk-patched/api/application/shellCmdResult"
+      ],
+      "arkui.AlphabetIndexerModifier": [
+        "./AlphabetIndexerModifier"
+      ],
+      "arkui.AttributeUpdater": [
+        "./AttributeUpdater"
+      ],
+      "arkui.BlankModifier": [
+        "./BlankModifier"
+      ],
+      "arkui.BuilderNode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/BuilderNode"
+      ],
+      "arkui.ButtonModifier": [
+        "./ButtonModifier"
+      ],
+      "arkui.CalendarPickerModifier": [
+        "./CalendarPickerModifier"
+      ],
+      "arkui.CheckboxGroupModifier": [
+        "./CheckboxGroupModifier"
+      ],
+      "arkui.CheckboxModifier": [
+        "./CheckboxModifier"
+      ],
+      "arkui.ColumnModifier": [
+        "./ColumnModifier"
+      ],
+      "arkui.ColumnSplitModifier": [
+        "./ColumnSplitModifier"
+      ],
+      "arkui.CommonModifier": [
+        "./CommonModifier"
+      ],
+      "arkui.ComponentContent": [
+        "./ComponentContent"
+      ],
+      "arkui.ContainerSpanModifier": [
+        "./ContainerSpanModifier"
+      ],
+      "arkui.Content": [
+        "./Content"
+      ],
+      "arkui.CounterModifier": [
+        "./CounterModifier"
+      ],
+      "arkui.DataPanelModifier": [
+        "./DataPanelModifier"
+      ],
+      "arkui.DatePickerModifier": [
+        "./DatePickerModifier"
+      ],
+      "arkui.DividerModifier": [
+        "./DividerModifier"
+      ],
+      "arkui.FlexModifier": [
+        "./FlexModifier"
+      ],
+      "arkui.FolderStackModifier": [
+        "./FolderStackModifier"
+      ],
+      "arkui.FrameNode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/FrameNode"
+      ],
+      "arkui.GaugeModifier": [
+        "./GaugeModifier"
+      ],
+      "arkui.Graphics": [
+        "./Graphics"
+      ],
+      "arkui.GridColModifier": [
+        "./GridColModifier"
+      ],
+      "arkui.GridItemModifier": [
+        "./GridItemModifier"
+      ],
+      "arkui.GridModifier": [
+        "./GridModifier"
+      ],
+      "arkui.GridRowModifier": [
+        "./GridRowModifier"
+      ],
+      "arkui.HyperlinkModifier": [
+        "./HyperlinkModifier"
+      ],
+      "arkui.ImageAnimatorModifier": [
+        "./ImageAnimatorModifier"
+      ],
+      "arkui.ImageModifier": [
+        "./ImageModifier"
+      ],
+      "arkui.ImageSpanModifier": [
+        "./ImageSpanModifier"
+      ],
+      "arkui.LineModifier": [
+        "./LineModifier"
+      ],
+      "arkui.ListItemGroupModifier": [
+        "./ListItemGroupModifier"
+      ],
+      "arkui.ListItemModifier": [
+        "./ListItemModifier"
+      ],
+      "arkui.ListModifier": [
+        "./ListModifier"
+      ],
+      "arkui.LoadingProgressModifier": [
+        "./LoadingProgressModifier"
+      ],
+      "arkui.MarqueeModifier": [
+        "./MarqueeModifier"
+      ],
+      "arkui.MenuItemModifier": [
+        "./MenuItemModifier"
+      ],
+      "arkui.MenuModifier": [
+        "./MenuModifier"
+      ],
+      "arkui.NavDestinationModifier": [
+        "./NavDestinationModifier"
+      ],
+      "arkui.NavigationModifier": [
+        "./NavigationModifier"
+      ],
+      "arkui.NodeContent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/NodeContent"
+      ],
+      "arkui.NodeController": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/NodeController"
+      ],
+      "arkui.ParticleModifier": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/ParticleModifier"
+      ],
+      "arkui.PathModifier": [
+        "./PathModifier"
+      ],
+      "arkui.PatternLockModifier": [
+        "./PatternLockModifier"
+      ],
+      "arkui.PolygonModifier": [
+        "./PolygonModifier"
+      ],
+      "arkui.PolylineModifier": [
+        "./PolylineModifier"
+      ],
+      "arkui.ProgressModifier": [
+        "./ProgressModifier"
+      ],
+      "arkui.QRCodeModifier": [
+        "./QRCodeModifier"
+      ],
+      "arkui.RadioModifier": [
+        "./RadioModifier"
+      ],
+      "arkui.RatingModifier": [
+        "./RatingModifier"
+      ],
+      "arkui.RectModifier": [
+        "./RectModifier"
+      ],
+      "arkui.RefreshModifier": [
+        "./RefreshModifier"
+      ],
+      "arkui.RelativeContainerModifier": [
+        "./RelativeContainerModifier"
+      ],
+      "arkui.RenderNode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/RenderNode"
+      ],
+      "arkui.RichEditorModifier": [
+        "./RichEditorModifier"
+      ],
+      "arkui.RowModifier": [
+        "./RowModifier"
+      ],
+      "arkui.RowSplitModifier": [
+        "./RowSplitModifier"
+      ],
+      "arkui.ScrollModifier": [
+        "./ScrollModifier"
+      ],
+      "arkui.SearchModifier": [
+        "./SearchModifier"
+      ],
+      "arkui.SelectModifier": [
+        "./SelectModifier"
+      ],
+      "arkui.ShapeModifier": [
+        "./ShapeModifier"
+      ],
+      "arkui.SideBarContainerModifier": [
+        "./SideBarContainerModifier"
+      ],
+      "arkui.SliderModifier": [
+        "./SliderModifier"
+      ],
+      "arkui.SpanModifier": [
+        "./SpanModifier"
+      ],
+      "arkui.StackModifier": [
+        "./StackModifier"
+      ],
+      "arkui.StepperItemModifier": [
+        "./StepperItemModifier"
+      ],
+      "arkui.StepperModifier": [
+        "./StepperModifier"
+      ],
+      "arkui.Storage": [
+        "./Storage"
+      ],
+      "arkui.SwiperModifier": [
+        "./SwiperModifier"
+      ],
+      "arkui.SymbolGlyphModifier": [
+        "./SymbolGlyphModifier"
+      ],
+      "arkui.SymbolSpanModifier": [
+        "./SymbolSpanModifier"
+      ],
+      "arkui.TabsModifier": [
+        "./TabsModifier"
+      ],
+      "arkui.TextAreaModifier": [
+        "./TextAreaModifier"
+      ],
+      "arkui.TextClockModifier": [
+        "./TextClockModifier"
+      ],
+      "arkui.TextInputModifier": [
+        "./TextInputModifier"
+      ],
+      "arkui.TextModifier": [
+        "./TextModifier"
+      ],
+      "arkui.TextPickerModifier": [
+        "./TextPickerModifier"
+      ],
+      "arkui.TextTimerModifier": [
+        "./TextTimerModifier"
+      ],
+      "arkui.TimePickerModifier": [
+        "./TimePickerModifier"
+      ],
+      "arkui.ToggleModifier": [
+        "./ToggleModifier"
+      ],
+      "arkui.VideoModifier": [
+        "./VideoModifier"
+      ],
+      "arkui.WaterFlowModifier": [
+        "./WaterFlowModifier"
+      ],
+      "arkui.component.actionSheet": [
+        "./component/actionSheet"
+      ],
+      "arkui.component.alertDialog": [
+        "./component/alertDialog"
+      ],
+      "arkui.component.alphabetIndexer": [
+        "./component/alphabetIndexer"
+      ],
+      "arkui.component.animation": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/component/animation"
+      ],
+      "arkui.component.badge": [
+        "./component/badge"
+      ],
+      "arkui.component.blank": [
+        "./component/blank"
+      ],
+      "arkui.component.builder": [
+        "./component/builder"
+      ],
+      "arkui.component.button": [
+        "./component/button"
+      ],
+      "arkui.component.calendarPicker": [
+        "./component/calendarPicker"
+      ],
+      "arkui.component.canvas": [
+        "./component/canvas"
+      ],
+      "arkui.component.checkbox": [
+        "./component/checkbox"
+      ],
+      "arkui.component.checkboxgroup": [
+        "./component/checkboxgroup"
+      ],
+      "arkui.component.circle": [
+        "./component/circle"
+      ],
+      "arkui.component.column": [
+        "./component/column"
+      ],
+      "arkui.component.columnSplit": [
+        "./component/columnSplit"
+      ],
+      "arkui.component.common": [
+        "./component/common"
+      ],
+      "arkui.component.component3d": [
+        "./component/component3d"
+      ],
+      "arkui.component.containerSpan": [
+        "./component/containerSpan"
+      ],
+      "arkui.component.contentSlot": [
+        "./component/contentSlot"
+      ],
+      "arkui.component.counter": [
+        "./component/counter"
+      ],
+      "arkui.component.customComponent": [
+        "./component/customComponent"
+      ],
+      "arkui.component.customDialogController": [
+        "./component/customDialogController"
+      ],
+      "arkui.component.dataPanel": [
+        "./component/dataPanel"
+      ],
+      "arkui.component.datePicker": [
+        "./component/datePicker"
+      ],
+      "arkui.component.divider": [
+        "./component/divider"
+      ],
+      "arkui.component.effectComponent": [
+        "./component/effectComponent"
+      ],
+      "arkui.component.ellipse": [
+        "./component/ellipse"
+      ],
+      "arkui.component.embeddedComponent": [
+        "./component/embeddedComponent"
+      ],
+      "arkui.component.enums": [
+        "./component/enums"
+      ],
+      "arkui.component.extendableComponent": [
+        "./component/extendableComponent"
+      ],
+      "arkui.component.flex": [
+        "./component/flex"
+      ],
+      "arkui.component.flowItem": [
+        "./component/flowItem"
+      ],
+      "arkui.component.focus": [
+        "./component/focus"
+      ],
+      "arkui.component.folderStack": [
+        "./component/folderStack"
+      ],
+      "arkui.component.forEach": [
+        "./component/forEach"
+      ],
+      "arkui.component.formComponent": [
+        "./component/formComponent"
+      ],
+      "arkui.component.formLink": [
+        "./component/formLink"
+      ],
+      "arkui.component.gauge": [
+        "./component/gauge"
+      ],
+      "arkui.component.gesture": [
+        "./component/gesture"
+      ],
+      "arkui.component.grid": [
+        "./component/grid"
+      ],
+      "arkui.component.gridCol": [
+        "./component/gridCol"
+      ],
+      "arkui.component.gridItem": [
+        "./component/gridItem"
+      ],
+      "arkui.component.gridRow": [
+        "./component/gridRow"
+      ],
+      "arkui.component.hyperlink": [
+        "./component/hyperlink"
+      ],
+      "arkui.component.image": [
+        "./component/image"
+      ],
+      "arkui.component.imageAnimator": [
+        "./component/imageAnimator"
+      ],
+      "arkui.component.imageCommon": [
+        "./component/imageCommon"
+      ],
+      "arkui.component.imageSpan": [
+        "./component/imageSpan"
+      ],
+      "arkui.component.indicatorcomponent": [
+        "./component/indicatorcomponent"
+      ],
+      "arkui.component.inspector": [
+        "./component/inspector"
+      ],
+      "arkui.component.interop": [
+        "./component/interop"
+      ],
+      "arkui.component.lazyForEach": [
+        "./component/lazyForEach"
+      ],
+      "arkui.component.lazyGridLayout": [
+        "./component/lazyGridLayout"
+      ],
+      "arkui.component.line": [
+        "./component/line"
+      ],
+      "arkui.component.list": [
+        "./component/list"
+      ],
+      "arkui.component.listItem": [
+        "./component/listItem"
+      ],
+      "arkui.component.listItemGroup": [
+        "./component/listItemGroup"
+      ],
+      "arkui.component.loadingProgress": [
+        "./component/loadingProgress"
+      ],
+      "arkui.component.marquee": [
+        "./component/marquee"
+      ],
+      "arkui.component.matrix2d": [
+        "./component/matrix2d"
+      ],
+      "arkui.component.mediaCachedImage": [
+        "./component/mediaCachedImage"
+      ],
+      "arkui.component.menu": [
+        "./component/menu"
+      ],
+      "arkui.component.menuItem": [
+        "./component/menuItem"
+      ],
+      "arkui.component.menuItemGroup": [
+        "./component/menuItemGroup"
+      ],
+      "arkui.component.navDestination": [
+        "./component/navDestination"
+      ],
+      "arkui.component.navigation": [
+        "./component/navigation"
+      ],
+      "arkui.component.nodeContainer": [
+        "./component/nodeContainer"
+      ],
+      "arkui.component.pageTransition": [
+        "./component/pageTransition"
+      ],
+      "arkui.component.particle": [
+        "./component/particle"
+      ],
+      "arkui.component.pasteButton": [
+        "./component/pasteButton"
+      ],
+      "arkui.component.path": [
+        "./component/path"
+      ],
+      "arkui.component.patternLock": [
+        "./component/patternLock"
+      ],
+      "arkui.component.pluginComponent": [
+        "./component/pluginComponent"
+      ],
+      "arkui.component.polygon": [
+        "./component/polygon"
+      ],
+      "arkui.component.polyline": [
+        "./component/polyline"
+      ],
+      "arkui.component.progress": [
+        "./component/progress"
+      ],
+      "arkui.component.qrcode": [
+        "./component/qrcode"
+      ],
+      "arkui.component.radio": [
+        "./component/radio"
+      ],
+      "arkui.component.rating": [
+        "./component/rating"
+      ],
+      "arkui.component.rect": [
+        "./component/rect"
+      ],
+      "arkui.component.refresh": [
+        "./component/refresh"
+      ],
+      "arkui.component.relativeContainer": [
+        "./component/relativeContainer"
+      ],
+      "arkui.component.remoteWindow": [
+        "./component/remoteWindow"
+      ],
+      "arkui.component.repeat": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/component/repeat"
+      ],
+      "arkui.component.resources": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/component/resources"
+      ],
+      "arkui.component.richEditor": [
+        "./component/richEditor"
+      ],
+      "arkui.component.richText": [
+        "./component/richText"
+      ],
+      "arkui.component.rootScene": [
+        "./component/rootScene"
+      ],
+      "arkui.component.row": [
+        "./component/row"
+      ],
+      "arkui.component.rowSplit": [
+        "./component/rowSplit"
+      ],
+      "arkui.component.saveButton": [
+        "./component/saveButton"
+      ],
+      "arkui.component.screen": [
+        "./component/screen"
+      ],
+      "arkui.component.scroll": [
+        "./component/scroll"
+      ],
+      "arkui.component.scrollBar": [
+        "./component/scrollBar"
+      ],
+      "arkui.component.search": [
+        "./component/search"
+      ],
+      "arkui.component.securityComponent": [
+        "./component/securityComponent"
+      ],
+      "arkui.component.select": [
+        "./component/select"
+      ],
+      "arkui.component.shape": [
+        "./component/shape"
+      ],
+      "arkui.component.sidebar": [
+        "./component/sidebar"
+      ],
+      "arkui.component.slider": [
+        "./component/slider"
+      ],
+      "arkui.component.span": [
+        "./component/span"
+      ],
+      "arkui.component.stack": [
+        "./component/stack"
+      ],
+      "arkui.component.stepper": [
+        "./component/stepper"
+      ],
+      "arkui.component.stepperItem": [
+        "./component/stepperItem"
+      ],
+      "arkui.component.styledString": [
+        "./component/styledString"
+      ],
+      "arkui.component.swiper": [
+        "./component/swiper"
+      ],
+      "arkui.component.symbolSpan": [
+        "./component/symbolSpan"
+      ],
+      "arkui.component.symbolglyph": [
+        "./component/symbolglyph"
+      ],
+      "arkui.component.tabContent": [
+        "./component/tabContent"
+      ],
+      "arkui.component.tabs": [
+        "./component/tabs"
+      ],
+      "arkui.component.text": [
+        "./component/text"
+      ],
+      "arkui.component.textArea": [
+        "./component/textArea"
+      ],
+      "arkui.component.textClock": [
+        "./component/textClock"
+      ],
+      "arkui.component.textCommon": [
+        "./component/textCommon"
+      ],
+      "arkui.component.textInput": [
+        "./component/textInput"
+      ],
+      "arkui.component.textPicker": [
+        "./component/textPicker"
+      ],
+      "arkui.component.textTimer": [
+        "./component/textTimer"
+      ],
+      "arkui.component.timePicker": [
+        "./component/timePicker"
+      ],
+      "arkui.component.toggle": [
+        "./component/toggle"
+      ],
+      "arkui.component.toolbar": [
+        "./component/toolbar"
+      ],
+      "arkui.component.uiExtensionComponent": [
+        "./component/uiExtensionComponent"
+      ],
+      "arkui.component.units": [
+        "./component/units"
+      ],
+      "arkui.component.video": [
+        "./component/video"
+      ],
+      "arkui.component.waterFlow": [
+        "./component/waterFlow"
+      ],
+      "arkui.component.web": [
+        "./component/web"
+      ],
+      "arkui.component.windowScene": [
+        "./component/windowScene"
+      ],
+      "arkui.component.withTheme": [
+        "./component/withTheme"
+      ],
+      "arkui.component.xcomponent": [
+        "./component/xcomponent"
+      ],
+      "arkui.incremental.annotation": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/annotation"
+      ],
+      "arkui.incremental.runtime.animation.GlobalTimer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/animation/GlobalTimer"
+      ],
+      "arkui.incremental.runtime.common.Disposable": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/common/Disposable"
+      ],
+      "arkui.incremental.runtime.core.GlobalStateManager": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/core/GlobalStateManager"
+      ],
+      "arkui.incremental.runtime.core.State": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/core/State"
+      ],
+      "arkui.incremental.runtime.memo.bind": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/memo/bind"
+      ],
+      "arkui.incremental.runtime.memo.changeListener": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/memo/changeListener"
+      ],
+      "arkui.incremental.runtime.memo.contextLocal": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/memo/contextLocal"
+      ],
+      "arkui.incremental.runtime.memo.entry": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/memo/entry"
+      ],
+      "arkui.incremental.runtime.memo.node": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/memo/node"
+      ],
+      "arkui.incremental.runtime.memo.remember": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/memo/remember"
+      ],
+      "arkui.incremental.runtime.memo.repeat": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/memo/repeat"
+      ],
+      "arkui.incremental.runtime.memo.testing": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/memo/testing"
+      ],
+      "arkui.incremental.runtime.state": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/state"
+      ],
+      "arkui.incremental.runtime.tree.IncrementalNode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/tree/IncrementalNode"
+      ],
+      "arkui.incremental.runtime.tree.ReadonlyTreeNode": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/incremental/runtime/tree/ReadonlyTreeNode"
+      ],
+      "arkui.stateManagement.common": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/common"
+      ],
+      "arkui.stateManagement.decorator": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/decorator"
+      ],
+      "arkui.stateManagement.memorize.state": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/memorize/state"
+      ],
+      "arkui.stateManagement.storage.appStorage": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/storage/appStorage"
+      ],
+      "arkui.stateManagement.storage.appStorageV2": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/storage/appStorageV2"
+      ],
+      "arkui.stateManagement.storage.environment": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/storage/environment"
+      ],
+      "arkui.stateManagement.storage.localStorage": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/storage/localStorage"
+      ],
+      "arkui.stateManagement.storage.persistenceV2": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/storage/persistenceV2"
+      ],
+      "arkui.stateManagement.storage.persistentStorage": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/storage/persistentStorage"
+      ],
+      "arkui.stateManagement.storage.storageProperty": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/storage/storageProperty"
+      ],
+      "arkui.stateManagement.utils": [
+        "../../../../../../../../external/absolute-sdk-patched/api/arkui/stateManagement/utils"
+      ],
+      "bundleManager.AbilityInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/AbilityInfo"
+      ],
+      "bundleManager.AppProvisionInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/AppProvisionInfo"
+      ],
+      "bundleManager.ApplicationInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/ApplicationInfo"
+      ],
+      "bundleManager.BundleInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/BundleInfo"
+      ],
+      "bundleManager.BundlePackInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/BundlePackInfo"
+      ],
+      "bundleManager.BundleResourceInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/BundleResourceInfo"
+      ],
+      "bundleManager.DispatchInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/DispatchInfo"
+      ],
+      "bundleManager.ElementName": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/ElementName"
+      ],
+      "bundleManager.ExtensionAbilityInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/ExtensionAbilityInfo"
+      ],
+      "bundleManager.HapModuleInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/HapModuleInfo"
+      ],
+      "bundleManager.LauncherAbilityInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/LauncherAbilityInfo"
+      ],
+      "bundleManager.LauncherAbilityResourceInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/LauncherAbilityResourceInfo"
+      ],
+      "bundleManager.Metadata": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/Metadata"
+      ],
+      "bundleManager.OverlayModuleInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/OverlayModuleInfo"
+      ],
+      "bundleManager.PermissionDef": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/PermissionDef"
+      ],
+      "bundleManager.PluginBundleInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/PluginBundleInfo"
+      ],
+      "bundleManager.RecoverableApplicationInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/RecoverableApplicationInfo"
+      ],
+      "bundleManager.RemoteAbilityInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/RemoteAbilityInfo"
+      ],
+      "bundleManager.SharedBundleInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/SharedBundleInfo"
+      ],
+      "bundleManager.ShortcutInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/ShortcutInfo"
+      ],
+      "bundleManager.Skill": [
+        "../../../../../../../../external/absolute-sdk-patched/api/bundleManager/Skill"
+      ],
+      "common.full.canvaspattern": [
+        "../../../../../../../../external/absolute-sdk-patched/api/common/full/canvaspattern"
+      ],
+      "commonEvent.commonEventData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/commonEvent/commonEventData"
+      ],
+      "commonEvent.commonEventPublishData": [
+        "../../../../../../../../external/absolute-sdk-patched/api/commonEvent/commonEventPublishData"
+      ],
+      "commonEvent.commonEventSubscribeInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/commonEvent/commonEventSubscribeInfo"
+      ],
+      "commonEvent.commonEventSubscriber": [
+        "../../../../../../../../external/absolute-sdk-patched/api/commonEvent/commonEventSubscriber"
+      ],
+      "global.rawFileDescriptor": [
+        "../../../../../../../../external/absolute-sdk-patched/api/global/rawFileDescriptor"
+      ],
+      "global.resource": [
+        "../../../../../../../../external/absolute-sdk-patched/api/global/resource"
+      ],
+      "graphics3d.Scene": [
+        "../../../../../../../../external/absolute-sdk-patched/api/graphics3d/Scene"
+      ],
+      "graphics3d.SceneNodes": [
+        "../../../../../../../../external/absolute-sdk-patched/api/graphics3d/SceneNodes"
+      ],
+      "graphics3d.ScenePostProcessSettings": [
+        "../../../../../../../../external/absolute-sdk-patched/api/graphics3d/ScenePostProcessSettings"
+      ],
+      "graphics3d.SceneResources": [
+        "../../../../../../../../external/absolute-sdk-patched/api/graphics3d/SceneResources"
+      ],
+      "graphics3d.SceneTypes": [
+        "../../../../../../../../external/absolute-sdk-patched/api/graphics3d/SceneTypes"
+      ],
+      "multimedia.ringtonePlayer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/multimedia/ringtonePlayer"
+      ],
+      "multimedia.soundPool": [
+        "../../../../../../../../external/absolute-sdk-patched/api/multimedia/soundPool"
+      ],
+      "multimedia.systemTonePlayer": [
+        "../../../../../../../../external/absolute-sdk-patched/api/multimedia/systemTonePlayer"
+      ],
+      "notification.NotificationCommonDef": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/NotificationCommonDef"
+      ],
+      "notification.notificationActionButton": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationActionButton"
+      ],
+      "notification.notificationContent": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationContent"
+      ],
+      "notification.notificationFlags": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationFlags"
+      ],
+      "notification.notificationRequest": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationRequest"
+      ],
+      "notification.notificationSlot": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationSlot"
+      ],
+      "notification.notificationSorting": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationSorting"
+      ],
+      "notification.notificationSortingMap": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationSortingMap"
+      ],
+      "notification.notificationSubscribeInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationSubscribeInfo"
+      ],
+      "notification.notificationSubscriber": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationSubscriber"
+      ],
+      "notification.notificationTemplate": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationTemplate"
+      ],
+      "notification.notificationUserInput": [
+        "../../../../../../../../external/absolute-sdk-patched/api/notification/notificationUserInput"
+      ],
+      "permissions": [
+        "../../../../../../../../external/absolute-sdk-patched/api/permissions"
+      ],
+      "security.PermissionRequestResult": [
+        "../../../../../../../../external/absolute-sdk-patched/api/security/PermissionRequestResult"
+      ],
+      "tag.nfctech": [
+        "../../../../../../../../external/absolute-sdk-patched/api/tag/nfctech"
+      ],
+      "tag.tagSession": [
+        "../../../../../../../../external/absolute-sdk-patched/api/tag/tagSession"
+      ],
+      "wantAgent.triggerInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/wantAgent/triggerInfo"
+      ],
+      "wantAgent.wantAgentInfo": [
+        "../../../../../../../../external/absolute-sdk-patched/api/wantAgent/wantAgentInfo"
+      ],
+      "arkui.UserView": [
+        "./UserView"
+      ],
+      "arkui.ComponentBase": [
+        "./ComponentBase"
+      ],
+      "arkui.NativeLog": [
+        "./NativeLog"
+      ],
+      "arkui.PeerNode": [
+        "./PeerNode"
+      ],
+      "arkui.TestComponent": [
+        "./TestComponent"
+      ],
+      "arkui.component.idlize": [
+        "./component/idlize"
+      ],
+      "@ohos.arkui": [
+        "../non-public-sdk/index"
+      ],
+      "arkui.internals": [
+        "../non-public-sdk/index"
+      ],
+      "@ohos.arkui.RouterImpl": [
+        "../../modules/ohos/src/arkui/RouterImpl"
+      ],
+      "#components": [
+        "./framework/arkts"
+      ],
+      "#generated": [
+        "./framework"
+      ],
+      "#handwritten": [
+        "."
+      ],
+      "#stateMgmtTool": [
+        "./stateManagement/tools/arkts"
+      ],
+      "arkui.ani": [
+        "./ani/arkts/ArkUIAniModule"
+      ],
+      "@koalaui/builderLambda": [
+        "../../../../../../../../external/arkoala-arkts/arkui/src/stateAnnotations"
+      ],
+      "#arktheme": [
+        "../../../../../../../../external/arkoala-arkts/arkui/src/ArkThemeScopeManager"
+      ],
+      "#incrementalAndStateManagementReexport": [
+        "../../../../../../../../external/arkoala-arkts/arkui/src/incrementalAndStateManagementReexport"
+      ]
+    }
+  },
+  "include": [
+    "./out.m3/sig/arkoala-arkts/arkui/generated/**/*.ets"
+  ],
+  "exclude": [
+    "./src/generated/ts/*.ets",
+    "./src/src/**/*.ets",
+    "./src/src/**/*.ts",
+    "./src/sdk/**/*.ets"
+  ]
+}

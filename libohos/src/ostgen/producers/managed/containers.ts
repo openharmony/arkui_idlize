@@ -14,28 +14,27 @@
  */
 
 import { Ts } from "@idlizer/ost"
-import * as idl from "@idlizer/core/idl";
-import { createProducer } from "../../engine/index.js";
-import { expectType } from "../common.js";
+import * as idl from "@idlizer/core/idl"
+import { createProducer, OhosSeed } from "../../engine/index.js"
 
 export const containerProducer = createProducer(
-  { is: idl.isContainerType, role: 'managed' },
-  (type, ctx) => {
+  { is: idl.isContainerType },
+  (type, ctx, role) => {
     if (idl.IDLContainerUtils.isSequence(type)) {
-      const elemRef = expectType(ctx, type.elementType[0], 'managed')
+      const elemRef = ctx.expectType(new OhosSeed(type.elementType[0], role))
       return {
         continuation: Ts.array(elemRef),
         declarations: []
       }
     }
     if (idl.IDLContainerUtils.isRecord(type)) {
-      const keyRef = expectType(ctx, type.elementType[0], 'managed')
-      const valRef = expectType(ctx, type.elementType[1], 'managed')
+      const keyRef = ctx.expectType(new OhosSeed(type.elementType[0], role))
+      const valRef = ctx.expectType(new OhosSeed(type.elementType[1], role))
       return {
         continuation: Ts.map(keyRef, valRef),
         declarations: []
       }
     }
-    throw new Error(`Unknown type "${idl.DebugUtils.debugPrintType(type)}"`)
+    throw new Error(`Unknown type "${idl.DebugUtils.debugPrintTrace(type)}"`)
   }
 )

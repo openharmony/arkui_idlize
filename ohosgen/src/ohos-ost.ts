@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
+import { ImportsCollector, Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
     MANAGED_PREFIX,
@@ -34,34 +34,114 @@ import {
     IMPL_PREFIX,
     readInteropTypesHeader,
     OhosSeed,
-    registerDefaultSelectors,
+    registerDefaultProducers,
     MakeSelector,
-    moduleLike,
+    moduleLike as libohosModuleLike,
     lowLevelLike,
     OhosEffect,
-    createOhosEffect
+    createOhosEffect,
+    LWKind,
+    Role,
 } from "@idlizer/libohos"
-import { continueWith, onlyFor } from '@idlizer/kit'
+import { continueWith, moduleLike, onlyFor } from '@idlizer/kit'
+import { ArkUIRole, registerArkUIProducers } from "./arkui/index.js"
 
-export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, Map<TargetFile, string>] {
-    const selector = new MakeSelector()
-    registerDefaultSelectors(selector)
+type Feature<R> = {
+    name: string
+    init: () => MakeSelector<R>
+    seeds: (files: idl.IDLFile[]) => OhosSeed[]
+    importHook?: moduleLike.OnUnknownImport
+}
 
-    // ignore predefined / synthetic files
-    const files = library.files.filter(file =>
-        file.packageClause.length &&
-        !['idlize', 'synthetic'].includes(file.packageClause[0]))
-    const seeds = linearizeNamespaceMembers(files.flatMap(f => f.entries))
+const OSTFeature: Feature<Role<idl.IDLNode>> = {
+    name: 'ost',
+    init: () => {
+        const selector = new MakeSelector<Role<idl.IDLNode>>()
+        registerDefaultProducers(selector)
+        return selector
+    },
+    seeds: (files: idl.IDLFile[]) => linearizeNamespaceMembers(files.flatMap(f => f.entries))
         .filter(e =>
             !idl.isImport(e) &&
             !idl.isNamespace(e) &&
             !idl.isCallback(e))
         .map(e => new OhosSeed(e, 'managed'))
+}
+
+const ArkUIFeature: Feature<ArkUIRole<idl.IDLNode>> = {
+    name: 'arkui',
+    init: () => {
+        const selector = new MakeSelector<ArkUIRole<idl.IDLNode>>()
+        registerArkUIProducers(selector)
+        registerDefaultProducers(selector)
+        return selector
+    },
+    seeds: (files: idl.IDLFile[]) => linearizeNamespaceMembers(files.flatMap(f => f.entries))
+        .filter(e =>
+            idl.hasExtAttribute(e, idl.IDLExtendedAttributes.Component) ||
+            idl.hasExtAttribute(e, idl.IDLExtendedAttributes.ComponentInterface))
+        .map(e => new OhosSeed(e, 'managed')),
+    importHook: (name: string) => {
+        switch (name) {
+            case 'PeerNode':
+            case 'ComponentBase': return {name, source: '@arkui.base'}
+            case 'memo':
+            case 'memo_stable':
+            case 'memo_skip': return {name, source: 'arkui.incremental.annotation'}
+            case 'remember': return {name, source: 'arkui.incremental.runtime.memo.remember'}
+            case 'NodeAttach': return {name, source: 'arkui.incremental.runtime.memo.node'}
+        }
+        return undefined
+    }
+}
+
+const Features = new Map([
+    ['ost', OSTFeature],
+    ['arkui', ArkUIFeature]]
+)
+
+function defaultImports(): ImportsCollector {
+    const imports = new ImportsCollector()
+    imports.addFeatures([
+        'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
+        'SerializerBase', 'DeserializerBase', 'MaterializedBase',
+        'Finalizable', 'toPeerPtr',
+        'RuntimeType', 'ResourceHolder',
+        'loadNativeModuleLibrary', 'registerApiEventHandler',
+    ], '@koalaui/interop')
+    return imports
+}
+
+export function printOstFiles(library: PeerLibrary, featureName: string): [Map<string, OutputFile>, Map<TargetFile, string>] {
+    const feature = Features.get(featureName)
+    if (!feature)
+        throw new Error(`Unknown feature: ${featureName}`)
+    const selector = feature.init()
+    // ignore predefined / synthetic files
+    const files = library.files.filter(file =>
+        file.packageClause.length &&
+        !['idlize', 'synthetic'].includes(file.packageClause[0]))
+    const seeds = feature.seeds(files)
     const {effect, declarations } = continueWith<OhosSeed, PeerLibrary, OhosEffect>({
         createEffect: createOhosEffect,
         library,
         roots: { seeds }},
-        onlyFor(OhosSeed, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
+        onlyFor(OhosSeed<ArkUIRole<idl.IDLNode>>, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
+
+    console.log(`=== ${declarations.length} declarations {`)
+    declarations
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .forEach(decl => {
+            console.log('  ', decl.name)
+            if (decl.kind === LWKind.StructureDeclaration)
+                decl.members.forEach(member => console.log('    ', member.name))
+            if (decl.kind === LWKind.ClassDeclaration) {
+                decl.fields.forEach(field => console.log('    ', field.name))
+                decl.methods.forEach(method => console.log('    ', method.name, '()'))
+            }
+        })
+    console.log('} /// declarations')
+    
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
     const knownPackages = files
         .map(file => file.packageClause.length ? file.packageClause : [library.name.toLowerCase()])
@@ -72,14 +152,16 @@ export function printOstFiles(library: PeerLibrary): [Map<string, OutputFile>, M
         return [m, n]
     }, [[], []])
     return [
-        dumpTsLike(managed, effect, library.language, new Set(knownPackages)),
+        dumpTsLike(managed, effect, library.language, new Set(knownPackages), feature.importHook),
         dumpCLike(native, effect, library.name)
     ]
 }
 
-function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Language, packages: Set<string>): Map<string, OutputFile> {
-    decls = moduleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
-    const files = moduleLike.formFiles(packages, decls)
+function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Language,
+    packages: Set<string>, onUnknownImport?: moduleLike.OnUnknownImport
+): Map<string, OutputFile> {
+    decls = libohosModuleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
+    const files = moduleLike.formFiles(packages, decls, {knownReference: new Map(), knownImports: new Map(), defaultImports, onUnknownImport})
     const result: Map<string, OutputFile> = new Map()
     const printer = language === Language.ARKTS ? processNPrintArkTS : processNPrintTS
     files.forEach((content, fileName) => {

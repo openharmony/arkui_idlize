@@ -50,6 +50,8 @@ export enum LWKind {
   IfStatement,
   /** Switch statement with cases */
   SwitchStatement,
+  /** Break statement (used in switch cases and loops) */
+  BreakStatement,
   /** Empty/no-op statement */
   NoneStatement,
 
@@ -649,9 +651,24 @@ export interface SwitchStatement {
   /** Selector expression (the value being switched on) */
   selector: LWExpression
   /** Case clauses with constant values and statement bodies */
-  cases: { value: ConstantExpression, body: LWStatement[] }[]
+  cases: { value: ConstantExpression | ConstantExpression[], body: LWStatement[] }[]
   /** Default case statements */
-  default: LWStatement[]
+  default?: LWStatement[]
+}
+/**
+ * Break statement AST node.
+ * Represents a break statement used to exit switch cases or loops.
+ *
+ * @example
+ * ```typescript
+ * // break;
+ * const breakStmt: BreakStatement = {
+ *   kind: LWKind.BreakStatement
+ * };
+ * ```
+ */
+export interface BreakStatement {
+  kind: LWKind.BreakStatement
 }
 /**
  * Empty/no-op statement AST node.
@@ -680,6 +697,7 @@ export type LWStatement =
   | LoopStatement
   | IfStatement
   | SwitchStatement
+  | BreakStatement
   | NoneStatement
 
 /**

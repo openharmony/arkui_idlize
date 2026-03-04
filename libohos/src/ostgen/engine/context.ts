@@ -17,33 +17,36 @@ import * as idl from "@idlizer/core/idl"
 import { PeerLibrary } from "@idlizer/core"
 import { ProducerContext, ProducerResult, Seed, terminate } from "@idlizer/kit"
 
-export interface MakeSelectorPattern<N extends idl.IDLNode> {
-    is: (node: idl.IDLNode) => node is N,
-    role?: Role<N>
+export interface MakeSelectorPattern<N extends idl.IDLNode, R> {
+    is: (node: idl.IDLNode) => node is N
+    predicate?: (node: N) => boolean
+    role?: R
 }
 
-export interface ProducerBox<N extends idl.IDLNode> {
-    pattern: MakeSelectorPattern<N>
-    producer: OhosProducer<N>
+export interface ProducerBox<N extends idl.IDLNode, R> {
+    pattern: MakeSelectorPattern<N, R>
+    producer: OhosProducer<N, R>
 }
 
-export function createProducer<N extends idl.IDLNode>(pattern: MakeSelectorPattern<N>, producer: OhosProducer<N>): ProducerBox<N> {
+export function createProducer<N extends idl.IDLNode, R>(pattern: MakeSelectorPattern<N, R>, producer: OhosProducer<N, R>): ProducerBox<N, R> {
     return {
         pattern,
         producer,
     }
 }
 
-export class MakeSelector {
-    private readonly storage: ProducerBox<idl.IDLNode>[] = []
+export class MakeSelector<R> {
+    private readonly storage: ProducerBox<idl.IDLNode, R>[] = []
 
-    register<N extends idl.IDLNode>(box: ProducerBox<N>) {
+    register<N extends idl.IDLNode>(box: ProducerBox<N, R>) {
         this.storage.push(box as any)
     }
 
-    select(seed: OhosSeed): OhosProducer<idl.IDLNode> {
+    select(seed: OhosSeed<R>): OhosProducer<idl.IDLNode, R> {
         const record = this.storage.find(it => {
-            if (!it.pattern.is(seed.node)) {
+            if (!it.pattern.is(seed.node) ||
+                it.pattern.predicate && !it.pattern.predicate(seed.node)
+            ) {
                 return false
             }
             if (it.pattern.role === undefined) {
@@ -53,7 +56,7 @@ export class MakeSelector {
             return it.pattern.role === queryRole
         })
         if (!record)
-            terminate(`Can not process "${idl.getFQName(seed.node)}", ${idl.IDLKind[seed.node.kind]}, ${seed.role}`)
+            terminate(`Missing producer for "${idl.DebugUtils.debugPrintTrace(seed.node)}", ${idl.IDLKind[seed.node.kind]}, ${seed.role}`)
         return record.producer
     }
 
@@ -70,7 +73,7 @@ export interface OhosEffect {
 }
 
 export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>
-export type OhosProducer<T extends idl.IDLNode> = (type: T, ctx: OhosProducerContext, role?: Role<T>) => ProducerResult
+export type OhosProducer<T extends idl.IDLNode, R> = (type: T, ctx: OhosProducerContext, role?: R) => ProducerResult
 
 type CommonRole = 'managed' | 'capi'
 type SpecificRole<N extends idl.IDLNode> =
@@ -79,10 +82,10 @@ type SpecificRole<N extends idl.IDLNode> =
   never
 export type Role<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
-export class OhosSeed<T extends idl.IDLNode = idl.IDLNode> extends Seed {
+export class OhosSeed<R = Role<idl.IDLNode>> extends Seed {
   constructor(
-    public node: T,
-    public role?: Role<T>,
+    public node: idl.IDLNode,
+    public role?: R,
   ) {
     super()
   }

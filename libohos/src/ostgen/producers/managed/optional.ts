@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
+import { Ts } from "@idlizer/ost"
 import { createProducer, OhosSeed } from "../../engine/index.js"
 
-export const unionProducer = createProducer(
-  { is: idl.isUnionType },
+export const optionalProducer = createProducer(
+  { is: idl.isOptionalType },
   (type, ctx, role) => ({
-    continuation: Ts.union(type.types.map(ty => ctx.expectType(new OhosSeed(ty, role)))),
+    continuation: Ts.optional(ctx.expectType(new OhosSeed(type.type, role))),
     declarations: []
   })
 )

@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, Hs, Md, T, Ts } from "@idlizer/ost"
 import { expectType, managedName } from "../common.js"
-import { OhosProducer, OhosProducerContext, OhosSeed } from "../../engine/index.js"
+import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine/index.js"
 import { ProducerResult } from "@idlizer/kit"
@@ -31,7 +31,7 @@ export const structureProducer = createProducer(
   }
 )
 
-const tuple: OhosProducer<idl.IDLInterface> = (node, ctx) => {
+const tuple: OhosProducer<idl.IDLInterface, Role<idl.IDLInterface>> = (node, ctx) => {
   return {
     continuation: Ts.intersection(node.properties.map(prop => expectType(ctx, prop.type, 'managed'))),
     declarations: []

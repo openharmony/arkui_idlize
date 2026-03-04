@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,14 +13,18 @@
  * limitations under the License.
  */
 
-import { Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { createProducer, OhosSeed } from "../../engine/index.js"
+import { T, createProducer, managedName, OhosSeed } from "@idlizer/libohos";
 
-export const unionProducer = createProducer(
-  { is: idl.isUnionType },
-  (type, ctx, role) => ({
-    continuation: Ts.union(type.types.map(ty => ctx.expectType(new OhosSeed(ty, role)))),
-    declarations: []
+function isComponentInterface(node: idl.IDLInterface) {
+  return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.ComponentInterface)
+}
+
+export const interfaceProducer = createProducer(
+  { is: idl.isInterface, predicate: isComponentInterface, role: 'managed' },
+  node => ({
+    continuation: T.c(managedName(idl.getFQName(node))),
+    declarations: [],
+    trigger: node.callables.map(it => new OhosSeed(it, 'peer'))
   })
 )

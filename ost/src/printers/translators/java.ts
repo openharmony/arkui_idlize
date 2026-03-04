@@ -219,6 +219,44 @@ export class JavaPrinter {
         }
         break
       }
+      case lw.LWKind.SwitchStatement: {
+        this.p.put('switch', ' ', '(')
+        this.printExpression(statement.selector)
+        this.p.put(')', ' ', '{')
+        this.p.inc()
+        statement.cases.forEach(({ value, body }) => {
+          const values = Array.isArray(value) ? value : [value]
+          values.forEach(v => {
+            this.p.newline()
+            this.p.put('case', ' ')
+            this.printExpression(v)
+            this.p.put(':')
+          })
+          this.p.inc()
+          body.forEach(stmt => {
+            this.p.newline()
+            this.printStatement(stmt)
+          })
+          this.p.dec()
+        })
+        if (statement.default && statement.default.length) {
+          this.p.newline()
+          this.p.put('default', ':')
+          this.p.inc()
+          statement.default.forEach(stmt => {
+            this.p.newline()
+            this.printStatement(stmt)
+          })
+          this.p.dec()
+        }
+        this.p.dec().newline()
+        this.p.put('}')
+        break
+      }
+      case lw.LWKind.BreakStatement: {
+        this.p.put('break', ';')
+        break
+      }
       case lw.LWKind.LoopStatement: {
         this.p.put('while', '(')
         this.printExpression(statement.condition)

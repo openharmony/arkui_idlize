@@ -24,6 +24,7 @@ import { unionProducer } from "./union.js";
 import { callbackProducer } from "./callback.js";
 import { typedefProducer } from "./typedef.js";
 import { constructorProducer, functionProducer } from "./function.js";
+import { optionalProducer } from "./optional.js";
 
 export const producers = {
     enumProducer,
@@ -32,6 +33,7 @@ export const producers = {
     structureProducer,
     primitiveProducer,
     referenceProducer,
+    optionalProducer,
     containerProducer,
     unionProducer,
     callbackProducer,

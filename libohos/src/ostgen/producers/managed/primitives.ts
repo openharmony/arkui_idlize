@@ -23,6 +23,7 @@ function convertType(type: idl.IDLPrimitiveType): lw.LWType {
         case 'bigint': return Ts.prim.bigint
         case 'boolean': return Ts.prim.boolean
         case 'buffer': return Ts.prim.buffer
+        case 'date': return Ts.prim.u64///?
         case 'f32': return Ts.prim.f32
         case 'f64': return Ts.prim.f64
         case 'i8': return Ts.prim.i8
@@ -38,13 +39,13 @@ function convertType(type: idl.IDLPrimitiveType): lw.LWType {
         case 'u64': return Ts.prim.u64
         case 'void': return Ts.prim.void
         default:
-            throw new Error(`Can not map ${idl.DebugUtils.debugPrintType(type)}`)
+            throw new Error(`Can not map ${idl.DebugUtils.debugPrintTrace(type)}`)
     }
 }
 
 export const primitiveProducer = createProducer(
   { is: idl.isPrimitiveType },
-  (type, _) => ({
+  type => ({
     continuation: convertType(type),
     declarations: []
   })

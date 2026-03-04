@@ -42,6 +42,7 @@ class MakeOptional extends IdentityTransformer {
 }
 
 function introduceOptionalTypes(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
+    ///needed?
     return new MakeOptional().go(decls)
 }
 
@@ -49,7 +50,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
     if (callbacks.length) {
         const callbackKindEnum = callbackKindDeclaration(callbacks, bridgeName)
         const caller = Builders.func(bridgeName('getManagedCallbackCaller'))
-            .param('kind').typeStr('CallbackKind').$()
+            .param('kind').type('CallbackKind').$()
             .returns(Ts.prim.pointer)
             .block()
                 .switch().selector().var('kind').$()
@@ -59,7 +60,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                     }})).$()
                 .return().value('nullptr').$().$().$()
         const syncCaller = Builders.func(bridgeName('getManagedCallbackCallerSync'))
-            .param('kind').typeStr('CallbackKind').$()
+            .param('kind').type('CallbackKind').$()
             .returns(Ts.prim.pointer)
             .block()
                 .switch().selector().var('kind').$()
@@ -177,7 +178,11 @@ class AlgebraicMonomorphizer extends IdentityTransformer {
         const name = monoName(type)
         if (!this.knownNames.has(name)) {
             this.knownNames.add(name)
-            const decl = D.struct(name, type.args.map(it => ({ name: monoName(it), type: it })))
+            const decl = type.name === std.names.types.union
+                ? Builders.struct(name)
+                    .field('selector').type(Ts.prim.i32).$()
+                    .field(std.names.types.union).type(type).$().$() // let cxx printer do the rest
+                : D.struct(name, type.args.map((ty, i) => ({ name: 'value' + i, type: ty })))
             this.newDecls.push(decl)
         }
         return T.c(name)

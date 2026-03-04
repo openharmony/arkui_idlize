@@ -224,6 +224,41 @@ export class CangjiePrinter {
         }
         break
       }
+      case lw.LWKind.SwitchStatement: {
+        this.p.put('match', ' ', '(')
+        this.printExpression(statement.selector)
+        this.p.put(')', ' ', '{')
+        this.p.inc()
+        statement.cases.forEach(({ value, body }) => {
+          this.p.newline()
+          this.p.put('case', ' ')
+          const values = Array.isArray(value) ? value : [value]
+          values.forEach((v, i) => {
+            if (i > 0) {
+              this.p.put(' ', '|', ' ')
+            }
+            this.printExpression(v)
+          })
+          this.p.put(' ', '=>', ' ')
+          body.forEach(stmt => {
+            this.printStatement(stmt)
+          })
+        })
+        if (statement.default && statement.default.length) {
+          this.p.newline()
+          this.p.put('case', ' ', '_', ' ', '=>', ' ')
+          statement.default.forEach(stmt => {
+            this.printStatement(stmt)
+          })
+        }
+        this.p.dec().newline()
+        this.p.put('}')
+        break
+      }
+      case lw.LWKind.BreakStatement: {
+        this.p.put('break')
+        break
+      }
       case lw.LWKind.LoopStatement: {
         this.p.put('while', '(')
         this.printExpression(statement.condition)

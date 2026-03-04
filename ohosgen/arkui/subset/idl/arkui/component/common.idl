@@ -1,0 +1,12 @@
+package arkui.component.common;
+import arkui.component.units.SizeOptions as SizeOptions;
+
+interface <T> AttributeModifier {
+};
+
+[Component]
+interface CommonMethod {
+    [CommonMethod]
+    attribute (SizeOptions or undefined) size;
+};
+typedef CommonAttribute = CommonMethod;

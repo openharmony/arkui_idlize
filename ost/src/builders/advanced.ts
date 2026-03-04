@@ -20,7 +20,7 @@ import {
     IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier,
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
-    EnumDeclaration, SwitchStatement
+    EnumDeclaration, SwitchStatement, ConstantExpression, BreakStatement
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -957,23 +957,6 @@ class IfBuilder<P> {
     }
 }
 
-/**
- * Builder for creating switch statements.
- *
- * @typeParam P - The type returned by the continuation function (usually SwitchStatement or a parent builder)
- *
- * @example
- * ```typescript
- * const switchStmt = Builders.switch()
- *   .selector(b => b.expr().var('day'))
- *   .cases([
- *     {case: 1, body: b => b.expr().call('print').arg('Monday').$()},
- *     {case: 2, body: b => b.expr().call('print').arg('Tuesday').$()}
- *   ])
- *   .default([b => b.expr().call('print').arg('Other').$()])
- *   .$();
- * ```
- */
 class SwitchBuilder<P> {
     /**
      * @param _cont - Continuation function that receives the built statement
@@ -983,20 +966,6 @@ class SwitchBuilder<P> {
     private _cases: SwitchStatement['cases'] = []
     private _default: LWStatement[] = []
     /**
-     * Add multiple case clauses to the switch statement.
-     *
-     * @param cases - Array of case clauses (case expression and body statements)
-     * @returns This builder for chaining
-     */
-    cases(cases: SwitchStatement['cases']) { this._cases.push(...cases); return this }
-    /**
-     * Add default clause statements to the switch statement.
-     *
-     * @param stmts - Array of statements for the default clause
-     * @returns This builder for chaining
-     */
-    default(stmts: LWStatement[]) { this._default.push(...stmts); return this }
-    /**
      * Set the selector expression using a deferred expression builder.
      * Returns an ExpressionBuilder for specifying the selector expression.
      *
@@ -1004,6 +973,49 @@ class SwitchBuilder<P> {
      */
     selector(): ExpressionBuilder<this> {
         return new ExpressionBuilder(saveInto(this, '_selector'))
+    }
+    /**
+     * Add multiple case clauses to the switch statement.
+     *
+     * @param cases - Array of case clauses (case expression and body statements)
+     * @returns This builder for chaining
+     */
+    cases(cases: SwitchStatement['cases']) { this._cases.push(...cases); return this }
+    /**
+     * Start a new case clause with the given value.
+     * Returns a CaseBuilder for adding body statements and optionally more case values.
+     *
+     * @param value - Case value (number, string, or ConstantExpression)
+     * @returns CaseBuilder for building the case clause
+     *
+     * @example
+     * ```typescript
+     * Builders.switch()
+     *   .selector().var('x').$()
+     *   .case(0).call('handleZero').$().break()
+     *   .case(1).case(2).call('handleSmall').$().$()
+     *   .$()
+     * ```
+     */
+    case(...values: (string | number | ConstantExpression)[]): BlockBuilder<this> {
+        return new BlockBuilder(body => {
+            this._cases.push({
+                value: values.map(it => typeof it === 'object' ? it : E.c(it)),
+                body
+            })
+            return this
+        })
+    }
+    /**
+     * Start a default clause.
+     *
+     * @returns CaseBuilder for building the default clause
+     */
+    default(): BlockBuilder<this> {
+        return new BlockBuilder(body => {
+            this._default.push(...body)
+            return this
+        })
     }
     /**
      * Finalize the builder and return the constructed switch statement.
@@ -1266,14 +1278,14 @@ class BlockBuilder<P> {
      * @param _cont - Continuation function that receives the built statement array
      */
     constructor(private _cont: (stmts: LWStatement[]) => P) {}
-    private _stmts: LWStatement[] = []
+    protected _body: LWStatement[] = []
     /**
      * Add multiple statements to the block.
      *
      * @param stmts - Array of statements to add
      * @returns This builder for chaining
      */
-    statements(stmts: LWStatement[]) { this._stmts.push(...stmts); return this }
+    statements(stmts: LWStatement[]) { this._body.push(...stmts); return this }
     /**
      * Create a binary expression statement and add it to the block.
      * Returns a BinaryBuilder for specifying left and right operands.
@@ -1283,7 +1295,7 @@ class BlockBuilder<P> {
      */
     binary(op: string): BinaryBuilder<BlockBuilder<P>> {
         return new BinaryBuilder(stmt => {
-            this._stmts.push(S.e(stmt))
+            this._body.push(S.e(stmt))
             return this
         }, op)
     }
@@ -1296,7 +1308,7 @@ class BlockBuilder<P> {
      */
     unary(op: string): UnaryBuilder<BlockBuilder<P>> {
         return new UnaryBuilder(stmt => {
-            this._stmts.push(S.e(stmt))
+            this._body.push(S.e(stmt))
             return this
         }, op)
     }
@@ -1308,7 +1320,7 @@ class BlockBuilder<P> {
      */
     block(): BlockBuilder<BlockBuilder<P>> {
         return new BlockBuilder(stmts => {
-            this._stmts.push(S.block(stmts))
+            this._body.push(S.block(stmts))
             return this
         })
     }
@@ -1321,7 +1333,7 @@ class BlockBuilder<P> {
      */
     call(func?: string | LWExpression): CallBuilder<BlockBuilder<P>> {
         return new CallBuilder(stmt => {
-            this._stmts.push(S.e(stmt))
+            this._body.push(S.e(stmt))
             return this
         }, func)
     }
@@ -1335,7 +1347,7 @@ class BlockBuilder<P> {
      */
     decl(name: string, type?: LWType): DeclarationBuilder<BlockBuilder<P>> {
         return new DeclarationBuilder(stmt => {
-            this._stmts.push(stmt)
+            this._body.push(stmt)
             return this
         }, name, type)
     }
@@ -1347,7 +1359,7 @@ class BlockBuilder<P> {
      */
     if(): IfBuilder<BlockBuilder<P>> {
         return new IfBuilder(stmt => {
-            this._stmts.push(stmt)
+            this._body.push(stmt)
             return this
         })
     }
@@ -1359,7 +1371,7 @@ class BlockBuilder<P> {
      */
     switch(): SwitchBuilder<BlockBuilder<P>> {
         return new SwitchBuilder(stmt => {
-            this._stmts.push(stmt)
+            this._body.push(stmt)
             return this
         })
     }
@@ -1371,7 +1383,7 @@ class BlockBuilder<P> {
      */
     loop(): LoopBuilder<BlockBuilder<P>> {
         return new LoopBuilder(stmt => {
-            this._stmts.push(stmt)
+            this._body.push(stmt)
             return this
         })
     }
@@ -1384,9 +1396,28 @@ class BlockBuilder<P> {
      */
     return(type?: LWType): ReturnBuilder<BlockBuilder<P>> {
         return new ReturnBuilder(stmt => {
-            this._stmts.push(stmt)
+            this._body.push(stmt)
             return this
         }, type)
+    }
+    /**
+     * Add a break statement to the block.
+     *
+     * @returns This builder for chaining
+     */
+    break(): BlockBuilder<P> {
+        this._body.push(S.break())
+        return this
+    }
+    /**
+     * Add a "throw new Error("Not implemented")" statement to the block.
+     * Convenience method for stub/unimplemented method bodies.
+     *
+     * @returns This builder for chaining
+     */
+    unimplemented(): BlockBuilder<P> {
+        this._body.push(S.e(E.v('throw new Error("Not implemented")')))
+        return this
     }
     /**
      * Finalize the builder and return the constructed block statement.
@@ -1394,7 +1425,7 @@ class BlockBuilder<P> {
      * @returns The built block statement (array of statements)
      */
     $(): P {
-        return this._cont(this._stmts)
+        return this._cont(this._body)
     }
 }
 
@@ -1427,18 +1458,10 @@ class ParamBuilder<P> {
     /**
      * Set the parameter type directly.
      *
-     * @param type - Parameter type
+     * @param type - Parameter type, or type name
      * @returns This builder for chaining
      */
-    type(type: LWType) { this._type = type; return this }
-    /**
-     * Set the parameter type using a type name (string).
-     * The string is converted to a ValueType using T.c().
-     *
-     * @param type - Type name as string
-     * @returns This builder for chaining
-     */
-    typeStr(type: string) { this._type = T.c(type); return this }
+    type(type: LWType | string) { this._type = typeof type === 'string' ? T.c(type) : type; return this }
     /**
      * Finalize the builder and return the parameter to the parent builder.
      *
@@ -1547,7 +1570,7 @@ class FunctionBuilder<P> {
         private _name: string
     ) {}
     private _modifiers: Modifier[] = []
-    private _parameters: { name: string, type: LWType }[] = []
+    private _parameters: FunctionDeclaration['parameters'] = []
     private _returnType?: LWType
     private _body?: LWStatement
     private _annotations: Annotation[] = []
@@ -1685,14 +1708,15 @@ class FunctionBuilder<P> {
  */
 class FieldBuilder<P> {
     /**
-     * @param _cont - Continuation function that receives the field name, type, and modifiers
+     * @param _cont - Continuation function that receives the field name, type, modifiers, and optional expression
      * @param _name - Field name
      */
     constructor(
-        private _cont: (name: string, type: LWType, modifiers?: Modifier[]) => P,
+        private _cont: (name: string, type: LWType, modifiers?: Modifier[], expression?: LWExpression) => P,
         private _name: string
     ) {}
     private _type?: LWType
+    private _value?: LWExpression
     private _modifiers: Modifier[] = []
     /**
      * Add static modifier to the field (class-level member).
@@ -1732,11 +1756,16 @@ class FieldBuilder<P> {
      *
      * @returns FunctionTypeBuilder for deferred functional type specification
      */
-    funcType(): FunctionTypeBuilder<FieldBuilder<P>> {
+    funcType(): FunctionTypeBuilder<this> {
         return new FunctionTypeBuilder(type => {
             this._type = type
             return this
         })
+    }
+    value(value: ExpressionLike): this
+    value(): ExpressionBuilder<this>
+    value(value?: ExpressionLike): this | ExpressionBuilder<this> {
+        return assign(this, '_value', value)
     }
     /**
      * Finalize the builder and return the field to the parent builder.
@@ -1746,7 +1775,7 @@ class FieldBuilder<P> {
      */
     $(): P {
         check("Field", this._name, this._type)
-        return this._cont(this._name!, this._type!, this._modifiers)
+        return this._cont(this._name!, this._type!, this._modifiers, this._value)
     }
 }
 
@@ -1768,7 +1797,8 @@ class StructLikeBuilder {
      * @param _name - Structure name
      */
     constructor(protected _name: string) {}
-    protected _fields: { name: string, type: LWType, modifiers?: Modifier[] }[] = []
+    protected _fields: ClassDeclaration['fields'] = []
+    fields(fields: ClassDeclaration['fields']) { this._fields.push(...fields); return this }
     /**
      * Add a field to the structure.
      * Returns a FieldBuilder for specifying field type and modifiers.
@@ -1777,8 +1807,8 @@ class StructLikeBuilder {
      * @returns FieldBuilder for deferred field specification
      */
     field(name: string): FieldBuilder<this> {
-        return new FieldBuilder((name, type, modifiers) => {
-            this._fields.push({name, type, modifiers})
+        return new FieldBuilder((name, type, modifiers, expression) => {
+            this._fields.push({name, type, modifiers, expression})
             return this
         }, name)
     }
@@ -1838,6 +1868,7 @@ class ClassBuilder extends StructLikeBuilder {
         base: undefined,
         implementations: []
     }
+    methods(methods: FunctionDeclaration[]) { this._methods.push(...methods); return this }
     /**
      * Specify the base class that this class extends (inherits from).
      *
@@ -1852,7 +1883,7 @@ class ClassBuilder extends StructLikeBuilder {
      *   .$();
      * ```
      */
-    extends(type: LWType) { this._oop!.base = type; return this }
+    extends(type: LWType | undefined) { this._oop!.base = type; return this }
     /**
      * Add an interface that this class implements.
      * Can be called multiple times to implement multiple interfaces.
@@ -2158,6 +2189,24 @@ export class Builders {
      * ```
      */
     static func(name: string): FunctionBuilder<FunctionDeclaration> { return new FunctionBuilder(id, name) }
+    /**
+     * Create a field builder for standalone field construction.
+     *
+     * @param name - Field name
+     * @returns FieldBuilder for creating a field declaration (as used in ClassDeclaration.fields)
+     *
+     * @example
+     * ```typescript
+     * const field = Builders.field('count')
+     *   .type(Ts.prim.number)
+     *   .value(0)
+     *   .$();
+     * // { name: 'count', type: ..., modifiers: [], expression: ... }
+     * ```
+     */
+    static field(name: string): FieldBuilder<ClassDeclaration['fields'][number]> {
+        return new FieldBuilder((name, type, modifiers, expression) => ({name, type, modifiers, expression}), name)
+    }
     /**
      * Create a structure builder.
      *

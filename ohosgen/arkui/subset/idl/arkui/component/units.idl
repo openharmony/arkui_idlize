@@ -1,0 +1,13 @@
+package arkui.component.units;
+import global.resource.Resource as _Resource;
+import arkui.component.enums.Color as Color;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+typedef Resource = _Resource;
+typedef Length = (String or f64 or Resource);
+typedef ResourceColor = (Color or i32 or i64 or String or Resource);
+
+interface SizeOptions {
+    optional attribute Length width;
+    optional attribute Length height;
+};

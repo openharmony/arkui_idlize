@@ -513,6 +513,20 @@ export const S = {
    * const emptyStmt = S.none();
    * ```
    */
+  /**
+   * Create a break statement.
+   *
+   * @returns BreakStatement node
+   *
+   * @example
+   * ```typescript
+   * // break;
+   * const breakStmt = S.break();
+   * ```
+   */
+  break: (): lw.BreakStatement => ({
+    kind: lw.LWKind.BreakStatement
+  }),
   none: (): lw.NoneStatement => ({
     kind: lw.LWKind.NoneStatement
   }),

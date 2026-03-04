@@ -67,15 +67,15 @@ export function createOhosEffect() {
     }
 }
 
-export function expectExpr<N extends idl.IDLNode>(ctx: OhosProducerContext, node: N, role: Role<N>): LWExpression {
+export function expectExpr<R = Role<idl.IDLNode>>(ctx: OhosProducerContext, node: idl.IDLNode, role: R): LWExpression {
     return ctx.expectExpr(new OhosSeed(node, role))
 }
 
-export function expectType<N extends idl.IDLNode>(ctx: OhosProducerContext, node: N, role: Role<N>): LWType {
+export function expectType<R = Role<idl.IDLNode>>(ctx: OhosProducerContext, node: idl.IDLNode, role: R): LWType {
     return ctx.expectType(new OhosSeed(node, role))
 }
 
-export function registerDefaultSelectors(selector: MakeSelector) {
+export function registerDefaultProducers<R extends Role<idl.IDLNode>>(selector: MakeSelector<R>) {
     for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
         selector.register(p as any)
 }

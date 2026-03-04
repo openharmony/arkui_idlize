@@ -1,0 +1,8 @@
+package global.resource;
+interface Resource {
+    attribute String bundleName;
+    attribute String moduleName;
+    attribute i64 id;
+    optional attribute sequence<(String or i32 or i64 or f64 or Resource)> params;
+    optional attribute i32 type;
+};

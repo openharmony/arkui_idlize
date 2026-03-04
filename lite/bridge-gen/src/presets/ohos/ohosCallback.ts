@@ -54,7 +54,7 @@ export const createOhosCallbackProducer = (library: ColoredLibrary): InteropProd
                         .parameters(callback.parameters.map(it => [it.name, Ask.typeName(it.type)]))
                         .returns(Ask.typeName(callback.returnType)).$().$(),
                     Builders.func('framework.engine.deserializeAndCall' + callback.name)
-                        .param(deserializerName).typeStr(KOALAUI_DESERIALIZER_BASE).$()
+                        .param(deserializerName).type(KOALAUI_DESERIALIZER_BASE).$()
                         .block()
                         .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
                         .decl('call').value().cast(T.c(generatedDeclName)).value().call('get')
@@ -163,7 +163,7 @@ export const createOhosCallbackProducer = (library: ColoredLibrary): InteropProd
             }))
             if (callers.length) {
                 const caller = Builders.func('impl.getManagedCallbackCaller')
-                    .param('kind').typeStr(callers.at(0)!.enum.name).$()
+                    .param('kind').type(callers.at(0)!.enum.name).$()
                     .returns(T.c(KOALAUI_KPOINTER))
                     .block()
                         .switch().selector().var('kind').$()
@@ -173,7 +173,7 @@ export const createOhosCallbackProducer = (library: ColoredLibrary): InteropProd
                             }})).$()
                         .return().value('nullptr').$().$().$()
                 const syncCaller = Builders.func('impl.getManagedCallbackCallerSync')
-                    .param('kind').typeStr(callers.at(0)!.enum.name).$()
+                    .param('kind').type(callers.at(0)!.enum.name).$()
                     .returns(T.c(KOALAUI_KPOINTER))
                     .block()
                         .switch().selector().var('kind').$()

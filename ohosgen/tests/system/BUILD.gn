@@ -81,7 +81,7 @@ template("system_test") {
             rebase_path("./$test_case/generation_config.json"),
         ]
         if (use_ost) {
-            args += [ "--use-ost" ]
+            args += [ "--feature=ost" ]
         }
         outputs = [
             "$gen_path/generated/native/${test_case}.cpp",

@@ -1,0 +1,6 @@
+package arkui.BlankModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.blank.BlankAttribute as BlankAttribute;
+[Entity=Class]
+interface BlankModifier: BlankAttribute, AttributeModifier<BlankAttribute> {
+};

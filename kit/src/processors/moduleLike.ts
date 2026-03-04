@@ -58,6 +58,7 @@ interface ResultFile {
     body: lw.LWDeclaration[]
 }
 
+export type InitImports = () => ImportsCollector
 export type OnUnknownImport = (name:string) => { name: string, source: string } | undefined
 
 class RefSearcher extends IdentityTransformer {
@@ -125,7 +126,7 @@ class RefSearcher extends IdentityTransformer {
             const source = this.mapToPackage(mapFileName(record))
             const conflictingNames = this.seenNames.get(baseName)
             if (conflictingNames) {
-                const alias = source + '_' + baseName
+                const alias = source.replace('.', '_') + '_' + baseName
                 if (!conflictingNames.includes(source)) {
                     conflictingNames.push(source)
                     this.imports.addFeature(baseName, source, alias)
@@ -229,6 +230,7 @@ function putToNs(declarations:lw.LWDeclaration[]): lw.LWDeclaration[] {
 interface FormFilesOptions {
     knownReference:Map<string, string>
     knownImports: Map<string, string>
+    defaultImports?: InitImports
     onUnknownImport?: OnUnknownImport
 }
 
@@ -269,7 +271,7 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
     // do namespace stuff
     const nsFiles = new Map<string, ResultFile>()
     files.forEach((decls, fileName) => {
-        const imports = defaultImports()
+        const imports = options?.defaultImports?.() ?? new ImportsCollector()
         const nsDecls = new RefSearcher(putToNs(decls), fileName, refIndex, imports, options?.knownImports, options?.onUnknownImport).go()
         nsFiles.set(fileName, {
             moduleLikeImports: imports,
@@ -278,8 +280,4 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
     })
 
     return nsFiles
-}
-
-function defaultImports(): ImportsCollector {
-    return new ImportsCollector()
 }

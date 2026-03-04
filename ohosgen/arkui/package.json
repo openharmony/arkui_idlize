@@ -1,0 +1,17 @@
+{
+    "scripts": {
+        "generate:sdk": "node .. --idl2peer --feature=arkui --language arkts --arkts-extension .ets --base-dir ../../runner/out/scraper/out/idl,../../external/koala_projects/arkoala-arkts/arkui/idl --input-dir $(find ../../runner/out/scraper/out/idl -type d | tr '\n' ','),../../external/koala_projects/arkoala-arkts/arkui/idl --options-file ../../external/koala_projects/arkoala-arkts/arkui/config/arkgen-config.json",
+        "gen:common": "npm run generate:sdk -- --input-files idl/sdk/arkui/component/common.idl --output-dir ./out",
+        "gen:m3": "node ../../arkgen --idl2peer --reference-names ets --input-files $(find ../../runner/out/scraper/out/idl ../../external/koala_projects/arkoala-arkts/arkui/idl -name *.idl | tr '\n' ',') --generator-target arkoala --options-file ../../external/koala_projects/arkoala-arkts/arkui/config/arkgen-config.json --language arkts --use-memo-m3 --interop-types ../../external/koala_projects/interop/src/cpp/interop-types.h --output-dir out.m3 --arkts-extension .ets"
+        ,
+        "generate:subset": "node .. --idl2peer --feature=arkui --language arkts --arkts-extension .ets --base-dir subset/idl,../../external/koala_projects/arkoala-arkts/arkui/idl --input-files $(find subset/idl -name \\*.idl | tr '\n' ','),../../external/koala_projects/arkoala-arkts/arkui/idl/base-node.idl,../../external/koala_projects/arkoala-arkts/arkui/idl/arkui-idlize-internal.idl --options-file ../../external/koala_projects/arkoala-arkts/arkui/config/arkgen-config.json",
+        "gen:subset": "npm run generate:subset -- --output-dir ./subset/out",
+        "gen:subset:m3": "node ../../arkgen --idl2peer --reference-names ets --input-files $(find subset/idl -name *.idl | tr '\n' ','),../../external/koala_projects/arkoala-arkts/arkui/idl/AttributeUpdater.idl,../../external/koala_projects/arkoala-arkts/arkui/idl/ModifierState.idl --generator-target arkoala --options-file ../../external/koala_projects/arkoala-arkts/arkui/config/arkgen-config.json --language arkts --use-memo-m3 --interop-types ../../external/koala_projects/interop/src/cpp/interop-types.h --output-dir subset/out.m3 --arkts-extension .ets"
+        ,
+        "compile": "../../external/koala_projects/incremental/tools/panda/arkts/arktsc --ets-module",
+        "compile:sdk": "npm run compile -- --arktsconfig ./arktsconfig-ost.json",
+        "compile:subset": "npm run compile -- --arktsconfig ./subset/arktsconfig-ost.json"
+        ,
+        "cc:subset": "cd subset && meson setup build/panda --buildtype release && meson compile -C build/panda"
+    }
+}
