@@ -25,9 +25,10 @@ export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'capi' },
   (method, ctx) => {
     const funcName = method.isFree ? fqName(method) : method.name
-    const returnType = expectType(ctx, method.returnType, 'capi')
-    const params: [string, LWType][] = method.parameters.map(it =>
-      [it.name, wrapPtr(it.type, ctx)])
+    const returnType = idl.isPrimitiveType(method.returnType) && method.returnType.name === 'this'
+      ? Ts.prim.void
+      : expectType(ctx, method.returnType, 'capi')
+    const params: [string, LWType][] = method.parameters.map(it => [it.name, wrapPtr(it.type, ctx)])
     if (!method.isFree && !method.isStatic)
       params.unshift(['thisPtr', Ts.prim.pointer])
     return {
@@ -38,7 +39,7 @@ export const functionProducer = createProducer(
             .funcType()
             .parameters(params)
             .returns(returnType).$().$().$(),
-        generateImpl(method, ctx)
+        generateImpl(ctx, method, returnType)
       ]
     }
   }
@@ -57,7 +58,7 @@ export const constructorProducer = createProducer(
             .funcType()
             .parameters(params)
             .returns(Ts.prim.pointer).$().$().$(),
-        generateImpl(ctor, ctx)
+        generateImpl(ctx, ctor, Ts.prim.pointer)
       ]
     }
   }
@@ -77,8 +78,7 @@ function apiAccessor(method: idl.IDLMethod | idl.IDLConstructor, name: string, c
         .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
 }
 
-function generateImpl(method: idl.IDLMethod | idl.IDLConstructor, ctx: OhosProducerContext) {
-  const returnType = idl.isMethod(method) ? expectType(ctx, method.returnType, 'capi') : Ts.prim.pointer
+function generateImpl(ctx: OhosProducerContext, method: idl.IDLMethod | idl.IDLConstructor, returnType: LWType) {
   const params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
   if (!idl.isConstructor(method) && !method.isFree && !method.isStatic)
     params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })

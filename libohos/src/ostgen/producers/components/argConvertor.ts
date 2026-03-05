@@ -126,6 +126,7 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
                 return Ts.prim.interopNumber
             case 'String':
                 return native ? Ts.const(Ts.ref(Ts.prim.interopString)) : Ts.prim.interopString
+            case 'this':
             case 'void':
                 return Ts.prim.void
             default:

@@ -219,7 +219,6 @@ function dumpCLike(decls: LWDeclaration[], effect: OhosEffect, moduleName: strin
     return new Map([
         [new TargetFile(`${moduleName.toLowerCase()}.h`), h],
         [new TargetFile(`${moduleName.toLowerCase()}.cpp`), cpp],
-        [new TargetFile(`${moduleName.toLowerCase()}Impl_temp.cpp`), ''],
         [new TargetFile(`${moduleName.toLowerCase()}ApiImpl_temp.cpp`), apiImpl],
     ])
 }
