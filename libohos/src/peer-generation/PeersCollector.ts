@@ -1,5 +1,5 @@
 import * as path from "path"
-import { ArgumentModifier, capitalize, getSuper, isDefined, LibraryInterface, Method, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature, warn } from "@idlizer/core";
+import { ArgumentModifier, capitalize, getSuper, isDefined, LibraryInterface, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature, warn } from "@idlizer/core";
 import * as idl from "@idlizer/core/idl"
 import { collectComponents, findComponentByDeclaration, findComponentByType, IdlComponentDeclaration } from "./ComponentsCollector";
 import { getMethodModifiers } from "./idl/IdlPeerGeneratorVisitor";
@@ -79,6 +79,7 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
             signature.args.map((it, index) => new PeerMethodArg(signature.argName(index), idl.maybeOptional(it, signature.isArgOptional(index)))),
             signature.returnType,
             method.parent as idl.IDLInterface,
+            peerGeneratorConfiguration().forceContext.includes(idl.getFQName(method)) ? [MethodModifier.FORCE_CONTEXT] : undefined
         ),
         originalParentName,
         realRetType,
@@ -113,6 +114,7 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
             [new PeerMethodArg('value', idl.maybeOptional(prop.type, prop.isOptional))],
             idl.IDLVoidType,
             prop.parent as idl.IDLInterface,
+            peerGeneratorConfiguration().forceContext.includes(idl.getFQName(prop)) ? [MethodModifier.FORCE_CONTEXT] : undefined
         ),
         originalParentName,
         idl.IDLVoidType,
