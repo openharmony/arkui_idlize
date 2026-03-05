@@ -324,6 +324,102 @@ Output goes to: `ohosgen/arkui/subset/out/generated/arkts/`
 1. **No semicolons:** The printer generally omits semicolons after expression statements.
 2. **Lambda bodies:** A lambda with `S.return(expr)` body prints `() => return expr`. Use `S.e(expr)` for expression-body lambdas: `() => expr`.
 
+## Producer Architecture
+
+### Where producers live
+
+Producers are defined in two locations:
+
+1. **`ohosgen/src/arkui/`** — ArkUI-specific producers for component attributes, peers, and components.
+2. **`libohos/src/ostgen/producers/`** — General-purpose producers shared across generators, split into:
+   - `managed/` — producers for the managed (TypeScript/ArkTS) side
+   - `native/` — producers for the native (C API) side
+   - `components/` — shared helper components (argConvertor, serializer logic)
+
+### Producer inventory
+
+#### ArkUI producers (`ohosgen/src/arkui/`)
+
+| Producer | File | IDL Node Type | Role | Purpose |
+|----------|------|---------------|------|---------|
+| `attributeProducer` | `managed/attribute.ts` | Interface (with `Component` ext-attr or root) | `managed` | Generates attribute interface, implementation function, and modifier class |
+| `peerProducer` | `managed/attribute.ts` | Interface (same predicate) | `peer` | Generates the peer class that wraps native node |
+| `componentProducer` | `managed/attribute.ts` | Interface (same predicate) | `component` | Generates the component class that implements the attribute interface |
+| `propertyProducer` | `managed/property.ts` | Property | `peer` | Generates per-property setter on the peer, plus interface/component method stubs |
+| `interfaceProducer` | `managed/interface.ts` | Interface (with `ComponentInterface` ext-attr) | `managed` | Generates type reference and triggers callable processing |
+| `optionsProducer` | `managed/callable.ts` | Callable | `peer` | Generates `setXxxOptions` methods for component interfaces |
+
+#### Managed producers (`libohos/src/ostgen/producers/managed/`)
+
+| Producer | File | IDL Node Type | Role | Purpose |
+|----------|------|---------------|------|---------|
+| `enumProducer` | `enum.ts` | Enum | `managed` | Generates enum declaration |
+| `functionProducer` | `function.ts` | Method | `managed` | Generates method with serialization and native module call |
+| `constructorProducer` | `function.ts` | Constructor | `managed` | Generates constructor that calls native module |
+| `structureProducer` | `structure.ts` | Interface | `managed` | Generates class/interface; for materialized interfaces, triggers methods and constructors |
+| `primitiveProducer` | `primitives.ts` | PrimitiveType | *(any)* | Maps IDL primitive types to LW types |
+| `referenceProducer` | `references.ts` | ReferenceType | *(any)* | Resolves reference to its declaration and delegates |
+| `optionalProducer` | `optional.ts` | OptionalType | *(any)* | Wraps inner type in `Ts.optional()` |
+| `containerProducer` | `containers.ts` | ContainerType | *(any)* | Handles sequences (arrays) and records (maps) |
+| `unionProducer` | `union.ts` | UnionType | *(any)* | Produces union of member types |
+| `callbackProducer` | `callback.ts` | Callback | `managed` | Generates callback type alias and deserialization function |
+| `typedefProducer` | `typedef.ts` | Typedef | `managed` | Generates type alias |
+| `nativeModuleFunctionProducer` | `nativeModule.ts` | Method | `native-module` | Generates native module method declaration and interop bridge |
+| `nativeModuleConstructorProducer` | `nativeModule.ts` | Constructor | `native-module` | Generates native module constructor and interop bridge |
+| `nativeModuleMaterializedProducer` | `nativeModule.ts` | Interface | `native-module` | Delegates to `nativeModuleFunctionProducer` for the finalizer |
+| `serializerProducer` | `serializer.ts` | Interface | `managed-serde` | Generates serializer/deserializer class for data interfaces |
+
+#### Native producers (`libohos/src/ostgen/producers/native/`)
+
+| Producer | File | IDL Node Type | Role | Purpose |
+|----------|------|---------------|------|---------|
+| `enumProducer` | `enum.ts` | Enum | `capi` | Generates C API enum |
+| `structureProducer` | `structure.ts` | Interface | `capi` | Generates C struct or opaque pointer type |
+| `callbackProducer` | `callback.ts` | Callback | `capi` | Generates C callback struct and bridge functions |
+| `functionProducer` | `function.ts` | Method | `capi` | Generates C API function pointer in modifier struct |
+| `constructorProducer` | `function.ts` | Constructor | `capi` | Generates C API constructor function pointer |
+| `serializerProducer` | `serializer.ts` | Interface | `native-serde` | Generates native serializer/deserializer |
+
+### How producers call each other
+
+Producers form a call graph through three mechanisms:
+
+#### 1. `expectType(ctx, node, role)` — type resolution
+
+A producer calls `expectType` to obtain the LW type that another producer generates for a given IDL node and role. The engine finds the matching producer (by IDL node type guard + predicate + role) and returns its `continuation` type. This is the most common inter-producer call.
+
+**Example:** `attributeProducer` calls `expectType(ctx, node, 'peer')` to get the peer type, which causes `peerProducer` to run and return `T.c('BlankPeer')`.
+
+#### 2. `expectExpr(ctx, node, role)` — expression resolution
+
+Similar to `expectType`, but returns an LW expression instead of a type. Used when a producer needs a callable expression from another producer.
+
+**Example:** `functionProducer` calls `expectExpr(ctx, method, 'native-module')` to get the native module function expression, which causes `nativeModuleFunctionProducer` to run.
+
+#### 3. `trigger` — child node processing
+
+A producer can return a `trigger` array of `OhosSeed(node, role)` objects. The engine will process each seed, finding and running the appropriate producer. This is used to cascade processing to child nodes.
+
+**Example:** `attributeProducer` returns `trigger: node.properties.map(it => new OhosSeed(it, 'peer'))`, which causes `propertyProducer` to run for each property.
+
+### Key call patterns
+
+- **ArkUI attribute → peer → native module → C API:** The `attributeProducer` (managed) triggers `propertyProducer` (peer) via `trigger`. The `propertyProducer` calls `functionProducer` (managed) via `expectExpr`. The `functionProducer` calls `nativeModuleFunctionProducer` (native-module) via `expectExpr`. The `nativeModuleFunctionProducer` calls native `functionProducer` (capi) via `expectExpr`.
+
+- **ArkUI attribute ↔ component ↔ peer:** The `attributeProducer`, `componentProducer`, and `peerProducer` cross-reference each other via `expectType` with roles `managed`, `component`, and `peer`.
+
+- **Materialized interfaces:** The `structureProducer` detects materialized interfaces and triggers `functionProducer` and `constructorProducer` for all methods/constructors via `trigger`.
+
+- **Type resolution chain:** When any producer calls `expectType` on a type, the engine dispatches through `referenceProducer` → resolved declaration's producer (e.g., `structureProducer`, `enumProducer`), or directly to `primitiveProducer`, `containerProducer`, `unionProducer`, `optionalProducer` for non-reference types.
+
+### Call graph visualization
+
+The file `producers_call_graph.dot` in the workspace root contains a Graphviz DOT graph of all inter-producer calls. Render it with:
+
+```bash
+dot -Tsvg producers_call_graph.dot -o producers_call_graph.svg
+```
+
 ## Imports Available from `@idlizer/libohos`
 
 Re-exports everything from `@idlizer/ost`, plus its own utilities:
