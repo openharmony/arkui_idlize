@@ -65,7 +65,7 @@ export function getNativeLog(): string {
     // Improve: better string decoding.
     let result = new StringBuilder()
     for (let i = 0; i < length; i++) {
-        result.append(String.fromCharCode(data[i].toDouble()))
+        result.append(String.fromCharCode(data[i].toInt()))
     }
     return result.toString()
 }
