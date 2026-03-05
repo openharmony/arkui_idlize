@@ -36,7 +36,6 @@
                 "ohos.web.webview",
                 "graphics3d.Scene",
 
-                "idlize.stdlib",
                 "idlize.internal",
                 "synthetic_types"
             ]

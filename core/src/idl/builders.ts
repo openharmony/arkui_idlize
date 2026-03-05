@@ -421,6 +421,7 @@ export function generateSyntheticUnionName(types: IDLType[]) {
 
 export const IDLNullTypeName = "idlize.stdlib.Null"
 export const IDLThrowsTypeName = "idlize.stdlib.ThrowsWrapper"
+export const IDLSetTypeName = "idlize.stdlib.Set"
 
 export function isUndefinedType(type: IDLNode): type is IDLPrimitiveType {
     return isPrimitiveType(type) && type.name === 'undefined'

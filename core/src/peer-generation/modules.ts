@@ -57,6 +57,9 @@ function getApplicableModuleFor(packageName: string): ModuleConfiguration {
             console.error("WARNING: use current module for empty package")
             return stdlibModule
         }
+        if (packageName.startsWith(`idlize.stdlib`)) {
+            return stdlibModule
+        }
         if (packageName.startsWith(`idlize.`)) {
             return currentModule()
         }

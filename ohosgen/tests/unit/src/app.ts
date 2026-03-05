@@ -113,6 +113,7 @@ import {
   ChildI,
   ParentC,
   ChildC,
+  Sequences,
   testParentInterfaceHierarchy,
   testChildInterfaceHierarchy,
   testParentClassHierarchy,
@@ -121,6 +122,7 @@ import {
   testInterfaceHierarchyUnion2,
   isInstanceofChildI,
   isInstanceofParentI,
+  testSequences,
 } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
@@ -872,6 +874,22 @@ function checkMultipleInstances() {
   assertEQ(obj.getValue(), 5)
 }
 
+function checkSequences() {
+  const sequences: Sequences = {
+    simpleArray: [10, 12],
+    setSequence: new Set<int32>([10, 12])
+  }
+  const transformed = testSequences(sequences)
+  assertEQ(transformed.simpleArray[0], 10)
+  assertEQ(transformed.simpleArray[1], 12)
+  const setAsArray = new Array<int32>()
+  for (let setElement of transformed.setSequence) {
+    setAsArray.push(setElement)
+  }
+  assertEQ(setAsArray[0], 10)
+  assertEQ(setAsArray[1], 12)
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -903,6 +921,7 @@ export function run() {
   suite.addTest("checkTransformOnSerialize", checkTransformOnSerialize)
   suite.addTest("checkMultipleInstances", checkMultipleInstances)
   suite.addTest("checkHierarchy", checkHierarchy)
+  suite.addTest("checkSequences", checkSequences)
 
 
   return suite.run()
