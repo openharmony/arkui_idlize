@@ -306,10 +306,10 @@ class ModifiersFileVisitor {
         return hookCall;
     }
 
-    printHookedMethodBody(method: Method, hookName: string, writer: LanguageWriter) {
+    printHookedMethodBody(method: Method, hookName: string, flagIndex: number, writer: LanguageWriter) {
         const args = method.signature.args.map((_, i) => method.signature.argName(i))
         const hookCall = writer.makeFunctionCall(hookName, [
-            writer.makeThis(), ...args.map(arg => writer.makeString(arg))
+            writer.makeThis(), ...args.map(arg => writer.makeString(arg)), writer.makeString(`${flagIndex}`)
         ])
         writer.writeExpressionStatement(hookCall)
     }
@@ -586,7 +586,7 @@ class ModifiersFileVisitor {
                         const hookMethod = getHookMethod(nameWoBase, attribute.method.method.name)
                         if (hookMethod) {
                             // hook call for Modifier member function
-                            this.printHookedMethodBody(attribute.method.method, hookMethod.hookName, writer)
+                            this.printHookedMethodBody(attribute.method.method, hookMethod.hookName, index, writer)
                             collectedHooks.push(hookMethod.hookName)
                             writer.writeStatement(writer.makeReturn(writer.makeThis()))
                             return;
