@@ -100,7 +100,10 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
     const originalParentName = parentName ?? peer.originalClassName!
     let propType = idl.maybeOptional(prop.type, prop.isOptional)
     if (idl.isOptionalType(propType) && idl.hasExtAttribute(propType, idl.IDLExtendedAttributes.UnionOnlyNull)) {
-        propType = idl.createOptionalType(propType.type, { extendedAttributes: [{ name: idl.IDLExtendedAttributes.UnionWithNull }] })
+        propType = idl.createOptionalType(propType.type, { extendedAttributes: [
+            { name: idl.IDLExtendedAttributes.UnionWithNull },
+            { name: idl.IDLExtendedAttributes.DefaultValue, value: "null" },
+        ] })
     }
     const signature = new NamedMethodSignature(idl.createPrimitiveType('this'), [propType], ["value"])
     const overloadInfo = PeerMethodSignature.mangleOverloadedName(prop)

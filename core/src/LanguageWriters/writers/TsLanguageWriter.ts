@@ -391,8 +391,10 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${this.escapeKeyword(signature.argName(index))}${signature.isArgOptional(index) ? "?" : ``}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
     }
     makeNull(type?: idl.IDLOptionalType): LanguageExpression {
-        if (type && idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionOnlyNull))
+        if (type && (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionOnlyNull)
+            || idl.getExtAttribute(type, idl.IDLExtendedAttributes.DefaultValue) == "null"))
             return new StringExpression("null")
+
         return new StringExpression("undefined")
     }
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true, options?:MakeAssignOptions): LanguageStatement {

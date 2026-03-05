@@ -75,6 +75,7 @@ export enum IDLExtendedAttributes {
     Optional = "Optional",
     UnionOnlyNull = "OptionalOnlyNull",
     UnionWithNull = "OptionalWithNull",
+    DefaultValue = "DefaultValue",
     OriginalEnumMemberName = "OriginalEnumMemberName",
     OriginalGenericName = "OriginalGenericName",
     Predefined = "Predefined",
