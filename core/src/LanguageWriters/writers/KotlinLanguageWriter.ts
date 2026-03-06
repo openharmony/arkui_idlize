@@ -148,6 +148,24 @@ export class KotlinThrowErrorStatement implements LanguageStatement {
     }
 }
 
+export class KotlinSetForEachStatement implements LanguageStatement {
+    constructor(
+        private setAccessor: string,
+        private elementName: string,
+        private body: LanguageStatement[],
+    ) {}
+
+    write(writer: LanguageWriter): void {
+        writer.print(`for (${this.elementName} in ${this.setAccessor}) {`)
+        writer.pushIndent()
+        this.body.forEach(statement => {
+            statement.write(writer)
+        })
+        writer.popIndent()
+        writer.print('}')
+    }
+}
+
 export class KotlinLoopStatement implements LanguageStatement {
     constructor(private counter: string, private limit: string, private statement: LanguageStatement | undefined) {}
     write(writer: LanguageWriter): void {
@@ -604,6 +622,18 @@ export class KotlinLanguageWriter extends LanguageWriter {
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
         throw new Error("Not implemented")
+    }
+    makeSetInit(type: idl.IDLType): LanguageExpression {
+        return this.makeString(`mutableSetOf<${this.getNodeName(type)}>()`)
+    }
+    makeSetSize(setAccessor: string): LanguageExpression {
+        return this.makeFieldAccess(setAccessor, 'size')
+    }
+    makeSetAdd(setAccessor: string, element: LanguageExpression): LanguageStatement {
+        return this.makeStatement(this.makeMethodCall(setAccessor, 'add', [element]))
+    }
+    makeSetForEach(set: string, element: string, body: LanguageStatement[]): LanguageStatement {
+        return new KotlinSetForEachStatement(set, element, body)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         if (!idl.isContainerType(type)) {

@@ -108,12 +108,14 @@ export {
   ChildI,
   ParentC,
   ChildC,
+  Sequences,
   testParentInterfaceHierarchy,
   testChildInterfaceHierarchy,
   testParentClassHierarchy,
   testChildClassHierarchy,
   testInterfaceHierarchyUnion1,
   testInterfaceHierarchyUnion2,
+  testSequences,
 } from "../../generated/ts"
 
 

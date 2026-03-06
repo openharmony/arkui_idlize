@@ -592,6 +592,10 @@ export abstract class LanguageWriter {
     abstract makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression
     abstract makeMapInit(type: idl.IDLType): LanguageExpression
     abstract makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement
+    abstract makeSetInit(type: idl.IDLType): LanguageExpression
+    abstract makeSetSize(setAccessor: string): LanguageExpression
+    abstract makeSetAdd(setAccessor: string, element: LanguageExpression): LanguageStatement
+    abstract makeSetForEach(set: string, element: string, body: LanguageStatement[]): LanguageStatement
     abstract makeLoop(counter: string, limit: string): LanguageStatement
     abstract makeLoop(counter: string, limit: string, statement: LanguageStatement): LanguageStatement
     abstract makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement

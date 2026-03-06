@@ -1424,6 +1424,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Promise': return idl.createContainerType('Promise', typeArgs ?? [] /* better check here? */)
                 case 'Record': return idl.createContainerType('record', typeArgs ?? [] /* better check here? */, { extendedAttributes: [{ name: idl.IDLExtendedAttributes.AsRecord }] })
                 case 'Map': return idl.createContainerType('record', typeArgs ?? [] /* better check here? */)
+                case 'Set': return idl.createReferenceType('idlize.stdlib.Set', typeArgs!)
                 case 'Array': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'Date': return idl.createPrimitiveType('date')
                 case 'date': return idl.createPrimitiveType('date')

@@ -12,8 +12,7 @@ interface CallbackResource {};
 interface VMContext {};
 [TSType=Null]
 interface Null {};
-[TSType=Set]
-interface <T> Set {};
+typedef <T> Set = sequence<T>;
 interface <T> Partial {};
 interface <T> ThrowsWrapper {
     attribute T value;

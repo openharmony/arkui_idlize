@@ -67,12 +67,12 @@
                 "test_props",
                 "test_return_buffer",
                 "test_return_types",
+                "test_sequences",
                 "test_synthetics",
                 "test_transform",
                 "test_union",
                 "test_wrapped_builder",
 
-                "idlize.stdlib",
                 "idlize.internal"
             ],
             "useFoldersLayout": true

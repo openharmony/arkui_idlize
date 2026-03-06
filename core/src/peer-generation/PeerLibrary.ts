@@ -25,6 +25,7 @@ import {
     ObjectConvertor,
     TransformOnSerializeConvertor,
     ThrowsConvertor,
+    SetConvertor,
 } from "../LanguageWriters/ArgConvertors.js"
 import { CppNameConvertor, StructureNameConvertor } from '../LanguageWriters/convertors/CppConvertors.js'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors.js'
@@ -43,7 +44,7 @@ import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinCon
 import { NativeModuleType } from '../LanguageWriters/common.js'
 import { toIdlType } from '../from-idl/deserialize.js'
 import { createCachedReferenceResolver, ReferenceResolver } from './ReferenceResolver.js'
-import { maybeRestoreThrows } from '../transformers/transformUtils.js'
+import { maybeRestoreGenerics, maybeRestoreThrows } from '../transformers/transformUtils.js'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -323,6 +324,7 @@ export class PeerLibrary implements LibraryInterface {
             return new CallbackConvertor(this, param, declaration, this.interopNativeModule)
         }
         if (idl.isTypedef(declaration)) {
+            if (isSetDeclaration(this, declaration)) return new SetConvertor(this, param, declaration)
             if (forceTypedefAsResource(this, type, declaration)) return new ObjectConvertor(param, type)
             return new TypeAliasConvertor(this, param, declaration)
         }
@@ -453,4 +455,10 @@ export function toDeclaration(type: idl.IDLType | idl.IDLEntry, resolver: Refere
         return idl.createPrimitiveType('CustomObject')
     }
     return type
+}
+
+function isSetDeclaration(resolver: ReferenceResolver, decl: idl.IDLEntry) {
+    const restoredReference = maybeRestoreGenerics(decl, resolver)
+    const restored = restoredReference ? resolver.resolveTypeReference(restoredReference) : undefined
+    return restored && idl.getFQName(restored) === idl.IDLSetTypeName
 }

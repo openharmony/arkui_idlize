@@ -44,6 +44,7 @@ import { convertType, TypeConvertor, withInsideInstanceof } from "./nameConverto
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js";
 import { collapseTypes } from "../peer-generation/idl/common.js";
 import { ETSLanguageWriter } from "./writers/ETSLanguageWriter.js";
+import { buffer } from "stream/consumers";
 
 export function getSerializerName(_library: LibraryInterface, _language: Language, declaration: idl.IDLEntry) {
     return idl.entryToFunctionName(_language, declaration, "", "SerializerImpl")
@@ -707,7 +708,7 @@ export class ClassConvertor extends InterfaceConvertor {
 
 export class ArrayConvertor extends BaseArgConvertor { //
     elementConvertor: ArgConvertor
-    constructor(private library: LibraryInterface, param: string, private type: idl.IDLContainerType, private elementType: idl.IDLType) {
+    constructor(private library: LibraryInterface, param: string, private type: idl.IDLContainerType, protected elementType: idl.IDLType) {
         super(idl.createContainerType('sequence', [elementType]), [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = library.typeConvertor(param, elementType)
     }
@@ -776,6 +777,53 @@ export class ArrayConvertor extends BaseArgConvertor { //
     override getObjectAccessor(language: Language, value: string, args?: Record<string, string>): string {
         const array = language === Language.CPP ? ".array" : ""
         return args?.index ? `${value}${array}${args.index}` : value
+    }
+}
+
+export class SetConvertor extends ArrayConvertor {
+    constructor(library: PeerLibrary, param: string, declaration: idl.IDLTypedef) {
+        const elementType = maybeRestoreGenerics(declaration, library)!.typeArguments![0]
+        super(library, param, idl.createContainerType('sequence', [elementType]), elementType)
+    }
+
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+        if (printer.language === Language.CPP) {
+            return super.convertorSerialize(param, value, printer)
+        }
+        
+        const elementBuffer = `${value}Element`
+    
+        return printer.makeBlock([
+            printer.makeStatement(
+                printer.makeMethodCall(`${param}Serializer`, "writeInt32",
+                    [printer.makeString(printer.castToInt(printer.makeSetSize(value).asString(), 32))]
+                )),
+            printer.makeSetForEach(value, elementBuffer, [
+                this.elementConvertor.convertorSerialize(param, elementBuffer, printer)
+            ])
+        ], false)
+    }
+
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        if (writer.language === Language.CPP) {
+            return super.convertorDeserialize(bufferName, deserializerName, assigneer, writer)
+        }
+
+        const lengthBuffer = `${bufferName}Length`
+        const counterBuffer = `${bufferName}BufCounterI`
+        const statements: LanguageStatement[] = []
+        statements.push(writer.makeAssign(lengthBuffer, idl.createPrimitiveType('i32'), writer.makeString(`${deserializerName}.readInt32()`), true))
+        statements.push(writer.makeAssign(bufferName, undefined, writer.makeSetInit(this.elementType), true, false))
+        statements.push(writer.makeLoop(counterBuffer, lengthBuffer,
+            this.elementConvertor.convertorDeserialize(`${bufferName}TempBuf`, deserializerName, (expr) => {
+                return writer.makeSetAdd(bufferName, expr)
+            }, writer)))
+        if (writer.language === Language.KOTLIN) {
+            statements.push(assigneer(writer.makeMethodCall(bufferName, "toSet", [])))
+        } else {
+            statements.push(assigneer(writer.makeString(bufferName)))
+        }
+        return new BlockStatement(statements, false)
     }
 }
 
