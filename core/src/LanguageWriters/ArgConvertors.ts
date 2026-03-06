@@ -818,7 +818,11 @@ export class SetConvertor extends ArrayConvertor {
             this.elementConvertor.convertorDeserialize(`${bufferName}TempBuf`, deserializerName, (expr) => {
                 return writer.makeSetAdd(bufferName, expr)
             }, writer)))
-        statements.push(assigneer(writer.makeString(bufferName)))
+        if (writer.language === Language.KOTLIN) {
+            statements.push(assigneer(writer.makeMethodCall(bufferName, "toSet", [])))
+        } else {
+            statements.push(assigneer(writer.makeString(bufferName)))
+        }
         return new BlockStatement(statements, false)
     }
 }
