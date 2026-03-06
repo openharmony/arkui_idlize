@@ -14,10 +14,10 @@
  */
 
 import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from "@idlizer/ost"
-import { generatorConfiguration, zipStrip } from "@idlizer/core";
-import { callbackKindDeclaration, monoName } from "./postprocess.js";
-import { bridgeName, cApiName, implName } from "../producers/common.js";
-import { lowLevelLike } from "@idlizer/kit";
+import { generatorConfiguration, zipStrip } from "@idlizer/core"
+import { lowLevelLike } from "@idlizer/kit"
+import { callbackKindDeclaration, monoName } from "./postprocess.js"
+import { bridgeName, C_API_PREFIX, cApiName, implName } from "../producers/common.js"
 
 export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>, callbacks: string[]): Map<string, lw.LWDeclaration[]> {
     decls = introduceOptionalTypes(decls)
@@ -25,7 +25,11 @@ export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, st
     decls = monomorphizeGenerics(decls)
     decls = monomorphizeAlgebraicTypes(decls)
     decls = makeApis(decls, modifiers)
-    return lowLevelLike.postprocess(decls)
+    const files = lowLevelLike.postprocess(decls)
+    const capi = files.get(C_API_PREFIX)
+    if (capi)
+        files.set(C_API_PREFIX, sortDeclarationsByDependency(capi))
+    return files
 }
 
 class MakeOptional extends IdentityTransformer {
@@ -208,8 +212,11 @@ function monomorphizeAlgebraicTypes(decls: lw.LWDeclaration[]): lw.LWDeclaration
 function collectTypeDeps(type: lw.LWType, deps: Set<string>): void {
     switch (type.kind) {
         case lw.LWKind.ValueType:
-            if (type.name !== std.names.types.pointer && type.name !== std.names.types.reference)
+            if (type.name !== std.names.types.pointer && type.name !== std.names.types.reference) {
                 deps.add(type.name)
+                for (const arg of type.args)
+                    collectTypeDeps(arg, deps)
+            }
             break
         case lw.LWKind.FunctionalType:
             for (const param of type.params)
