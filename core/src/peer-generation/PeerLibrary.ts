@@ -26,6 +26,7 @@ import {
     ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
     ObjectConvertor,
     TransformOnSerializeConvertor,
+    SetConvertor,
 } from "../LanguageWriters/ArgConvertors"
 import { CppNameConvertor, StructureNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
@@ -46,6 +47,7 @@ import { NativeModuleType } from '../LanguageWriters/common'
 import { toIdlType } from '../from-idl/deserialize'
 import { createCachedReferenceResolver, ReferenceResolver } from './ReferenceResolver'
 import { toDeclaration } from './toDeclaration'
+import { maybeRestoreGenerics } from '../transformers/GenericTransformer'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -309,6 +311,7 @@ export class PeerLibrary implements LibraryInterface {
             return new CallbackConvertor(this, param, declaration, this.interopNativeModule)
         }
         if (idl.isTypedef(declaration)) {
+            if (isSetDeclaration(this, declaration)) return new SetConvertor(this, param, declaration)
             if (forceTypedefAsResource(this, type, declaration)) return new ObjectConvertor(param, type)
             return new TypeAliasConvertor(this, param, declaration)
         }
@@ -391,4 +394,10 @@ function isCyclicTypeDef(resolver: ReferenceResolver, decl: idl.IDLTypedef): boo
             foundCycle = true
     })
     return foundCycle
+}
+
+function isSetDeclaration(resolver: ReferenceResolver, decl: idl.IDLEntry) {
+    const restoredReference = maybeRestoreGenerics(decl, resolver)
+    const restored = restoredReference ? resolver.resolveTypeReference(restoredReference) : undefined
+    return restored && idl.getFQName(restored) === idl.IDLSetTypeName
 }

@@ -468,6 +468,18 @@ export class CJLanguageWriter extends LanguageWriter {
     makeClassInit(type: idl.IDLType, parameters: LanguageExpression[]): LanguageExpression {
         throw new Error(`makeClassInit`)
     }
+    makeSetInit(type: idl.IDLType): LanguageExpression {
+        throw new Error("Method not implemented.");
+    }
+    makeSetSize(setAccessor: string): LanguageExpression {
+        throw new Error("Method not implemented.");
+    }
+    makeSetAdd(setAccessor: string, element: LanguageExpression): LanguageStatement {
+        throw new Error("Method not implemented.");
+    }
+    makeSetForEach(set: string, element: string, body: LanguageStatement[]): LanguageStatement {
+        throw new Error("Method not implemented.");
+    }
     makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression {
         return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>(Int64(${size ?? ''}))`)
     }

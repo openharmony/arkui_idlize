@@ -362,6 +362,18 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeClassInit(type: IDLType, paramenters: LanguageExpression[]): LanguageExpression {
         return this.makeString(`${this.getNodeName(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
     }
+    makeSetInit(type: idl.IDLType): LanguageExpression {
+        throw new Error('Sets in CPP are just arrays.');
+    }
+    makeSetSize(setAccessor: string): LanguageExpression {
+        throw new Error('Sets in CPP are just arrays.');
+    }
+    makeSetAdd(setAccessor: string, element: LanguageExpression): LanguageStatement {
+        throw new Error('Sets in CPP are just arrays.');
+    }
+    makeSetForEach(set: string, element: string, body: LanguageStatement[]): LanguageStatement {
+        throw new Error('Sets in CPP are just arrays.');
+    }
     makeMapInit(type: IDLType): LanguageExpression {
         return this.makeString(`{}`)
     }

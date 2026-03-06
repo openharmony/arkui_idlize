@@ -119,6 +119,24 @@ class TSLoopStatement implements LanguageStatement {
     }
 }
 
+class TSSetForEachStatement implements LanguageStatement {
+    constructor(
+        private setAccessor: string,
+        private elementName: string,
+        private body: LanguageStatement[],
+    ) {}
+
+    write(writer: LanguageWriter): void {
+        writer.print(`for (let ${this.elementName} of ${this.setAccessor}) {`)
+        writer.pushIndent()
+        this.body.forEach(statement => {
+            statement.write(writer)
+        })
+        writer.popIndent()
+        writer.print('}')
+    }
+}
+
 class TSMapForEachStatement implements LanguageStatement {
     constructor(private map: string, private key: string, private value: string, private body: LanguageStatement[]) {}
     write(writer: LanguageWriter): void {
@@ -457,6 +475,18 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
         return this.makeString(`new ${this.getNodeName(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
+    }
+    makeSetInit(type: idl.IDLType): LanguageExpression {
+        return this.makeString(`new Set<${this.getNodeName(type)}>()`)
+    }
+    makeSetSize(setAccessor: string): LanguageExpression {
+        return this.makeFieldAccess(setAccessor, 'size')
+    }
+    makeSetAdd(setAccessor: string, element: LanguageExpression): LanguageStatement {
+        return this.makeStatement(this.makeMethodCall(setAccessor, 'add', [element]))
+    }
+    makeSetForEach(set: string, element: string, body: LanguageStatement[]): LanguageStatement {
+        return new TSSetForEachStatement(set, element, body)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         return this.makeString(`new ${this.getNodeName(type)}()`)
