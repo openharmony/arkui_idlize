@@ -156,7 +156,7 @@ export class KotlinSetForEachStatement implements LanguageStatement {
     ) {}
 
     write(writer: LanguageWriter): void {
-        writer.print(`for (${this.elementName} of ${this.setAccessor}) {`)
+        writer.print(`for (${this.elementName} in ${this.setAccessor}) {`)
         writer.pushIndent()
         this.body.forEach(statement => {
             statement.write(writer)
