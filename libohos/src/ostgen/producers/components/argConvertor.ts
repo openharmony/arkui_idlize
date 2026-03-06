@@ -391,12 +391,15 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         const selectorDecl = Builders.decl(`${name}Selector`)
             .value().call('readInt8').receiver(serializerName).$().$().$()
-        const tmpType = Ts.union([
-            ...(Ts.union(this.type.types.map(ty => this.convertType(ty, native)))).args,
-            Ts.prim.undefined])
-        const tmpDecl = Builders.decl(`${name}Value`, tmpType).mutable().$()
-        if (native)
-            tmpDecl.expression = E.c('{}')
+        const valueDecl = Builders.decl(`${name}Value`).mutable()
+        if (native) {
+            valueDecl.type(expectType(this.ctx, this.type, 'capi')).value('{}')
+        } else {
+            const valueType = Ts.union([
+                ...(Ts.union(this.type.types.map(ty => this.convertType(ty, native)))).args,
+                Ts.prim.undefined])
+            valueDecl.type(valueType)
+        }
         const ifs = this.type.types.map((ty, i) => {
             const [reads, readValue] = argConvertor(this.ctx, ty).read('tmp', serializerName, native);
             const assignments = native
@@ -415,7 +418,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
         })
         const assignment = Builders.decl(name)
             .value().unary(Op.assert).value(`${name}Value`).$().$().$()
-        return [ [selectorDecl, tmpDecl, ...ifs, assignment], E.v(name, [Hs.excl()])]
+        return [ [selectorDecl, valueDecl.$(), ...ifs, assignment], E.v(name, [Hs.excl()])]
     }
 }
 

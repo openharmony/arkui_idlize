@@ -424,7 +424,7 @@ export class CXXPrinter {
         this.p.put('for', ' ', '(')
         if (statement.init)
           this.printStatement(statement.init)
-        this.p.put(';', ' ')
+        this.p.put(' ')
         this.printExpression(statement.condition)
         this.p.put(';', ' ')
         if (statement.step)

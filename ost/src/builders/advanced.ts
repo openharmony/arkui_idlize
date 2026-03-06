@@ -20,7 +20,7 @@ import {
     IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier,
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
-    EnumDeclaration, SwitchStatement, ConstantExpression, BreakStatement
+    EnumDeclaration, SwitchStatement, ConstantExpression
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -730,6 +730,7 @@ class DeclarationBuilder<P> {
      * @returns This builder for chaining
      */
     static() { this._static = true; return this }
+    type(type: LWType) { this._type = type; return this }
     /**
      * Set the initial value for the variable.
      * If called with an argument, sets the value directly and returns this builder.

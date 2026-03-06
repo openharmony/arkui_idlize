@@ -143,7 +143,7 @@ class GenericMonomorphizer extends IdentityTransformer {
                     subst.set(gen.name, arg)
                 })
                 const instance = this.goDeclaration(
-                    new MakeInstance(subst).goStructureDeclaration(decl)
+                    new MakeInstance(subst).goDeclaration(decl)
                 )
                 instance.name = specialName
                 this.newDecls.push(instance)
