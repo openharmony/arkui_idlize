@@ -13,22 +13,24 @@
  * limitations under the License.
  */
 
-import { D, T } from "@idlizer/ost"
+import { camelCaseToUpperSnakeCase } from "@idlizer/core"
 import * as idl from "@idlizer/core/idl"
+import { Builders, T } from "@idlizer/ost"
 import { cApiName } from "../common.js"
 import { createProducer } from "../../engine/context.js"
 
 export const enumProducer = createProducer(
   { is: idl.isEnum, role: 'capi' },
-  (node, _) => {
-    const name = cApiName(idl.getFQName(node))
+  node => {
+    const declName = cApiName(idl.getFQName(node))
     return {
-      continuation: T.c(name),
+      continuation: T.c(declName),
       declarations: [
-        D.enum(name, node.elements.map(element => ({
-          name: element.name,
-          value: element.initializer
-        })))
+        Builders.enum(declName)
+          .members(node.elements.map(element => ({
+            name: camelCaseToUpperSnakeCase(node.name + '_' + element.name),
+            value: typeof element.initializer === 'number' ? element.initializer : undefined
+          }))).$()
       ]
     }
   }

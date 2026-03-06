@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-import { D, T } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { managedName } from "../common.js";
-import { createProducer } from "../../engine/index.js";
+import { Builders, T } from "@idlizer/ost"
+import { managedName } from "../common.js"
+import { createProducer } from "../../engine/index.js"
 
 export const enumProducer = createProducer(
   { is: idl.isEnum, role: 'managed' },
-  (node) => {
-    const generatedDeclName = managedName(idl.getFQName(node))
+  node => {
+    const declName = managedName(idl.getFQName(node))
     return {
-      continuation: T.c(generatedDeclName),
+      continuation: T.c(declName),
       declarations: [
-        D.enum(generatedDeclName,
-          node.elements.map(element => ({
+        Builders.enum(declName)
+          .members(node.elements.map(element => ({
             name: element.name,
             value: element.initializer
-          })))
+          }))).$()
       ]
     }
   }
