@@ -927,14 +927,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return `${" ".repeat(4 * this.indentation) + node.constructor.name} ${name}`
     }
 
-    private isNewShapeBuilderMethod(decl:arkts.MethodDefinition | arkts.ClassProperty, parentName:string) {
-        if (!parentName.endsWith('Attribute')) {
-            return false
-        }
-        parentName = parentName.substring(0, parentName.length - 'Attribute'.length)
-        return this.mode === 'arkoala' && decl.id?.name === `set${parentName}Options`
-    }
-
     private processBody(scopeName: string, members: readonly arkts.AstNode[] | undefined): {
         properties: idl.IDLProperty[],
         methods: idl.IDLMethod[],
@@ -952,9 +944,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     this.traceDeleted('DeletedMembers')
                     return
                 }
-                if (this.isNewShapeBuilderMethod(member, scopeName)) {
-                    return
-                }
                 properties.push(this.serializeClassProperty(member))
                 const found = member.annotations.find(ann => arkts.isIdentifier(ann.expr) && ann.expr.name === 'memo')
                 if (found) {
@@ -965,9 +954,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (arkts.isMethodDefinition(member)) {
                 if (this.shouldNotProcessMember(scopeName, member.id!.name)) {
                     this.traceDeleted('DeletedMembers')
-                    return
-                }
-                if (this.isNewShapeBuilderMethod(member, scopeName)) {
                     return
                 }
                 if (member.isGetter) {
@@ -1652,70 +1638,123 @@ class IDLVisitor extends arkts.AbstractVisitor {
         iface.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Component })
     }
 
+    private isNewShapeBuilderMethod(decl: idl.IDLMethod, parentName:string) {
+        if (!parentName.endsWith('Attribute')) {
+            return false
+        }
+        parentName = parentName.substring(0, parentName.length - 'Attribute'.length)
+        return this.mode === 'arkoala' && decl.name === `set${parentName}Options`
+    }
+
     postprocessEntires() {
         if (this.mode === 'arkoala') {
             /* arkgen specialization */
-            const componentInterface = this.entries.find(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.ComponentInterface))
-            if (componentInterface) {
-                if (!idl.isInterface(componentInterface)) {
-                    throw new Error("ComponentInterface must be interface!")
-                }
-                const componentAttributeNameRef = componentInterface.callables.at(0)!.returnType
-                if (!idl.isReferenceType(componentAttributeNameRef)) {
-                    throw new Error("Expected @ComponentBuilder function return type to be a reference")
-                }
-                const componentAttributeName = componentAttributeNameRef.name
-                const processedEntries: idl.IDLEntry[] = []
-                this.entries.forEach(entry => {
-                    if (entry.name === componentInterface.name && entry !== componentInterface) {
-                        return
+            const componentInterfaces = this.entries.filter(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.ComponentInterface))
+            const components: {
+                attributeDeclaration: idl.IDLInterface,
+                interfaceDeclaration: idl.IDLInterface | undefined,
+            }[] = []
+            for (const componentInterface of componentInterfaces) {
+                if (componentInterface) {
+                    if (!idl.isInterface(componentInterface)) {
+                        throw new Error("ComponentInterface must be interface!")
                     }
-                    if (entry.name === componentAttributeName && idl.isInterface(entry)) {
-                         this.postprocessComponent(entry)
+                    const componentAttributeNameRef = componentInterface.callables.at(0)!.returnType
+                    if (!idl.isReferenceType(componentAttributeNameRef)) {
+                        throw new Error("Expected @ComponentBuilder function return type to be a reference")
                     }
-                    if (idl.isCallback((entry))) {
-                        let hasComponentInReferences = false
-                        idl.forEachChild(entry, (node) => {
-                            if (idl.isNamedNode(node) && [componentAttributeName].includes(node.name))
-                                hasComponentInReferences = true
-                        })
-                        if (hasComponentInReferences) {
+                    const componentAttributeName = componentAttributeNameRef.name
+                    const processedEntries: idl.IDLEntry[] = []
+                    this.entries.forEach(entry => {
+                        if (entry.name === componentInterface.name && entry !== componentInterface) {
                             return
                         }
-                    }
-                    processedEntries.push(entry)
-                })
-                this.entries = processedEntries
+                        if (entry.name === componentAttributeName && idl.isInterface(entry)) {
+                            this.postprocessComponent(entry)
+                            components.push({
+                                attributeDeclaration: entry,
+                                interfaceDeclaration: componentInterface,
+                            })
+                        }
+                        if (idl.isCallback((entry))) {
+                            let hasComponentInReferences = false
+                            idl.forEachChild(entry, (node) => {
+                                if (idl.isNamedNode(node) && [componentAttributeName].includes(node.name))
+                                    hasComponentInReferences = true
+                            })
+                            if (hasComponentInReferences) {
+                                return
+                            }
+                        }
+                        processedEntries.push(entry)
+                    })
+                    this.entries = processedEntries
+                }
             }
 
             this.entries.forEach(entry => {
                 const entryFQName = this.packageClause.concat(entry.name).join(".")
                 if (idl.isInterface(entry) && (this.config.Components.includes(entry.name) || this.config.Components.includes(entryFQName))) {
                     this.postprocessComponent(entry)
+                    if (!components.some(it => it.attributeDeclaration.name === entry.name)) {
+                        components.push({
+                            attributeDeclaration: entry,
+                            interfaceDeclaration: undefined
+                        })
+                    }
                 }
             })
 
             // convert components methods to attributes
-            for (const entry of this.entries) {
-                if (idl.isInterface(entry) && idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component)) {
-                    entry.methods = entry.methods.filter(method => {
-                        if (method.parameters.length === 1) {
-                            entry.properties.push(idl.createProperty(
-                                method.name,
-                                method.parameters[0].type,
-                                false,
-                                false,
-                                method.parameters[0].isOptional,
-                                {
-                                    extendedAttributes: (method.extendedAttributes ?? []).concat([{ name: idl.IDLExtendedAttributes.CommonMethod }])
-                                }
-                            ))
-                            return false
+            for (const component of components) {
+                const newShapeBuilderMethods: idl.IDLMethod[] = []
+                component.attributeDeclaration.methods = component.attributeDeclaration.methods.filter(method => {
+                    if (this.isNewShapeBuilderMethod(method, component.attributeDeclaration.name)) {
+                        newShapeBuilderMethods.push(method)
+                        return false
+                    }
+                    if (method.parameters.length === 1) {
+                        component.attributeDeclaration.properties.push(idl.createProperty(
+                            method.name,
+                            method.parameters[0].type,
+                            false,
+                            false,
+                            method.parameters[0].isOptional,
+                            {
+                                extendedAttributes: (method.extendedAttributes ?? []).concat([{ name: idl.IDLExtendedAttributes.CommonMethod }])
+                            }
+                        ))
+                        return false
+                    }
+                    method.extendedAttributes ??= []
+                    method.extendedAttributes.push({ name: idl.IDLExtendedAttributes.CommonMethod })
+                    return true
+                })
+                // if there is setComponentOptions functions in attributes declaration,
+                // replace collected interfaces callables with setComponentOptions arguments.
+                // For most of components they must be equals, but there is NavDestination component:
+                // plugin appends some arguments while rewrite directly to setNavDestinationOptions invocation.
+                if (newShapeBuilderMethods.length > 0) {
+                    if (component.interfaceDeclaration === undefined) {
+                        throw new Error(`${component.attributeDeclaration} does not have builder functions declared ` +
+                            `but have ${newShapeBuilderMethods[0].name} methods`)
+                    }
+                    if (newShapeBuilderMethods.length !== component.interfaceDeclaration.callables.length) {
+                        const attributesName = component.attributeDeclaration.name
+                        const componentName = attributesName.substring(0, attributesName.length - 'Attribute'.length)
+                        throw new Error(`Amount of set${componentName}Options in ${attributesName} is not equal to builder functions amount for ${componentName} component`)
+                    }
+                    for (let i = 0; i < newShapeBuilderMethods.length; i++) {
+                        const callable = component.interfaceDeclaration.callables[i]
+                        const method = newShapeBuilderMethods[i]
+                        const maybeContentParameter = callable.parameters.at(-1)?.name === "content_"
+                            ? callable.parameters.at(-1)
+                            : undefined
+                        callable.parameters = method.parameters.map(idl.clone)
+                        if (maybeContentParameter) {
+                            callable.parameters.push(maybeContentParameter)
                         }
-                        method.extendedAttributes ??= []
-                        method.extendedAttributes.push({ name: idl.IDLExtendedAttributes.CommonMethod })
-                        return true
-                    })
+                    }
                 }
             }
         }
