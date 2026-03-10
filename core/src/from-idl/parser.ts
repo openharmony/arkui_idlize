@@ -461,6 +461,9 @@ export class Parser {
 
     parseDeclarationUnsafe(scopeKind: idl.IDLKind): idl.IDLEntry | undefined {
         trac("parseDeclarationUnsafe")
+        if (this.seeEof()) {
+            UnexpectedEndOfFile.throwDiagnosticMessage([this.curLocation], "Unexpected end of file")
+        }
         this._internalCurrentExtended = this.parseExtendedAttributes()
         this.currentModifiers = {}
         while (modifierTokens.has(this.curValue as ModifierToken)) {
