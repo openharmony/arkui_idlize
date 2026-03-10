@@ -519,7 +519,9 @@ class ModifiersFileVisitor {
                 }
                 attributeTypes.forEach((attribute, index) => {
                     attribute.argTypes.forEach((t, index) => {
-                        writer.writeFieldDeclaration(this.generateFiledName(attribute, index.toString()), t, [], true)
+                        const onlyNull = idl.isOptionalType(t) && idl.hasExtAttribute(t, idl.IDLExtendedAttributes.UnionOnlyNull)
+                        const initExpr = onlyNull ? writer.makeNull(t) : undefined
+                        writer.writeFieldDeclaration(this.generateFiledName(attribute, index.toString()), t, [], !onlyNull, initExpr)
                     })
                 })
 

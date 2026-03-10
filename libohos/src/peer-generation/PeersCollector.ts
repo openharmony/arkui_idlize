@@ -98,9 +98,7 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
     if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(prop.name))
         return
     const originalParentName = parentName ?? peer.originalClassName!
-    const forceOptionalArg = idl.isOptionalType(prop.type) && idl.hasExtAttribute(prop.type, idl.IDLExtendedAttributes.UnionOnlyNull)
-        ? [ArgumentModifier.OPTIONAL] : undefined
-    const signature = new NamedMethodSignature(idl.createPrimitiveType('this'), [idl.maybeOptional(prop.type, prop.isOptional)], ["value"], undefined, forceOptionalArg)
+    const signature = new NamedMethodSignature(idl.createPrimitiveType('this'), [idl.maybeOptional(prop.type, prop.isOptional)], ["value"])
     const overloadInfo = PeerMethodSignature.mangleOverloadedName(prop)
     const methodName = `set${capitalize(overloadInfo.alias ?? (prop.name + overloadInfo.postfix))}`
     return new PeerMethod(
