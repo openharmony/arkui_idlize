@@ -3,8 +3,14 @@
     "version": "2.2.2+devel",
     "description": "Tool for .idl validation",
     "type": "module",
-    "main": "dist/index.js",
-    "bin": "dist/index.js",
+    "main": "build/lib/src/cli.js",
+    "bin": "build/lib/src/cli.js",
+    "exports": {
+        ".": {
+            "default": "./build/lib/src/index.js",
+            "types": "./build/lib/src/index.d.ts"
+        }
+    },
     "files": [
         "tsconfig.json",
         "readme.md",
@@ -25,7 +31,7 @@
     },
     "scripts": {
         "clean": "rimraf dist build",
-        "compile:self": "tsc --build --force && tsc",
+        "compile:self": "tsc",
         "compile": "npm run compile -C ../core && npm run compile:self"
     }
 }

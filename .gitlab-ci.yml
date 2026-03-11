@@ -34,6 +34,7 @@ include:
     - arktscgen/.gitlab-ci.yml
     - etsgen/.gitlab-ci.yml
     - dtsgen/.gitlab-ci.yml
+    - idlinter/.gitlab-ci.yml
     - external/.gitlab-ci.yml
     - codecheck_fixer/.gitlab-ci.yml
 

@@ -5,6 +5,7 @@
     "description": "external submodules downloading",
     "license": "Apache-2.0",
     "scripts": {
-        "download:koala_projects": "node ./download-koala_projects.mjs"
+        "download:koala_projects": "node ./download-koala_projects.mjs",
+        "download:interface_sdk-js": "node ./download-sdk.mjs"
     }
 }

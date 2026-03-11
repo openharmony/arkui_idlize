@@ -1,6 +1,6 @@
 
 download koala_projects:
-  stage: test
+  stage: build
   tags:
     - idlize-ci
     - koala-ci
@@ -12,14 +12,15 @@ download koala_projects:
     paths:
     - external/koala_projects
 
-test sdk api compat:
-  allow_failure: true
-  stage: test
+download interface_sdk-js:
+  stage: build
   tags:
     - idlize-ci
-  needs:
-    - build idlize
-  script:
+    - koala-ci
+  before_script:
     - !reference [.npm, script]
-    - npm run download:sdk
-    - node idlinter/bin/check-api-compat.mjs --idlize external/interface_sdk-js $CI_COMMIT_REF_NAME master
+  script:
+    - npm run download:interface_sdk-js -C external
+  artifacts:
+    paths:
+    - external/interface_sdk-js

@@ -16,4 +16,3 @@
 export * from "./idltypes.js"
 export * from "./idlprocessing.js"
 export * from "./validator.js"
-export * from "./cli.js"

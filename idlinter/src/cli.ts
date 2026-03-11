@@ -18,7 +18,7 @@ import * as path from "path"
 import { Command } from "commander"
 import { DiagnosticMessageGroup, outputDiagnosticResultsFormatted } from "@idlizer/core"
 import { idlManager } from "./idlprocessing.js"
-import "./validator"
+import "./validator.js"
 import { checkCompat } from "./compat.js"
 
 function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
@@ -108,6 +108,4 @@ export function idlinterMain() {
     program.parse(process.argv.slice(2), { from: 'user' })
 }
 
-if (require.main === module) {
-    idlinterMain()
-}
+idlinterMain()
