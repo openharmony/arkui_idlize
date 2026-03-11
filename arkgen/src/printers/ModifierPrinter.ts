@@ -144,12 +144,10 @@ class ModifiersFileVisitor {
     }
 
     castResetType(writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
-        const type = sig.args[index]
-        const resetValue = idl.isOptionalType(type) ? writer.makeNull(type) : writer.makeUndefined()
         if (!sig.isArgOptional(index)) {
-            return writer.makeCast(resetValue, type)
+            return writer.makeCast(writer.makeString(`undefined`), sig.args[index])
         }
-        return writer.makeCast(resetValue, idl.createUnionType([type, idl.createPrimitiveType('undefined')]))
+        return writer.makeCast(writer.makeString(`undefined`), idl.createUnionType([sig.args[index], idl.createPrimitiveType('undefined')]))
     }
 
     castSetType(attribute: AttributeType, writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
@@ -368,7 +366,7 @@ class ModifiersFileVisitor {
                 switchPrinter.print(`default:`)
                 switchPrinter.pushIndent()
                 switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = ${AttributeUpdaterFlag.INITIAL}`)
-                if (attribute.isOptional) {
+                if (attribute.isOptional && !isOptionOnlyNull(attribute)) {
                     if (hookRecord && hookRecord.replaceImplementation) {
                         switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
                     } else {
@@ -424,7 +422,7 @@ class ModifiersFileVisitor {
                 switchPrinter.popIndent()
                 switchPrinter.print(`default:`)
                 switchPrinter.pushIndent()
-                if (attribute.isOptional) switchPrinter.print(`${resetStatement.asString()};`)
+                if (attribute.isOptional && !isOptionOnlyNull(attribute)) switchPrinter.print(`${resetStatement.asString()};`)
                 switchPrinter.popIndent()
                 switchPrinter.popIndent()
                 switchPrinter.print(`}`)
@@ -614,4 +612,11 @@ export function printModifiers(peerLibrary: PeerLibrary): PrinterResult[] {
         result.push(...visitor.visit())
     })
     return result
+}
+
+function isOptionOnlyNull(attribute: AttributeType): boolean {
+    const args = attribute.method.method.signature.args
+    if (args.length == 0) return false
+    const type = args[0]
+    return idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionOnlyNull)
 }
