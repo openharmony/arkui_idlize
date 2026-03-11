@@ -22,12 +22,12 @@ import { monoName } from "../../postprocess/postprocess.js"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
-        case 'any': return '///any'
+        case 'any': return 'Object'
         case 'boolean': return 'Boolean'
-        case 'bigint': return '///BigInt'
+        case 'bigint': return 'Int64' ///really?
         case 'buffer':
         case 'SerializerBuffer': return 'Buffer'
-        case 'date': return 'Int64'///?
+        case 'date': return 'Int64'
         case 'i8':
         case 'u8': return 'Int8'
         case 'i32':
@@ -43,10 +43,11 @@ function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
         default: throw new Error(`Missing primitive convertor for "${idl.DebugUtils.debugPrintTrace(type)}"`)
     }
 }
-function selectWriteName(type:idl.IDLPrimitiveType): string {
-    return "write" + selectPrimitiveTypeName(type)
+function selectWriteName(type: idl.IDLPrimitiveType): string {
+    return type.name === 'any' ? 'holdAndWriteObject'
+        : "write" + selectPrimitiveTypeName(type)
 }
-function selectReadName(type:idl.IDLPrimitiveType): string {
+function selectReadName(type: idl.IDLPrimitiveType): string {
     return "read" + selectPrimitiveTypeName(type)
 }
 
