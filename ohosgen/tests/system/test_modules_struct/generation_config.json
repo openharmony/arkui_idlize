@@ -7,7 +7,7 @@
         },
         "test_modules_struct": {
             "name": "test_modules_struct",
-            "packages": ["bar", "baz", "foo"],
+            "packages": ["bar", "baz", "foo", "synthetic_types"],
             "useFoldersLayout": true
         }
     }

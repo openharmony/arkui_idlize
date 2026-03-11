@@ -7,7 +7,7 @@
         },
         "test_modules_simple": {
             "name": "test_modules_simple",
-            "packages": ["bar", "foo"],
+            "packages": ["bar", "foo", "synthetic_types"],
             "useFoldersLayout": true
         }
     }

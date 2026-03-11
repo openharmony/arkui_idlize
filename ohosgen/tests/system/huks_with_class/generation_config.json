@@ -7,7 +7,7 @@
         },
         "huks_with_class": {
             "name": "huks_with_class",
-            "packages": ["huks_with_class"],
+            "packages": ["huks_with_class", "synthetic_types"],
             "useFoldersLayout": true
         }
     }

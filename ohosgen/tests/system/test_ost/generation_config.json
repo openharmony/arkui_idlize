@@ -3,7 +3,7 @@
     "modules": {
         "test_ost": {
             "name": "test_ost",
-            "packages": ["buffers", "callbacks", "fqnMain", "fqnDeps", "ohos.base"]
+            "packages": ["buffers", "callbacks", "fqnMain", "fqnDeps", "ohos.base", "synthetic_types"]
         }
     }
 }

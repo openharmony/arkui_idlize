@@ -1,10 +1,11 @@
 import os
 import json
 import shutil
+import sys
 
 
-def read_test_cases():
-    with open('./test_cases.json', 'r') as file:
+def read_test_cases(lang):
+    with open(f'./test_cases_{lang}.json', 'r') as file:
         return json.load(file)
 
 
@@ -13,7 +14,8 @@ def preprocess_output_file(output_path):
     os.system(f"sed -i '1,{NUM_LINES_TO_IGNORE}d' {output_path}")
 
 
-test_cases = read_test_cases()
+language = sys.argv[1] if len(sys.argv) >= 2 else "arkts"
+test_cases = read_test_cases(language)
 success_count = 0
 failure_list = []
 ignored_list = []
@@ -22,10 +24,10 @@ prepare_ret_code = os.system("npm run compile -C ../..")
 if prepare_ret_code != 0:
     raise RuntimeError("Failure during preparation.")
 
-TEMP_DIR = '__temp__'
+TEMP_DIR = os.path.join('__temp__', language)
 if os.path.exists(TEMP_DIR):
     shutil.rmtree(TEMP_DIR)
-os.mkdir(TEMP_DIR)
+os.makedirs(TEMP_DIR)
 
 for c in test_cases:
     case_name = c['name']
@@ -39,20 +41,20 @@ for c in test_cases:
     ostFlag = '--feature=ost' if 'useOst' in c and c['useOst'] else ''
     prefix_str = f"TEST_CASE={case_name} INPUT_TYPE={c['inputType']} OST_FLAG={ostFlag}"
     pre_start_ret_code = \
-        os.system(f"{prefix_str} npm run pre-start:arkts >{os.path.join(case_temp_dir, 'build.log')}")
+        os.system(f"{prefix_str} npm run pre-start:{language} >{os.path.join(case_temp_dir, 'build.log')}")
     if pre_start_ret_code != 0:
         print(f"{case_name}: FAIL (during generation or compilation)")
         failure_list.append(case_name)
         continue
     output_path = os.path.join(case_temp_dir, 'output.txt')
-    start_ret_code = os.system(f"{prefix_str} npm run start:arkts >{os.path.join(output_path)}")
+    start_ret_code = os.system(f"{prefix_str} npm run start:{language} >{os.path.join(output_path)}")
     if start_ret_code != 0:
         print(f"{case_name}: FAIL (runtime error)")
         failure_list.append(case_name)
         continue
     preprocess_output_file(output_path)
     diff_file = os.path.join(case_temp_dir, 'diff.txt')
-    diff_ret_code = os.system(f"diff {os.path.join(case_name, 'expected_output.txt')} {output_path} >{diff_file}")
+    diff_ret_code = os.system(f"diff {os.path.join(case_name, f'expected_output_{language}.txt')} {output_path} >{diff_file}")
     if diff_ret_code != 0:
         print(f"{case_name}: FAIL (unexpected output)")
         failure_list.append(case_name)

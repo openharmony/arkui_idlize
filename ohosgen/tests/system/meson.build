@@ -11,6 +11,7 @@ cur_target_vm = get_option('target_vm')
 is_node = get_option('target_vm') == 'node'
 is_panda = get_option('target_vm') == 'panda'
 is_cj = get_option('target_vm') == 'cangjie'
+is_kt = get_option('target_vm') == 'kt'
 
 message(f'Builds test case "@cur_test_case@" with virtual machine "@cur_target_vm@".')
 
@@ -88,6 +89,18 @@ elif is_panda
     sources += [
         external_interop_dir / 'ani/convertors-ani.cpp',
         external_interop_dir / 'types/signatures.cpp',
+    ]
+elif is_kt
+    library_name = f'@CUR_TEST_CASE@NativeModule'
+    platform_build_dir = f'./@cur_test_case@/build/kt'
+
+    cflags += ['-DKOALA_LANG_KT', '-DINTEROP_LIBRARY_NAME=' + library_name]
+    ldflags += external_interop_build_dir / 'libInteropNativeModule.so'
+    include_dirs += [
+        external_interop_dir / 'kotlin',
+    ]
+    sources += [
+        external_interop_dir / 'kotlin/convertors-kotlin.cpp',
     ]
 elif is_cj
     # Not supported yet

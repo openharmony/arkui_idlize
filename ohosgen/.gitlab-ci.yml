@@ -94,4 +94,20 @@ ohosgen system tests:
   script:
     - cd $CI_PROJECT_DIR/ohosgen/tests/system
     - npm i -d
-    - python3 run-system-tests.py
+    - python3 run-system-tests.py arkts
+
+<Kotlin> ohosgen system tests:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  needs:
+    - build idlize
+    - download koala_projects
+  before_script:
+    - !reference [.npm, script]
+    - npm i -C external/koala_projects/tools --prefer-offline --no-audit --no-fund
+  script:
+    - cd $CI_PROJECT_DIR/ohosgen/tests/system
+    - npm i -d
+    - python3 run-system-tests.py kt

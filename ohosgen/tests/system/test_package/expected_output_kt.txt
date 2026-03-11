@@ -1,0 +1,22 @@
+Starting demo: test_package
+FooObject_constructImpl()
+FooObject_callHolderImpl(thisPtr)
+FooObject_echoImpl(thisPtr, str)
+  str = Hello C++ from foo
+FooObject_toInt32Impl(thisPtr)
+foo.toInt32() = 1
+BarObject_constructImpl()
+BarObject_callHolderImpl(thisPtr)
+testBar(prompt="Initial")
+BarObject_echoImpl(thisPtr, str)
+  str = Hello C++ from bar
+BarObject_toInt32Impl(thisPtr)
+bar.toInt32() = 2
+FooObject_constructImpl()
+FooObject_callHolderImpl(thisPtr)
+BarObject_setFooObjImpl(thisPtr, value)
+testBar(prompt="After assigning bar.fooObj to new value")
+BarObject_echoImpl(thisPtr, str)
+  str = Hello C++ from bar
+BarObject_toInt32Impl(thisPtr)
+bar.toInt32() = 3
