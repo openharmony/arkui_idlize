@@ -93,6 +93,7 @@ export function arkgen(argv:string[]) {
         .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
         .option('--no-attribute-modifier-hooks', "Do not generate hooks for components attribute modifier methods")
         .option('--interop-types <path>', 'Path to interop-types.h file')
+        .option('--no-arkgen-dummy-impl', "Do not generate dummy_impl.cc and real_impl.cc test files")
 
     const options = command
         .parse(argv, { from: 'user' })
@@ -192,6 +193,7 @@ export function arkgen(argv:string[]) {
                 callLog: options.callLog ?? false,
                 lang: lang,
                 attributeModifierHooks: options.attributeModifierHooks ?? false,
+                generateDummyImpl: options.arkgenDummyImpl
             }, idlLibrary)
         }
         if (options.generatorTarget == "libace" ||

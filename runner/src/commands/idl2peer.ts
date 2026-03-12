@@ -27,6 +27,7 @@ export interface Idl2PeerConfig {
 export interface Idl2PeerArkuiConfig extends Idl2PeerConfig {
     arkgen: string
     interopTypes: string
+    noDummyImpl?: boolean
 }
 
 export interface Idl2PeerOhosConfig {
@@ -50,6 +51,7 @@ export function idl2peer({
     optionsFiles,
     trackerStatus,
     interopTypes,
+    noDummyImpl,
 }: Idl2PeerArkuiConfig): Idl2PeerResult {
     const idlFiles = idlPaths.flatMap(scan)
 
@@ -78,6 +80,7 @@ export function idl2peer({
         optionsFiles ? ['--ignore-default-config'] : [],
         ['--interop-types', interopTypes],
         over(trackerStatus, st => ['--tracker-status', st]),
+        noDummyImpl ? ['--no-arkgen-dummy-impl'] : [],
     ]))
     return {
         peersPath: GENERATED_PEER_DIR
