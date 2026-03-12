@@ -56,7 +56,7 @@ function isPrimitiveType(type: idl.IDLType): boolean {
 
 function isOptionalType(type: idl.IDLType): boolean {
     const visiteType = (t: idl.IDLType): boolean => {
-        if (idl.isOptionalType(t)) {
+        if (idl.isOptionalType(t) && !idl.hasExtAttribute(t, idl.IDLExtendedAttributes.UnionOnlyNull)) {
             return true;
         }
         if (idl.isUnionType(t)) {
@@ -145,9 +145,9 @@ class ModifiersFileVisitor {
 
     castResetType(writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
         if (!sig.isArgOptional(index)) {
-            return writer.makeCast(writer.makeString(`undefined`), sig.args[index])
+            return writer.makeCast(writer.makeUndefined(), sig.args[index])
         }
-        return writer.makeCast(writer.makeString(`undefined`), idl.createUnionType([sig.args[index], idl.createPrimitiveType('undefined')]))
+        return writer.makeCast(writer.makeUndefined(), idl.createUnionType([sig.args[index], idl.createPrimitiveType('undefined')]))
     }
 
     castSetType(attribute: AttributeType, writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
