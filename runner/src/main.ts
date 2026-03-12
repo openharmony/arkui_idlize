@@ -51,6 +51,7 @@ interface ArkgenOptions extends PrepareSdkOptions {
     arkgenOptionsFile: string
     arkgenInteropTypes: string
     scraperOptionsFile: string
+    arkgenDummyImpl?: boolean
 }
 
 function sdk2idl(sdkPath: string, options: PrepareSdkOptions): Ets2IdlResult {
@@ -94,7 +95,8 @@ function m3(sdkPath: string, idlFiles: string[], options: ArkgenOptions) {
         language: options.language,
         optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
         idlPaths: [scrapedIDLs, ...idlFiles],
-        interopTypes: options.arkgenInteropTypes
+        interopTypes: options.arkgenInteropTypes,
+        noDummyImpl: !options.arkgenDummyImpl
     })
 
     if (formatArkts({
@@ -225,6 +227,7 @@ function main(argv: string[]) {
         .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
+        .option('--no-arkgen-dummy-impl', 'Do not generate dummy_impl.cc and real_impl.cc test files')
         .action(m3)
 
     program.command('complete <sdk-path>')

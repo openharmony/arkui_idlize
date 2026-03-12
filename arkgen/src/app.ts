@@ -106,6 +106,7 @@ export function arkgen(argv:string[]) {
         .option('--no-subset', "Do not copy the subset staff from the external repo or external-subset dir")
         .option('--no-component-named-overloads', "Disable components named overloads")
         .option('--interop-types <path>', 'Path to interop-types.h file')
+        .option('--no-arkgen-dummy-impl', "Do not generate dummy_impl.cc and real_impl.cc test files")
 
     const options = command
         .parse(argv, { from: 'user' })
@@ -205,7 +206,8 @@ export function arkgen(argv:string[]) {
                 dumpSerialized: options.dumpSerialized ?? false,
                 callLog: options.callLog ?? false,
                 lang: lang,
-                attributeModifierHooks: options.attributeModifierHooks ?? false
+                attributeModifierHooks: options.attributeModifierHooks ?? false,
+                generateDummyImpl: options.arkgenDummyImpl
             }, idlLibrary)
         }
         if (options.generatorTarget == "libace" ||
