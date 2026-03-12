@@ -368,8 +368,7 @@ export class TSLanguageWriter extends LanguageWriter {
         prefix = prefix ? prefix.trim() + " " : ""
         const typeParams = generics?.length ? `<${generics.join(", ")}>` : ""
         const normalizedArgs = signature.args.map((it, i) =>
-            idl.isOptionalType(it) && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.UnionOnlyNull) && signature.isArgOptional(i)
-                ? idl.maybeUnwrapOptionalType(it) : it
+            idl.isOptionalType(it) && signature.isArgOptional(i) ? idl.maybeUnwrapOptionalType(it) : it
         )
         this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${this.escapeKeyword(signature.argName(index))}${signature.isArgOptional(index) ? "?" : ``}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
     }

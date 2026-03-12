@@ -148,12 +148,10 @@ class ModifiersFileVisitor {
     }
 
     castResetType(writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
-        const type = sig.args[index]
-        const resetValue = idl.isOptionalType(type) ? writer.makeNull(type) : writer.makeUndefined()
         if (!sig.isArgOptional(index)) {
-            return writer.makeCast(resetValue, sig.args[index])
+            return writer.makeCast(writer.makeString(`undefined`), sig.args[index])
         }
-        return writer.makeCast(resetValue, idl.createUnionType([sig.args[index], idl.IDLUndefinedType]))
+        return writer.makeCast(writer.makeString(`undefined`), idl.createUnionType([sig.args[index], idl.IDLUndefinedType]))
     }
 
     castSetType(attribute: AttributeType, writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
