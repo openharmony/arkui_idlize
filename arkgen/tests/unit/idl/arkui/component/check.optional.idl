@@ -11,6 +11,9 @@ interface CheckOptionalAttribute: Root {
     optional attribute number propNumberOptional;
     optional attribute String propStringOptional;
 
+    attribute (number or undefined) propNumberOrUndefined;
+    attribute (number or idlize.stdlib.Null) propNumberOrNull;
+
     this method(boolean paramBoolean, number paramNumber, String paramString);
     this methodOptional(optional boolean paramBoolean, optional number paramNumber, optional String paramString);
 };

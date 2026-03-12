@@ -1029,6 +1029,10 @@ typedef struct GENERATED_ArkUICheckOptionalModifier {
                                   const Opt_Number* value);
     void (*setPropStringOptional)(Ark_NativePointer node,
                                   const Opt_String* value);
+    void (*setPropNumberOrUndefined)(Ark_NativePointer node,
+                                     const Opt_Number* value);
+    void (*setPropNumberOrNull)(Ark_NativePointer node,
+                                const Opt_Number* value);
     void (*setMethod)(Ark_NativePointer node,
                       Ark_Boolean paramBoolean,
                       const Ark_Number* paramNumber,
