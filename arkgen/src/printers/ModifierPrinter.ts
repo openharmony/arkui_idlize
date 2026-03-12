@@ -366,7 +366,7 @@ class ModifiersFileVisitor {
                 switchPrinter.print(`default:`)
                 switchPrinter.pushIndent()
                 switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = ${AttributeUpdaterFlag.INITIAL}`)
-                if (attribute.isOptional && !isOptionOnlyNull(attribute)) {
+                if (attribute.isOptional) {
                     if (hookRecord && hookRecord.replaceImplementation) {
                         switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
                     } else {
@@ -422,7 +422,7 @@ class ModifiersFileVisitor {
                 switchPrinter.popIndent()
                 switchPrinter.print(`default:`)
                 switchPrinter.pushIndent()
-                if (attribute.isOptional && !isOptionOnlyNull(attribute)) switchPrinter.print(`${resetStatement.asString()};`)
+                if (attribute.isOptional) switchPrinter.print(`${resetStatement.asString()};`)
                 switchPrinter.popIndent()
                 switchPrinter.popIndent()
                 switchPrinter.print(`}`)
@@ -612,11 +612,4 @@ export function printModifiers(peerLibrary: PeerLibrary): PrinterResult[] {
         result.push(...visitor.visit())
     })
     return result
-}
-
-function isOptionOnlyNull(attribute: AttributeType): boolean {
-    const args = attribute.method.method.signature.args
-    if (args.length == 0) return false
-    const type = args[0]
-    return idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionOnlyNull)
 }
