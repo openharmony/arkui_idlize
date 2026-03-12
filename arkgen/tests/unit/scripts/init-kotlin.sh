@@ -3,10 +3,10 @@
 set -e
 set -x
 
-pwd
-
-GENERATED_DIR=./generated
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+GENERATED_DIR="${SCRIPT_DIR}/../generated"
+SETUP_DIR="${SCRIPT_DIR}/../setup/kotlin"
 
 mkdir -p $GENERATED_DIR
-cp -r ./setup/kotlin/sig $GENERATED_DIR
-cp -r ./setup/kotlin/modules $GENERATED_DIR
+cp -r "${SETUP_DIR}/sig" "$GENERATED_DIR"
+cp -r "${SETUP_DIR}/modules" "$GENERATED_DIR"

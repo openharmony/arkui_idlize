@@ -10,17 +10,15 @@ else
 endif
 use_libace = true
 
-is_node = (source_set == 'ets-ts-peers' or source_set == 'ts-subset')
+is_node = (source_set == 'ets-ts-peers')
 is_build_vmloader = false
 is_cj = (source_set == 'cangjie' or source_set == 'cangjie-subset')
 is_kotlin = (source_set == 'kotlin-peers' or source_set == 'kotlin-subset' or source_set == 'unit-kotlin')
-is_ani = (source_set == 'ets-arkts-peers' or source_set == 'arkts-subset' or source_set == 'unit-arkts')
-is_ohos_demo = (source_set == 'ts-ohos-context')
-is_unit = (source_set == 'unit-arkts' or source_set == 'unit-kotlin')
+is_unit = (source_set == 'unit-kotlin')
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
-if ['ets-ts-peers', 'ets-arkts-peers', 'ts-peers', 'ts-subset', 'arkts-subset', 'arkts-peers', 'cangjie', 'cangjie-subset', 'kotlin-peers', 'kotlin-subset', 'ts-ohos-context'].contains(source_set)
+if ['ets-ts-peers', 'arkts-peers', 'cangjie', 'cangjie-subset', 'kotlin-peers', 'kotlin-subset'].contains(source_set)
     gen_dir = '../out/' / source_set / 'generated'
 elif is_unit
     gen_dir = '../tests/unit/generated'
@@ -28,7 +26,7 @@ else
 endif
 arkoala_dir = gen_dir + '/sig/arkoala-arkts/framework/native/src/generated'
 external_framework_dir = '../../external/koala_projects/arkoala-arkts/framework/native/src'
-external_interop_dir = '../../external/koala_projects/interop/src/cpp'
+external_interop_dir = '../../node_modules/@koalaui/interop/src/cpp'
 external_incremental_cj_dir = '../../external/koala_projects/incremental-cj'
 libace_dir = gen_dir / 'libace'
 
@@ -79,33 +77,6 @@ sources += [
     arkoala_dir + '/buffer_test.cpp',
 ]
 
-if is_ohos_demo
-    arkoala_dir = gen_dir + '/native'
-
-    include_dirs = [
-        arkoala_dir,
-        # arkoala_dir / 'legacy',
-        external_interop_dir,
-        external_interop_dir / 'types',
-        external_framework_dir,
-    ]
-
-    sources = [
-        # arkoala_dir / 'all_events.cpp',
-        # arkoala_dir / 'bridge_custom.cpp',
-        # arkoala_dir / 'bridge_generated.cpp',
-        # arkoala_dir / 'custom.cpp',
-        # arkoala_dir / 'library.cpp',
-        # arkoala_dir / 'callback_deserialize_call.cpp',
-        # arkoala_dir / 'callback_managed_caller.cpp',
-        external_interop_dir / 'common-interop.cpp',
-        # external_interop_dir / 'callback-resource.cpp',
-        # external_interop_dir / 'interop-logging.cpp',
-        # external_framework_dir / 'events.cpp',
-        # external_framework_dir / 'vsync.cpp'
-    ]
-endif
-
 if is_unit
     include_dirs = [
         arkoala_dir,
@@ -154,7 +125,6 @@ if use_libace
 endif
 
 node_library_name = 'NativeBridgeNapi'
-ani_library_name = 'ArkoalaNative_ani'
 jni_library_name = 'NativeBridgeJni'
 cj_library_name = 'NativeBridgeCJ'
 kotlin_library_name = 'NativeBridgeKotlin'
@@ -206,15 +176,6 @@ endif
 node_module_prefix = ''
 node_module_suffix = 'node'
 
-ani_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + ani_library_name]
-ani_include_dirs = [
-    external_interop_dir / 'ani',
-    external_interop_dir / 'ani' / 'panda',
-]
-ani_sources = [
-    external_interop_dir / 'ani/convertors-ani.cpp',
-    external_interop_dir / 'types/signatures.cpp',
-]
 
 kotlin_cflags = ['-DKOALA_USE_KOTLIN', '-DKOALA_LANG_KT', '-DINTEROP_LIBRARY_NAME=' + kotlin_library_name]
 kotlin_include_dirs = [
@@ -290,23 +251,6 @@ if use_libace
     )
 endif
 
-if is_ani
-    ani_ldflags = []
-
-    shared_library(ani_library_name,
-        sources + ani_sources,
-        override_options: [
-            'b_lundef=false',
-        ],
-        install: true,
-        include_directories: include_dirs + ani_include_dirs,
-        install_dir: meson.current_source_dir(),
-        cpp_args: cflags + ani_cflags,
-        link_args: ldflags + ani_ldflags,
-        dependencies: []
-    )
-endif
-
 if is_kotlin
     shared_library(kotlin_library_name,
         sources + kotlin_sources,
@@ -322,66 +266,8 @@ if is_kotlin
     )
 endif
 
-if is_ohos
-    ohos_library_name = ohos_library_name + '_' + arch
-    module_prefix = 'lib'
-    module_suffix = 'so'
-    ohos_cflags = [ '-DINTEROP_LIBRARY_NAME=' + ohos_library_name ]
-    ohos_cflags += [
-        '-DKOALA_NAPI',
-        '-DKOALA_USE_ARK_VM=1',
-        '-DKOALA_USE_ARK_VM_WITH_JS=1',
-        '-DKOALA_OHOS',
-        '-D__MUSL__',
-    ]
-
-    ohos_ldflags = [
-        '-lhilog_ndk.z',
-        '-lace_napi.z',
-    ]
-
-    ohos_include_dirs = [
-        external_interop_dir / 'node',
-        external_interop_dir / 'arkts'
-    ]
-
-    ohos_sources = [
-        external_interop_dir + '/node/convertors-node.cpp'
-    ]
-
-    shared_library(ohos_library_name,
-        sources + ohos_sources,
-        override_options: [
-            'b_lundef=false',
-        ],
-        install: true,
-        name_prefix: module_prefix,
-        name_suffix: module_suffix,
-        include_directories: include_dirs + ohos_include_dirs,
-        install_dir: meson.current_source_dir(),
-        cpp_args: cflags + ohos_cflags,
-        link_args: ldflags + ohos_ldflags
-    )
-    if use_libace
-        shared_library(libace_name,
-            libace_sources,
-            override_options: [
-                'b_lundef=false',
-            ],
-            install: true,
-            name_prefix: module_prefix,
-            name_suffix: module_suffix,
-            include_directories: include_dirs + ohos_include_dirs,
-            install_dir: meson.current_source_dir(),
-            cpp_args: cflags + ohos_cflags,
-            link_args: ldflags + ohos_ldflags
-        )
-    endif
-
-endif
-
 # TODO: fix on Windows as well
-if (os != 'windows') and (is_ohos_demo == false) and (is_unit == false)
+if (os != 'windows') and (is_unit == false)
     executable('test_arkoala_api',
         arkoala_dir / 'api_test.c',
         c_args: cflags,
@@ -401,20 +287,15 @@ endif
 
 
 if is_build_vmloader
-    loader_include_dirs = include_dirs
     loader_cflags = cflags + [ '-DKOALA_DYNAMIC_LOADER' ]
     loader_ldflags = []
-    if is_ani
-        loader_include_dirs += ani_include_dirs
-        loader_cflags += ani_cflags
-    endif
     if os != 'windows'
         loader_ldflags += ['-ldl']
     endif
     shared_library('vmloader',
         external_interop_dir / 'vmloader.cpp',
         install: true,
-        include_directories: loader_include_dirs,
+        include_directories: include_dirs,
         install_dir: meson.current_source_dir(),
         cpp_args: loader_cflags,
         link_args: loader_ldflags

@@ -13,7 +13,7 @@ SDK_PATCHED_ARKTS_PATH="$2"
 
 # Convert to absolute path if relative
 if [[ ! "$INTERFACE_SDK_JS_PATH" = /* ]]; then
-    INTERFACE_SDK_JS_PATH="$(cd "$(dirname "$0")/.." && pwd)/$INTERFACE_SDK_JS_PATH"
+    INTERFACE_SDK_JS_PATH="$(cd "$(dirname "$0")/.." && pwd)/external/$INTERFACE_SDK_JS_PATH"
 fi
 
 if [[ ! "$SDK_PATCHED_ARKTS_PATH" = /* ]]; then
