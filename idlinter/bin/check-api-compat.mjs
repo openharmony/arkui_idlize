@@ -90,18 +90,22 @@ try {
  */
 function exec(cmd) {
     return new Promise((resolve, reject) => {
+        const isTTY = process.stdout.isTTY
         const spinnerFrames = ['.', 'o', 'O', '0', 'O', 'o']
         let spinnerIndex = 0
 
-        // Print command with initial spinner frame
-        process.stdout.write(`> ${cmd} ${spinnerFrames[spinnerIndex]}`)
-        spinnerIndex = (spinnerIndex + 1) % spinnerFrames.length
+        console.log(`> ${cmd}`)
+        // Print command with initial spinner frame (only in TTY)
+        if (isTTY) {
+            process.stdout.write(spinnerFrames[spinnerIndex])
+            spinnerIndex = (spinnerIndex + 1) % spinnerFrames.length
+        }
 
-        const spinnerInterval = setInterval(() => {
+        const spinnerInterval = isTTY ? setInterval(() => {
             // Use backspace to overwrite just the spinner character
             process.stdout.write(`\b${spinnerFrames[spinnerIndex]}`)
             spinnerIndex = (spinnerIndex + 1) % spinnerFrames.length
-        }, 150)
+        }, 150) : null
 
         const child = spawn(cmd, [], { shell: true, stdio: 'pipe' })
         let stdout = ''
@@ -112,23 +116,25 @@ function exec(cmd) {
 
         // @ts-expect-error ChildProcess inherits from EventEmitter but type defs don't include 'on'
         child.on('close', (/** @type {number|null} */ code) => {
-            clearInterval(spinnerInterval)
-            // Clear the spinner character and move to next line
-            process.stdout.write('\b \n')
+            if (spinnerInterval) clearInterval(spinnerInterval)
+            // Clear the spinner character and move to next line (only in TTY)
+            if (isTTY) process.stdout.write('\b ')
 
             if (code !== 0) {
                 if (stdout) process.stdout.write(stdout)
                 if (stderr) process.stderr.write(stderr)
+                process.stdout.write('\n')
                 reject(new Error(`Command failed with exit code ${code}`))
             } else {
+                process.stdout.write('\n')
                 resolve()
             }
         })
 
         // @ts-expect-error ChildProcess inherits from EventEmitter but type defs don't include 'on'
         child.on('error', (/** @type {Error} */ err) => {
-            clearInterval(spinnerInterval)
-            process.stdout.write('\b \n')
+            if (spinnerInterval) clearInterval(spinnerInterval)
+            if (isTTY) process.stdout.write('\b \n')
             reject(err)
         })
     })

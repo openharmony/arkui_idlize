@@ -16,8 +16,8 @@
 // @ts-check
 
 import { existsSync } from "node:fs"
-import { dirname, resolve, join } from "node:path"
-import { execSync, spawn } from "node:child_process"
+import { dirname, join } from "node:path"
+import { execSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,19 +29,35 @@ const etsgenOptionsFile = join(__dirname, './etsgen-options-file.json')
 const base = 'c0dddf300'
 const commit = 'de2d36a83'
 
+const expectedFailure = 'Missing property: arkui.component.richEditor.RichEditorAttribute.onWillAttachIME'
+
 if (!existsSync(repo)) {
     console.error(`interface_sdk-js must be downloaded! See ${dirname(repo)} scripts`)
     process.exit(1)
 }
 
-try {
-    const cmd = `node ${checkApiCompat} ${repo} ${commit} ${base} --etsgen-options-file ${etsgenOptionsFile}`
-    console.log(`> ${cmd}`)
-    execSync(cmd, {
-        stdio: 'inherit',
+const cmd = `node ${checkApiCompat} ${repo} ${commit} ${base} --etsgen-options-file ${etsgenOptionsFile}`
+console.log(`> ${cmd}`)
 
+try {
+    const output = execSync(cmd, {
+        encoding: 'utf-8',
+        stdio: ['inherit', 'pipe', 'pipe'],
     })
-} catch (_) {
-    console.error('TEST FAILED')
+    process.stdout.write(output)
+    console.error('TEST FAILED: expected failure was not detected')
+    process.exit(1)
+} catch (/** @type any */ error) {
+    const stdout = error.stdout || ''
+    const stderr = error.stderr || ''
+    process.stdout.write(stdout)
+    process.stderr.write(stderr)
+
+    const output = stdout + stderr
+    if (output.includes(expectedFailure)) {
+        console.log(`\nEXPECTED FAILURE`)
+        process.exit(0)
+    }
+    console.error('\nTEST FAILED: unexpected error')
     process.exit(1)
 }
