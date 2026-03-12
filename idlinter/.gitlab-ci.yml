@@ -1,0 +1,10 @@
+test sdk api compat:
+  stage: test
+  tags:
+    - idlize-ci
+  needs:
+    - build idlize
+    - download interface_sdk-js
+  script:
+    - !reference [.npm, script]
+    - node idlinter/test/integration/compat/exec.mjs
