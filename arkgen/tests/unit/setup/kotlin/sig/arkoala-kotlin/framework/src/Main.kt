@@ -30,6 +30,8 @@ import arkui.component.check.transform.*
 import arkui.component.common.*
 import arkui.component.datebook.*
 
+import synthetic_types.Union_Arkui_Component_Check_Transform_SampleI_Arkui_Component_Check_Transform_SampleTransformSrcI as SampleTransformUnionType
+
 var hasTestErrors = false
 
 fun checkResult(name: String, test: () -> Unit, expected: String) {
@@ -129,6 +131,22 @@ fun checkOptional() {
         "setMethodOptional({.tag=INTEROP_TAG_UNDEFINED, .value={}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}})")
 }
 
+fun checkTransformOnSerialize() {
+    val peer = ArkCheckTransformPeer.create()
+    val comp = ArkCheckTransformComponent()
+    comp.setPeer(peer)
+    checkResult("sample", { comp.sample(object: SampleI { override var flag = true }) },
+        "setSample({.flag=true})")
+    checkResult("sampleTransformI", { comp.sampleTransformI(object: SampleTransformSrcI { override var text = "abc" }) },
+        "setSampleTransformI({.length={.tag=102, .i32=3}})")
+    checkResult("sampleTransformCallback", { comp.sampleTransformCallback(object: TransformSrcCallbackI { override var flag = true }) },
+        "setSampleTransformCallback({.resource={.resourceId=100, .hold=0, .release=0}, .call=0})")
+    checkResult("sampleTransformUnion", { comp.sampleTransformUnion(SampleTransformUnionType.create0(object: SampleI { override var flag = true})) },
+        "setSampleTransformUnion({.selector=0, .value0={.flag=true}})")
+    checkResult("sampleTransformUnion", { comp.sampleTransformUnion(SampleTransformUnionType.create1(object: SampleTransformSrcI { override var text = "defgh"})) },
+        "setSampleTransformUnion({.selector=1, .value1={.length={.tag=102, .i32=5}}})")
+}
+
 fun checkHierarchy() {
     val parentPeer = ArkCheckParentPeer.create()
     val parentComp = ArkCheckParentComponent()
@@ -152,6 +170,7 @@ public fun main() {
     checkHooks()
     checkExceptions()
     checkOptional()
+    checkTransformOnSerialize()
     checkHierarchy()
 
     if (hasTestErrors) {

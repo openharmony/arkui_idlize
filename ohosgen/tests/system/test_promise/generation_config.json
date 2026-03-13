@@ -7,7 +7,7 @@
         },
         "test_promise": {
             "name": "test_promise",
-            "packages": ["foo"],
+            "packages": ["foo", "synthetic_types"],
             "useFoldersLayout": true
         }
     }

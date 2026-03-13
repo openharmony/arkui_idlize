@@ -352,7 +352,12 @@ export abstract class LambdaExpression implements LanguageExpression {
         })
 
         return writer.getOutput()
-            .map(line => (line.endsWith('{') || line.endsWith('}') || line.endsWith(';')) ? line : `${line};`)
+            .map(line => {
+                if (!this.statementHasSemicolon) {
+                    return line
+                }
+                return (line.endsWith('{') || line.endsWith('}') || line.endsWith(';')) ? line : `${line};`
+            })
             .join("\n")
     }
 }

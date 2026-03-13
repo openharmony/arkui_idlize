@@ -1,0 +1,10 @@
+Starting demo: test_generic_callback
+Foo_constructImpl()
+Foo_callHolderImpl(thisPtr)
+Foo_getXImpl(thisPtr)
+foo.getX() = 1.0
+Foo_callCBImpl(thisPtr, y, cb)
+  y = 42 (int32)
+Foo_callCBVoidImpl(thisPtr, cb)
+Callback invoked From TS: x = 43.0
+Void callback invoked From TS

@@ -30,6 +30,7 @@ import test_multiple_instances.*
 import test_number.*
 import test_promise.*
 import test_return_types.*
+import test_sequences.*
 import test_transform.*
 import test_union.*
 import test_hierarchy.*
@@ -793,6 +794,22 @@ fun checkMultipleInstances() {
     assertEQ(obj.getValue(), 5.0)
 }
 
+fun checkSequences() {
+    val sequences: Sequences = object: Sequences {
+        override var simpleArray = arrayOf(10, 12)
+        override var setSequence = setOf(10, 12)
+    }
+    val transformed = testSequences(sequences)
+    assertEQ(transformed.simpleArray[0], 10)
+    assertEQ(transformed.simpleArray[1], 12)
+    val setAsArray = arrayListOf<Int>()
+    for (setElement in transformed.setSequence) {
+        setAsArray.add(setElement)
+    }
+    assertEQ(setAsArray[0], 10)
+    assertEQ(setAsArray[1], 12)
+}
+
 suspend fun run(): Unit {
     println("Run common unit tests")
 
@@ -822,8 +839,9 @@ suspend fun run(): Unit {
     suite.addAsyncTest("checkPromiseRejected", ::checkPromiseRejected)
     suite.addTest("checkHandwrittenDeserializer", ::checkHandwrittenDeserializer)
     suite.addTest("checkTransformOnSerialize", ::checkTransformOnSerialize)
-    suite.addTest("checkHierarchy", ::checkHierarchy)
     suite.addTest("checkMultipleInstances", ::checkMultipleInstances)
+    suite.addTest("checkHierarchy", ::checkHierarchy)
+    suite.addTest("checkSequences", ::checkSequences)
 
     suite.run()
 }

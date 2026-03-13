@@ -7,7 +7,7 @@
         },
         "test_manually_decomposed_promise": {
             "name": "test_manually_decomposed_promise",
-            "packages": ["test_manually_decomposed_promise"],
+            "packages": ["test_manually_decomposed_promise", "synthetic_types"],
             "useFoldersLayout": true
         }
     }

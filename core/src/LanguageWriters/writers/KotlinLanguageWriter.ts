@@ -43,7 +43,7 @@ import {
 import { ArgConvertor } from "../ArgConvertors.js"
 import { IdlNameConvertor } from "../nameConvertor.js"
 import { RuntimeType } from "../common.js";
-import { isDefined } from "../../util.js"
+import { indentedBy, indentedText, isDefined } from "../../util.js"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver.js";
 
 export class KotlinLambdaReturnStatement implements LanguageStatement {
@@ -231,7 +231,9 @@ class KotlinLambdaExpression extends LambdaExpression {
     }
     asString(): string {
         const params = this.signature.args.map((it, i) => `${this.writer.escapeKeyword(this.signature.argName(i))}: ${this.writer.getNodeName(it)}`)
-        return `{${params.join(", ")} -> ${this.bodyAsString()} }`
+        return `{ ${params.length > 0 ? params.join(", ") + " " : "" }->\n` +
+            `${indentedText(this.bodyAsString(), 1)}\n` +
+            `${indentedBy("}", this.writer.indentDepth())}`
     }
 }
 
@@ -240,14 +242,13 @@ export class KotlinLanguageWriter extends LanguageWriter {
 
     constructor(printer: IndentedPrinter,
                 resolver: ReferenceResolver,
-                typeConvertor: IdlNameConvertor,
-                language: Language = Language.KOTLIN) {
-        super(printer, resolver, language)
+                typeConvertor: IdlNameConvertor) {
+        super(printer, resolver, Language.KOTLIN)
         this.typeConvertor = typeConvertor
     }
 
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
-        return new KotlinLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.language)
+        return new KotlinLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor)
     }
 
     getNodeName(type: idl.IDLNode): string {
@@ -593,7 +594,8 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.print(`println(\"${message}\")`)
     }
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
-        return this.makeString(`${value.asString()} as ${this.getNodeName(node)}`)
+        // a bit ugly way to suppress warnings in casts that is compatible with assignments and return expressions
+        return this.makeString(`run { @Suppress("UNCHECKED_CAST") run { ${value.asString()} as ${this.getNodeName(node)} } }`)
     }
     typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
         throw new Error("Not implemented")

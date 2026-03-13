@@ -7,7 +7,7 @@
         },
         "test_generic_callback": {
             "name": "test_generic_callback",
-            "packages": ["foo"],
+            "packages": ["foo", "synthetic_types"],
             "useFoldersLayout": true
         },
         "__ignore__": {

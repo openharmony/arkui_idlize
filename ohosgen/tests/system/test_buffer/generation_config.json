@@ -7,7 +7,7 @@
         },
         "test_buffer": {
             "name": "test_buffer",
-            "packages": ["test_buffer"],
+            "packages": ["test_buffer", "synthetic_types"],
             "useFoldersLayout": true
         }
     }
