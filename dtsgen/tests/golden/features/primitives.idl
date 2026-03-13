@@ -24,8 +24,8 @@ interface Iface {
     number bar06();
     i32 bar07();
     f32 bar08();
-    long bar00();
-    short bar10();
+    i64 bar00();
+    i16 bar10();
     void bar11();
     boolean bar12();
     char bar13();

@@ -285,14 +285,18 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
     private readonly TypeMapper =
         new Map<string, (type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion) => idl.IDLType>([
+            ["byte", () => idl.createPrimitiveType('i8')],
+            ["short", () => idl.createPrimitiveType('i16')],
+            ["int", () => idl.createPrimitiveType('i32')],
+            ["long", () => idl.createPrimitiveType('i64')],
+            ["float", () => idl.createPrimitiveType('f32')],
+            ["double", () => idl.createPrimitiveType('f64')],
+            ["boolean", () => idl.createPrimitiveType('boolean')],
+            ["Boolean", () => idl.createPrimitiveType('boolean')], // nasty typo in SDK
             ["object", () => idl.createPrimitiveType('Object')],
             ["Object", () => idl.createPrimitiveType('Object')],
-            ["double", () => idl.createPrimitiveType('f64')],
-            ["int", () => idl.createPrimitiveType('i32')],
-            ["float", () => idl.createPrimitiveType('f32')],
             ["ESObject", () => idl.createPrimitiveType('Object')],
             ["string", () => idl.createPrimitiveType('String')],
-            ["Boolean", () => idl.createPrimitiveType('boolean')], // nasty typo in SDK
             ["ArrayBuffer", () => idl.createPrimitiveType('buffer')],
             ["DataView", () => idl.createPrimitiveType('buffer')],
             ["Date", () => idl.createPrimitiveType('date')],
@@ -304,19 +308,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             ["Record", (type, name) => this.makeContainerType("record", type, name)],
             ["Optional", (type, name) => this.makeOptionalType(type, name)],
             ["Function", () => idl.createPrimitiveType('Function')],
-            // TODO: rethink that
-            ["\"2d\"", () => idl.createPrimitiveType('String')],
-            ["\"auto\"", () => idl.createPrimitiveType('String')],
-
-            ["int32", () => idl.createPrimitiveType('i32')],
-            ["uint32", () => idl.createPrimitiveType('u32')],
-            ["int8", () => idl.createPrimitiveType('i8')],
-            ["uint8", () => idl.createPrimitiveType('u8')],
-            ["float32", () => idl.createPrimitiveType('f32')],
-            ["float64", () => idl.createPrimitiveType('f64')],
-            ["pointer", () => idl.createPrimitiveType('pointer')],
-            ["KPointer", () => idl.createPrimitiveType('pointer')],
-            ["KNativePointer", () => idl.createPrimitiveType('pointer')],
         ])
 
     makeEnumMember(parent: idl.IDLEnum, name: string, value: string): idl.IDLEnumMember {
@@ -1020,7 +1011,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 throw new Error(`Can only intersect type references, got ${type.parent.getText()}`)
             return result
         }
-        const inheritance = node.types.map((it, index) => toIDLReferenceType(it, index))
+        const inheritance = node.types
+            .filter(it => it.kind !== ts.SyntaxKind.ObjectKeyword)
+            .map((it, index) => toIDLReferenceType(it, index))
         const syntheticName = `Intersection_${inheritance.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
         const selectedName = selectName(nameSuggestion, syntheticName)
         return idl.createInterface(
@@ -1193,11 +1186,11 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     /**
      * Here we keep TS type names, but translate type arguments using `Context.typeParameterMap`
      */
-    private mapTypeArgs(typeArgs: ts.NodeArray<ts.TypeNode> | undefined, typeName: string): idl.IDLType[] | undefined {
+    private mapTypeArgs(typeArgs: ts.NodeArray<ts.TypeNode> | undefined, typeName: string, nameSuggestion?: NameSuggestion): idl.IDLType[] | undefined {
         if (TypeParameterMap.has(typeName))
             // Type parameters were erased for this type
             return undefined
-        return typeArgs?.map(arg => {
+        return typeArgs?.map((arg, i) => {
             if (this.isTypeParameterReference(arg)) {
                 const paramName = nameOrNull(arg.typeName)!
                 const substType = this.context.typeParameterMap?.get(paramName)
@@ -1208,7 +1201,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 }
                 return idl.createTypeParameterReference(paramName)
             }
-            return this.serializeType(arg, undefined, typeArgs)
+            return this.serializeType(arg, nameSuggestion?.extend(`p${i}`), typeArgs)
         })
     }
 
@@ -1292,7 +1285,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             return typeMapper
                 ? typeMapper(type, nameSuggestion)
                 : idl.createReferenceType(typeName, this.dtsConfig.components.ignoreTypeParameters.includes(typeName)
-                    ? undefined : this.mapTypeArgs(type.typeArguments, typeName));
+                    ? undefined : this.mapTypeArgs(type.typeArguments, typeName, nameSuggestion));
         }
         if (ts.isThisTypeNode(type)) {
             return idl.createReferenceType("this")
@@ -1351,7 +1344,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (ts.isTypeQueryNode(type)) {
             if (ts.isIdentifier(type.exprName)) {
                 const name = type.exprName.escapedText.toString()
-                return idl.createReferenceType(name, this.mapTypeArgs(type.typeArguments, name))
+                return idl.createReferenceType(name, this.mapTypeArgs(type.typeArguments, name, nameSuggestion))
             }
             warn(`unsupported type query: ${type.getText()}`)
             return idl.createPrimitiveType('any')
