@@ -16,8 +16,6 @@ import("${idlize_root}/gn/import/bash.gni")
 import("${idlize_root}/gn/import/node.gni")
 import("${idlize_root}/gn/import/npm.gni")
 
-_interop_build_dir = "${idlize_root}/node_modules/@koalaui/interop/build"
-
 target_names = []
 
 _gen_dir = "$target_gen_dir/generated"
@@ -46,23 +44,31 @@ cp("check:arkts:init") {
     deps = [ ":check:arkts:clean" ]
 }
 
-_idl_dirs = [
-    rebase_path("./idl"),
-    rebase_path("./idl/arkui"),
-    rebase_path("./idl/arkui/component"),
-    rebase_path("./idl/external"),
-]
+_marker_file = "${target_gen_dir}/.idl_dir"
 
-_input_dir_str = ""
-foreach(dir, _idl_dirs) {
-    if (_input_dir_str != "") {
-        _input_dir_str = _input_dir_str + ","
-    }
-    _input_dir_str = _input_dir_str + dir
+scan_sources("check:arkts:generate:idl_dir") {
+    dir = rebase_path("./idl")
+    marker_file = _marker_file
 }
 
 node_cmd("check:arkts:generate") {
     script = rebase_path("../..")
+
+    _idl_dirs = [
+        rebase_path("./idl"),
+        rebase_path("./idl/arkui"),
+        rebase_path("./idl/arkui/component"),
+        rebase_path("./idl/external"),
+    ]
+
+    _input_dir_str = ""
+    foreach(dir, _idl_dirs) {
+        if (_input_dir_str != "") {
+            _input_dir_str = _input_dir_str + ","
+        }
+        _input_dir_str = _input_dir_str + dir
+    }
+
     args = [
         "--api-version",
         "99",
@@ -82,6 +88,9 @@ node_cmd("check:arkts:generate") {
         "--options-file",
         rebase_path("./conf/config-arkui.json"),
     ]
+    inputs = [
+        _marker_file
+    ]
     outputs = [
         "${_arkoala_gen_dir}/bridge_custom.cpp",
         "${_arkoala_gen_dir}/bridge_generated.cpp",
@@ -91,46 +100,16 @@ node_cmd("check:arkts:generate") {
         "${_arkoala_gen_dir}/dummy_impl.cpp",
         "${_arkoala_gen_dir}/real_impl.cpp",
     ]
-    # List of all .idl files in input directories
-    _idl_files = [
-        "./idl/arkui/arkui-check.customModifierModifier.idl",
-        "./idl/arkui/arkui-check.trivialModifierModifier.idl",
-        "./idl/arkui/AttributeUpdaterFlag.idl",
-        "./idl/arkui/AttributeUpdater.idl",
-        "./idl/arkui/component/check.duplicates.idl",
-        "./idl/arkui/component/check.enum.idl",
-        "./idl/arkui/component/check.exceptions.idl",
-        "./idl/arkui/component/check.flattenUnions.idl",
-        "./idl/arkui/component/check.hierarchy.idl",
-        "./idl/arkui/component/check.hooks.idl",
-        "./idl/arkui/component/check.modifiers.idl",
-        "./idl/arkui/component/check.optional.idl",
-        "./idl/arkui/component/check.transform.idl",
-        "./idl/arkui/component/common.idl",
-        "./idl/arkui/component/datebook.idl",
-        "./idl/arkui/component/units.idl",
-        "./idl/arkui/Graphics.idl",
-        "./idl/arkui-idlize-internal.idl",
-        "./idl/external/external.idl",
-        "./idl/ModifierState.idl",
-        "./idl/stage_extender.idl",
-        "./idl/static_components.idl",
-        "./idl/test-api.idl",
-    ]
-
-    inputs = []
-    foreach(file, _idl_files) {
-        inputs += [ rebase_path(file) ]
-    }
     deps = [
         ":check:arkts:init",
+        ":check:arkts:generate:idl_dir",
         "${idlize_root}/arkgen:compile",
     ]
 }
 
 cp("check:arkts:generate:cp") {
     src = [ rebase_path("${_gen_dir}") ]
-    dest = rebase_path("./generated")
+    dest = rebase_path(".")
     deps = [ ":check:arkts:generate" ]
 }
 
@@ -148,49 +127,6 @@ npm_cmd("check:arkts:build") {
 # Native library definitions
 _interop_dir =
         rebase_path("${idlize_root}/node_modules/@koalaui/interop/src/cpp")
-_interop_build_dir =
-        rebase_path("${idlize_root}/node_modules/@koalaui/interop/build")
-
-# Build ANI native shared library (ArkoalaNative_ani) - analogue of meson ani target
-
-_cflags = [ "-DKOALA_INTEROP_MODULE=NotConfiguredNativeModule" ]
-
-if (current_toolchain == "//gn/toolchain:clang") {
-    _cflags += [
-        "-Wall",
-        "-Werror",
-        "-Wno-unused-variable",
-        "-Wno-unused-but-set-variable",
-        "-Wno-extern-c-compat",
-        "-Wno-error=deprecated-declarations",
-        "-Wno-unknown-warning-option",
-        "-Wno-unused-function",
-        "-Wno-macro-redefined",
-        "-Wno-enum-compare",
-        "-Wno-tautological-constant-out-of-range-compare",
-        "-fno-exceptions",
-    ]
-} else if (current_toolchain == "//gn/toolchain:msvc") {
-    # Avoid using COMDAT to not exceed COFF file limits, see https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1128?view=msvc-170
-    _cflags += [ "/Gy-" ]
-} else {
-    assert(
-        false,
-        "Compile flags for current toolchain $current_toolchain are not defined")
-}
-
-if (target_os == "win") {
-    _cflags += [ "-DKOALA_WINDOWS" ]
-}
-if (target_os == "linux") {
-    _cflags += [ "-DKOALA_LINUX" ]
-}
-if (target_os == "mac") {
-    _cflags += [
-        "-DKOALA_MACOS",
-        "-mmacosx-version-min=13.3",
-    ]
-}
 
 shared_library("check:arkts:native:ani") {
     # Sources from meson.build for unit tests (is_unit true)
@@ -207,7 +143,45 @@ shared_library("check:arkts:native:ani") {
         "${_interop_dir}/types/signatures.cpp",
     ]
 
-    cflags = _cflags + [
+    cflags = [ "-DKOALA_INTEROP_MODULE=NotConfiguredNativeModule" ]
+    if (current_toolchain == "//gn/toolchain:clang") {
+        cflags += [
+            "-Wall",
+            "-Werror",
+            "-Wno-unused-variable",
+            "-Wno-unused-but-set-variable",
+            "-Wno-extern-c-compat",
+            "-Wno-error=deprecated-declarations",
+            "-Wno-unknown-warning-option",
+            "-Wno-unused-function",
+            "-Wno-macro-redefined",
+            "-Wno-enum-compare",
+            "-Wno-tautological-constant-out-of-range-compare",
+            "-fno-exceptions",
+        ]
+    } else if (current_toolchain == "//gn/toolchain:msvc") {
+        # Avoid using COMDAT to not exceed COFF file limits, see https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1128?view=msvc-170
+        cflags += [ "/Gy-" ]
+    } else {
+        assert(
+            false,
+            "Compile flags for current toolchain $current_toolchain are not defined")
+    }
+
+    if (target_os == "win") {
+        cflags += [ "-DKOALA_WINDOWS" ]
+    }
+    if (target_os == "linux") {
+        cflags += [ "-DKOALA_LINUX" ]
+    }
+    if (target_os == "mac") {
+        cflags += [
+            "-DKOALA_MACOS",
+            "-mmacosx-version-min=13.3",
+        ]
+    }
+
+    cflags += [
         "-DKOALA_USE_PANDA_VM",
         "-DKOALA_ANI",
         "-DINTEROP_LIBRARY_NAME=ArkoalaNative_ani"
@@ -238,7 +212,43 @@ shared_library("check:arkts:native:libace") {
         "${_interop_dir}/interop-logging.cpp",
     ]
 
-    cflags = _cflags
+    cflags = [ "-DKOALA_INTEROP_MODULE=NotConfiguredNativeModule" ]
+    if (current_toolchain == "//gn/toolchain:clang") {
+        cflags += [
+            "-Wall",
+            "-Werror",
+            "-Wno-unused-variable",
+            "-Wno-unused-but-set-variable",
+            "-Wno-extern-c-compat",
+            "-Wno-error=deprecated-declarations",
+            "-Wno-unknown-warning-option",
+            "-Wno-unused-function",
+            "-Wno-macro-redefined",
+            "-Wno-enum-compare",
+            "-Wno-tautological-constant-out-of-range-compare",
+            "-fno-exceptions",
+        ]
+    } else if (current_toolchain == "//gn/toolchain:msvc") {
+        # Avoid using COMDAT to not exceed COFF file limits, see https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1128?view=msvc-170
+        cflags += [ "/Gy-" ]
+    } else {
+        assert(
+            false,
+            "Compile flags for current toolchain $current_toolchain are not defined")
+    }
+
+    if (target_os == "win") {
+        cflags += [ "-DKOALA_WINDOWS" ]
+    }
+    if (target_os == "linux") {
+        cflags += [ "-DKOALA_LINUX" ]
+    }
+    if (target_os == "mac") {
+        cflags += [
+            "-DKOALA_MACOS",
+            "-mmacosx-version-min=13.3",
+        ]
+    }
 
     ldflags = []
 
