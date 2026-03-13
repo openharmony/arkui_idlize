@@ -400,7 +400,7 @@ class ModifiersFileVisitor {
                     switchPrinter.print(`default: {`)
                     switchPrinter.pushIndent()
                     switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = ${AttributeUpdaterFlag.INITIAL};`)
-                    if (attribute.isOptional) {
+                    if (attribute.isOptional && !isOptionOnlyNull(attribute)) {
                         if (hookRecord && hookRecord.replaceImplementation) {
                             switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
                         } else {
@@ -479,7 +479,7 @@ class ModifiersFileVisitor {
                     switchPrinter.popIndent()
                     switchPrinter.print(`}`)
                     switchPrinter.print(`default: {`)
-                    if (attribute.isOptional) {
+                    if (attribute.isOptional && !isOptionOnlyNull(attribute)) {
                         switchPrinter.pushIndent()
                         switchPrinter.print(`${resetStatement.asString()};`)
                         switchPrinter.popIndent()
@@ -573,7 +573,9 @@ class ModifiersFileVisitor {
 
                 attributeTypes.forEach((attribute, index) => {
                     attribute.argTypes.forEach((t, index) => {
-                        writer.writeFieldDeclaration(this.generateFiledName(attribute, index.toString()), t, [], true)
+                        const onlyNull = idl.isOptionalType(t) && idl.hasExtAttribute(t, idl.IDLExtendedAttributes.UnionOnlyNull)
+                        const initExpr = onlyNull ? writer.makeNull(t) : undefined
+                        writer.writeFieldDeclaration(this.generateFiledName(attribute, index.toString()), t, [], !onlyNull, initExpr)
                     })
                 })
 
@@ -668,4 +670,11 @@ export function printModifiers(peerLibrary: PeerLibrary): PrinterResult[] {
         return []
     }
     return new ModifiersVisitor(peerLibrary).printModifiers()
+}
+
+function isOptionOnlyNull(attribute: AttributeType): boolean {
+    const args = attribute.method.method.signature.args
+    if (args.length == 0) return false
+    const type = args[0]
+    return idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionOnlyNull)
 }
