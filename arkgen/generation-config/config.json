@@ -54,6 +54,10 @@
             "to": "arkui.component.idlize.ColorMetricsExt"
         },
         {
+            "from": "ohos.base.RecordData",
+            "to": "(Object or undefined)"
+        },
+        {
             "from": "arkui.component.styledString.CustomSpan",
             "to": "arkui.component.idlize.CustomSpanWrapper"
         },
@@ -505,7 +509,9 @@
         "PinchGestureHandler",
         "TapGestureHandler",
         "RotationGestureHandler",
-        "SwipeGestureHandler"
+        "SwipeGestureHandler",
+        "CustomColors",
+        "CustomDarkColors"
     ],
     "boundProperties": {
         "Checkbox": [

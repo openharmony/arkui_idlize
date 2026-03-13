@@ -42,6 +42,7 @@ import { LayoutNodeRole } from "../peer-generation/LayoutManager";
 import { isInExternalModule } from "../peer-generation/modules";
 import { isTopLevelConflicted } from "../peer-generation/ConflictingDeclarations";
 import { ETSLanguageWriter } from "./writers/ETSLanguageWriter";
+import { maybeRestoreGenerics } from "../transformers/GenericTransformer";
 
 export function getSerializerName(library: LibraryInterface, language: Language, declaration:idl.IDLEntry) {
     const qualifier = isTopLevelConflicted(library, language, declaration)
@@ -683,7 +684,7 @@ export class ClassConvertor extends InterfaceConvertor {
 
 export class ArrayConvertor extends BaseArgConvertor { //
     elementConvertor: ArgConvertor
-    constructor(private library: LibraryInterface, param: string, private type: idl.IDLContainerType, private elementType: idl.IDLType) {
+    constructor(private library: LibraryInterface, param: string, private type: idl.IDLContainerType, protected elementType: idl.IDLType) {
         super(idl.createContainerType('sequence', [elementType]), [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = library.typeConvertor(param, elementType)
     }
@@ -752,6 +753,53 @@ export class ArrayConvertor extends BaseArgConvertor { //
     override getObjectAccessor(language: Language, value: string, args?: Record<string, string>): string {
         const array = language === Language.CPP ? ".array" : ""
         return args?.index ? `${value}${array}${args.index}` : value
+    }
+}
+
+export class SetConvertor extends ArrayConvertor {
+    constructor(library: PeerLibrary, param: string, declaration: idl.IDLTypedef) {
+        const elementType = maybeRestoreGenerics(declaration, library)!.typeArguments![0]
+        super(library, param, idl.createContainerType('sequence', [elementType]), elementType)
+    }
+
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+        if (printer.language === Language.CPP) {
+            return super.convertorSerialize(param, value, printer)
+        }
+        
+        const elementBuffer = `${value}Element`
+    
+        return printer.makeBlock([
+            printer.makeStatement(
+                printer.makeMethodCall(`${param}Serializer`, "writeInt32",
+                    [printer.makeString(printer.castToInt(printer.makeSetSize(value).asString(), 32))]
+                )),
+            printer.makeSetForEach(value, elementBuffer, [
+                this.elementConvertor.convertorSerialize(param, elementBuffer, printer)
+            ])
+        ], false)
+    }
+
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        if (writer.language === Language.CPP) {
+            return super.convertorDeserialize(bufferName, deserializerName, assigneer, writer)
+        }
+
+        const lengthBuffer = `${bufferName}Length`
+        const counterBuffer = `${bufferName}BufCounterI`
+        const statements: LanguageStatement[] = []
+        statements.push(writer.makeAssign(lengthBuffer, idl.IDLI32Type, writer.makeString(`${deserializerName}.readInt32()`), true))
+        statements.push(writer.makeAssign(bufferName, undefined, writer.makeSetInit(this.elementType), true, false))
+        statements.push(writer.makeLoop(counterBuffer, lengthBuffer,
+            this.elementConvertor.convertorDeserialize(`${bufferName}TempBuf`, deserializerName, (expr) => {
+                return writer.makeSetAdd(bufferName, expr)
+            }, writer)))
+        if (writer.language === Language.KOTLIN) {
+            statements.push(assigneer(writer.makeMethodCall(bufferName, "toSet", [])))
+        } else {
+            statements.push(assigneer(writer.makeString(bufferName)))
+        }
+        return new BlockStatement(statements, false)
     }
 }
 
@@ -960,9 +1008,6 @@ export class OptionConvertor extends BaseArgConvertor {
         let currentConv:ArgConvertor = conv
         while (currentConv instanceof ProxyConvertor) {
             currentConv = currentConv.convertor
-        }
-        if (currentConv instanceof OptionConvertor) {
-            conv = currentConv.typeConvertor
         }
         let runtimeTypes = conv.runtimeTypes;
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {

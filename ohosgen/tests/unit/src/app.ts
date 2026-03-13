@@ -593,6 +593,22 @@ function checkHandwrittenDeserializer() {
   assertEQ(gesture instanceof DerivedGesture2, true)
 }
 
+function checkSequences() {
+  const sequences: Sequences = {
+    simpleArray: [10, 12],
+    setSequence: new Set<int32>([10, 12])
+  }
+  const transformed = testSequences(sequences)
+  assertEQ(transformed.simpleArray[0], 10)
+  assertEQ(transformed.simpleArray[1], 12)
+  const setAsArray = new Array<int32>()
+  for (let setElement of transformed.setSequence) {
+    setAsArray.push(setElement)
+  }
+  assertEQ(setAsArray[0], 10)
+  assertEQ(setAsArray[1], 12)
+}
+
 export function run() {
   console.log("Run common unit tests")
 

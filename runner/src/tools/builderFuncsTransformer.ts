@@ -59,25 +59,9 @@ function transformText(text: string, fileName: string): string {
         }
     }
 
-    const result2 = result1.flatMap(line => {
-        const intRegExp = /declare interface ([\w\d_]+)/g
-        const matched = intRegExp.exec(line)
-        if (matched) {
-            const name = matched[1]
-            if (options.has(name)) {
-                const trimmedName = name.endsWith('Attribute') ? name.substring(0, name.length - 'Attribute'.length) : name
-                return [
-                    line,
-                    `    default set${trimmedName}Options(${options.get(name)}): this`
-                ]
-            }
-        }
-        return [line]
-    })
-
     options.forEach((_,name) => {
         const trimmedName = name.endsWith('Attribute') ? name.substring(0, name.length - 'Attribute'.length) : name
-        result2.push(
+        result1.push(
             '',
             '@memo',
             `export declare function ${trimmedName}Impl(`,
@@ -90,7 +74,7 @@ function transformText(text: string, fileName: string): string {
         )
     })
 
-    return result2.join('\n')
+    return result1.join('\n')
 }
 
 function transformOneFile(fileName: string) {
