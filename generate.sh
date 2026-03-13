@@ -21,4 +21,5 @@ node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
     --scraper-options-file ./runner/configs/scraper-config.json \
     --arkgen "node arkgen" --etsgen "node etsgen" \
     --target all \
+    --no-arkgen-dummy-impl \
     --output "./out"

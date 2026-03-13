@@ -166,6 +166,7 @@ export function generateArkoalaFromIdl(config: {
     callLog: boolean,
     verbose: boolean,
     attributeModifierHooks: boolean,
+    generateDummyImpl: boolean,
 },
     peerLibrary: PeerLibrary) {
     const arkoala = config.arkoalaDestination ?
@@ -418,25 +419,27 @@ export function generateArkoalaFromIdl(config: {
         integrated: true,
     })
 
-    const modifiers = printRealAndDummyModifiers(peerLibrary, true)
-    const accessors = printRealAndDummyAccessors(peerLibrary)
-    const apiGenFile = "arkoala_api_generated"
-    writeFile(
-        path.join(arkoala.nativeDir, 'dummy_impl.cc'),
-        dummyImplementations(peerLibrary, modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        }
-    )
-    writeFile(
-        path.join(arkoala.nativeDir, 'real_impl.cc'),
-        dummyImplementations(peerLibrary, modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-        }
-    )
+    if (config.generateDummyImpl) {
+        const modifiers = printRealAndDummyModifiers(peerLibrary, true)
+        const accessors = printRealAndDummyAccessors(peerLibrary)
+        const apiGenFile = "arkoala_api_generated"
+        writeFile(
+            path.join(arkoala.nativeDir, 'dummy_impl.cc'),
+            dummyImplementations(peerLibrary, modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
+        writeFile(
+            path.join(arkoala.nativeDir, 'real_impl.cc'),
+            dummyImplementations(peerLibrary, modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+            }
+        )
+    }
     writeFile(path.join(arkoala.nativeDir, 'library.cc'), libraryCcDeclaration(),
         {
             onlyIntegrated: config.onlyIntegrated,
