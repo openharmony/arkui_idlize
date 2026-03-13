@@ -26,7 +26,14 @@ function transformText(text: string, fileName: string): string {
         const line = lines.shift()!
         result1.push(line)
         if (line.includes('@ComponentBuilder')) {
-            result1.push(lines.shift()!)
+            const funcLine = lines.shift()
+            if (funcLine === undefined) {
+                continue
+            }
+            result1.push(funcLine)
+            if (funcLine.includes('):')) {
+                continue
+            }
             let opts = lines.shift()
             if (opts === undefined) {
                 console.error("WAS NOT TRANSFORMED PROPERLY:", fileName)

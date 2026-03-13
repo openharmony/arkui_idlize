@@ -313,7 +313,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     override writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[]): void {
-        let extendsClause = superInterfaces ? ` <: ${superInterfaces.join(" & ")}` : ''
+        let extendsClause = superInterfaces?.length ? ` <: ${superInterfaces.join(" & ")}` : ''
         this.printer.print(`public interface ${name}${extendsClause} {`)
         this.pushIndent()
         op(this)

@@ -24,7 +24,8 @@
         "TouchResult",
         "SectionOptions",
         "LengthMetrics",
-        "ColorMetrics"
+        "ColorMetrics",
+        "CustomSpan"
     ],
     "ignoreGenerics": [
         "arkui.component.common.AttributeModifier",
@@ -55,6 +56,10 @@
         {
             "from": "ohos.base.RecordData",
             "to": "(Object or undefined)"
+        },
+        {
+            "from": "arkui.component.styledString.CustomSpan",
+            "to": "arkui.component.idlize.CustomSpanWrapper"
         }
     ],
     "forceMaterialized": [
@@ -473,10 +478,6 @@
             "drawContent",
             "drawFront"
         ],
-        "CustomSpan": [
-            "onMeasure",
-            "onDraw"
-        ],
         "LeadingMarginSpan": [
             "onDraw",
             "getLeadingMargin"
@@ -690,7 +691,9 @@
             "IfAttribute",
             "IfInterface",
             "WithTheme",
-            "SaveButton"
+            "SaveButton",
+            "PasteButton",
+            "CustomSpan"
         ],
         "ignoreEntry": [
             "Optional",

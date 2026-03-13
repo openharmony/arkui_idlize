@@ -263,6 +263,12 @@ function main(argv: string[]) {
         .description('creates new sdk')
         .action(sdkNewShape)
 
+    program.command('transform-builder-functions <api-path>')
+        .description('transform component builder functions in a pre-processed SDK API directory')
+        .action((apiPath: string) => {
+            transformBuilderFunctions(apiPath)
+        })
+
     program.parse(argv, { from: 'user' })
 }
 
