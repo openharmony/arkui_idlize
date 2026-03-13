@@ -19,7 +19,8 @@ import { getSuper, IfStatement, isHeir, Language, LanguageExpression, LanguageSt
 import { getHookMethod, collectDeclDependencies, collectDeclItself, collectPeers, componentToPeerClass,
     findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector,
     peerGeneratorConfiguration, PrinterResult, collectModifiers,
-    ModifierInfo } from "@idlizer/libohos";
+    ModifierInfo, 
+    collectComponents} from "@idlizer/libohos";
 import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter.js';
 import { getReferenceTo } from '../knownReferences.js';
 import { HandwrittenModule } from '../ArkoalaLayout.js'
@@ -487,6 +488,16 @@ class ModifiersFileVisitor {
         }
     }
 
+    private hasHeirs(peer: PeerClass) {
+        const component = findComponentByName(this.library, peer.componentName)
+        if (!component) {
+            throw new Error(`Can not find component with name ${peer.componentName}`)
+        }
+        return collectComponents(this.library).some(it => {
+            return getSuper(it.attributeDeclaration, this.library) === component?.attributeDeclaration
+        })
+    }
+
     printModifiers(modifierInfo: ModifierInfo): PrinterResult[] {
         const peer = modifierInfo.peer
         const component = findComponentByName(this.library, peer.componentName)!
@@ -508,7 +519,7 @@ class ModifiersFileVisitor {
             let extendsInterface: string[] = []
             const collectedHooks: string[] = []
 
-            if (componentAttribute.name !== 'CommonMethod') {
+            if (!this.hasHeirs(peer)) {
                 extendsInterface = [`${compAttributteConverted}`, `AttributeModifier<${compAttributteConverted}>`]
             } else {
                 extendsInterface = [`${compAttributteConverted}`]
@@ -528,10 +539,10 @@ class ModifiersFileVisitor {
             const isAbstract = !(modifierInfo.isTrivial ?? true)
 
             printer.writeClass(modifierName, (writer) => {
-                writer.print("_instanceId: number = -1")
-                writer.print("_state: ModifierState = new ModifierState")
-                writer.print(`_addr: ArrayBuffer = new ArrayBuffer(4096)`)
-                writer.print(`_flagArray: Uint8Array = new Uint8Array(this._addr)`)
+                writer.print("_instanceId: number = -1;")
+                writer.print("_state: ModifierState = new ModifierState;")
+                writer.print(`_addr: ArrayBuffer = new ArrayBuffer(4096);`)
+                writer.print(`private _flagArray: Uint8Array = new Uint8Array(this._addr);`)
 
                 if (isAbstract) {
                     writer.writeStaticInitBlock(writer => {
@@ -543,8 +554,8 @@ class ModifiersFileVisitor {
 
                 writer.print(`constructor() {`)
                 writer.pushIndent()
-                if (parentSet) writer.print(`super()`)
-                writer.print(`this._flagArray.fill(0)`)
+                if (parentSet) writer.print(`super();`)
+                writer.print(`this._flagArray.fill(0);`)
                 writer.popIndent()
                 writer.print(`}`)
 
@@ -557,7 +568,7 @@ class ModifiersFileVisitor {
                 )
 
                 writer.print(`isUpdater: () => boolean = () => false`)
-                if (componentAttribute.name !== 'CommonMethod') {
+                if (!this.hasHeirs(peer)) {
                     baseModifierMethods.forEach(method => {
                         writer.print(`${method}(instance: ${compAttributteConverted}): void { }`)
                     })

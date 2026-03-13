@@ -226,6 +226,7 @@ class PeerFileVisitor {
 
     protected printPeer(peer: PeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
+            writer.print(`attributeSet?: ${peer.componentName}Modifier;`)
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])

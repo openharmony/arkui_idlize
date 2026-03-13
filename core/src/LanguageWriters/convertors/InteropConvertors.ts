@@ -103,7 +103,7 @@ export class InteropReturnTypeConvertor extends InteropArgConvertor {
         switch (type.name) {
             case 'boolean': return PrimitiveTypesInstance.Boolean.getText()
             case 'pointer': return PrimitiveTypesInstance.NativePointer.getText()
-            case 'String': return PrimitiveTypesInstance.String.getText()
+            case 'String': return KInteropReturnBuffer
             case 'buffer': return KInteropReturnBuffer /* ArkTS can not return buffer as language object yet */
             case 'any':
             case 'this':
@@ -137,6 +137,9 @@ export class InteropReturnTypeConvertor extends InteropArgConvertor {
             }
             if (idl.isEnum(decl)) {
                 return this.convertPrimitiveType(idl.enumBinaryRepresentation(decl))
+            }
+            if (idl.isTypedef(decl)) {
+                return this.convert(decl.type)
             }
         }
         return "void"
