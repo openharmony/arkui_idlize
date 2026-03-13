@@ -1,8 +1,0 @@
-package test_sequences;
-
-interface Sequences {
-    attribute sequence<i32> simpleArray;
-    attribute idlize.stdlib.Set<i32> setSequence;
-};
-
-Sequences testSequences(Sequences value);
