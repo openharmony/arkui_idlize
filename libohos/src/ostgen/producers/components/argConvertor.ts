@@ -302,8 +302,8 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
         const lengthDecl = Builders.decl(`${name}Length`).value()
             .call('readInt32').receiver(serializerName).$().$().$()
         const elemType = this.convertType(this.type.elementType[0], native);
-        const bufferDecl = Builders.decl(name).value()
-            .ctor(std.names.types.array).typeArgs([elemType]).arg(name + 'Length').$().$().$()
+        const bufferDecl = Builders.decl(name).mutable().value()
+            .ctor(std.names.types.array).array().typeArgs([elemType]).arg(name + 'Length').$().$().$()
         const [reads, readValue] = argConvertor(this.ctx, this.type.elementType[0])
             .read('tmp', serializerName, native);
         const loop = Builders.loop()
