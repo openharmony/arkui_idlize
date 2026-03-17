@@ -1,0 +1,341 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../gn/import/idlize_root.gni")
+import("${idlize_root}/gn/import/bash.gni")
+import("${idlize_root}/gn/import/node.gni")
+import("${idlize_root}/gn/import/npm.gni")
+
+target_names = []
+
+_gen_dir = "$target_gen_dir/generated"
+_arkoala_dir = "${_gen_dir}/sig/arkoala-arkts/framework/native/src"
+_arkoala_gen_dir = "${_arkoala_dir}/generated"
+
+# Clean generated directory
+rm("check:arkts:clean") {
+    recursive = true
+    force = true
+    file = [
+        rebase_path("./generated"),
+        rebase_path(_gen_dir)
+    ]
+    deps = [ "${idlize_root}/arkgen:compile" ]
+}
+
+# Initialize: copy setup files
+cp("check:arkts:init") {
+    src = [
+        rebase_path("./setup/arkts/sig"),
+        rebase_path("./setup/arkts/libace"),
+        rebase_path("./setup/arkts/modules")
+    ]
+    dest = rebase_path("${_gen_dir}/")
+    deps = [ ":check:arkts:clean" ]
+}
+
+_marker_file = "${target_gen_dir}/.idl_dir"
+
+scan_sources("check:arkts:generate:idl_dir") {
+    dir = rebase_path("./idl")
+    marker_file = _marker_file
+}
+
+node_cmd("check:arkts:generate") {
+    script = rebase_path("../..")
+
+    _idl_dirs = [
+        rebase_path("./idl"),
+        rebase_path("./idl/arkui"),
+        rebase_path("./idl/arkui/component"),
+        rebase_path("./idl/external"),
+    ]
+
+    _input_dir_str = ""
+    foreach(dir, _idl_dirs) {
+        if (_input_dir_str != "") {
+            _input_dir_str = _input_dir_str + ","
+        }
+        _input_dir_str = _input_dir_str + dir
+    }
+
+    args = [
+        "--api-version",
+        "99",
+        "--idl2peer",
+        "--reference-names",
+        rebase_path("./conf/ets-sdk.refs.json"),
+        "--use-memo-m3",
+        "--arkts-extension",
+        ".ets",
+        "--input-dir",
+        _input_dir_str,
+        "--output-dir",
+        rebase_path("${_gen_dir}"),
+        "--language",
+        "arkts",
+        "--ignore-default-config",
+        "--options-file",
+        rebase_path("./conf/config-arkui.json"),
+    ]
+    inputs = [
+        _marker_file
+    ]
+    outputs = [
+        "${_arkoala_gen_dir}/bridge_custom.cpp",
+        "${_arkoala_gen_dir}/bridge_generated.cpp",
+        "${_arkoala_gen_dir}/library.cpp",
+        "${_arkoala_gen_dir}/callback_deserialize_call.cpp",
+        "${_arkoala_gen_dir}/callback_managed_caller.cpp",
+        "${_arkoala_gen_dir}/dummy_impl.cpp",
+        "${_arkoala_gen_dir}/real_impl.cpp",
+    ]
+    deps = [
+        ":check:arkts:init",
+        ":check:arkts:generate:idl_dir",
+        "${idlize_root}/arkgen:compile",
+    ]
+}
+
+cp("check:arkts:generate:cp") {
+    src = [ rebase_path("${_gen_dir}") ]
+    dest = rebase_path(".")
+    deps = [ ":check:arkts:generate" ]
+}
+
+# Compile ArkTS code (smart-arkts compile)
+npm_cmd("check:arkts:build") {
+    project_path = rebase_path(".")
+    run_tasks = [ "build:arkts" ]
+    deps = [
+        ":check:arkts:generate:cp",
+        "${idlize_root}:external_incremental_panda",
+        "${idlize_root}:external_libarkts",
+    ]
+}
+
+# Native library definitions
+_interop_dir =
+        rebase_path("${idlize_root}/node_modules/@koalaui/interop/src/cpp")
+
+shared_library("check:arkts:native:ani") {
+    # Sources from meson.build for unit tests (is_unit true)
+    sources = [
+        "${_arkoala_gen_dir}/bridge_custom.cpp",
+        "${_arkoala_gen_dir}/bridge_generated.cpp",
+        "${_arkoala_gen_dir}/callback_deserialize_call.cpp",
+        "${_arkoala_gen_dir}/callback_managed_caller.cpp",
+        "${_arkoala_gen_dir}/library.cpp",
+        "${_interop_dir}/ani/convertors-ani.cpp",
+        "${_interop_dir}/callback-resource.cpp",
+        "${_interop_dir}/common-interop.cpp",
+        "${_interop_dir}/interop-logging.cpp",
+        "${_interop_dir}/types/signatures.cpp",
+    ]
+
+    cflags = [ "-DKOALA_INTEROP_MODULE=NotConfiguredNativeModule" ]
+    if (current_toolchain == "//gn/toolchain:clang") {
+        cflags += [
+            "-Wall",
+            "-Werror",
+            "-Wno-unused-variable",
+            "-Wno-unused-but-set-variable",
+            "-Wno-extern-c-compat",
+            "-Wno-error=deprecated-declarations",
+            "-Wno-unknown-warning-option",
+            "-Wno-unused-function",
+            "-Wno-macro-redefined",
+            "-Wno-enum-compare",
+            "-Wno-tautological-constant-out-of-range-compare",
+            "-fno-exceptions",
+        ]
+    } else if (current_toolchain == "//gn/toolchain:msvc") {
+        # Avoid using COMDAT to not exceed COFF file limits, see https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1128?view=msvc-170
+        cflags += [ "/Gy-" ]
+    } else {
+        assert(
+            false,
+            "Compile flags for current toolchain $current_toolchain are not defined")
+    }
+
+    if (target_os == "win") {
+        cflags += [ "-DKOALA_WINDOWS" ]
+    }
+    if (target_os == "linux") {
+        cflags += [ "-DKOALA_LINUX" ]
+    }
+    if (target_os == "mac") {
+        cflags += [
+            "-DKOALA_MACOS",
+            "-mmacosx-version-min=13.3",
+        ]
+    }
+
+    cflags += [
+        "-DKOALA_USE_PANDA_VM",
+        "-DKOALA_ANI",
+        "-DINTEROP_LIBRARY_NAME=ArkoalaNative_ani"
+    ]
+    ldflags = [ "-Wl,--as-needed" ]
+
+    include_dirs = [
+        _arkoala_dir,
+        _arkoala_gen_dir,
+        _interop_dir,
+        "${_interop_dir}/types",
+        "${_interop_dir}/ani",
+        "${_interop_dir}/ani/panda",
+    ]
+
+    output_name = "ArkoalaNative_ani"
+    output_dir = "$target_out_dir/panda"
+    deps = [
+        ":check:arkts:generate",
+        "${idlize_root}:external_interop_native_panda",
+    ]
+}
+
+# Build libace compatible mock library (ace_compatible_mock)
+shared_library("check:arkts:native:libace") {
+    sources = [
+        "${_arkoala_gen_dir}/dummy_impl.cpp",
+        "${_interop_dir}/interop-logging.cpp",
+    ]
+
+    cflags = [ "-DKOALA_INTEROP_MODULE=NotConfiguredNativeModule" ]
+    if (current_toolchain == "//gn/toolchain:clang") {
+        cflags += [
+            "-Wall",
+            "-Werror",
+            "-Wno-unused-variable",
+            "-Wno-unused-but-set-variable",
+            "-Wno-extern-c-compat",
+            "-Wno-error=deprecated-declarations",
+            "-Wno-unknown-warning-option",
+            "-Wno-unused-function",
+            "-Wno-macro-redefined",
+            "-Wno-enum-compare",
+            "-Wno-tautological-constant-out-of-range-compare",
+            "-fno-exceptions",
+        ]
+    } else if (current_toolchain == "//gn/toolchain:msvc") {
+        # Avoid using COMDAT to not exceed COFF file limits, see https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1128?view=msvc-170
+        cflags += [ "/Gy-" ]
+    } else {
+        assert(
+            false,
+            "Compile flags for current toolchain $current_toolchain are not defined")
+    }
+
+    if (target_os == "win") {
+        cflags += [ "-DKOALA_WINDOWS" ]
+    }
+    if (target_os == "linux") {
+        cflags += [ "-DKOALA_LINUX" ]
+    }
+    if (target_os == "mac") {
+        cflags += [
+            "-DKOALA_MACOS",
+            "-mmacosx-version-min=13.3",
+        ]
+    }
+
+    ldflags = []
+
+    include_dirs = [
+        _arkoala_dir,
+        _arkoala_gen_dir,
+        _interop_dir,
+        "${_interop_dir}/types",
+    ]
+
+    output_name = "ace_compatible_mock"
+    output_dir = "$target_out_dir/panda"
+    deps = [ ":check:arkts:generate" ]
+}
+
+cp("check:arkts:install:native:ani") {
+    _platform_build_dir = "./build-arkts"
+    _name_prefix = "lib"
+    _name_suffix = ".so"
+    if (target_os == "win") {
+        _name_suffix = ".dll"
+    } else if (target_os == "mac") {
+        _name_suffix = ".dylib"
+    }
+    _full_output_name = "${_name_prefix}ArkoalaNative_ani${_name_suffix}"
+    src = [ rebase_path("$target_out_dir/panda/${_full_output_name}") ]
+    dest = rebase_path("${_platform_build_dir}/${_full_output_name}")
+    deps = [ ":check:arkts:native:ani" ]
+}
+
+cp("check:arkts:install:native:libace") {
+    _platform_build_dir = "./build-arkts"
+    _name_prefix = "lib"
+    _name_suffix = ".so"
+    if (target_os == "win") {
+        _name_suffix = ".dll"
+    } else if (target_os == "mac") {
+        _name_suffix = ".dylib"
+    }
+    _full_output_name = "${_name_prefix}ace_compatible_mock${_name_suffix}"
+    src = [ rebase_path("$target_out_dir/panda/${_full_output_name}") ]
+    dest = rebase_path("${_platform_build_dir}/${_full_output_name}")
+    deps = [ ":check:arkts:native:libace" ]
+}
+
+group("check:arkts:install:native") {
+    deps = [
+        ":check:arkts:install:native:ani",
+        ":check:arkts:install:native:libace"
+    ]
+}
+
+# Build test templates (arkts)
+npm_cmd("check:arkts:templates:build") {
+    project_path = rebase_path("../../tests-template/arkts")
+    run_tasks = [ "build" ]
+}
+
+# Execute test (smart-arkts run)
+npm_cmd("check:arkts") {
+    project_path = rebase_path(".")
+    run_tasks = [ "exec:arkts" ]
+    deps = [
+        ":check:arkts:build",
+        ":check:arkts:install:native",
+        ":check:arkts:templates:build",
+    ]
+}
+target_names += [ ":check:arkts" ]
+
+cp("check:golden:cp") {
+    src = [ rebase_path("${_arkoala_gen_dir}/arkoala_api_generated.h") ]
+    dest = rebase_path("./generated/golden/arkoala_api_generated.h")
+    deps = [ ":check:arkts:generate" ]
+}
+
+
+# Golden test (API generation verification)
+npm_cmd("check:golden") {
+    project_path = rebase_path(".")
+    run_tasks = [ "exec:golden" ]
+    deps = [
+        ":check:golden:cp"
+    ]
+}
+target_names += [ ":check:golden" ]
+
+group("all") {
+    deps = target_names
+}

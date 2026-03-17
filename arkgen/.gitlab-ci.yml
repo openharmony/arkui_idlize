@@ -32,15 +32,9 @@ arkgen ArkTS unit:
   before_script:
     - !reference [.npm, script]
   script:
-    - npm run -C arkgen/tests-template/arkts build
-    - npm run -C arkgen/tests/unit init:arkts
-    - npm run -C arkgen/tests/unit gen:arkts
-    - npm run -C arkgen/tests/unit build:arkts
-    - npm run -C arkgen/tests/unit build:arkts:native
-    - npm run -C arkgen/tests/unit exec:arkts
+    - npm run -C arkgen/tests/unit all:arkts
   needs:
     - build idlize
-    - download koala_projects
 
 arkgen Kotlin unit:
   stage: test
