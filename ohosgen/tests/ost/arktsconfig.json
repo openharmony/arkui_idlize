@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "package": "@unit_ost",
+        "baseUrl": ".",
+        "outDir": "build/panda/out",
+        "paths": {
+            "#compat": ["./src/panda/compat"]
+        }
+    },
+    "include": ["src/panda/**/*.ts", "generated/arkts/**/*.ts", "src/app.ts"]
+}

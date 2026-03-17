@@ -411,6 +411,12 @@ class ConstructorBuilder<P> {
      */
     asStruct() { this._hints.push(Hs.asStruct()); return this }
     /**
+     * Add arrayInstance hint to indicate the instance should be constructed as an array.
+     *
+     * @returns This builder for chaining
+     */
+    array() { this._hints.push(Hs.arrayInstance()); return this }
+    /**
      * Add stackInstance hint to indicate the instance should be allocated on the stack.
      *
      * @returns This builder for chaining

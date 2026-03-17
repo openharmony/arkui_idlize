@@ -1,0 +1,2 @@
+option('target', type: 'combo', choices: ['node', 'panda', 'cangjie', 'kotlin'], value: 'node',
+    description: 'Select the target platform to compile for')
