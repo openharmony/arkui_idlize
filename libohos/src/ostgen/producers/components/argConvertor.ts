@@ -193,7 +193,6 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
                 ? Builders.decl(name)
                     .value().cast(expectType(this.ctx, this.decl, 'capi')).static()
                     .value(Builders.expr().call(selectReadName(this.type)).receiver(serializerName).$().$()).$().$().$()
-
                 : Builders.decl(name)
                     .value().call('fromValue').receiver(typeNameExpr(this.type.name))
                     .arg().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()
