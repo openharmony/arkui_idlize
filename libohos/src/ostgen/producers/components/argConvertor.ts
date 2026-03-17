@@ -110,7 +110,7 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
                     : new DataConvertor(ctx, type, resolved)
             }
             if (idl.isEnum(resolved))
-                return new EnumConvertor(ctx, resolved.elements[0]?.type ?? idl.createPrimitiveType('i32'))
+                return new EnumConvertor(ctx, resolved)
             if (idl.isCallback(resolved))
                 return new CallbackConvertor(ctx, type, resolved)
         }
@@ -170,11 +170,15 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
 }
 
 class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
+    constructor(ctx: OhosProducerContext, protected decl: idl.IDLEnum) {
+        super(ctx, decl.elements[0]?.type ?? idl.createPrimitiveType('i32'))
+    }
     interopType(native: boolean): lw.LWType {
         return this.type.name === 'String' ? Ts.prim.str : Ts.prim.i32
     }
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
-        return super.returnFromInterop(resultVarName, native)///toEnum()?
+        return [Builders.return()
+            .call("fromValue").receiver(this.decl.name).arg().var(resultVarName).$().$().$()]
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         return [
@@ -185,9 +189,15 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         return [
-            [Builders.decl(name)
-                .value().call('fromValue').receiver(typeNameExpr(this.type.name))
-                .arg().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()],
+            [native
+                ? Builders.decl(name)
+                    .value().cast(expectType(this.ctx, this.decl, 'capi')).static()
+                    .value(Builders.expr().call(selectReadName(this.type)).receiver(serializerName).$().$()).$().$().$()
+
+                : Builders.decl(name)
+                    .value().call('fromValue').receiver(typeNameExpr(this.type.name))
+                    .arg().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()
+            ],
             E.v(name)
         ]
     }
