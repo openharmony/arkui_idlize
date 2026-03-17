@@ -1,0 +1,12 @@
+{
+    "$schema": "../../generation-config/schema.json",
+    "GenerateUnused": true,
+    "moduleName": "unit_ost",
+    "modules": {
+        "unit_ost": {
+            "name": "unit_ost",
+            "packages": ["ost"],
+            "useFoldersLayout": true
+        }
+    }
+}

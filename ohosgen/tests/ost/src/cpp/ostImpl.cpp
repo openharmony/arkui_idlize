@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "unit_ost.h"
+
+#include <stdio.h>
+
+// Enum
+
+OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enumValue, OH_Int32 value)
+{
+    if (OSTINT_ENUM_E1 != 1)
+        INTEROP_FATAL("Enum OSTINT_ENUM_E1 %d does not equal to: %d", OSTINT_ENUM_E1, -1);
+
+    if (enumValue != OSTINT_ENUM_E1)
+        INTEROP_FATAL("Enum param value1 %d does not equal OSTINT_ENUM_E1: %d", enumValue, OSTINT_ENUM_E1);
+
+    return OSTINT_ENUM_E3;
+}
+
+// Sequence
+/*
+OH_Int32 ost_sequences_checkOSTSequence(const OH_UNIT_OST_Array_Int32* value)
+{
+    OH_Int32 length = value->length;
+    if (length == 0) return 0;
+
+    OH_Int32 firstValue = value->array[0];
+    OH_Int32 lastValue = value->array[length - 1];
+    if (firstValue != 3)
+        INTEROP_FATAL("The first sequence value %d does not equal to 3", firstValue);
+    if (lastValue != -7)
+        INTEROP_FATAL("The last sequence value %d does not equal to -7", firstValue);
+    return length;
+}
+*/

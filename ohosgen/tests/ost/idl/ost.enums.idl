@@ -1,0 +1,8 @@
+package ost.enums;
+
+enum OSTIntEnum {
+    i32 E1 = 1;
+    i32 E3 = 3;
+};
+
+OSTIntEnum checkOSTIntEnum(OSTIntEnum enumValue, i32 value);
