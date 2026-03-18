@@ -14,7 +14,7 @@
  */
 
 import { D, IdentityTransformer, lw, std, T, Ts, utils } from "@idlizer/ost";
-import { generatorConfiguration } from "@idlizer/core";
+import { camelCaseToUpperSnakeCase, generatorConfiguration } from "@idlizer/core";
 import { mergeEnums, mergeStructs } from "./utils.js";
 
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
@@ -44,6 +44,7 @@ class TypeAliasing extends IdentityTransformer {
     private conflicts: Set<string> = new Set()
 
     private goTypeName(name: string): string {
+        ///split into type & func
         const p = (typeName: string) => this.ShortPrefix + typeName
         switch (name) {
             case std.names.types.auto: return 'auto'
@@ -90,6 +91,9 @@ class TypeAliasing extends IdentityTransformer {
     override goEnumDeclaration(decl: lw.EnumDeclaration): lw.EnumDeclaration {
         decl = super.goEnumDeclaration(decl)
         decl.name = this.goTypeName(decl.name)
+        const memberPrefix = camelCaseToUpperSnakeCase(decl.name)
+        for (const m of decl.members)
+            m.name = memberPrefix + '_' + m.name
         return decl
     }
     override goStructureDeclaration(decl: lw.StructureDeclaration): lw.StructureDeclaration {
@@ -114,9 +118,8 @@ class TypeAliasing extends IdentityTransformer {
     }
     override goVariableExpression(expr: lw.VariableExpression): lw.VariableExpression {
         expr = super.goVariableExpression(expr) as lw.VariableExpression
-        expr.name = utils.hasHint(expr, std.names.hints.isType)
-            ? this.goTypeName(expr.name)
-            : expr.name
+        if (utils.hasHint(expr, std.names.hints.isType))
+            expr.name = this.goTypeName(expr.name)
         return expr
     }
     go(decls: lw.LWDeclaration[]) {

@@ -21,13 +21,13 @@
 
 OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enumValue, OH_Int32 value)
 {
-    if (OSTINT_ENUM_E1 != 1)
-        INTEROP_FATAL("Enum OSTINT_ENUM_E1 %d does not equal to: %d", OSTINT_ENUM_E1, -1);
+    if (OH_UNIT_OST_OSTINT_ENUM_E1 != 1)
+        INTEROP_FATAL("Enum OSTINT_ENUM_E1 %d does not equal to: %d", OH_UNIT_OST_OSTINT_ENUM_E1, -1);
 
-    if (enumValue != OSTINT_ENUM_E1)
-        INTEROP_FATAL("Enum param value1 %d does not equal OSTINT_ENUM_E1: %d", enumValue, OSTINT_ENUM_E1);
+    if (enumValue != OH_UNIT_OST_OSTINT_ENUM_E1)
+        INTEROP_FATAL("Enum param value1 %d does not equal OSTINT_ENUM_E1: %d", enumValue, OH_UNIT_OST_OSTINT_ENUM_E1);
 
-    return OSTINT_ENUM_E3;
+    return OH_UNIT_OST_OSTINT_ENUM_E3;
 }
 
 // Sequence

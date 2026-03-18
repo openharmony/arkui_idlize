@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { id } from "@idlizer/core"
 import { D, DD, E, S, T } from "./original.js"
 import {
     AccessorExpression, Hint, BinaryExpression, CallExpression, ClassDeclaration,
@@ -60,12 +61,6 @@ import { Hs, Md, std, Ts } from "../stdlib.js";
  * Strings and numbers are automatically wrapped in constant expressions.
  */
 type ExpressionLike = string | number | LWExpression
-
-/**
- * Identity function - returns the input unchanged.
- * Used as a default continuation in builders.
- */
-const id = <T>(it: T) => it
 
 /**
  * Creates a function that transforms a value and assigns it to an object property.

@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl";
 import { Builders, LWExpression, LWType, Ts } from "@idlizer/ost"
 import { cApiName, implName } from "../common.js";
-import { createProducer, fqName, mapPush, modifierClassName, moduleName } from "../../engine/index.js"
+import { createProducer, fqName, mapPush, moduleName } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js";
 import { expectType } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
@@ -67,6 +67,14 @@ export const constructorProducer = createProducer(
 function wrapPtr(type: idl.IDLType, ctx: OhosProducerContext): LWType {
     const typeRef = expectType(ctx, type, 'capi')
     return argConvertor(ctx, type).isPointer() ? Ts.const(Ts.ptr(typeRef)) : typeRef
+}
+
+function modifierClassName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor): string {
+  return idl.isInterface(node)
+    ? fqName(node)
+    : node.parent && idl.isInterface(node.parent)
+      ? fqName(node.parent)
+      : 'GlobalScope'
 }
 
 function apiAccessor(method: idl.IDLMethod | idl.IDLConstructor, name: string, ctx: OhosProducerContext): LWExpression {

@@ -54,7 +54,7 @@ export const callbackProducer = createProducer(
                   .unary(Op.ref).value().access('buffer').receiver('callbackBuffer').$().$().$().$().$().$()
                 .arg().call('sizeof').arg().access('buffer').receiver('callbackBuffer').$().$().$().$()
                 .arg().unary(Op.ref).value().access('resourceHolder').receiver('callbackBuffer').$().$().$().$().$().$().$()
-            .call('writeInt32').receiver('argsSerializer').arg(`KIND_${callback.name.toUpperCase()}`).$()
+            .call('writeInt32').receiver('argsSerializer').arg(`CALLBACK_KIND_${callback.name.toUpperCase()}`).$()
             .call('writeInt32').receiver('argsSerializer').arg('resourceId').$()
             .statements(callbackParamWrites)
             .call('enqueueCallback').arg('0').arg().unary(Op.ref).value('callbackBuffer').$().$().$().$().$(),
@@ -63,7 +63,7 @@ export const callbackProducer = createProducer(
           .block()
             .decl('argsSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().arg('nullptr').$().$().$()
             .call('writeInt32').receiver('argsSerializer').arg('0').$()
-            .call('writeInt32').receiver('argsSerializer').arg(`KIND_${callback.name.toUpperCase()}`).$()
+            .call('writeInt32').receiver('argsSerializer').arg(`CALLBACK_KIND_${callback.name.toUpperCase()}`).$()
             .call('writeInt32').receiver('argsSerializer').arg('resourceId').$()
             .statements(callbackParamWrites)
             .decl('callData', T.c('KInteropReturnBuffer')).value().call('toReturnBuffer').receiver('argsSerializer').$().$().$()

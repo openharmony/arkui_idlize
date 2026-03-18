@@ -52,14 +52,6 @@ export function fqName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstruct
   return (prefix ?? '') + fqn.split('.').join('_') + (postfix ?? '')
 }
 
-export function modifierClassName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor): string {
-  return idl.isInterface(node)
-    ? fqName(node)
-    : node.parent && idl.isInterface(node.parent)
-      ? fqName(node.parent)
-      : 'GlobalScope'
-}
-
 export function mapPush<K,V>(map: Map<K,V[]>, key: K, value: V) {
     const array = map.get(key)
     if (array) {

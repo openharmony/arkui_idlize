@@ -59,7 +59,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
             .block()
                 .switch().selector().var('kind').$()
                     .cases(callbacks.map(it => { return {
-                        value: E.c(`KIND_${it.toUpperCase()}`),
+                        value: E.c(`CALLBACK_KIND_${it.toUpperCase()}`),
                         body: [Builders.return().cast(Ts.prim.pointer).value('CallManaged' + it).$().$()]
                     }})).$()
                 .return().value('nullptr').$().$().$()
@@ -69,7 +69,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
             .block()
                 .switch().selector().var('kind').$()
                     .cases(callbacks.map(it => { return {
-                        value: E.c(`KIND_${it.toUpperCase()}`),
+                        value: E.c(`CALLBACK_KIND_${it.toUpperCase()}`),
                         body: [Builders.return().cast(Ts.prim.pointer).value('SyncCallManaged' + it).$().$()]
                     }})).$()
                 .return().value('nullptr').$().$().$()

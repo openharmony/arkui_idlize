@@ -499,7 +499,7 @@ class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
-        const kindName = E.v('KIND_' + callbackName.toUpperCase())
+        const kindName = E.v('CALLBACK_KIND_' + callbackName.toUpperCase())
         const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
         const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
         const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
