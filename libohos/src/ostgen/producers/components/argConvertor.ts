@@ -121,17 +121,12 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
 class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
     interopType(native: boolean): lw.LWType {
         switch (this.type.name) {
-            case 'buffer':
-                return Ts.prim.interopReturnBuffer
-            case 'number':
-                return Ts.prim.interopNumber
-            case 'String':
-                return native ? Ts.const(Ts.ref(Ts.prim.interopString)) : Ts.prim.interopString
+            case 'buffer': return Ts.prim.interopReturnBuffer
+            case 'number': return Ts.prim.interopNumber
+            case 'String': return Ts.prim.interopString
             case 'this':
-            case 'void':
-                return Ts.prim.void
-            default:
-                return this.convertType(this.type, native)
+            case 'void': return Ts.prim.void
+            default: return this.convertType(this.type, native)
         }
     }
     isPointer(): boolean {
@@ -174,7 +169,7 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
         super(ctx, decl.elements[0]?.type ?? idl.createPrimitiveType('i32'))
     }
     interopType(native: boolean): lw.LWType {
-        return this.type.name === 'String' ? Ts.prim.str : Ts.prim.i32
+        return this.type.name === 'String' && !native ? Ts.prim.str : Ts.prim.i32
     }
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
         return [Builders.return()
@@ -192,10 +187,10 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
             [native
                 ? Builders.decl(name)
                     .value().cast(expectType(this.ctx, this.decl, 'capi')).static()
-                    .value(Builders.expr().call(selectReadName(this.type)).receiver(serializerName).$().$()).$().$().$()
+                      .value().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()
                 : Builders.decl(name)
                     .value().call('fromValue').receiver(typeNameExpr(this.type.name))
-                    .arg().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()
+                        .arg().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()
             ],
             E.v(name)
         ]
