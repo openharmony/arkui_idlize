@@ -325,6 +325,8 @@ class CallBuilder<P> {
     ) {}
     private _receiver?: LWExpression
     private _args: LWExpression[] = []
+    private _typeArgs: LWType[] = []
+
     /**
      * Set the receiver expression (the object on which the method is called).
      * If called with an argument, sets the receiver directly and returns this builder.
@@ -368,6 +370,13 @@ class CallBuilder<P> {
         return push(this, '_args', value)
     }
     /**
+     * Add multiple type parameters (generics) to the call.
+     *
+     * @param args - Array of type parameters
+     * @returns This builder for chaining
+     */
+    typeArgs(args: LWType[]) { this._typeArgs.push(...args); return this }
+    /**
      * Finalize the builder and return the constructed call expression.
      *
      * @returns The built CallExpression
@@ -378,7 +387,7 @@ class CallBuilder<P> {
         const callee = this._receiver ? E.get(this._receiver, this._func!)
             : typeof this._func === 'object' ? this._func
             : E.v(this._func!)
-        return this._cont(E.call(callee, this._args))
+        return this._cont(E.call(callee, this._args, this._typeArgs))
     }
 }
 
@@ -885,6 +894,27 @@ class ReturnBuilder<P> {
 }
 
 /**
+ * Builder for creating none statement based on context.
+ *
+ * @typeParam P - The type returned by the continuation function (usually LWStatement or a parent builder)
+ *
+ * @example
+ * ```typescript
+ * const noneStmt = Builders.none().$()
+ * ```
+ */
+class NoneBuilder<P> {
+    /**
+     * @param _cont - Continuation function that receives the built statement
+     */
+    constructor(private _cont: (stmt: LWStatement) => P) {}
+
+    $(): P {
+        return this._cont(S.none())
+    }
+}
+
+/**
  * Builder for creating if statements (conditional statements).
  *
  * @typeParam P - The type returned by the continuation function (usually IfStatement or a parent builder)
@@ -1240,6 +1270,15 @@ class StatementBuilder<P> {
      */
     return(type?: LWType): ReturnBuilder<StatementBuilder<P>> {
         return new ReturnBuilder(morphInto(this, '_stmt', id), type)
+    }
+    /**
+     * Create none statement.
+     * Returns an NoneBuilder for specifying condition and branches.
+     *
+     * @returns NoneBuilder for deferred construction
+     */
+    none(): NoneBuilder<StatementBuilder<P>> {
+        return new NoneBuilder(morphInto(this, '_stmt', id))
     }
     /**
      * Finalize the builder and return the constructed statement.
@@ -2382,4 +2421,5 @@ export class Builders {
     static switch(): SwitchBuilder<SwitchStatement> { return new SwitchBuilder(id) }
     static loop(): LoopBuilder<LoopStatement> { return new LoopBuilder(id) }
     static return(type?: LWType): ReturnBuilder<LWStatement> { return new ReturnBuilder(id, type) }
+    static none(): NoneBuilder<LWStatement> { return new NoneBuilder(id) }
 }

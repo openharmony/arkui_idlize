@@ -284,6 +284,9 @@ class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
 
 class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        const arrayAccess = native
+            ? Builders.access().receiver(accessor).member(`array`).$()
+            : accessor
         return [
             Builders.stmt().call('writeInt32').receiver(serializerName)
                 .arg().access('length').receiver(accessor).$().$().$().$(),
@@ -292,7 +295,7 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
                 .cond().binary(Op.lt).left('i').right().access('length').receiver(accessor).$().$().$().$()
                 .step().binary('=').left('i').right().binary(Op.add).left('i').right(1).$().$().$().$()
                 .body().block()
-                    .decl('item').value().access().receiver(accessor).index('i').$().$().$()
+                    .decl('item').value().access().receiver(arrayAccess).index('i').$().$().$()
                     .statements(argConvertor(this.ctx, this.type.elementType[0]).write(E.v('item'), serializerName, native)).$().$().$()
         ]
     }
@@ -301,10 +304,22 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
         const lengthDecl = Builders.decl(`${name}Length`).value()
             .call('readInt32').receiver(serializerName).$().$().$()
         const elemType = this.convertType(this.type.elementType[0], native);
-        const bufferDecl = Builders.decl(name).mutable().value()
-            .ctor(std.names.types.array).array().typeArgs([elemType]).arg(name + 'Length').$().$().$()
+        const arrayType = expectType(this.ctx, this.type, 'capi')
+        const bufferDecl = native
+            ? Builders.decl(name).type(arrayType).mutable()
+                .value().ctor().asStruct().$().$().$()
+            : Builders.decl(name).value()
+                .ctor(std.names.types.array).array().typeArgs([elemType]).arg(name + 'Length').$().$().$()
         const [reads, readValue] = argConvertor(this.ctx, this.type.elementType[0])
             .read('tmp', serializerName, native);
+        const arrayAccess = native
+            ? Builders.access().receiver(name).member(`array`).$()
+            : name
+        const resizeArray = native
+            ? Builders.stmt().call("resizeArray").typeArgs([arrayType, elemType]).receiver(serializerName)
+                .arg(Builders.expr().unary(Op.ref).value(name).$().$())
+                .arg(`${name}Length`).$().$()
+            : Builders.none().$()
         const loop = Builders.loop()
             .init().decl('i').mutable().value(0).$().$()
             .cond().binary(Op.lt).left('i').right(name + 'Length').$().$()
@@ -312,9 +327,9 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
             .body().block()
                 .statements(reads)
                 .binary('=')
-                    .left().access().receiver(name).index('i').$().$()
+                    .left().access().receiver(arrayAccess).index('i').$().$()
                     .right(readValue).$().$().$().$()
-        return [[lengthDecl, bufferDecl, loop], E.v(name)]
+        return [[lengthDecl, bufferDecl, resizeArray, loop], E.v(name)]
     }
 }
 

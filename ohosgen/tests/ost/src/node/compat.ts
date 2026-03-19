@@ -7,6 +7,8 @@ export {
 
 export {
     checkOSTSequence,
+    getOSTSequenceBoolean,
+    getOSTSequenceInt,
 } from '../../generated/ts'
 
 export {

@@ -12,11 +12,13 @@ export {
     checkOSTIntEnum,
 } from '../../generated/arkts'
 
-/*
 export {
     checkOSTSequence,
+    getOSTSequenceBoolean,
+    getOSTSequenceInt,
 } from '../../generated/arkts'
 
+/*
 export {
     getOSTPromise,
 } from '../../generated/arkts'

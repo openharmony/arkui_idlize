@@ -118,7 +118,7 @@ class GenericMonomorphizer extends IdentityTransformer {
             std.names.types.array,
             DD({ generics: [{ name: 'T' }] }).struct('synthetic.mono.Array', [
                 { name: 'length', type: Ts.prim.i32 },
-                { name: 'value', type: Ts.ptr(T.c('T')) }
+                { name: 'array', type: Ts.ptr(T.c('T')) }
             ])
         )
         this.index.set(

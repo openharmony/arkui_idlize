@@ -31,18 +31,34 @@ OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enum
 }
 
 // Sequence
-/*
-OH_Int32 ost_sequences_checkOSTSequence(const OH_UNIT_OST_Array_Int32* value)
+
+OH_Int32 ost_sequences_checkOSTSequenceImpl(const OH_UNIT_OST_Array_Int32* value)
 {
     OH_Int32 length = value->length;
     if (length == 0) return 0;
 
-    OH_Int32 firstValue = value->array[0];
-    OH_Int32 lastValue = value->array[length - 1];
+    OH_Int32* array = value->array;
+    OH_Int32 firstValue = array[0];
+    OH_Int32 lastValue = array[length - 1];
     if (firstValue != 3)
         INTEROP_FATAL("The first sequence value %d does not equal to 3", firstValue);
     if (lastValue != -7)
         INTEROP_FATAL("The last sequence value %d does not equal to -7", firstValue);
     return length;
 }
-*/
+
+OH_UNIT_OST_Array_Boolean ost_sequences_getOSTSequenceBooleanImpl()
+{
+    OH_UNIT_OST_Array_Boolean sequence;
+    sequence.length = 2;
+    sequence.array = new OH_Boolean[2] { false, true };
+    return sequence;
+}
+
+OH_UNIT_OST_Array_Int32 ost_sequences_getOSTSequenceIntImpl()
+{
+    OH_UNIT_OST_Array_Int32 sequence;
+    sequence.length = 3;
+    sequence.array = new OH_Int32[3] { 3, 5, 7 };
+    return sequence;
+}
