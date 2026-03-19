@@ -411,7 +411,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         const selectorDecl = Builders.decl(`${name}Selector`)
             .value().call('readInt8').receiver(serializerName).$().$().$()
-        const valueDecl = Builders.decl(`${name}Value`).mutable()
+        const valueDecl = Builders.decl(name).mutable()
         if (native) {
             valueDecl.type(expectType(this.ctx, this.type, 'capi')).value('{}')
         } else {
@@ -423,22 +423,24 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
         const ifs = this.type.types.map((ty, i) => {
             const [reads, readValue] = argConvertor(this.ctx, ty).read('tmp', serializerName, native);
             const assignments = native
-                ? [ Builders.stmt().binary(Op.eq)
+                ? [ Builders.stmt().binary('=')
                         .left().access('selector').receiver(name).$().$()
                         .right(i).$().$(),
-                    Builders.stmt().binary(Op.eq)
+                    Builders.stmt().binary('=')
                         .left().access('value' + i).receiver(name).$().$()
                         .right(readValue).$().$()]
-                : [ Builders.stmt().binary('=').left(`${name}Value`).right(readValue).$().$()]
+                : [ Builders.stmt().binary('=').left(name).right(readValue).$().$()]
             return Builders.if()
                 .cond().binary(Op.eq).left(`${name}Selector`).right(i).$().$()
                 .then().block()
                     .statements(reads)
                     .statements(assignments).$().$().$()
         })
-        const assignment = Builders.decl(name)
-            .value().unary(Op.assert).value(`${name}Value`).$().$().$()
-        return [ [selectorDecl, valueDecl.$(), ...ifs, assignment], E.v(name, [Hs.excl()])]
+        const stmts: LWStatement[] = [selectorDecl, valueDecl.$(), ...ifs]
+        if (!native)
+            stmts.push(
+                Builders.stmt().binary('=').left(name).right().unary(Op.assert).value(name).$().$().$().$())
+        return [stmts, E.v(name)]
     }
 }
 
