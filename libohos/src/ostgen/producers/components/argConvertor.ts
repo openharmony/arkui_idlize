@@ -176,10 +176,13 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
             .call("fromValue").receiver(this.decl.name).arg().var(resultVarName).$().$().$()]
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        const enumValue = native
+            ? accessor
+            : Builders.call('valueOf').receiver(accessor).$()
         return [
             Builders.expr().call('write' + this.elementTypeName())
                 .receiver(serializerName)
-                .arg().call('valueOf').receiver(accessor).$().$().$().$stmt()
+                .arg(enumValue).$().$stmt()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
@@ -306,7 +309,7 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
             : Builders.decl(name).value()
                 .ctor(std.names.types.array).array().typeArgs([elemType]).arg(name + 'Length').$().$().$()
         const [reads, readValue] = argConvertor(this.ctx, this.type.elementType[0])
-            .read('tmp', serializerName, native);
+            .read(name + 'Element', serializerName, native);
         const arrayAccess = native
             ? Builders.access().receiver(name).member(`array`).$()
             : name
@@ -421,7 +424,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
             valueDecl.type(valueType)
         }
         const ifs = this.type.types.map((ty, i) => {
-            const [reads, readValue] = argConvertor(this.ctx, ty).read('tmp', serializerName, native);
+            const [reads, readValue] = argConvertor(this.ctx, ty).read(`${name}Variant${i}`, serializerName, native);
             const assignments = native
                 ? [ Builders.stmt().binary('=')
                         .left().access('selector').receiver(name).$().$()
