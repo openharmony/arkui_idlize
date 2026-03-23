@@ -22899,7 +22899,7 @@ export class FocusAxisEventInternal extends BaseEventInternal implements Materia
         let retvalDeserializer : DeserializerBase = new DeserializerBase(retval, retval.length);
         const bufferSizeVar : int32 = retvalDeserializer.readInt32();
         let buffer : Map<AxisModel, double> = new Map<AxisModel, double>();
-        // TODO: TS map resize
+        // Improve: TS map resize
         for (let bufferIVar = 0; bufferIVar < bufferSizeVar; bufferIVar++) {
             const bufferKeyVar : AxisModel = AxisModel.fromValue(retvalDeserializer.readInt32());
             const bufferValueVar : double = retvalDeserializer.readFloat64();

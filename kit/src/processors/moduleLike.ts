@@ -216,7 +216,7 @@ function putToNs(declarations:lw.LWDeclaration[]): lw.LWDeclaration[] {
         if (!index.has(base)) {
             index.set(base, [])
         }
-        // TODO: clone!!!
+        // Improve: clone!!!
         decl.name = rest.join('.')
         index.get(base)?.push(decl)
     })
@@ -254,7 +254,7 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
                 if (!files.has(prefix)) {
                     files.set(prefix, [])
                 }
-                // TODO: clone!!!!
+                // Improve: clone!!!!
                 refIndex.set(decl.name, prefix)
                 decl.name = chunks.join('.')
                 files.get(prefix)?.push(decl)

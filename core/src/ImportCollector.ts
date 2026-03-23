@@ -39,7 +39,7 @@ export class ImportsCollector {
         if (typeof feature != "string")
             return this.addFeature(feature.feature, feature.module, feature.alias, feature.isDefault)
         let normalizedModule = path.normalize(module!)
-        // TODO processing cases when there is path to file like `./@ohos.mediaquery` to not recognise it as package.
+        // Improve processing cases when there is path to file like `./@ohos.mediaquery` to not recognise it as package.
         // Should migrate to multimodules and then remove this hack
         if (normalizedModule.startsWith('@') && normalizedModule != module)
             normalizedModule = './' + normalizedModule
@@ -138,7 +138,7 @@ export class ImportsCollector {
         const currentModuleDir = path.dirname(povModule)
         if (path.relative(povModule, targetModule) === "")
             return undefined
-        // TBD: workaround with '^' prefix for outer modules
+        // Improve: workaround with '^' prefix for outer modules
         if (!targetModule.startsWith('@') && !targetModule.startsWith('#') && !targetModule.startsWith('^')) {
             targetModule = `./${path.relative(currentModuleDir, targetModule)}`
         }

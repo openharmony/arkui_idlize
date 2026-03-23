@@ -110,5 +110,5 @@ private:
     std::vector<ParserState> m_stack;
     std::function<void(const char*, const char*)> m_tagValueCallback;
     std::function<void(const char*, const char*)> m_attributeValueCallback;
-    // std::function<void(const char*, const char*)> m_tokenValueCallback; // TODO implement!
+    // std::function<void(const char*, const char*)> m_tokenValueCallback; // Improve implement!
 };

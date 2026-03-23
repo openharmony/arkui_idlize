@@ -134,7 +134,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                     return this.convert(idl.createReferenceType(idl.IDLThrowsTypeName, [idl.createPrimitiveType('void')]))
             }
 
-            // FIXME: isEnumMember is not TYPE!
+            // Improve: isEnumMember is not TYPE!
             if (decl && idl.isEnumMember(decl) && decl.parent) {
                 // when `interface A { field?: MyEnum.Value1 }` is generated, it is not possible
                 // to deserialize A, because there is no such type information in declaration target

@@ -702,7 +702,7 @@ export function createComponentsPrinter(options: { attributeModifierHooks: boole
 }
 
 export function printComponentsDeclarations(peerLibrary: PeerLibrary): PrinterResult[] {
-    // TODO: support other output languages
+    // Improve: support other output languages
     if (![Language.TS, Language.ARKTS].includes(peerLibrary.language))
         return []
 

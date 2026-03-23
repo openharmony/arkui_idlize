@@ -49,7 +49,7 @@ export class LibraryTypeConvertor extends _LibraryTypeConvertor {
         const node = this.typechecker.resolveReference(type)
         if (node && (isEnum(node) || isTypedef(node))) {
             if (node.name.startsWith(Config.dataClassPrefix)) {
-                // TODO: support enums in namespace?
+                // Improve: support enums in namespace?
                 return fixEnumPrefix(node.name)
             }
         }

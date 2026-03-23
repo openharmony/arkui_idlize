@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Formatting result validator
  */
@@ -183,9 +198,9 @@ static validate(
 
       // Check for syntax errors
       diagnostics = (sourceFile as any).parseDiagnostics || [];
-      
+
       for (const diagnostic of diagnostics) {
-        const line = diagnostic.file 
+        const line = diagnostic.file
           ? ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start || 0).line + 1
           : undefined;
 
@@ -241,14 +256,14 @@ static validate(
             message: 'Transformation changed code semantics',
             severity: 'error'
           });
-        
+
         // Return normalized data for diagnostics
-        return { 
-          issues, 
-          normalized: { 
-            original: normalizedOriginal, 
-            formatted: normalizedFormatted 
-          } 
+        return {
+          issues,
+          normalized: {
+            original: normalizedOriginal,
+            formatted: normalizedFormatted
+          }
         };
       }
 
@@ -293,7 +308,7 @@ static validate(
    * Checks comment handling correctness (placeholder)
    */
   private static validateComments(_original: string, _formatted: string): boolean {
-    // TODO: Implement comment validation
+    // Improve: Implement comment validation
     // For now always return true (comments considered correct)
     return true;
   }
@@ -423,7 +438,7 @@ static validate(
           }
           break;
         }
-        
+
         // Insignificant spaces always removed (add nothing),
         // significant spaces converted to single space, and significant newlines — preserved as newline
         const nextNonWs = i < code.length ? code.charAt(i) : '';
@@ -432,7 +447,7 @@ static validate(
           append('\n');
           continue;
         }
-        
+
         // Significant space between two "words" (identifiers/numbers/dollar/underscore)
         if (this.needsSpaceBetween(lastCharOut, nextNonWs)) {
           append(' ');
@@ -458,16 +473,16 @@ static validate(
     if (!prev || !next) {
       return false;
     }
-    
+
     // Check if characters are alphanumeric (identifiers, keywords, numbers)
     const isAlphaNum = (c: string) => /[a-zA-Z0-9_$]/.test(c);
-    
+
     // If both characters are alphanumeric - space needed as separator
     // Examples: const\na → const a, return\nvalue → return value
     if (isAlphaNum(prev) && isAlphaNum(next)) {
       return true;
     }
-    
+
     // In all other cases space not needed:
     // - Brackets: (\n  → (
     // - Operators: +\n  → +
@@ -608,7 +623,7 @@ static validate(
   //  */
   // private static _isAcceptableLongLine(line: string): boolean {
   //   const trimmed = line.trim();
-  //   
+  //
   //   // URLs in comments
   //   if (trimmed.startsWith('//') && /https?:\/\//.test(trimmed)) {
   //     return true;

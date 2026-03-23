@@ -264,7 +264,7 @@ export class OverloadsPrinter {
     private posfix: string = ""
 
     constructor(private library: PeerLibrary, private printer: LanguageWriter, private language: Language, private isComponent: boolean, private useMemoM3: boolean) {
-        // TODO: UndefinedConvertor is not known during static initialization because of cyclic dependencies
+        // Improve: UndefinedConvertor is not known during static initialization because of cyclic dependencies
         if (!OverloadsPrinter.undefinedConvertor) {
             OverloadsPrinter.undefinedConvertor = new UndefinedConvertor("OverloadsPrinter", idl.createPrimitiveType('undefined'))
         }

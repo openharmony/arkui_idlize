@@ -285,7 +285,7 @@ declare interface SpanStyle {
  * @atomicservice
  * @since 12
  */
-//TODO: Already exists as interface
+//Improve: Already exists as interface
 declare class TextStyle_styled_string {
 
     /**

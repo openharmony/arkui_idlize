@@ -199,7 +199,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
             case 'number': return this.make(`Number`, type)
             case 'String': return this.make(`String`, type)
             case 'boolean': return this.make(`Boolean`, type)
-            case 'bigint': return this.make(`Int64`, type) // TODO add arbitrary precision numeric type
+            case 'bigint': return this.make(`Int64`, type) // Improve add arbitrary precision numeric type
             case 'pointer': return this.make('NativePointer', type)
             case 'CustomObject': return this.make('CustomObject', type)
             case 'unknown':
@@ -250,7 +250,7 @@ export class CppConvertor extends GenericCppConvertor implements IdlNameConverto
             return result.text
         }
         const typePrefix = conf.TypePrefix
-        // TODO remove this ugly hack for CustomObject's
+        // Improve remove this ugly hack for CustomObject's
         const libPrefix = this.isPrimitiveOrPrimitiveAlias(result.resolvedType) ? "" : conf.LibraryPrefix
         return `${typePrefix}${libPrefix}${result.text}`
     }

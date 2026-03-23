@@ -21,7 +21,7 @@ import { peerGeneratorConfiguration } from '../../DefaultConfiguration.js'
 
 function isDirectConvertedType(originalType: idl.IDLType|undefined, library: PeerLibrary): boolean {
     const debug = false
-    if (originalType == undefined) return true // TODO: is it correct?
+    if (originalType == undefined) return true // Improve: is it correct?
     if (debug) console.log(`IDL type ${idl.DebugUtils.debugPrintType(originalType)}`)
     if (idl.isPrimitiveType(originalType, 'InteropReturnBuffer')) return false
     if (idl.isPrimitiveType(originalType, 'this')) return true /* Because this type for native is pointer, right? */

@@ -78,7 +78,7 @@
 //                         const sig = staticMethod.signature
 //                         const args = sig.args.map((_, i) => sig.argName(i)).join(", ")
 //                         const obj = forceAsNamedNode(sig.returnType).name
-//                         // TBD: Use writer.makeObjectAlloc()
+//                         // Improve: Use writer.makeObjectAlloc()
 //                         writer.writeStatement(writer.makeReturn(writer.makeString(`new ${obj}(${args})`)))
 //                     })
 //                 })
@@ -164,7 +164,7 @@
 //             //             const sig = staticMethod.signature
 //             //             const args = sig.args.map((_, i) => sig.argName(i)).join(", ")
 //             //             const obj = forceAsNamedNode(sig.returnType).name
-//             //             // TBD: Use writer.makeObjectAlloc()
+//             //             // Improve: Use writer.makeObjectAlloc()
 //             //             writer.writeStatement(writer.makeReturn(writer.makeString(`${obj}(${args})`)))
 //             //         })
 //             //     })

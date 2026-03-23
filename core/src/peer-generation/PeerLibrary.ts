@@ -249,8 +249,8 @@ export class PeerLibrary implements LibraryInterface {
             }
         }
         if (idl.isReferenceType(type)) {
-            // TODO: special cases for interop types.
-            // TODO: this types are not references! NativeModulePrinter must be fixed
+            // Improve: special cases for interop types.
+            // Improve: this types are not references! NativeModulePrinter must be fixed
             switch (type.name.replaceAll('%TEXT%:', '')) { // this is really bad stub, to fix legacy references
                 case 'KBoolean': return new BooleanConvertor(param, idl.createPrimitiveType('boolean'))
                 case 'KInt': return new NumericConvertor(this, param, idl.createPrimitiveType('i32'))
@@ -285,7 +285,7 @@ export class PeerLibrary implements LibraryInterface {
                 return new MapConvertor(this, param, type, type.elementType[0], type.elementType[1])
         }
         if (idl.isTypeParameterType(type)) {
-            // TODO: unlikely correct.
+            // Improve: unlikely correct.
             return new CustomTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type), true, `<${type.name}>`)
         }
         throw new Error(`Cannot convert: ${type.kind}`)
@@ -423,7 +423,7 @@ export function toDeclaration(type: idl.IDLType | idl.IDLEntry, resolver: Refere
         case "Object": return idl.createPrimitiveType('Object')
     }
     if (idl.isReferenceType(type)) {
-        // TODO: remove all this!
+        // Improve: remove all this!
         if (type.name === 'Date') {
             return idl.createPrimitiveType('date')
         }

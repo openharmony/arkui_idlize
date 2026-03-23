@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as core from "@idlizer/core";
 import assert from "assert";
 import { isContext, isGetter, isRegular, peerMethod } from "../general/common.js";
@@ -18,7 +33,7 @@ export class CommonGenerator {
         const getters = methods.filter(isGetter)
         const regulars = methods.filter(isRegular)
 
-        if (property.name === 'modifierFlags') { // TODO: handwritten AstNode property
+        if (property.name === 'modifierFlags') { // Improve: handwritten AstNode property
             const method = core.createProperty(property.name, core.createReferenceType('Es2pandaModifierFlags'))
             return [method, method]
         }
@@ -43,7 +58,7 @@ export class CommonGenerator {
         assert((index0 >= 0 || index1 >= 0), `Cannot find getter '${getterName}' for parameter ${property.name}!`)
         assert(index2 >= 0, `Cannot find setter '${setterName}' for parameter ${property.name}!`)
 
-        // TODO: validate types of getter and setter
+        // Improve: validate types of getter and setter
         return [
             index0 >= 0 ? props.at(index0)! : getters.at(index1)!,
             regulars.at(index2)!

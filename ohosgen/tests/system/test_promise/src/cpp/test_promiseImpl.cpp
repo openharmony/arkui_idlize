@@ -15,8 +15,9 @@
 
 #define KOALA_INTEROP_MODULE NotSpecifiedInteropModule
 #include "common-interop.h"
-#include "test_promise.h"
 #include "oh_common.h"
+#include "test_promise.h"
+
 #include <iostream>
 #include <thread>
 
@@ -33,22 +34,24 @@ private:
 
 public:
     TestPromiseHandler(TEST_PROMISE_Callback_Opt_Number_Opt_Array_String_Void cb, MyFoo* thisPtr, int delaySec)
-        : callback(cb), thisPtr(thisPtr), delaySec(delaySec) {
+        : callback(cb), thisPtr(thisPtr), delaySec(delaySec)
+    {
         callback.resource.hold(callback.resource.resourceId);
     }
 
-    void Execute() {
+    void Execute()
+    {
         // Simulates time-consuming operation
         std::this_thread::sleep_for(std::chrono::seconds(delaySec));
-        result = addOHNumber(OH_Number{.tag = INTEROP_TAG_INT32, .i32 = 1000}, thisPtr->value);
+        result = addOHNumber(OH_Number { .tag = INTEROP_TAG_INT32, .i32 = 1000 }, thisPtr->value);
         std::cout << "TestPromiseHandler::Execute() done." << std::endl;
     }
 
-    void Complete() {
+    void Complete()
+    {
         callback.call(callback.resource.resourceId,
             { .tag = INTEROP_TAG_INT32, .value = result },
-            { .tag = INTEROP_TAG_UNDEFINED }
-        );
+            { .tag = INTEROP_TAG_UNDEFINED });
         std::cout << "callback.call() done." << std::endl;
         callback.resource.release(callback.resource.resourceId);
         std::cout << "callback.resource.release() done." << std::endl;
@@ -56,22 +59,26 @@ public:
     }
 };
 
-static void DoPromiseExecute(void* handler) {
+static void DoPromiseExecute(void* handler)
+{
     ((TestPromiseHandler*)handler)->Execute();
 }
 
-static void DoPromiseComplete(void* handler) {
+static void DoPromiseComplete(void* handler)
+{
     ((TestPromiseHandler*)handler)->Complete();
 }
 
-OH_TEST_PROMISE_FooHandle Foo_constructImpl(const OH_Number* value) {
+OH_TEST_PROMISE_FooHandle Foo_constructImpl(const OH_Number* value)
+{
     std::cout << "Foo_constructImpl(value)" << std::endl;
     MyFoo* res = new MyFoo();
     res->value = *value;
     return reinterpret_cast<OH_TEST_PROMISE_FooHandle>(res);
 }
 
-void Foo_destructImpl(OH_TEST_PROMISE_FooHandle thiz) {
+void Foo_destructImpl(OH_TEST_PROMISE_FooHandle thiz)
+{
     std::cout << "Foo_destructImpl(thiz)" << std::endl;
     MyFoo* obj = reinterpret_cast<MyFoo*>(thiz);
     delete obj;
@@ -93,13 +100,15 @@ void Foo_getNumberDelayedImpl(
     std::cout << "work.queue() done." << std::endl;
 }
 
-OH_Number Foo_getValueImpl(OH_NativePointer thisPtr) {
+OH_Number Foo_getValueImpl(OH_NativePointer thisPtr)
+{
     std::cout << "Foo_getValueImpl(thisPtr)" << std::endl;
     MyFoo* obj = reinterpret_cast<MyFoo*>(thisPtr);
     return obj->value;
 }
 
-void Foo_setValueImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+void Foo_setValueImpl(OH_NativePointer thisPtr, const OH_Number* value)
+{
     std::cout << "Foo_setValueImpl(thisPtr, value)"
               << "\n  value = " << DumpOHNumber(*value) << std::endl;
     MyFoo* obj = reinterpret_cast<MyFoo*>(thisPtr);

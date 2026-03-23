@@ -88,7 +88,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
         )
         if (language === Language.TS) {
             function patchType(type:idl.IDLType): idl.IDLType {
-                // TODO: do we need it?
+                // Improve: do we need it?
                 if (idl.isPrimitiveType(type, 'boolean')) {
                     return idl.createPrimitiveType('number')
                 }

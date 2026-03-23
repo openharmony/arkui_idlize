@@ -14,17 +14,19 @@
  */
 #include <cstdint>
 #define KOALA_INTEROP_MODULE TestNativeModule
-#include "common-interop.h"
-#include "arkoala_api_generated.h"
 #include "Serializers.h"
+#include "arkoala_api_generated.h"
+#include "common-interop.h"
 
-void impl_TestReadAndMutateManagedBuffer(uint8_t* thisArray, int32_t thisLength) {
+void impl_TestReadAndMutateManagedBuffer(uint8_t* thisArray, int32_t thisLength)
+{
     DeserializerBase thisDeserializer((KSerializerBuffer)thisArray, thisLength);
     Ark_Buffer buffer = static_cast<Ark_Buffer>(thisDeserializer.readBuffer());
     buffer.resource.hold(buffer.resource.resourceId);
     for (int32_t i = 0; i < buffer.length; ++i) {
         uint8_t* array = reinterpret_cast<uint8_t*>(buffer.data);
-        array[i] = array[i] * 2;
+        uint8_t multCoeff = 2;
+        array[i] = array[i] * multCoeff;
     }
     buffer.resource.release(buffer.resource.resourceId);
 }

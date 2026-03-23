@@ -140,7 +140,7 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         return this.mkObject()
     }
     convertTypeParameter(_: IDLTypeParameterType): string | undefined {
-        // TODO: type parameter here?
+        // Improve: type parameter here?
         return '{}'
     }
     convertPrimitiveType(type: IDLPrimitiveType): string | undefined {
@@ -404,7 +404,7 @@ export class ModifierVisitor {
     printPeerClassModifiers(clazz: PeerClass) {
         this.printClassProlog(clazz)
         const component = findComponentByName(this.library, clazz.componentName)!
-        // TODO: move to Object.groupBy when move to nodejs 21
+        // Improve: move to Object.groupBy when move to nodejs 21
         const namespaces: Map<string, PeerMethod[]> =
             groupBy([createConstructPeerMethod(clazz)].concat(clazz.methods), it => {
                 const context = it.sig.context as idl.IDLInterface ?? component.attributeDeclaration
@@ -422,7 +422,7 @@ export class ModifierVisitor {
         this.printClassEpilog(clazz)
     }
 
-    // TODO: have a proper Peer module visitor
+    // Improve: have a proper Peer module visitor
     printRealAndDummyModifiers() {
         collectOrderedPeers(this.library).forEach(clazz => this.printPeerClassModifiers(clazz))
     }

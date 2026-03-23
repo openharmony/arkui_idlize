@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import {
@@ -45,22 +60,22 @@ function printEnhancedTreeStructure(
         `fullRange: ${node.fullRange.start.offset}-${node.fullRange.end.offset}`
       );
   }
-  
+
   if (node.contentRange) {
       metadataParts.push(
         `contentRange: ${node.contentRange.start.offset}-${node.contentRange.end.offset}`
       );
   }
-  
+
     if (node.children && node.children.length > 0) {
       metadataParts.push(`children: ${node.children.length}`);
   }
-  
+
     if (node.modifiers && node.modifiers.length > 0) {
     const modifierNames = node.modifiers.map(m => ts.SyntaxKind[m.kind]).join(', ');
       metadataParts.push(`modifiers: [${modifierNames}]`);
   }
-  
+
   if (node.nodeFlags) {
       metadataParts.push(`flags: ${node.nodeFlags}`);
     }
@@ -68,7 +83,7 @@ function printEnhancedTreeStructure(
   if (node.metadata) {
       metadataParts.push(`metadata: ${JSON.stringify(node.metadata)}`);
   }
-  
+
     infoParts.push(`metadata: { ${metadataParts.join('; ')} }`);
   }
 
@@ -91,7 +106,7 @@ function printEnhancedTreeStructure(
       .join(', ');
     infoParts.push(`tokens: ${tokensInfo}`);
   }
-  
+
   if (infoParts.length > 0) {
     const infoPrefix = childPrefix;
     console.log(`${infoPrefix}┃(${infoParts.join(' | ')})`);
@@ -111,26 +126,26 @@ function printEnhancedTreeStructure(
 function printEnhancedAST(node: EnhancedASTNode, depth = 0) {
   const indent = '  '.repeat(depth);
   const nodeTextEscaped = node.text.replace(/"/g, '\\"');
-  
+
   console.log(`${indent}Node: ${ts.SyntaxKind[node.kind]} (${node.kind})`);
   console.log(`${indent}  Text: "${nodeTextEscaped}"`);
-  
+
   if (node.fullRange) {
     console.log(`${indent}  Full Range: ${node.fullRange.start.offset} - ${node.fullRange.end.offset}`);
   }
-  
+
   if (node.contentRange) {
     console.log(`${indent}  Content Range: ${node.contentRange.start.offset} - ${node.contentRange.end.offset}`);
   }
-  
+
   if (node.nodeFlags) {
     console.log(`${indent}  Node Flags: ${node.nodeFlags}`);
   }
-  
+
   if (node.metadata) {
     console.log(`${indent}  Metadata:`, node.metadata);
   }
-  
+
   if (node.modifiers && node.modifiers.length > 0) {
     console.log(`${indent}  Modifiers: ${node.modifiers.length}`);
     node.modifiers.forEach((modifier, index) => {
@@ -138,13 +153,13 @@ function printEnhancedAST(node: EnhancedASTNode, depth = 0) {
       console.log(`${indent}    [${index}] ${ts.SyntaxKind[modifier.kind]}: "${modifierText}"`);
     });
   }
-  
+
   // Add token display
   if (node.syntaxTokens && node.syntaxTokens.length > 0) {
     console.log(`${indent}  Syntax Tokens: ${node.syntaxTokens.length}`);
     node.syntaxTokens.forEach((token, index) => {
       const displayText = token.text.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t').replace(/\s/g, '·');
-      
+
       if (token.type === SyntaxTokenType.SEMANTIC_NODE) {
         const nodeKind = token.semanticNode ? ts.SyntaxKind[token.semanticNode.kind] : 'unknown';
         const escapedDisplay = displayText.replace(/"/g, '\\"');
@@ -155,7 +170,7 @@ function printEnhancedAST(node: EnhancedASTNode, depth = 0) {
       }
     });
   }
-  
+
   if (node.children && node.children.length > 0) {
     console.log(`${indent}  Children: ${node.children.length}`);
     node.children.forEach((child, index) => {
@@ -163,7 +178,7 @@ function printEnhancedAST(node: EnhancedASTNode, depth = 0) {
       printEnhancedAST(child, depth + 2);
     });
   }
-  
+
   console.log('');
 }
 
@@ -216,20 +231,20 @@ function main() {
     fileName = 'inline.ts';
   } else {
     const filePath = args[0];
-    
+
     if (!filePath) {
       console.error('Error: file to analyze not specified');
       return;
     }
-    
+
     fileName = filePath;
-    
+
     // Check file existence
     if (!fs.existsSync(fileName)) {
       console.error(`Error: file "${fileName}" not found`);
       return;
     }
-    
+
     try {
       sourceCode = fs.readFileSync(fileName, 'utf-8');
     } catch (error) {
@@ -244,11 +259,11 @@ function main() {
   try {
     // Create standard TypeScript AST
     const typescriptAST = ts.createSourceFile(fileName, sourceCode, ts.ScriptTarget.Latest, true);
-    
+
     // Create enhanced AST
     const builder = new EnhancedASTBuilder(typescriptAST);
     const enhancedAST = builder.build();
-    
+
     if (enhancedAST.errors && enhancedAST.errors.length > 0) {
       console.error('Errors creating enhanced AST:');
       enhancedAST.errors.forEach(error => {
@@ -259,13 +274,13 @@ function main() {
 
     console.log('=== Tree structure ===');
     printEnhancedTreeStructure(enhancedAST.root, viewerOptions);
-    
+
     console.log('\n=== Detailed information ===');
     printEnhancedAST(enhancedAST.root);
-    
+
     // console.log('=== Source text ===');
     // console.log(sourceCode);
-    
+
   } catch (error) {
     console.error('Processing error:', error);
   }

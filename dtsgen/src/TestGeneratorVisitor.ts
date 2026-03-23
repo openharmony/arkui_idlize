@@ -140,7 +140,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
             if (decls) {
                 let decl = decls[0]
                 if (decl && ts.isEnumDeclaration(decl)) {
-                    // TBD: Use enum constants
+                    // Improve: Use enum constants
                     // let name = decl.name
                     // ${nameOrUndefined(name)}.${nameOrUndefined(it.name)!}
                     return decl.members.map((it, index) => `${index}`)
@@ -182,13 +182,13 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
                         let constructor = consturctors[randInt(consturctors.length)]
                         constructor.parameters.forEach(it => {console.log(`constructor param: ${nameOrNull(it.name)}`)})
 
-                        // TBD: add imports for classes with constructors
+                        // Improve: add imports for classes with constructors
                         /*
                         return pick(constructor.parameters.map (it => it), (key) =>
                             this.generateValueOfType(key.type!)
-                                .map(it => `${it}`)) // TBD: Use generated class
+                                .map(it => `${it}`)) // Improve: Use generated class
                                 // .map(it => `${nameOrUndefined(key.name)}: ${it}`))
-                            .map(it => `new ${className}(${it})`) // TBD: Use generated class
+                            .map(it => `new ${className}(${it})`) // Improve: Use generated class
                             // .map(it => `{${it}}`)
                         */
                        return []
@@ -226,11 +226,11 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
                 .map(it => `[${it}]`)
         }
         if (ts.isFunctionTypeNode(type)) {
-            // TODO: be smarter here
+            // Improve: be smarter here
             return [`${LAMBDA}`]
         }
         if (ts.isTypeLiteralNode(type)) {
-            // TODO: be smarter here
+            // Improve: be smarter here
             return pick(type.members.filter(ts.isPropertySignature), (key) =>
                 this.generateValueOfType(key.type!).map(it => `${nameOrNull(key.name)}: ${it}`))
                 .map(it => `{${it}}`)

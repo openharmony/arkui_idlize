@@ -1,12 +1,12 @@
 package arkui.component;
 
-// TBD: Used in dummy_impl.cpp
+// Improve: Used in dummy_impl.cpp
 enum ColorMode {
     number LIGHT = 0;
     number DARK = 1;
 };
 
-// TBD: Used in dummy_impl.cpp
+// Improve: Used in dummy_impl.cpp
 enum LayoutDirection {
     number LTR = 0;
     number RTL = 1;

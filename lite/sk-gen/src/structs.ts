@@ -140,7 +140,7 @@ class FieldAssigner {
     }
 
     private assignDataToVec(param: LWExpression, offsetVal: LWExpression, receiver: LWExpression) {
-        // TODO:
+        // Improve:
         return [
             S.e(E.call(E.get(param, 'cloneTo'), [receiver, offsetVal]))
         ]
@@ -211,7 +211,7 @@ class FieldAssigner {
     }
 
     private readDataFromVec(decl: IDLInterface, offsetVal: LWExpression, receiver: LWExpression): [LWStatement[], LWExpression] {
-        // TODO:
+        // Improve:
         return [[], E.instance2(GO.typeName(createReferenceType(decl)), [receiver, offsetVal])]
     }
 

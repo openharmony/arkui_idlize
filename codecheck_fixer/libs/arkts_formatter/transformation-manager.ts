@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Transformation manager for formatting long lines
  */
@@ -13,11 +28,11 @@ export class TransformationManager {
   addTransformation(start: number, width: number, newText: string): void {
     // Check if transformation already exists at this position
     const existingIndex = this.transformations.findIndex(t => t.start === start);
-    
+
     if (existingIndex >= 0) {
       return;
     }
-    
+
     this.transformations.push({
       start,
       end: start + width,
@@ -32,17 +47,17 @@ export class TransformationManager {
     if (this.transformations.length === 0) {
       return content;
     }
-    
+
     // Sort transformations from end to start to not mess up positions
     const sortedTransformations = [...this.transformations].sort((a, b) => b.start - a.start);
-    
+
     let result = content;
     for (const transformation of sortedTransformations) {
-      result = result.substring(0, transformation.start) + 
-               transformation.newText + 
+      result = result.substring(0, transformation.start) +
+               transformation.newText +
                result.substring(transformation.end);
     }
-    
+
     return result;
   }
 
@@ -51,16 +66,16 @@ export class TransformationManager {
    */
   hasConflicts(): boolean {
     const sorted = [...this.transformations].sort((a, b) => a.start - b.start);
-    
+
     for (let i = 0; i < sorted.length - 1; i++) {
       const current = sorted[i];
       const next = sorted[i + 1];
-      
+
       if (current && next && current.end > next.start) {
         return true; // Overlap
       }
     }
-    
+
     return false;
   }
 
@@ -91,22 +106,22 @@ export class TransformationManager {
   validateResult(original: string, transformed: string, context: FormattingContext): TransformationValidationResult {
     const originalLines = original.split('\n');
     const transformedLines = transformed.split('\n');
-    
+
     const issues: string[] = [];
-    
+
     // Check that line count didn't decrease critically
     if (transformedLines.length < originalLines.length * 0.8) {
       issues.push('Too large reduction in line count');
     }
-    
+
     // Check that long lines actually became shorter
     let improvedLines = 0;
     let worsenedLines = 0;
-    
+
     for (let i = 0; i < Math.min(originalLines.length, transformedLines.length); i++) {
       const originalLength = originalLines[i]?.length || 0;
       const transformedLength = transformedLines[i]?.length || 0;
-      
+
       if (originalLength > context.maxLineLength) {
         if (transformedLength <= context.maxLineLength) {
           improvedLines++;
@@ -115,7 +130,7 @@ export class TransformationManager {
         }
       }
     }
-    
+
     // Check additional lines
     for (let i = originalLines.length; i < transformedLines.length; i++) {
       const lineLength = transformedLines[i]?.length || 0;
@@ -123,11 +138,11 @@ export class TransformationManager {
         worsenedLines++;
       }
     }
-    
+
     if (worsenedLines > improvedLines) {
       issues.push('Transformation worsened long lines situation');
     }
-    
+
     return {
       isValid: issues.length === 0,
       issues,

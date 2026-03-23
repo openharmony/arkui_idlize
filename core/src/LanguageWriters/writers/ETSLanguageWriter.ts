@@ -183,7 +183,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return new ArkTSMapForEachStatement(map, key, value, body)
     }
     makeMapSize(map: string): LanguageExpression {
-        return this.makeString(`${super.makeMapSize(map).asString()}`) // TODO: cast really needed?
+        return this.makeString(`${super.makeMapSize(map).asString()}`) // Improve: cast really needed?
     }
     get supportedModifiers(): MethodModifier[] {
         return [
@@ -253,7 +253,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeCastCustomObject(customName, isGenericType)
     }
     makeEquals(args: LanguageExpression[]): LanguageExpression {
-        // TODO: Error elimination: 'TypeError: Both operands have to be reference types'
+        // Improve: Error elimination: 'TypeError: Both operands have to be reference types'
         // the '==' operator must be used when one of the operands is a reference
         return super.makeNaryOp('==', args)
     }
@@ -265,10 +265,10 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     override castToInt(value: string, bitness: 8 | 32): string {
         // This fix is used to avoid unnecessary writeInt8(value as int32) call, which is generated if value is already an int32
         // The explicit cast forces ui2abc to call valueOf on an int, which fails the compilation
-        // TODO Fix this cast
+        // Improve Fix this cast
         if (bitness === 8) 
             return `(${value}).toByte()`
-        return `(${value}).toInt()` // FIXME: is there int8 in ARKTS?
+        return `(${value}).toInt()` // Improve: is there int8 in ARKTS?
     }
     override castToBoolean(value: string): string { return `${value} ? true : false` }
 

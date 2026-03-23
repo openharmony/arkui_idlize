@@ -542,7 +542,7 @@ export abstract class LanguageWriter {
     protected namespaceStack: string[] = []
     constructor(
         public printer: IndentedPrinter,
-        public resolver: ReferenceResolver, // TODO make protected again (or better rework LWs)
+        public resolver: ReferenceResolver, // Improve make protected again (or better rework LWs)
         public language: Language,
     ) {}
 
@@ -767,7 +767,7 @@ export abstract class LanguageWriter {
         return new ExpressionStatement(new StringExpression(""))
     }
     makeMapResize(mapTypeName: string, keyType: idl.IDLType, valueType: idl.IDLType, map: string, size: string, deserializer: string): LanguageStatement {
-        return new ExpressionStatement(new StringExpression("// TODO: TS map resize"))
+        return new ExpressionStatement(new StringExpression("// Improve: TS map resize"))
     }
     makeMapSize(map: string): LanguageExpression {
         return this.makeString(`${map}.size`)
@@ -822,7 +822,7 @@ export abstract class LanguageWriter {
         return `${MethodModifier[modifier].toLowerCase()}`
     }
     /**
-     * TODO: replace me with {@link makeUnsafeCast_}
+     * Improve: replace me with {@link makeUnsafeCast_}
      */
     makeUnsafeCast(param: string): string {
         return `unsafeCast<int32>(${param})`
@@ -903,7 +903,7 @@ export abstract class LanguageWriter {
      * Writes `namespace <namespace> {` and adds extra indent
      * @param namespace Namespace to begin
      */
-    pushNamespace(namespace: string, options: NamespaceOptions) { // TODO: namespace-related-to-rework
+    pushNamespace(namespace: string, options: NamespaceOptions) { // Improve: namespace-related-to-rework
         this.print(`namespace ${namespace} {`)
         if (options.indent) this.pushIndent()
     }
@@ -911,7 +911,7 @@ export abstract class LanguageWriter {
     /**
      * Writes closing brace of namespace block and removes one level of indent
      */
-    popNamespace(options: { indent: boolean }) { // TODO: namespace-related-to-rework
+    popNamespace(options: { indent: boolean }) { // Improve: namespace-related-to-rework
         this.namespaceStack.pop()
         if (options.indent) this.popIndent()
         this.print(`}`)

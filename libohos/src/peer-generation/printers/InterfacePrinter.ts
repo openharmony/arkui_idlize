@@ -119,7 +119,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
 
     protected printInterface(idlInterface: idl.IDLInterface): stringOrNone[] {
-        //TODO: CommonMethod has a method onClick and a property onClick
+        //Improve: CommonMethod has a method onClick and a property onClick
         const seenFields = new Set<string>()
         const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
         const kindPrefix = idl.isClassSubkind(idlInterface) ? "class " : "interface "
@@ -128,10 +128,10 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(idlInterface.constants
                 .map(it => this.printIfNotSeen(it, it => this.printConstant(it), seenFields)).flat())
             .concat(idlInterface.properties
-                // TODO ArkTS does not support static fields in interfaces
+                // Improve ArkTS does not support static fields in interfaces
                 .filter(it => !it.isStatic)
                 .map(it => this.printIfNotSeen(it, it => this.printProperty(idlInterface, it), seenFields)).flat())
-            // TODO enable when materialized will print methods from parent interface, now do not have time to implement this
+            // Improve enable when materialized will print methods from parent interface, now do not have time to implement this
             // .concat(idlInterface.methods
             //     .map(it => this.printIfNotSeen(it, it => this.printMethod(it), seenFields)).flat())
             .concat(idlInterface.callables
@@ -300,7 +300,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return result
     }
 
-    // TBD: Properly handle FQN in type parameters
+    // Improve: Properly handle FQN in type parameters
     private toFQN(target: idl.IDLType): string {
         if (idl.isTypeParameterType(target)) return target.name
         if (!idl.isReferenceType(target)) throw Error(`Not a reference type: ${target}`)
@@ -399,7 +399,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         ]
     }
     protected printMethod(idl: idl.IDLMethod): stringOrNone[] {
-        // TODO dirty stub. We are not processing interfaces methods as a
+        // Improve dirty stub. We are not processing interfaces methods as a
         // callbacks for now, so interfaces with methods can not be
         // deserialized in ArkTS
         return []
@@ -526,7 +526,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return ([`export type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
             .concat(tuple.properties
                 .map((it, propIndex) => this.printIfNotSeen(it, it => {
-                    //TODO: use ETSConvertor.processTupleType
+                    //Improve: use ETSConvertor.processTupleType
                     let types: idl.IDLType[] = []
                     if (it.isOptional) {
                         if (idl.isUnionType(it.type)) {
@@ -955,11 +955,11 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             this.writer.print(this.printCallback(node, node.parameters, node.returnType))
     }
     convertMethod(node: idl.IDLMethod): void {
-        // TODO: namespace-related-to-rework
+        // Improve: namespace-related-to-rework
         throw new Error("not implemented yet")
     }
     convertConstant(node: idl.IDLConstant): void {
-        // TODO: namespace-related-to-rework
+        // Improve: namespace-related-to-rework
         throw new Error("not implemented yet")
     }
     convertEnum(node: idl.IDLEnum): void {

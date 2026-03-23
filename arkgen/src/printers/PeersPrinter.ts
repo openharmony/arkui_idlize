@@ -163,7 +163,7 @@ class PeerFileVisitor {
     }
 
     protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
-        // TODO: fully switch to writer!
+        // Improve: fully switch to writer!
         const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
         const signature = new NamedMethodSignature(
             idl.createPrimitiveType('void'),
@@ -257,7 +257,7 @@ class PeerFileVisitor {
 
         imports.addFeatures(['int32', 'int64', 'float32'], "@koalaui/common")
         imports.addFeatures(['nullptr', 'KPointer', 'KInt', 'KBoolean', 'KStringPtr', 'RuntimeType'], "@koalaui/interop")
-        // TODO Remove unnecessary imports for ohos libraries
+        // Improve Remove unnecessary imports for ohos libraries
         imports.addFeatures(['ComponentBase'], "./ComponentBase")
         imports.addFeatures(['PeerNode'], "./PeerNode")
         switch (lang) {

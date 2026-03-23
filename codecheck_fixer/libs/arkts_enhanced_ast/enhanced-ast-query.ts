@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Module for querying extended AST
  * 
@@ -19,10 +34,10 @@ import {
 export interface NodeSearchResult {
   /** Found nodes */
   nodes: EnhancedASTNode[];
-  
+
   /** Total number of checked nodes */
   totalChecked: number;
-  
+
   /** Search time in milliseconds */
   searchTimeMs: number;
 }
@@ -38,10 +53,10 @@ export type NodePredicate = (node: EnhancedASTNode) => boolean;
 export interface SearchOptions {
   /** Maximum search depth */
   maxDepth?: number;
-  
+
   /** Whether to include child nodes in result */
   includeChildren?: boolean;
-  
+
   /** Stop on first found node */
   stopOnFirst?: boolean;
 }
@@ -76,14 +91,14 @@ export class EnhancedASTQuery {
    */
   public findNodesInRange(range: SourceRange): EnhancedASTNode[] {
     const nodes: EnhancedASTNode[] = [];
-    
+
     for (let pos = range.start.offset; pos < range.end.offset; pos++) {
       const node = this.ast.positionMap.get(pos);
       if (node && !nodes.includes(node)) {
         nodes.push(node);
       }
     }
-    
+
     return nodes;
   }
 
@@ -96,9 +111,9 @@ export class EnhancedASTQuery {
 
     const checkNode = (node: EnhancedASTNode) => {
       // Node must completely cover range
-      if (node.fullRange.start.offset <= range.start.offset && 
+      if (node.fullRange.start.offset <= range.start.offset &&
           node.fullRange.end.offset >= range.end.offset) {
-        
+
         const nodeSize = node.fullRange.end.offset - node.fullRange.start.offset;
         if (nodeSize < minimalSize) {
           minimalSize = nodeSize;
@@ -148,8 +163,8 @@ export class EnhancedASTQuery {
   public findNodesWithComments(options: SearchOptions = {}): NodeSearchResult {
     return this.findNodes(node => {
       // Check for comments in syntactic tokens
-      return node.syntaxTokens.some(token => 
-        token.type === SyntaxTokenType.LINE_COMMENT || 
+      return node.syntaxTokens.some(token =>
+        token.type === SyntaxTokenType.LINE_COMMENT ||
         token.type === SyntaxTokenType.BLOCK_COMMENT
       );
     }, options);
@@ -174,7 +189,7 @@ export class EnhancedASTQuery {
       // Check predicate
       if (predicate(node)) {
         nodes.push(node);
-        
+
         // Stop on first found if required
         if (options.stopOnFirst) {
           return;
@@ -185,7 +200,7 @@ export class EnhancedASTQuery {
       if (options.includeChildren !== false) {
         for (const child of node.children) {
           search(child, depth + 1);
-          
+
           // Check if need to stop
           if (options.stopOnFirst && nodes.length > 0) {
             return;
@@ -230,18 +245,18 @@ export class EnhancedASTQuery {
     const index = siblings.indexOf(node);
 
     const result: { previous?: EnhancedASTNode; next?: EnhancedASTNode } = {};
-    
+
     const previousSibling = index > 0 ? siblings[index - 1] : undefined;
     const nextSibling = index < siblings.length - 1 ? siblings[index + 1] : undefined;
-    
+
     if (previousSibling) {
       result.previous = previousSibling;
     }
-    
+
     if (nextSibling) {
       result.next = nextSibling;
     }
-    
+
     return result;
   }
 
@@ -345,7 +360,7 @@ export class EnhancedASTQuery {
     }
 
     let keywords = '';
-    
+
     // Handle VariableDeclarationList flags
     if (node.kind === ts.SyntaxKind.VariableDeclarationList) {
       if (node.nodeFlags & ts.NodeFlags.Const) {
@@ -384,13 +399,13 @@ export class EnhancedASTQuery {
         const context = 20;
         const start = Math.max(0, i - context);
         const end = Math.min(minLength, i + context);
-        
+
         differences.push(
           `Position ${i}: ` +
           `original="${original.substring(start, end)}", ` +
           `reconstructed="${reconstructed.substring(start, end)}"`
         );
-        
+
         if (differences.length >= 5) break; // Limit number of differences
       }
     }
@@ -409,7 +424,7 @@ export class EnhancedASTQuery {
    */
   private traverseNodes(node: EnhancedASTNode, callback: (node: EnhancedASTNode) => void): void {
     callback(node);
-    
+
     for (const child of node.children) {
       this.traverseNodes(child, callback);
     }

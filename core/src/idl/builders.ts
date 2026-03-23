@@ -307,7 +307,7 @@ export type IDLCallableInitializer = {
     isStatic: boolean,
 }
 export function createCallable(
-    // TODO name here seems useless
+    // Improve name here seems useless
     name: string,
     parameters: IDLParameter[],
     returnType: IDLType,

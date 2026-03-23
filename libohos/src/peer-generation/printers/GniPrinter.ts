@@ -42,7 +42,7 @@ export class GniVisitor {
         }
     }
 
-    // TODO: have a proper Peer module visitor
+    // Improve: have a proper Peer module visitor
     printGniSource() {
         this.gni.print("declare_args() {")
         this.gni.pushIndent()

@@ -44,7 +44,7 @@ export abstract class SourceFile {
     constructor (
         public readonly name: string,
         public readonly language: Language,
-        protected readonly library: PeerLibrary // TODO try to avoid this dependency
+        protected readonly library: PeerLibrary // Improve try to avoid this dependency
     ) {
         this.content = library.createLanguageWriter(language)
     }
@@ -58,7 +58,7 @@ export abstract class SourceFile {
     }
 
     public abstract printToString(): string;
-    // TODO make protected
+    // Improve make protected
     public abstract printImports(writer: LanguageWriter): void;
     protected abstract onMerge(file: this): void;
 }
@@ -135,7 +135,7 @@ abstract class TsLikeSourceFile extends SourceFile {
     }
 
     private get moduleName(): string {
-        // TODO set proper module name
+        // Improve set proper module name
         return `./${this.name.replace(/\.ts$/, "")}`
     }
 

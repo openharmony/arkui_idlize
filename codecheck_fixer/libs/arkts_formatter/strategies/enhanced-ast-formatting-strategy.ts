@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Enhanced AST formatting strategy using extended AST
  * 
@@ -32,22 +47,22 @@ import { cancellationToken } from '../../common/cancellation';
 interface BreakPoint {
   /** Local position relative to line start (for simulation) */
   position: number;
-  
+
   /** Global position in file (for final application) */
   globalPosition: number;
-  
+
   /** Indent level */
   indentLevel: number;
-  
+
   /** Priority (lower = higher priority) */
   priority: number;
-  
+
   /** Break reason */
   reason: string;
-  
+
   /** AST node associated with this point */
   node: EnhancedASTNode;
-  
+
   /** Break type */
   breakType: BreakType;
 
@@ -61,14 +76,14 @@ interface BreakPoint {
 enum BreakType {
   /** Break before node */
   BEFORE_NODE = 'before_node',
-  
+
   /** Break after node */
   AFTER_NODE = 'after_node',
-  
+
   /** Break inside node */
   INSIDE_NODE = 'inside_node',
-  
-  /** 
+
+  /**
    * Break at semantic separator
    * Newline is inserted BEFORE or AFTER token depending on preferences,
    * calculated by separator classifier (see getSemanticSeparators).
@@ -82,20 +97,20 @@ enum BreakType {
 interface LineAnalysisResult {
   /** Original line */
   originalLine: string;
-  
+
   /** Line index */
   lineIndex: number;
-  
+
   /** Global line positions */
   globalStart: number;
   globalEnd: number;
-  
+
   /** AST nodes covering line */
   coveringNodes: EnhancedASTNode[];
-  
+
   /** Found breakpoints */
   breakPoints: BreakPoint[];
-  
+
   /** Extended AST for analysis */
   ast: EnhancedASTQuery;
 
@@ -142,7 +157,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     try {
       // Analyze line using extended AST
       const analysis = this.analyzeLineWithEnhancedAST(line, lineIndex, context);
-      
+
       if (!analysis) {
         return {
           lineBreaks: [],
@@ -153,7 +168,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
 
       // Find optimal breakpoints
       const optimalBreaks = this.selectOptimalBreakPoints(analysis, context);
-      
+
       if (optimalBreaks.length === 0) {
         return {
           lineBreaks: [],
@@ -164,10 +179,10 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
 
       // Convert to LineBreakInsertion format
       const lineBreaks = this.convertToLineBreaks(optimalBreaks);
-      
+
       // Validate result
       const isValid = this.validateBreaks(lineBreaks, analysis, context);
-      
+
       if (!isValid) {
         return {
           lineBreaks: [],
@@ -200,8 +215,8 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
    * Converts global positions to local
    */
   private analyzeLineWithEnhancedAST(
-    line: string, 
-    lineIndex: number, 
+    line: string,
+    lineIndex: number,
     context: FormattingContext
   ): LineAnalysisResult | null {
     const cacheKey = this.getLineCacheKey(lineIndex, line);
@@ -222,17 +237,17 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     try {
       // Get Enhanced AST from context (already built)
       const ast = context.enhancedAST.query;
-      
+
       // Calculate global line positions
       const { globalStart, globalEnd } = this.calculateLinePositions(lineIndex, context);
-      
-      
+
+
       // Find MINIMAL node covering this line
       const minimalNode = ast.findMinimalCoveringNode({
         start: { offset: globalStart, line: lineIndex, column: 0 },
         end: { offset: globalEnd, line: lineIndex, column: line.length }
       });
-      
+
       // Form list of nodes to analyze: minimal + target Call/New parent for lines inside parentheses
       const coveringNodes: EnhancedASTNode[] = [];
       if (minimalNode) {
@@ -240,14 +255,14 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         // If yes, analyze statement instead of minimalNode for correct ASI filtering
         let nodeToAnalyze: EnhancedASTNode = minimalNode;
         let currentParent = minimalNode.parent;
-        
+
         while (currentParent) {
           // Don't block analysis for throw/return/break/continue/yield
           currentParent = currentParent.parent;
         }
-        
+
         coveringNodes.push(nodeToAnalyze);
-        
+
         // Ascend to nearest binary expressions (including || && chains)
         // This ensures breakpoints exist at operators inside long conditions
         let ascend: EnhancedASTNode | undefined = minimalNode.parent;
@@ -271,7 +286,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
           minimalNode.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral ||
           minimalNode.kind === ts.SyntaxKind.TemplateExpression
         );
-        
+
         if (isStringish && nodeToAnalyze === minimalNode) {
           const parent = minimalNode.parent;
           if (
@@ -283,8 +298,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
           }
         }
       }
-      
-      
+
       // Define position where line limit is crossed (local and global)
       const crossingLocalIndex = Math.min(context.maxLineLength, Math.max(0, line.length - 1));
       const crossingGlobalOffset = globalStart + crossingLocalIndex;
@@ -297,12 +311,12 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
 
       // Analyze each node for breakpoints
       const breakPoints: BreakPoint[] = [];
-      
+
       for (const node of coveringNodes) {
         const nodeBreaks = this.analyzeNodeForBreakPoints(node, globalStart, globalEnd, context);
         breakPoints.push(...nodeBreaks);
       }
-      
+
       // ADDITIONAL: augment breakpoints for logical operators (|| &&) within line
       try {
         const nodesInRange = ast.findNodesInRange({
@@ -361,8 +375,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         globalPosition: bp.globalPosition ?? bp.position,  // Use existing globalPosition if available
         position: bp.position - globalStart  // Convert to local position relative to line
       }));
-      
-      
+
       const analysisResult: LineAnalysisResult = {
         originalLine: line,
         lineIndex,
@@ -383,7 +396,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         ...analysisResult,
         breakPoints: analysisResult.breakPoints.map(bp => ({ ...bp }))
       };
-      
+
     } catch (error: unknown) {
       return null;
     }
@@ -395,7 +408,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   private calculateLinePositions(lineIndex: number, context: FormattingContext): { globalStart: number; globalEnd: number } {
     const sourceFile = context.enhancedAST.ast.sourceFile;
     const globalStart = sourceFile.getPositionOfLineAndCharacter(lineIndex, 0);
-    
+
     // Find end of line
     let globalEnd: number;
     try {
@@ -404,7 +417,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       // Last line in file
       globalEnd = sourceFile.getEnd();
     }
-    
+
     return { globalStart, globalEnd };
   }
 
@@ -412,13 +425,13 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
    * Analyzes AST node for breakpoints
    */
   private analyzeNodeForBreakPoints(
-    node: EnhancedASTNode, 
-    lineStart: number, 
+    node: EnhancedASTNode,
+    lineStart: number,
     lineEnd: number,
     context: FormattingContext
   ): BreakPoint[] {
     const breakPoints: BreakPoint[] = [];
-    
+
     // Check if node intersects with analyzed line
     if (node.fullRange.end.offset <= lineStart || node.fullRange.start.offset >= lineEnd) {
       return breakPoints; // Node doesn't intersect with line
@@ -438,36 +451,36 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       case ts.SyntaxKind.ImportDeclaration:
         // breakPoints.push(...this.analyzeImportDeclaration(node));
         break;
-        
+
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
         // Analyze class/interface declaration via syntax tokens.
         // Tokens allow precise determination of safe break locations.
-        // 
+        //
         // Class declaration - everything up to opening brace { (inclusive).
         // Class body - everything after {.
         //
         // Solution: check that line is NOT completely after first body element.
-        
-        const firstBodyElement = node.children.find(child => 
+
+        const firstBodyElement = node.children.find(child =>
           child.kind === ts.SyntaxKind.PropertyDeclaration ||
           child.kind === ts.SyntaxKind.MethodDeclaration ||
           child.kind === ts.SyntaxKind.Constructor ||
           child.kind === ts.SyntaxKind.GetAccessor ||
           child.kind === ts.SyntaxKind.SetAccessor
         );
-        
+
         // If there are body elements AND line is completely after first element - it's body
         if (firstBodyElement && lineStart >= firstBodyElement.fullRange.start.offset) {
           break;
         }
-        
+
         // Otherwise line contains declaration (possibly with part of body on same line)
         // Use tokens for precise class/interface declaration splitting
         const tokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...tokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.HeritageClause:
         // Analyze HeritageClause (extends/implements) via tokens
         // Keywords extends/implements have high priority (2)
@@ -484,7 +497,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         }
         breakPoints.push(...caseTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.MethodDeclaration:
       case ts.SyntaxKind.ArrowFunction:
@@ -492,7 +505,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         const functionTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...functionTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.UnionType:
       case ts.SyntaxKind.IntersectionType:
         // Analyze union/intersection types via specialized method
@@ -500,7 +513,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         const unionTokenBreaks = this.findBreakableTokensForTypeExpression(node, lineStart, lineEnd, context);
         breakPoints.push(...unionTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.CallExpression:
       case ts.SyntaxKind.NewExpression:
         // Analyze function calls and constructors via tokens
@@ -508,14 +521,14 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         const callTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...callTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.BinaryExpression:
         // Analyze binary expressions via tokens
         // Break after operators (+, -, *, /, &&, ||, etc.)
         const binaryTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...binaryTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.IfStatement:
       case ts.SyntaxKind.WhileStatement:
       case ts.SyntaxKind.ForStatement:
@@ -524,7 +537,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         const conditionalTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...conditionalTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.VariableStatement:
       case ts.SyntaxKind.VariableDeclaration:
         // Analyze variable declarations via tokens
@@ -532,33 +545,33 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         const varTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...varTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.ObjectLiteralExpression:
         // Analyze object literals via tokens
         // Break after commas between properties, after opening brace
         const objTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...objTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.ArrayLiteralExpression:
         // Analyze arrays via tokens
         // Break after commas between elements, after opening bracket
         const arrTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...arrTokenBreaks);
         break;
-        
+
       case ts.SyntaxKind.TemplateExpression:
       case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
         // CRITICAL: DON'T break template literals - break inside ${} changes semantics!
         // Any break and indent inside `${}` becomes part of runtime string
         // DON'T analyze tokens of this node, DON'T analyze child nodes
         break;
-        
+
       case ts.SyntaxKind.TaggedTemplateExpression:
         // CRITICAL: DON'T break tagged template expressions
         // DON'T analyze tokens of this node, DON'T analyze child nodes
         break;
-        
+
       case ts.SyntaxKind.ReturnStatement:
         // CRITICAL: DON'T break immediately after 'return' - this is ASI error!
         // return\n{ → return; { (returns undefined instead of object)
@@ -568,25 +581,25 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         // CRITICAL: DON'T analyze child nodes recursively!
         // findBreakableTokensForASICritical ALREADY analyzed them with correct filtering!
         return breakPoints;
-        
+
       case ts.SyntaxKind.ThrowStatement:
         const throwTokenBreaks = this.findBreakableTokensForASICritical(node, lineStart, lineEnd, context, 'throw');
         breakPoints.push(...throwTokenBreaks);
         return breakPoints;
-        
+
       case ts.SyntaxKind.TemplateExpression:
       case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
         // CRITICAL: DON'T break template literals - break inside ${} changes semantics!
         // Any break and indent inside `${}` becomes part of runtime string
         // DON'T analyze tokens of this node, DON'T analyze child nodes
         break;
-        
+
       case ts.SyntaxKind.TaggedTemplateExpression:
         // CRITICAL: DON'T break tagged template expressions - this is ASI error!
         // "str"\n`template` → "str"`template` (string as function - runtime error)
         // DON'T analyze tokens of this node, DON'T analyze child nodes
         break;
-        
+
       case ts.SyntaxKind.AsExpression:
         // Analyze as-expressions via tokens
         // Can break after 'as', inside type
@@ -609,7 +622,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         const assertTokenBreaks = this.findBreakableTokens(node, lineStart, lineEnd, context);
         breakPoints.push(...assertTokenBreaks);
         break;
-        
+
       default:
         // For other node types use recursive analysis of child elements
         break;
@@ -621,7 +634,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       if (child.fullRange.end.offset <= lineStart || child.fullRange.start.offset >= lineEnd) {
         continue;
       }
-      
+
       // Skip modifiers - they are already included in syntaxTokens of parent node
       const isModifier = child.kind === ts.SyntaxKind.ExportKeyword ||
                          child.kind === ts.SyntaxKind.PublicKeyword ||
@@ -631,11 +644,11 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
                          child.kind === ts.SyntaxKind.ReadonlyKeyword ||
                          child.kind === ts.SyntaxKind.AsyncKeyword ||
                          child.kind === ts.SyntaxKind.AbstractKeyword;
-      
+
       if (isModifier) {
         continue; // Don't analyze modifiers separately
       }
-      
+
       // CRITICAL: Skip child nodes of critical constructs
       // Template literals - break inside ${} changes semantics
       const isCriticalNode = child.kind === ts.SyntaxKind.TemplateExpression ||
@@ -645,11 +658,11 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
                              child.kind === ts.SyntaxKind.TemplateMiddle ||
                              child.kind === ts.SyntaxKind.TemplateTail ||
                              child.kind === ts.SyntaxKind.TemplateHead;
-      
+
       if (isCriticalNode) {
         continue; // DON'T analyze critical constructs
       }
-      
+
       const childBreaks = this.analyzeNodeForBreakPoints(child, lineStart, lineEnd, context);
       breakPoints.push(...childBreaks);
     }
@@ -1046,15 +1059,15 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     // Find line where node starts
     const startPosition = node.fullRange.start;
     const lineStart = startPosition.offset - startPosition.column;
-    
+
     // Get line text from start to node position
     const sourceText = context.enhancedAST.ast.sourceFile.text;
     if (!sourceText) {
       return 0; // Can't determine indent - return 0
     }
-    
+
     const lineText = sourceText.substring(lineStart, startPosition.offset);
-    
+
     // Count whitespace equivalent in configuration "indent units"
     const indentUnitWidth = context.formatterConfig.useTabs ? 1 : context.formatterConfig.tabSize;
     let leadingEquivalent = 0;
@@ -1063,7 +1076,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       else if (char === '\t') leadingEquivalent += indentUnitWidth;
       else break;
     }
-    
+
     // Return base indent (in units) + 1 level for nesting
     return Math.floor(leadingEquivalent / Math.max(1, indentUnitWidth)) + 1;
   }
@@ -1078,19 +1091,19 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
   private calculateIndentLevelForInlineExpression(node: EnhancedASTNode, context: FormattingContext): number {
     const startPosition = node.fullRange.start;
     const lineStart = startPosition.offset - startPosition.column;
-    
+
     // Get line text from start to node position
     const sourceText = context.enhancedAST.ast.sourceFile.text;
     if (!sourceText) {
       return 0;
     }
-    
+
     // Get full line to determine base indent
     const lineEndOffset = sourceText.indexOf('\n', lineStart);
-    const fullLineText = lineEndOffset >= 0 
+    const fullLineText = lineEndOffset >= 0
       ? sourceText.substring(lineStart, lineEndOffset)
       : sourceText.substring(lineStart);
-    
+
     // Count ONLY leading whitespace equivalent in configuration units
     const indentUnitWidth = context.formatterConfig.useTabs ? 1 : context.formatterConfig.tabSize;
     let leadingEquivalent = 0;
@@ -1099,7 +1112,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       else if (char === '\t') leadingEquivalent += indentUnitWidth;
       else break; // Stop at first non-whitespace character
     }
-    
+
     // Base line indent (in units) + 1 fixed level
     return Math.floor(leadingEquivalent / Math.max(1, indentUnitWidth)) + 1;
   }
@@ -1133,7 +1146,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       const result = this.trySelectBreaksFromList(mixed, analysis, context);
       if (result.length > 0) return result;
     }
-    
+
     // 3) Try all remaining
     return this.trySelectBreaksFromList(analysis.breakPoints, analysis, context);
   }
@@ -1164,7 +1177,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         return [];
       }
       iterations++;
-      
+
       const nextBreak = this.findNextOptimalBreak(sortedBreaks, selectedBreaks, currentText, context, analysis);
       if (!nextBreak) {
         break;
@@ -1216,10 +1229,10 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
 
       // Simulate break application
       const simulatedText = this.simulateBreakApplication(currentText, candidate, analysis, context, alreadySelected);
-      
+
       // Evaluate improvement
       const score = this.calculateImprovementScore(currentText, simulatedText, context.maxLineLength, candidate, analysis);
-      
+
       // Select candidate with best score
       if (score > 0 && score > bestScore) {
         bestScore = score;
@@ -1236,8 +1249,8 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
    * Relaxed requirements, partial improvements are considered
    */
   private calculateImprovementScore(
-    original: string, 
-    modified: string, 
+    original: string,
+    modified: string,
     maxLength: number,
     breakPoint: BreakPoint,
     analysis: LineAnalysisResult | null
@@ -1247,19 +1260,19 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     if (cancellationToken.isCancelled()) {
       return 0;
     }
-    
+
     const originalLongCount = originalLines.filter(line => line.length > maxLength).length;
     const modifiedLongCount = modifiedLines.filter(line => line.length > maxLength).length;
-    
+
     // Base score: how many lines became short
     let score = (originalLongCount - modifiedLongCount) * 100;
-    
+
     // Even if count of long lines didn't decrease,
     // give significant bonus for reducing maximum length
     if (score <= 0) {
       const originalMaxLength = Math.max(...originalLines.map(l => l.length));
       const modifiedMaxLength = Math.max(...modifiedLines.map(l => l.length));
-      
+
       if (modifiedMaxLength < originalMaxLength) {
         // INCREASED coefficient from 0.5 to 3.0 for greater weight of partial improvements
         score = (originalMaxLength - modifiedMaxLength) * 3.0;
@@ -1268,18 +1281,18 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         score = 0;
       }
     }
-    
+
     // Increased priorityBonus from 0.5 to 2.0 for greater priority influence
     const priorityBonus = Math.max(0, 10 - breakPoint.priority) * 2.0;
     score += priorityBonus;
-    
+
     // Bonus for even distribution of line lengths
     const modifiedLengths = modifiedLines.map(l => l.length);
     const avgLength = modifiedLengths.reduce((a, b) => a + b, 0) / modifiedLengths.length;
     const variance = modifiedLengths.reduce((sum, len) => sum + Math.pow(len - avgLength, 2), 0) / modifiedLengths.length;
     const balanceBonus = variance < 1000 ? 5 : 0;
     score += balanceBonus;
-    
+
     // TIE-BREAKER: With other things equal prefer maximizing first line
     // (more logical than splitting in half)
     if (modifiedLines.length > 1 && score > 0) {
@@ -1289,7 +1302,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         score += (firstLineLength / maxLength) * 0.5;
       }
     }
-    
+
     // AESTHETIC METRIC (new):
     // - Prefer breaks located closer to limit boundary
     // - Strongly prefer breaks AFTER top-level commas of selected covering node
@@ -1362,12 +1375,12 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     // Build indent according to configuration (like in real application)
     const unit = context.indentUnit || '  ';
     const indent = unit.repeat(Math.max(0, breakPoint.indentLevel));
-    
+
     // Find relative position in line
     if (!analysis) {
       return text; // Can't simulate without analysis - return original
     }
-    
+
     // breakPoint.position is now ALREADY LOCAL position!
     // No longer need to subtract globalStart
     let relativePos = breakPoint.position;
@@ -1538,8 +1551,8 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
    * Validates breaks
    */
   private validateBreaks(
-    lineBreaks: LineBreakInsertion[], 
-    analysis: LineAnalysisResult, 
+    lineBreaks: LineBreakInsertion[],
+    analysis: LineAnalysisResult,
     _context: FormattingContext
   ): boolean {
     // Strict validation - without breaks makes no sense
@@ -1549,7 +1562,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
 
     // CORRECT validation: break positions must be ONLY within analyzed line
     const validBreaks: LineBreakInsertion[] = [];
-    
+
     for (const lineBreak of lineBreaks) {
       // Position MUST be strictly within analyzed line
       if (lineBreak.position >= analysis.globalStart && lineBreak.position <= analysis.globalEnd) {
@@ -1578,11 +1591,11 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
     keyword: 'return' | 'throw'
   ): BreakPoint[] {
     const breakPoints: BreakPoint[] = [];
-    
+
     if (!node.syntaxTokens || node.syntaxTokens.length === 0) {
       return breakPoints;
     }
-    
+
     // Find keyword position in tokens
     let keywordIndex = -1;
     for (let i = 0; i < node.syntaxTokens.length; i++) {
@@ -1592,22 +1605,22 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         break;
       }
     }
-    
+
     if (keywordIndex === -1) {
       // Didn't find keyword, use regular logic
       return this.findBreakableTokens(node, lineStart, lineEnd, context);
     }
-    
+
     // Find end of first significant token after keyword
     // All breakpoints BEFORE this position will be filtered (for ASI safety)
     let firstSignificantTokenEnd: number | null = null;
-    
+
     for (let i = keywordIndex + 1; i < node.syntaxTokens.length; i++) {
       const token = node.syntaxTokens[i];
       if (!token || token.type === 'whitespace' || token.type === 'newline') {
         continue;
       }
-      
+
       if (token.type === 'semantic_node' && token.semanticNode) {
         // For semantic_node find first significant token inside
         let firstToken = null;
@@ -1617,7 +1630,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
             break;
           }
         }
-        
+
         firstSignificantTokenEnd = firstToken?.position
           ? firstToken.position.offset + (firstToken.text?.length ?? 0)
           : token.semanticNode.fullRange.start.offset;
@@ -1627,7 +1640,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
       }
       break;
     }
-    
+
     const throwBaseIndent = this.calculateIndentLevel(node, context);
     const indentCap = throwBaseIndent + 1;
     const processedPositions = new Set<number>();
@@ -1661,7 +1674,7 @@ export class EnhancedASTFormattingStrategy implements FormattingStrategy {
         }
       }
     }
-    
+
     return breakPoints;
   }
 

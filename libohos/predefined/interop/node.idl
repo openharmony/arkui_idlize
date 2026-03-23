@@ -34,14 +34,14 @@ interface NativeModuleNode {
     void SetRangeUpdater(pointer ptr0, i32 arg);
     void SetLazyItemIndexer(pointer ptr0, i32 arg);
     pointer GetPipelineContext(pointer ptr0);
-    // TODO: Actually Promise<void>, fix!
+    // Improve: Actually Promise<void>, fix!
     Object VSyncAwait(pointer pipeline);
     void SetVsyncCallback(pointer pipeline);
     void UnblockVsyncWait(pointer pipeline);
     void SetChildTotalCount(pointer ptr0, i32 arg);
     void ShowCrash(String message);
 
-    // TODO: rename to smth more sensible!
+    // Improve: rename to smth more sensible!
     // i32 CheckArkoalaGeneratedEvents(sequence<u8> result, i32 size);
     // i32 InjectEvent(sequence<u8> data, i32 size);
 

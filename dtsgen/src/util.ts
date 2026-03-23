@@ -255,7 +255,7 @@ export function identName(node: ts.Node | undefined): string | undefined {
         return identString(node.name)
     }
     if (ts.isPropertyDeclaration(node)) {
-        // TODO: mention parent's name
+        // Improve: mention parent's name
         return identString(node.name)
     }
     if (ts.isInterfaceDeclaration(node)) {
@@ -325,7 +325,7 @@ export function serializerBaseMethods(): string[] {
 
     const serializerDecl = program.getSourceFiles()
         .find(it => it.fileName.includes("SerializerBase"))
-    // TODO: pack classes with npm package
+    // Improve: pack classes with npm package
     if (serializerDecl === undefined) return []
 
     const methods: string[] = []

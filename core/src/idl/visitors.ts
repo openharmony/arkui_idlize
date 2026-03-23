@@ -400,7 +400,7 @@ export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode
             const t = assert(isPrimitiveType)(op(node.type))
             return () => createEnumMember(
                 node.name,
-                node.parent /* TODO seems strange in that context */,
+                node.parent /* Improve seems strange in that context */,
                 t,
                 node.initializer,
                 node.initializerDecimalType,

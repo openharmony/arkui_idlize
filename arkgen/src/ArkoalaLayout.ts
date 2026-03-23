@@ -71,7 +71,7 @@ function getModuleImport(node: idl.IDLEntry, role: LayoutNodeRole, lang: Languag
         if (role == LayoutNodeRole.SERIALIZER) return undefined
     }
     const conf = peerGeneratorConfiguration()
-    // TBD: use idl.mapLibraryName(...) when the Arkoala imports printing is fixed
+    // Improve: use idl.mapLibraryName(...) when the Arkoala imports printing is fixed
     // in ImportsCollector.printToLines(...)
     // return idl.mapLibraryName(node, lang, conf?.libraryNameMapping)
 

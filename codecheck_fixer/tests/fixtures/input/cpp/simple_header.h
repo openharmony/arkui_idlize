@@ -1,6 +1,6 @@
 // Header file with include guard protection to verify proper header formatting
-#ifndef TEST_SIMPLE_HEADER_HPP
-#define TEST_SIMPLE_HEADER_HPP
+#ifndef TEST_SIMPLE_HEADER_H
+#define TEST_SIMPLE_HEADER_H
 
 #include <string>
 #include <vector>
@@ -40,4 +40,4 @@ return (a>b)?a:b;
 
 } // namespace test
 
-#endif // TEST_SIMPLE_HEADER_HPP
+#endif // TEST_SIMPLE_HEADER_H

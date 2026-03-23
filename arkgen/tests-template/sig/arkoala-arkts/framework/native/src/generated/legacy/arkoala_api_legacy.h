@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -753,24 +753,26 @@ enum ArkUIAPINodeFlags {
 };
 
 enum ArkUIGestureDirection {
-    ArkUI_GESTURE_DIRECTION_NONE = 0,
-    ArkUI_GESTURE_DIRECTION_LEFT = 1,
-    ArkUI_GESTURE_DIRECTION_RIGHT = 2,
-    ArkUI_GESTURE_DIRECTION_HORIZONTAL = 3,
-    ArkUI_GESTURE_DIRECTION_UP = 4,
-    ArkUI_GESTURE_DIRECTION_DOWN = 5,
-    ArkUI_GESTURE_DIRECTION_VERTICAL = 12,
-    ArkUI_GESTURE_DIRECTION_ALL = 15,
+    ARKUI_GESTURE_DIRECTION_NONE = 0,
+    ARKUI_GESTURE_DIRECTION_LEFT = 1,
+    ARKUI_GESTURE_DIRECTION_RIGHT = 2,
+    ARKUI_GESTURE_DIRECTION_HORIZONTAL = 3,
+    ARKUI_GESTURE_DIRECTION_UP = 4,
+    ARKUI_GESTURE_DIRECTION_DOWN = 5,
+    ARKUI_GESTURE_DIRECTION_VERTICAL = 12,
+    ARKUI_GESTURE_DIRECTION_ALL = 15,
 };
 
 enum ArkUISwipeGestureDirection {
-    ArkUI_SWIPE_GESTURE_DIRECTION_NONE = 0,
-    ArkUI_SWIPE_GESTURE_DIRECTION_HORIZONTAL = 1,
-    ArkUI_SWIPE_GESTURE_DIRECTION_VERTICAL = 2,
-    ArkUI_SWIPE_GESTURE_DIRECTION_ALL = 3,
+    ARKUI_SWIPE_GESTURE_DIRECTION_NONE = 0,
+    ARKUI_SWIPE_GESTURE_DIRECTION_HORIZONTAL = 1,
+    ARKUI_SWIPE_GESTURE_DIRECTION_VERTICAL = 2,
+    ARKUI_SWIPE_GESTURE_DIRECTION_ALL = 3,
 };
 
-enum ArkUIAPICustomOp { MEASURE = 1, LAYOUT = 2, DRAW = 3 };
+enum ArkUIAPICustomOp { MEASURE = 1,
+    LAYOUT = 2,
+    DRAW = 3 };
 
 enum ArkUIVMKind {
     VM_JS = 1,

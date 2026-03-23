@@ -118,7 +118,7 @@ export function identName(node: ts.Node | undefined): string | undefined {
         return identString(node.name)
     }
     if (ts.isPropertyDeclaration(node)) {
-        // TODO: mention parent's name
+        // Improve: mention parent's name
         return identString(node.name)
     }
     if (ts.isInterfaceDeclaration(node)) {
@@ -248,7 +248,7 @@ export function generate<T>(
             const resolvedModules: (ts.ResolvedModule|undefined)[] = []
             for (let moduleName of moduleNames) {
 
-                // TODO: move this replacement table to some external config...
+                // Improve: move this replacement table to some external config...
                 {
                     const replacement:{[key:string]:string} = {
                         "../component/navigation": "@internal/component/ets/navigation",

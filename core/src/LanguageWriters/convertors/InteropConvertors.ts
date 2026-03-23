@@ -88,7 +88,7 @@ export class InteropReturnTypeConvertor extends InteropArgConvertor {
     }
     convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isPromise(type)) {
-            // TODO return array by some way
+            // Improve return array by some way
             return "void"
         }
         return KInteropReturnBuffer

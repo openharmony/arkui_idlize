@@ -211,12 +211,12 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testEnumArray(value: EnumDTS[]): TestAttribute
 
-    // TBD: array of functions
+    // Improve: array of functions
     // testFunctionArray(value: ((a: number) => boolean)[]): TestAttribute;
 
     testArrayMix(v1: number[], v2: string[], v3: EnumDTS[]): TestAttribute;
 
-    // TBD: array of functions
+    // Improve: array of functions
     //testArrayMix(v1: number[], v2: string[], v3: EnumDTS[], v4: ((a: number) => string)[]): TestAttribute;
 
     // tuple

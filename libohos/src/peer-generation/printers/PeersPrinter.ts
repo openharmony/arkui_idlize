@@ -150,7 +150,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         scopes.reverse().forEach(it => {
             writer.popIndent()
         })
-        // TODO: refactor
+        // Improve: refactor
         if (!isPrimitiveType(returnType, 'void')) {
             let result: LanguageStatement[] = [writer.makeReturn(writer.makeString(returnValName))]
             if (returnValueFilledThroughOutArg) {
@@ -268,7 +268,7 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
     if (!idl.isReferenceType(retType)) {
         throw new Error("Method returns wrong value")
     }
-    // TODO: Use "ClassNameInternal.fromPtr(ptr)"
+    // Improve: Use "ClassNameInternal.fromPtr(ptr)"
     // once java is generated in the same way as typescript for materialized classes
     const decl = writer.resolver.resolveTypeReference(retType)
     if (!decl) {

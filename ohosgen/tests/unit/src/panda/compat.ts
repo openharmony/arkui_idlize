@@ -137,7 +137,7 @@ export function toBigInt(value: long): long {
 
 export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
     if (value1 instanceof Tuple && value2 instanceof Tuple) {
-        // TBD: check tuples by their elements
+        // Improve: check tuples by their elements
         // For some way the smart cast does not work for Tuple
         arktest.assertEQ(`${value1}`, `${value2}`, comment)
         return;

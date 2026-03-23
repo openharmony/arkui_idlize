@@ -777,7 +777,7 @@ export function deserializeAndCallCallback_Map_String_RecordData_Void(thisDeseri
     const _call  = (ResourceHolder.instance().get(_resourceId) as ((value0: Map<string, RecordData>) => void))
     const value0TmpBufSizeVar : int32 = thisDeserializer.readInt32()
     let value0TmpBuf : Map<string, RecordData> = new Map<string, RecordData>()
-    // TODO: TS map resize
+    // Improve: TS map resize
     for (let value0TmpBufIVar = 0; value0TmpBufIVar < value0TmpBufSizeVar; value0TmpBufIVar++) {
         const value0TmpBufKeyVar : string = (thisDeserializer.readString() as string)
         const value0TmpBufValueVarTempBuf_runtimeType  = thisDeserializer.readInt8().toInt()

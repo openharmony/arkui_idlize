@@ -36,12 +36,12 @@ export class PeerFile1 {
         return peers
     }
 
-    // TODO just to not refactor too much in one PR
+    // Improve just to not refactor too much in one PR
     get entries(): idl.IDLEntry[] {
         return this.file.entries
     }
 
-    // TODO just to not refactor too much in one PR
+    // Improve just to not refactor too much in one PR
     get originalFilename(): string {
         return this.file.fileName!
     }

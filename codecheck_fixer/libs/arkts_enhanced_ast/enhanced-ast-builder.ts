@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Extended AST builder with complete coordinate and token information
  *
@@ -61,7 +76,7 @@ export class EnhancedASTBuilder {
       sourceSize: this.sourceText.length
     };
     this.startTime = Date.now();
-    
+
     // Create tokenizer for obtaining syntactic tokens
     // Determine LanguageVariant from SourceFile (JSX for .tsx files)
     const languageVariant = typescriptAST.languageVariant;
@@ -75,13 +90,13 @@ export class EnhancedASTBuilder {
   public build(): EnhancedASTResult {
     try {
       this.log('Starting extended AST construction');
-      
+
       const root = this.buildEnhancedNode(this.sourceFile) as EnhancedASTNode;
       this.statistics.buildTimeMs = Date.now() - this.startTime;
-      
+
       this.log(`Construction completed in ${this.statistics.buildTimeMs}ms`);
       this.log(`Nodes created: ${this.statistics.totalNodes}`);
-      
+
       return {
         root,
         sourceFile: this.sourceFile,
@@ -109,7 +124,7 @@ export class EnhancedASTBuilder {
     // Get complete position information for node
     const fullRange = this.getFullRange(node);
     const contentRange = this.getContentRange(node);
-    
+
     // If range filtering is enabled and node is completely outside interesting ranges —
     // skip building this subtree (performance optimization)
     if (this.includeRanges && !this.intersectsAny(fullRange, this.includeRanges)) {
@@ -123,10 +138,10 @@ export class EnhancedASTBuilder {
 
     // Create node metadata
     const metadata = this.createNodeMetadata(node, depth);
-    
+
     // Get syntactic tokens for node
     const syntaxTokens = this.buildSyntaxTokens(node);
-    
+
     // Process modifiers - pass current node as parent
     const modifiers: EnhancedASTNode[] = [];
     if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
@@ -162,7 +177,7 @@ export class EnhancedASTBuilder {
     // Process child nodes (excluding modifiers)
     const children: EnhancedASTNode[] = [];
     const modifierNodes = new Set(modifiers.map(m => m.originalNode));
-    
+
     ts.forEachChild(node, (child) => {
       // If filtering is enabled and child node is outside ranges — skip it
       if (this.includeRanges) {
@@ -186,13 +201,13 @@ export class EnhancedASTBuilder {
     // Nodes without child elements remain as is - no fallback splits
 
     enhancedNode.children = children;
-    
+
     // Link syntactic tokens with covering nodes
     // This needs to be done after building all child nodes
     this.linkSemanticNodesToTokens(enhancedNode);
 
     this.log(`Created node ${ts.SyntaxKind[node.kind]} at position ${fullRange.start.offset}-${fullRange.end.offset}, text: "${text.substring(0, 30)}..."`);
-    
+
     return enhancedNode;
   }
 
@@ -211,7 +226,7 @@ export class EnhancedASTBuilder {
     // Get complete position information for node
     const fullRange = this.getFullRange(node);
     const contentRange = this.getContentRange(node);
-    
+
     // Extract node text (from start to end, without leading trivia)
     const nodeStart = node.getStart(this.sourceFile);
     const nodeEnd = node.getEnd();
@@ -219,7 +234,7 @@ export class EnhancedASTBuilder {
 
     // Create node metadata
     const metadata = this.createNodeMetadata(node, depth);
-    
+
     // Get syntactic tokens for node
     const syntaxTokens = this.buildSyntaxTokens(node);
 
@@ -245,14 +260,14 @@ export class EnhancedASTBuilder {
     }
 
     this.log(`Created modifier node ${ts.SyntaxKind[node.kind]} at position ${fullRange.start.offset}-${fullRange.end.offset}, text: "${text}"`);
-    
+
     return enhancedNode;
   }
 
   /**
    * Builds list of syntactic tokens for node
    * Uses TypeScript Scanner API to obtain tokens
-   * 
+   *
    * For child nodes creates special tokens of type SEMANTIC_NODE,
    * that reference corresponding Enhanced AST nodes.
    * This will be done later, after building all child nodes.
@@ -260,7 +275,7 @@ export class EnhancedASTBuilder {
   private buildSyntaxTokens(node: ts.Node): SyntaxToken[] {
     const fullStart = node.getFullStart();
     const end = node.getEnd();
-    
+
     // Tokenize entire node range (including leading trivia)
     // Token replacement with SEMANTIC_NODE will be performed in linkSemanticNodesToTokens
     return this.tokenizer.tokenize(fullStart, end);
@@ -268,14 +283,14 @@ export class EnhancedASTBuilder {
 
   /**
    * Links covering nodes with syntactic tokens
-   * 
+   *
    * Replaces child node ranges with tokens of type SEMANTIC_NODE,
    * that contain references to corresponding Enhanced AST nodes.
-   * 
+   *
    * @param enhancedNode - Enhanced AST node with built children
    */
   private linkSemanticNodesToTokens(enhancedNode: EnhancedASTNode): void {
-    if (enhancedNode.children.length === 0 && 
+    if (enhancedNode.children.length === 0 &&
         (!enhancedNode.modifiers || enhancedNode.modifiers.length === 0)) {
       // No child nodes - tokens remain as is
       return;
@@ -296,7 +311,7 @@ export class EnhancedASTBuilder {
     while (tokenIndex < enhancedNode.syntaxTokens.length) {
       const token = enhancedNode.syntaxTokens[tokenIndex];
       if (!token) break;
-      
+
       // Check if current token falls within child node range
       if (childIndex < allChildNodes.length) {
         const child = allChildNodes[childIndex];
@@ -304,7 +319,7 @@ export class EnhancedASTBuilder {
           tokenIndex++;
           continue;
         }
-        
+
         const childStart = child.fullRange.start.offset;
         const childEnd = child.fullRange.end.offset;
         const tokenStart = token.position.offset;
@@ -324,7 +339,7 @@ export class EnhancedASTBuilder {
               tsKind: child.kind
             });
           }
-          
+
           // Skip all tokens until end of child node
           while (tokenIndex < enhancedNode.syntaxTokens.length) {
             const t = enhancedNode.syntaxTokens[tokenIndex];
@@ -336,18 +351,18 @@ export class EnhancedASTBuilder {
               break;
             }
           }
-          
+
           childIndex++;
           continue;
         }
-        
+
         // Token before child node - add as regular token
         if (tokenEnd <= childStart) {
           newTokens.push(token);
           tokenIndex++;
           continue;
         }
-        
+
         // Token crosses child node boundary - shouldn't happen
         // Add token and move to next child node
         newTokens.push(token);
@@ -360,7 +375,7 @@ export class EnhancedASTBuilder {
     }
 
     enhancedNode.syntaxTokens = newTokens;
-    
+
     // Recursively process child nodes
     for (const child of allChildNodes) {
       this.linkSemanticNodesToTokens(child);
@@ -384,7 +399,7 @@ export class EnhancedASTBuilder {
   private getFullRange(node: ts.Node): SourceRange {
     const fullStart = node.getFullStart();
     const end = node.getEnd();
-    
+
     return {
       start: this.getSourcePosition(fullStart),
       end: this.getSourcePosition(end)
@@ -397,7 +412,7 @@ export class EnhancedASTBuilder {
   private getContentRange(node: ts.Node): SourceRange {
     const start = node.getStart(this.sourceFile);
     const end = node.getEnd();
-    
+
     return {
       start: this.getSourcePosition(start),
       end: this.getSourcePosition(end)
@@ -427,7 +442,7 @@ export class EnhancedASTBuilder {
     const flags = this.calculateNodeFlags(node);
 
     const forceBreakLength = this.calculateForceBreakLength(node);
-    
+
     return {
       canBreak,
       breakPriority,
@@ -447,7 +462,7 @@ export class EnhancedASTBuilder {
       case ts.SyntaxKind.NumericLiteral:
       case ts.SyntaxKind.Identifier:
         return false;
-      
+
       case ts.SyntaxKind.CallExpression:
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.ClassDeclaration:
@@ -455,7 +470,7 @@ export class EnhancedASTBuilder {
       case ts.SyntaxKind.UnionType:
       case ts.SyntaxKind.IntersectionType:
         return true;
-      
+
       default:
         return node.getEnd() - node.getStart() > 40; // Heuristic: long nodes can be split
     }
@@ -474,21 +489,21 @@ export class EnhancedASTBuilder {
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
         return 1; // Highest priority
-      
+
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.MethodDeclaration:
         return 2;
-      
+
       case ts.SyntaxKind.UnionType:
       case ts.SyntaxKind.IntersectionType:
         return 3;
-      
+
       case ts.SyntaxKind.CallExpression:
         return 4;
-      
+
       case ts.SyntaxKind.BinaryExpression:
         return 5;
-      
+
       default:
         return 10; // Low priority
     }
@@ -506,7 +521,7 @@ export class EnhancedASTBuilder {
       case ts.SyntaxKind.UndefinedKeyword:
       case ts.SyntaxKind.Identifier:
         return true;
-      
+
       default:
         return false;
     }
@@ -557,12 +572,12 @@ export class EnhancedASTBuilder {
    */
   private calculateForceBreakLength(node: ts.Node): number | undefined {
     const nodeLength = node.getEnd() - node.getStart();
-    
+
     // For very long nodes set forced break
     if (nodeLength > 120) {
       return 80; // Split into parts of 80 characters
     }
-    
+
     return undefined;
   }
 
@@ -595,7 +610,7 @@ export class EnhancedASTBuilder {
 
   private hasStringLiterals(node: ts.Node): boolean {
     let hasStrings = false;
-    
+
     const visit = (n: ts.Node) => {
       if (ts.isStringLiteral(n)) {
         hasStrings = true;
@@ -603,7 +618,7 @@ export class EnhancedASTBuilder {
       }
       ts.forEachChild(n, visit);
     };
-    
+
     visit(node);
     return hasStrings;
   }

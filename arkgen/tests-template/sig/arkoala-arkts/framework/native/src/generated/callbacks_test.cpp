@@ -15,12 +15,13 @@
 #include <cstdint>
 
 #define KOALA_INTEROP_MODULE TestNativeModule
+#include "Serializers.h"
+#include "arkoala_api_generated.h"
 #include "common-interop.h"
 #include "interop-logging.h"
-#include "arkoala_api_generated.h"
-#include "Serializers.h"
 
-void CallVoid(KVMContext vmContext, KInt methodId, KInt length, void* args) {
+void CallVoid(KVMContext vmContext, KInt methodId, KInt length, void* args)
+{
 #if KOALA_USE_NODE_VM || KOALA_USE_HZ_VM || KOALA_USE_PANDA_VM || KOALA_USE_JAVA_VM || KOALA_CJ || KOALA_LANG_KT
     KOALA_INTEROP_CALL_VOID(vmContext, methodId, length, args)
 #else
@@ -28,7 +29,8 @@ void CallVoid(KVMContext vmContext, KInt methodId, KInt length, void* args) {
 #endif
 }
 
-KInt CallInt(KVMContext vmContext, KInt methodId, KInt length, void* args) {
+KInt CallInt(KVMContext vmContext, KInt methodId, KInt length, void* args)
+{
 #if KOALA_USE_NODE_VM || KOALA_USE_HZ_VM || KOALA_USE_PANDA_VM || KOALA_USE_JAVA_VM || KOALA_CJ || KOALA_LANG_KT
     KOALA_INTEROP_CALL_INT(vmContext, methodId, length, args)
 #else
@@ -39,7 +41,8 @@ KInt CallInt(KVMContext vmContext, KInt methodId, KInt length, void* args) {
     return 0;
 }
 
-void CallVoidInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args) {
+void CallVoidInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args)
+{
 #if KOALA_USE_NODE_VM || KOALA_USE_HZ_VM || KOALA_USE_PANDA_VM || KOALA_USE_JAVA_VM || KOALA_CJ || KOALA_LANG_KT
     KOALA_INTEROP_CALL_VOID_INTS32(vmContext, methodId, numArgs, args)
 #else
@@ -47,7 +50,8 @@ void CallVoidInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* arg
 #endif
 }
 
-KInt CallIntInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args) {
+KInt CallIntInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args)
+{
 #if KOALA_USE_NODE_VM || KOALA_USE_HZ_VM || KOALA_USE_PANDA_VM || KOALA_USE_JAVA_VM || KOALA_CJ || KOALA_LANG_KT
     KOALA_INTEROP_CALL_INT_INTS32(vmContext, methodId, numArgs, args)
 #else
@@ -58,52 +62,53 @@ KInt CallIntInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args
     return 0;
 }
 
-KInt impl_TestCallIntNoArgs(KVMContext vmContext, KInt methodId) {
+KInt impl_TestCallIntNoArgs(KVMContext vmContext, KInt methodId)
+{
     int32_t args[] = { 0 };
     return CallInt(
         vmContext,
         methodId,
         0,
-        reinterpret_cast<void*>(args)
-    );
+        reinterpret_cast<void*>(args));
 }
 KOALA_INTEROP_CTX_1(TestCallIntNoArgs, KInt, KInt)
 
-KInt impl_TestCallIntIntArraySum(KVMContext vmContext, KInt methodId, int32_t* arr, KInt length) {
+KInt impl_TestCallIntIntArraySum(KVMContext vmContext, KInt methodId, int32_t* arr, KInt length)
+{
     return CallIntInts32(
         vmContext,
         methodId,
         length,
-        reinterpret_cast<KInt*>(arr)
-    );
+        reinterpret_cast<KInt*>(arr));
 }
 KOALA_INTEROP_CTX_3(TestCallIntIntArraySum, KInt, KInt, int32_t*, KInt)
 
-void impl_TestCallVoidIntArrayPrefixSum(KVMContext vmContext, KInt methodId, int32_t* arr, KInt length) {
+void impl_TestCallVoidIntArrayPrefixSum(KVMContext vmContext, KInt methodId, int32_t* arr, KInt length)
+{
     return CallVoidInts32(
         vmContext,
         methodId,
         length,
-        reinterpret_cast<KInt*>(arr)
-    );
+        reinterpret_cast<KInt*>(arr));
 }
 KOALA_INTEROP_CTX_V3(TestCallVoidIntArrayPrefixSum, KInt, int32_t*, KInt)
 
-KInt impl_TestCallIntRecursiveCallback(KVMContext vmContext, KInt methodId, KSerializerBuffer arr, KInt length) {
+KInt impl_TestCallIntRecursiveCallback(KVMContext vmContext, KInt methodId, KSerializerBuffer arr, KInt length)
+{
     reinterpret_cast<int32_t*>(arr)[0]++;
     if (reinterpret_cast<int32_t*>(arr)[0] + reinterpret_cast<int32_t*>(arr)[1] < reinterpret_cast<int32_t*>(arr)[2]) {
         return CallInt(
             vmContext,
             methodId,
             length,
-            reinterpret_cast<void*>(arr)
-        );
+            reinterpret_cast<void*>(arr));
     }
     return 0;
 }
 KOALA_INTEROP_CTX_3(TestCallIntRecursiveCallback, KInt, KInt, KSerializerBuffer, KInt)
 
-KInt impl_TestCallIntMemory(KVMContext vmContext, KInt methodId, KInt n) {
+KInt impl_TestCallIntMemory(KVMContext vmContext, KInt methodId, KInt n)
+{
     int res = 0;
     for (int i = 0; i < n; i++) {
         void* arr = malloc(n);
@@ -117,7 +122,8 @@ KInt impl_TestCallIntMemory(KVMContext vmContext, KInt methodId, KInt n) {
 }
 KOALA_INTEROP_CTX_2(TestCallIntMemory, KInt, KInt, KInt)
 
-void impl_TestWithBuffer(KInteropBuffer buffer) {
+void impl_TestWithBuffer(KInteropBuffer buffer)
+{
     std::string result;
     if (buffer.length == 256) {
         int8_t* view = (int8_t*)buffer.data;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,143 +15,191 @@
 
 #define KOALA_INTEROP_MODULE NotSpecifiedInteropModule
 #include "application.h"
-//#include <stdio.h>
 
 class BaseContextPeer {};
 class ContextPeer {};
 class ApplicationContextPeer {};
 
 // BaseContext
-OH_APPLICATION_BaseContextHandle BaseContext_constructImpl() {
+OH_APPLICATION_BaseContextHandle BaseContext_constructImpl()
+{
     BaseContextPeer* peer = new BaseContextPeer();
     return (OH_APPLICATION_BaseContextHandle)peer;
 }
-void BaseContext_destructImpl(OH_APPLICATION_BaseContextHandle thiz) {
+void BaseContext_destructImpl(OH_APPLICATION_BaseContextHandle thiz)
+{
 }
-OH_Boolean BaseContext_getStageModeImpl(OH_NativePointer thisPtr) {
+OH_Boolean BaseContext_getStageModeImpl(OH_NativePointer thisPtr)
+{
     return {};
 }
-void BaseContext_setStageModeImpl(OH_NativePointer thisPtr, OH_Boolean value) {
+void BaseContext_setStageModeImpl(OH_NativePointer thisPtr, OH_Boolean value)
+{
 }
 void BaseContext_callHolderImpl(OH_NativePointer thisPtr) {}
 // Context
-OH_APPLICATION_ContextHandle Context_constructImpl() {
+OH_APPLICATION_ContextHandle Context_constructImpl()
+{
     ContextPeer* peer = new ContextPeer();
     return (OH_APPLICATION_ContextHandle)peer;
 }
-void Context_destructImpl(OH_APPLICATION_ContextHandle thiz) {
+void Context_destructImpl(OH_APPLICATION_ContextHandle thiz)
+{
 }
-OH_APPLICATION_Context Context_createBundleContextImpl(OH_NativePointer thisPtr, const OH_String* bundleName) {
+OH_APPLICATION_Context Context_createBundleContextImpl(OH_NativePointer thisPtr, const OH_String* bundleName)
+{
     return {};
 }
-OH_APPLICATION_Context Context_createModuleContext0Impl(OH_NativePointer thisPtr, const OH_String* moduleName) {
+OH_APPLICATION_Context Context_createModuleContext0Impl(OH_NativePointer thisPtr, const OH_String* moduleName)
+{
     return {};
 }
-OH_APPLICATION_Context Context_createModuleContext1Impl(OH_NativePointer thisPtr, const OH_String* bundleName, const OH_String* moduleName) {
+OH_APPLICATION_Context Context_createModuleContext1Impl(OH_NativePointer thisPtr, const OH_String* bundleName, const OH_String* moduleName)
+{
     return {};
 }
-OH_APPLICATION_ApplicationContext Context_getApplicationContextImpl(OH_NativePointer thisPtr) {
+OH_APPLICATION_ApplicationContext Context_getApplicationContextImpl(OH_NativePointer thisPtr)
+{
     return {};
 }
-void Context_getGroupDirImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_String* dataGroupID, const APPLICATION_Callback_Opt_String_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void Context_getGroupDirImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_String* dataGroupID, const APPLICATION_Callback_Opt_String_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
 }
-OH_APPLICATION_Context Context_createDisplayContextImpl(OH_NativePointer thisPtr, const OH_Number* displayId) {
+OH_APPLICATION_Context Context_createDisplayContextImpl(OH_NativePointer thisPtr, const OH_Number* displayId)
+{
     return {};
 }
-OH_String Context_getCacheDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getCacheDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setCacheDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setCacheDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getTempDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getTempDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setTempDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setTempDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getFilesDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getFilesDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setFilesDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setFilesDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getDatabaseDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getDatabaseDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setDatabaseDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setDatabaseDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getPreferencesDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getPreferencesDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setPreferencesDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setPreferencesDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getBundleCodeDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getBundleCodeDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setBundleCodeDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setBundleCodeDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getDistributedFilesDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getDistributedFilesDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setDistributedFilesDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setDistributedFilesDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getResourceDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getResourceDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setResourceDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setResourceDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getCloudFileDirImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getCloudFileDirImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setCloudFileDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setCloudFileDirImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-OH_String Context_getProcessNameImpl(OH_NativePointer thisPtr) {
-    return {"", 0};
+OH_String Context_getProcessNameImpl(OH_NativePointer thisPtr)
+{
+    return { "", 0 };
 }
-void Context_setProcessNameImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void Context_setProcessNameImpl(OH_NativePointer thisPtr, const OH_String* value)
+{
 }
-Opt_ApplicationInfo Context_getApplicationInfoImpl(OH_NativePointer thisPtr) {
+Opt_ApplicationInfo Context_getApplicationInfoImpl(OH_NativePointer thisPtr)
+{
     return {
-        .tag=INTEROP_TAG_UNDEFINED
+        .tag = INTEROP_TAG_UNDEFINED
     };
 }
-void Context_setApplicationInfoImpl(OH_NativePointer thisPtr, const Opt_ApplicationInfo* value) {
+void Context_setApplicationInfoImpl(OH_NativePointer thisPtr, const Opt_ApplicationInfo* value)
+{
 }
 
 void Context_callHolderImpl(OH_NativePointer thisPtr) {}
 
 // ApplicationContext
-OH_APPLICATION_ApplicationContextHandle ApplicationContext_constructImpl() {
+OH_APPLICATION_ApplicationContextHandle ApplicationContext_constructImpl()
+{
     ApplicationContextPeer* peer = new ApplicationContextPeer();
     return (OH_APPLICATION_ApplicationContextHandle)peer;
 }
-void ApplicationContext_destructImpl(OH_APPLICATION_ApplicationContextHandle thiz) {
+void ApplicationContext_destructImpl(OH_APPLICATION_ApplicationContextHandle thiz)
+{
 }
-void ApplicationContext_offAbilityLifecycleImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_Number* callbackId, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_offAbilityLifecycleImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_Number* callbackId, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
 }
-void ApplicationContext_offEnvironmentImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_Number* callbackId, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_offEnvironmentImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_Number* callbackId, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
 }
-void ApplicationContext_killAllProcesses0Impl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_killAllProcesses0Impl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
 }
-void ApplicationContext_killAllProcesses1Impl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, OH_Boolean clearPageStack, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_killAllProcesses1Impl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, OH_Boolean clearPageStack, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
 }
-void ApplicationContext_setLanguageImpl(OH_NativePointer thisPtr, const OH_String* language) {
+void ApplicationContext_setLanguageImpl(OH_NativePointer thisPtr, const OH_String* language)
+{
 }
 void ApplicationContext_callHolderImpl(OH_NativePointer thisPtr) {}
-void ApplicationContext_clearUpApplicationDataImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_clearUpApplicationDataImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
 }
-void ApplicationContext_setSupportedProcessCacheImpl(OH_NativePointer thisPtr, OH_Boolean isSupported) {
+void ApplicationContext_setSupportedProcessCacheImpl(OH_NativePointer thisPtr, OH_Boolean isSupported)
+{
 }
-void ApplicationContext_setFontImpl(OH_NativePointer thisPtr, const OH_String* font) {
+void ApplicationContext_setFontImpl(OH_NativePointer thisPtr, const OH_String* font)
+{
 }
-OH_Number ApplicationContext_getCurrentAppCloneIndexImpl(OH_NativePointer thisPtr) {
+OH_Number ApplicationContext_getCurrentAppCloneIndexImpl(OH_NativePointer thisPtr)
+{
+    int32_t passedValue = 789;
     OH_Number number;
     number.tag = InteropTag::INTEROP_TAG_INT32;
-    number.i32 = 789;
+    number.i32 = passedValue;
     return number;
 }
-void ApplicationContext_setFontSizeScaleImpl(OH_NativePointer thisPtr, const OH_Number* fontSizeScale) {
+void ApplicationContext_setFontSizeScaleImpl(OH_NativePointer thisPtr, const OH_Number* fontSizeScale)
+{
 }
-OH_String ApplicationContext_getCurrentInstanceKeyImpl(OH_NativePointer thisPtr) {
+OH_String ApplicationContext_getCurrentInstanceKeyImpl(OH_NativePointer thisPtr)
+{
     return {};
 }
-void ApplicationContext_getAllRunningInstanceKeysImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const APPLICATION_Callback_Opt_Array_String_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_getAllRunningInstanceKeysImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const APPLICATION_Callback_Opt_Array_String_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
 }

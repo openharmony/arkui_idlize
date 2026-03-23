@@ -424,7 +424,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         } else if (ts.isFunctionDeclaration(node)) {
             this.file.entries.push(this.serializeMethod(node, undefined, true))
         } else if (ts.isVariableStatement(node)) {
-            this.file.entries.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
+            this.file.entries.push(...this.serializeConstants(node)) // Improve: Initializers are not allowed in ambient contexts (d.ts).
         } else if (ts.isImportDeclaration(node)) {
         } else if (ts.isExportDeclaration(node)) {
         } else if (ts.isExportAssignment(node)) { // export default Foo;
@@ -925,7 +925,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         return result
     }
 
-    // TODO: class and interface look identical, but their elements' types are different
+    // Improve: class and interface look identical, but their elements' types are different
     serializeInterface(node: ts.InterfaceDeclaration): idl.IDLInterface {
         const name = getExportedDeclarationNameByDecl(node) ?? "UNDEFINED"
         const nameSuggestion = NameSuggestion.make(name)
@@ -1214,7 +1214,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     serializeType(type: ts.TypeNode | undefined, nameSuggestion?: NameSuggestion, typeArgs?: ts.NodeArray<ts.TypeNode>): idl.IDLType {
-        if (type == undefined) return idl.createPrimitiveType('undefined') // TODO: can we have implicit types in d.ts?
+        if (type == undefined) return idl.createPrimitiveType('undefined') // Improve: can we have implicit types in d.ts?
 
         if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
             return idl.createPrimitiveType('undefined')
@@ -1307,7 +1307,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             return idl.createReferenceType(funcType.name)
         }
         if (ts.isIndexedAccessTypeNode(type)) {
-            // TODO: plain wrong.
+            // Improve: plain wrong.
             return idl.createPrimitiveType('String')
         }
         if (ts.isTypeLiteralNode(type)) {
@@ -1579,7 +1579,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     isCommonMethodUsedAsProperty(member: ts.ClassElement | ts.TypeElement): member is (ts.MethodDeclaration | ts.MethodSignature) {
-        // TODO type replacements for common methods are not working
+        // Improve type replacements for common methods are not working
         return false
         // let className = (ts.isClassDeclaration(member.parent)) ? identName(member.parent.name) : undefined
         // let returnType = (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) ? identName(member.type) : undefined
@@ -1752,7 +1752,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
     serializeConstructor(constr: ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration, nameSuggestion: NameSuggestion): idl.IDLConstructor {
         constr.parameters.forEach(it => {
-            if (isNodePublic(it)) console.log("TODO: count public/private/protected constructor args as properties")
+            if (isNodePublic(it)) console.log("Improve: count public/private/protected constructor args as properties")
         })
 
         return idl.createConstructor(
@@ -1780,7 +1780,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
     private guessTypeAndValue(declaration: ts.VariableDeclaration): [idl.IDLType, string | undefined] | undefined {
         const value = declaration.initializer ? declaration.initializer.getText() : undefined
-        // TBD: parse value if it is defined
+        // Improve: parse value if it is defined
         if (declaration.type) return [this.serializeType(declaration.type), value]
         if (value) {
             if (value.startsWith('"') || value.startsWith("'")) {

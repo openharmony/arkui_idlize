@@ -13,4 +13,20 @@
  * limitations under the License.
  */
 
-public open class ArkUIBuilderNode(val node: ComponentBase) {
+#include "io.h"
+
+const char* Str(void* mem)
+{
+    return reinterpret_cast<const char*>(mem);
+}
+void SetB(char* mem, uint64_t idx, char b)
+{
+    mem[idx] = b;
+}
+
+const char* GetCwd()
+{
+    char* mem = new char[PATH_BUFFER_SIZE];
+    getcwd(mem, PATH_BUFFER_SIZE);
+    return mem;
+}

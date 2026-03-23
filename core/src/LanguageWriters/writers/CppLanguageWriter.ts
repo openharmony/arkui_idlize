@@ -418,7 +418,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(`INTEROP_RUNTIME_${RuntimeType[rt]}`)
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
-        // TODO: maybe use std::move?
+        // Improve: maybe use std::move?
         return new BlockStatement([
             this.makeAssign(keyAccessor, undefined, this.makeString(key), false),
             this.makeAssign(valueAccessor, undefined, this.makeString(value), false)
@@ -433,7 +433,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement {
         const statements =
             tupleFields.map((field, index) => {
-                //TODO: maybe use std::move?
+                //Improve: maybe use std::move?
                 return this.makeAssign(`${receiver}.value${index}`, undefined, this.makeString(field), false)
             })
         return new BlockStatement(statements, false)

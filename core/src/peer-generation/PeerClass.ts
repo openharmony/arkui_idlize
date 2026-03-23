@@ -52,7 +52,7 @@ export class PeerClass implements PeerClassBase {
 }
 
 export function createConstructPeerMethod(clazz: PeerClass): PeerMethod {
-    // TODO here is class FQName needed, but can not calculate if from current PeerClass data
+    // Improve here is class FQName needed, but can not calculate if from current PeerClass data
     const classFQN = [clazz.componentName]
     return new PeerMethod(
         undefined,

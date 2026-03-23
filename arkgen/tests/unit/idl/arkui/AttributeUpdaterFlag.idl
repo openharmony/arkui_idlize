@@ -1,6 +1,6 @@
 package arkui.AttributeUpdaterFlag;
 
-// TBD: used in conf/ets-sdk.refs.json
+// Improve: used in conf/ets-sdk.refs.json
 enum AttributeUpdaterFlag {
     number INITIAL = 0;
     number UPDATE = 1;

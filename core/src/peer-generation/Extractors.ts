@@ -33,7 +33,7 @@ export function getExtractor(target: IDLInterface, lang: Language, toPtr: boolea
     const receiver = isInExternalModule(target)
         ? `extractors`
         : toPtr
-            ? undefined // TBD: update to MaterializedBase when import is updated
+            ? undefined // Improve: update to MaterializedBase when import is updated
             : (lang == Language.CJ)
                 ? getInternalClassName(target.name)
                 : getInternalClassQualifiedName(target, "namespace.name", lang)

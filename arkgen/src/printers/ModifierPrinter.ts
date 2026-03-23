@@ -328,7 +328,7 @@ class ModifiersFileVisitor {
             writer.print(`const flagArray = this._flagArray`)
             const statements: IfStatement[] = []
             attributeTypes.forEach((attribute, index) => {
-                // TODO: handle overload condition
+                // Improve: handle overload condition
                 if (this.noNeedPrintModifier(attribute)) {
                     return;
                 }

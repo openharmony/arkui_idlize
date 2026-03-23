@@ -83,7 +83,7 @@ export class BridgeVisitor {
         return this.generatedApi.escapeKeyword(kw)
     }
 
-    // TODO: may be this is another method of ArgConvertor?
+    // Improve: may be this is another method of ArgConvertor?
     private generateApiArgument(argConvertor: ArgConvertor): string {
         const nameConverter = this.library.createTypeNameConvertor(Language.CPP)
         if (argConvertor.useArray) {
@@ -104,7 +104,7 @@ export class BridgeVisitor {
         const isVoid = this.returnTypeConvertor.isVoid(method)
         const modifier = this.generateApiCall(context)
         const peerMethod = this.getPeerMethodName(method)
-        // TODO: how do we know the real amount of arguments of the API functions?
+        // Improve: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
         const args = argAndOutConvertors.map(it => this.generateApiArgument(it))
         if (method.sig.context)
@@ -115,7 +115,7 @@ export class BridgeVisitor {
             args.unshift(`reinterpret_cast<${generatorTypePrefix()}VMContext>(vmContext)`)
         const apiCall = this.getApiCall(context)
         const field = this.getApiCallResultField(method)
-        // TODO: It is necessary to implement value passing to vm
+        // Improve: It is necessary to implement value passing to vm
         const peerMethodCall = `${apiCall}->${modifier}->${peerMethod}(${args.join(", ")})${field}`
         if (this.returnTypeConvertor.isReturnInteropBuffer(method.returnType)) {
             this.generatedApi.print(`const auto &retValue = ${peerMethodCall};`)

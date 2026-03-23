@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -42,11 +56,11 @@ export class FixCoordinator {
   public async run(): Promise<void> {
     // Filter files early for accurate count
     const validFiles = this.filePaths.filter(filePath => /\.(ts|ets)$/.test(filePath));
-    
+
     console.log(`Found files for processing: ${validFiles.length}`);
-    
+
     let processed = 0;
-    
+
     for (const filePath of validFiles) {
       if (cancellationToken.isCancelled()) {
         console.log('\nProcessing cancelled by user.');
@@ -55,7 +69,7 @@ export class FixCoordinator {
 
       const fileStartTime = Date.now();
       processed++;
-      
+
       // Path relative to repository (if repoPath in options)
       let displayPath = filePath;
       if (this.options.repoPath) {
@@ -70,7 +84,7 @@ export class FixCoordinator {
         const [, dir, file] = match;
         return `\x1b[90m${dir}\x1b[0m${file}`;
       })();
-      
+
       // Online indication of current file
       try { process.stdout.write(`[${processed}/${validFiles.length}] ${coloredDisplayPath} …`); } catch {}
 
@@ -88,7 +102,7 @@ export class FixCoordinator {
       } catch {}
 
       const result = await this.processFile(filePath, preload);
-      
+
       // File processing time (seconds)
       const fileTime = (Date.now() - fileStartTime) / 1000;
       const timeColored = `\x1b[90m${fileTime.toFixed(1)}s\x1b[0m`;
@@ -104,7 +118,7 @@ export class FixCoordinator {
     const finalMessage = this.formatFinalDuration(totalDurationMs);
 
     console.log(`✅ File processing complete! Summary generated. ${finalMessage}`);
-    
+
     this.writeDryRunReport().catch(error => {
       console.error('Error writing dry-run report:', error);
     });
@@ -138,7 +152,7 @@ export class FixCoordinator {
       if (unfixable.length > 0) {
         console.warn(`Unfixable long lines in ${filePath}: ${unfixable.map(i => i.line).join(', ')}`);
       }
-      
+
       if (this.options.fix && fixedContent) {
         await this.applyFixes(filePath, fixedContent, result);
       }
@@ -230,7 +244,7 @@ export class FixCoordinator {
     const outputPath = path.join(this.options.outputDir, relativePath);
 
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    
+
     await fs.writeFile(outputPath, fixedContent);
 
     this.changeLog.push({

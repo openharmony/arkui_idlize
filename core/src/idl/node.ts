@@ -130,7 +130,7 @@ export interface IDLNamedNode extends IDLNode {
     name: string
 }
 
-// TODO IDLNamedNode seems here like overkill - callables and constructors do not have names
+// Improve IDLNamedNode seems here like overkill - callables and constructors do not have names
 export interface IDLEntry extends IDLNode, IDLNamedNode {
     _idlEntryBrand: any
     comment?: string
@@ -206,7 +206,7 @@ export interface IDLEnumMember extends IDLEntry {
     kind: IDLKind.EnumMember
     parent: IDLEnum
     type: IDLPrimitiveType
-    // TODO: remove undefined case
+    // Improve: remove undefined case
     initializer: number | string | undefined
     initializerDecimalType: number | undefined
 }
