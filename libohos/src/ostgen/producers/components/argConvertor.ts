@@ -421,7 +421,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
 class OptionalConvertor extends StructConvertor<idl.IDLOptionalType> {
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         if (native) {
-            // TODO: implement
+            // Improve: implement
             return [Builders.stmt().call('writeInt8')
                 .receiver(serializerName)
                 .arg(this.runtimeType('UNDEFINED', native)).$().$()]
@@ -438,7 +438,7 @@ class OptionalConvertor extends StructConvertor<idl.IDLOptionalType> {
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         const type = this.convertType(this.type, native);
         if (native) {
-            // TODO: implement
+            // Improve: implement
             return [[
                 Builders.decl(name, Ts.optional(type)).mutable().$(),
                 Builders.decl(`${name}RuntimeType`).value().call('readInt8').receiver(serializerName).$().$().$(),

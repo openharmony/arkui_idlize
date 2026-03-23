@@ -305,7 +305,7 @@ export class EnumConvertor extends BaseArgConvertor {
 
 export class NumberConvertor extends BaseArgConvertor {
     constructor(param: string, type: idl.IDLPrimitiveType) {
-        // TODO: as we pass tagged values - request serialization to array for now.
+        // Improve: as we pass tagged values - request serialization to array for now.
         // Optimize me later!
         super(type, [RuntimeType.NUMBER], false, false, param)
     }
@@ -551,7 +551,7 @@ export class AggregateConvertor extends BaseArgConvertor {
         if (writer.language === Language.CPP) {
             statements.push(writer.makeAssign(bufferName, this.idlType, undefined, true, false))
         }
-        // TODO: Needs to be reworked DeserializerBase.readFunction properly
+        // Improve: Needs to be reworked DeserializerBase.readFunction properly
         if (writer.language === Language.ARKTS
             && this.memberConvertors.find(it => it instanceof FunctionConvertor)) {
             return new BlockStatement([writer.makeThrowError("Not implemented yet")], false)
@@ -1036,7 +1036,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
 
 export class OptionConvertor extends BaseArgConvertor {
     private readonly typeConvertor: ArgConvertor
-    // TODO: be smarter here, and for smth like Length|undefined or number|undefined pass without serializer.
+    // Improve: be smarter here, and for smth like Length|undefined or number|undefined pass without serializer.
     constructor(library: LibraryInterface, param: string, public type: idl.IDLOptionalType) {
         let conv = library.typeConvertor(param, type.type)
         let currentConv: ArgConvertor = conv
@@ -1380,7 +1380,7 @@ export class ThrowsConvertor extends BaseArgConvertor {
 
 export class FunctionConvertor extends BaseArgConvertor { //
     constructor(private library: LibraryInterface, param: string, type: idl.IDLPrimitiveType) {
-        // TODO: pass functions as integers to native side.
+        // Improve: pass functions as integers to native side.
         super(type, [RuntimeType.FUNCTION], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {

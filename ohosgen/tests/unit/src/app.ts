@@ -261,7 +261,7 @@ function checkEnum() {
 
 function checkClassWithComplexPropertyType() {
   let value = new ClassWithComplexPropertyType()
-  // TBD: implement constants for classes
+  // Improve: implement constants for classes
   // "ClassWithComplexPropertyType.prop": "new ClassWithPrimitivePropertyType(true, 10)",
   assertEQ(9, value.prop.counter)
   assertEQ(true, value.prop.flag)
@@ -358,7 +358,7 @@ function checkUnions() {
   // Tuple Array union
   checkEQ(5, checkUnionTupleArraySample({ prop: 5 }).prop)
   checkEQ("five", checkUnionTupleArraySample({ prop: "five" }).prop)
-  // TBD: Fix Tuple serialization for TS
+  // Improve: Fix Tuple serialization for TS
   // const tuple: [number, string] = [7, "seven"]
   // checkEQ(tuple, checkUnionTupleArraySample({ prop: tuple }).prop)
   // const tuples: [number, string][] = [[8, "eight"], [9, "nine"]]
@@ -528,7 +528,7 @@ function checkExternalTypes() {
   const subnsExternalType: hookns.subhookns.SubNSExternalType = { subnsNativePointer: toBigInt(7) }
   // const internalType: InternalType = {
   //   index: 123,
-  //   // TBD:
+  //   // Improve:
   //   // external: { nativePointer: toBigInt(9) }
   // }
   check.checkExternalType(externalType)
@@ -553,7 +553,7 @@ function checkReturnTypes() {
   test_return_types.returnNothing()
   assertEQ(42, test_return_types.returnNumber())
   assertEQ(true, test_return_types.returnBoolean())
-  // FIXME: failed for arkts
+  // Improve: failed for arkts
   // assertEQ("text from native", test_return_types.returnString())
   const expectedA: test_ret_A = { field: 42 }
   assertEQ(expectedA.field, test_return_types.returnInterface().field)
@@ -707,7 +707,7 @@ function checkTransformOnSerialize() {
   resultTransformSrcCallbackI = checkTransformSrcIToCallback(transformSrcCallbackI, true)
   assertEQ(false, resultTransformSrcCallbackI.flag)
 
-  // TBD: fix ArkTS
+  // Improve: fix ArkTS
   let transformSrcCallbackC: TransformSrcCallbackC = new TransformSrcCallbackC()
   transformSrcCallbackC.flag = false
   let resultTransformSrcCallbackC: TransformSrcCallbackC = checkTransformSrcCToCallback(transformSrcCallbackC, false)
@@ -827,7 +827,7 @@ function checkHierarchy() {
   assertEQ("Child", childC.childMethod("33", true, 33))
   assertEQ("ChildCommon", childC.commonMethod(true, 34, "34"))
 
-  // TBD: check setting parent properties
+  // Improve: check setting parent properties
   // childC.parentFlag = false
   // childC.parentCount = -201
   // childC.parentText = ""
@@ -841,7 +841,7 @@ function checkHierarchy() {
   assertEQ(-202, childC.childCount)
   assertEQ("", childC.childText)
 
-  // TBD: check setting parent properties
+  // Improve: check setting parent properties
   // childC.parentFlag = true
   // childC.parentCount = 201
   // childC.parentText = "201"

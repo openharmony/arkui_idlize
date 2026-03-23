@@ -228,7 +228,7 @@ export class FactoryPrinter extends SingleFilePrinter {
                     .filter(tuple => tuple[0] === paramTypeName)
                     .map(tuple => tuple[1])
 
-                // FIXME: For now, we compare names only if there is an ambiguity.
+                // Improve: For now, we compare names only if there is an ambiguity.
                 // This is for backward compatibility, for algorithm that searches
                 // in parents too it should compare names always.
                 const sameNameMethods = sameTypeMethods.length > 1 ?

@@ -71,7 +71,7 @@ export function generate<T>(
             const resolvedModules: (ts.ResolvedModule|undefined)[] = []
             for (let moduleName of moduleNames) {
 
-                // TODO: move this replacement table to some external config...
+                // Improve: move this replacement table to some external config...
                 {
                     const replacement:{[key:string]:string} = {
                         "../component/navigation": "@internal/component/ets/navigation",

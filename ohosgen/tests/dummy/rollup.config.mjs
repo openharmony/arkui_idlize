@@ -34,7 +34,7 @@ export default defineConfig({
             outDir: "build/node"
         }),
         resolve(),
-        // TODO Runtime JS modules should be in ES6 format
+        // Improve Runtime JS modules should be in ES6 format
         commonjs(),
     ]
 })

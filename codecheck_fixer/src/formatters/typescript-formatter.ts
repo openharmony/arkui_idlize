@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Formatter for TypeScript code
  */
@@ -13,39 +28,39 @@ export class TypeScriptFormatter {
 
   format(content: string): string {
     let formatted = content;
-    
+
     // Normalize indentation
     formatted = this.normalizeIndentation(formatted);
-    
+
     // Format quotes
     formatted = this.formatQuotes(formatted);
-    
+
     // Add/remove semicolons
     formatted = this.formatSemicolons(formatted);
-    
+
     // Format trailing commas
     formatted = this.formatTrailingCommas(formatted);
-    
+
     // Wrap long lines
     formatted = this.wrapLongLines(formatted);
-    
+
     // Remove trailing whitespace
     formatted = this.removeTrailingWhitespace(formatted);
-    
+
     return formatted;
   }
 
   private normalizeIndentation(content: string): string {
     const lines = content.split('\n');
     const indentChar = this.config.useTabs ? '\t' : ' '.repeat(this.config.tabSize);
-    
+
     return lines.map(line => {
       if (line.trim() === '') return line;
-      
+
       const leadingSpaces = line.match(/^(\s*)/)?.[1] || '';
       const normalizedSpaces = leadingSpaces.replace(/\t/g, ' '.repeat(this.config.tabSize)); // Convert tabs to spaces
       const indentLevel = Math.floor(normalizedSpaces.length / this.config.tabSize);
-      
+
       return indentChar.repeat(indentLevel) + line.trim();
     }).join('\n');
   }
@@ -53,7 +68,7 @@ export class TypeScriptFormatter {
   private formatQuotes(content: string): string {
     const quote = this.config.quoteStyle === 'single' ? "'" : '"';
     const otherQuote = this.config.quoteStyle === 'single' ? '"' : "'";
-    
+
     // Replace quotes, but avoid replacement inside string literals
     return content.replace(
       new RegExp(otherQuote + '([^' + otherQuote + ']*)' + otherQuote, 'g'),
@@ -76,9 +91,9 @@ export class TypeScriptFormatter {
       const lines = content.split('\n');
       return lines.map(line => {
         const trimmed = line.trim();
-        if (trimmed && 
-            !trimmed.endsWith(';') && 
-            !trimmed.endsWith('{') && 
+        if (trimmed &&
+            !trimmed.endsWith(';') &&
+            !trimmed.endsWith('{') &&
             !trimmed.endsWith('}') &&
             !trimmed.startsWith('//') &&
             !trimmed.startsWith('/*') &&

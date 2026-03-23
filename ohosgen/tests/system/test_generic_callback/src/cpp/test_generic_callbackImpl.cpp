@@ -15,47 +15,54 @@
 
 #define KOALA_INTEROP_MODULE NotSpecifiedInteropModule
 #include "common-interop.h"
-#include "test_generic_callback.h"
 #include "oh_common.h"
+#include "test_generic_callback.h"
 
 struct FooObject {
     OH_Number value;
 
-    FooObject() {
+    FooObject()
+    {
         static int counter = 0;
         this->value.tag = INTEROP_TAG_INT32;
         this->value.i32 = ++counter;
     }
 };
 
-void Foo_callHolderImpl(OH_NativePointer thisPtr) {
+void Foo_callHolderImpl(OH_NativePointer thisPtr)
+{
     std::cout << "Foo_callHolderImpl(thisPtr)" << std::endl;
 }
 
-OH_TEST_GENERIC_CALLBACK_FooHandle Foo_constructImpl() {
+OH_TEST_GENERIC_CALLBACK_FooHandle Foo_constructImpl()
+{
     std::cout << "Foo_constructImpl()" << std::endl;
     return reinterpret_cast<OH_TEST_GENERIC_CALLBACK_FooHandle>(new FooObject());
 }
 
-void Foo_destructImpl(OH_TEST_GENERIC_CALLBACK_FooHandle thiz) {
+void Foo_destructImpl(OH_TEST_GENERIC_CALLBACK_FooHandle thiz)
+{
     std::cout << "Foo_destructImpl(thiz)" << std::endl;
     delete reinterpret_cast<FooObject*>(thiz);
 }
 
-OH_Number Foo_getXImpl(OH_NativePointer thisPtr) {
+OH_Number Foo_getXImpl(OH_NativePointer thisPtr)
+{
     std::cout << "Foo_getXImpl(thisPtr)" << std::endl;
     return reinterpret_cast<FooObject*>(thisPtr)->value;
 }
 
 void Foo_callCBImpl(OH_NativePointer thisPtr, const OH_Number* y,
-                    const TEST_GENERIC_CALLBACK_Callback_Number* cb) {
+    const TEST_GENERIC_CALLBACK_Callback_Number* cb)
+{
     std::cout << "Foo_callCBImpl(thisPtr, y, cb)"
               << "\n  y = " << DumpOHNumber(*y) << std::endl;
     OH_Number sum = addOHNumber(reinterpret_cast<FooObject*>(thisPtr)->value, *y);
     cb->call(cb->resource.resourceId, sum);
 }
 
-void Foo_callCBVoidImpl(OH_NativePointer thisPtr, const TEST_GENERIC_CALLBACK_Callback_Void* cb) {
+void Foo_callCBVoidImpl(OH_NativePointer thisPtr, const TEST_GENERIC_CALLBACK_Callback_Void* cb)
+{
     std::cout << "Foo_callCBVoidImpl(thisPtr, cb)" << std::endl;
     cb->call(cb->resource.resourceId);
 }

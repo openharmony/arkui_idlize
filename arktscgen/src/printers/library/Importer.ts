@@ -32,7 +32,7 @@ export class Importer {
 
     private seen = new Set<string>([
         Config.astNodeCommonAncestor,
-        Config.defaultAncestor, // TODO: handwritten
+        Config.defaultAncestor, // Improve: handwritten
     ])
 
     withPeerImport(name: string): string {

@@ -27,7 +27,7 @@ function installExternal() {
     execOut(`npm i`)
     for (const pkg of externalPackagesToInstall) {
         const pkgRelative = path.relative(options.out, path.join('external', pkg))
-        // TODO need to precompile globally (on idlize repo init f.e.). And maybe cache `npm i` results in root
+        // Improve need to precompile globally (on idlize repo init f.e.). And maybe cache `npm i` results in root
         console.log(`Compiling package <${pkg}>`)
         execOut(`cd ${pkgRelative} && npm run compile`)
         console.log(`Installing package <${pkg}>`)

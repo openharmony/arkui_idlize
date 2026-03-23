@@ -26,19 +26,19 @@ export class MesonVisitor {
 
     printPeerClassSourcePaths(clazz: PeerClass): void {
         const className = makeFileNameFromClassName(clazz.componentName)
-        // TODO use names from Libace;
+        // Improve use names from Libace;
         this.printer.print(`'implementation/${className}_delegate.cpp',`)
         this.printer.print(`'generated/interface/${className}_modifier.cpp',`)
     }
 
     printMaterializedClassSourcePaths(clazz: MaterializedClass) {
         const className = makeFileNameFromClassName(clazz.className)
-        // TODO use names from Libace;
+        // Improve use names from Libace;
         this.printer.print(`'implementation/${className}_delegate.cpp',`)
         this.printer.print(`'generated/interface/${className}_modifier.cpp',`)
     }
 
-    // TODO: have a proper Peer module visitor
+    // Improve: have a proper Peer module visitor
     printMesonBuildContent() {
         this.printer.print("generated_sources = files(")
         this.printer.pushIndent()

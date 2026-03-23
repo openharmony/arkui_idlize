@@ -142,7 +142,7 @@ function createComponentAttributesDeclaration(clazz: idl.IDLInterface, peer: Pee
 function fillClass(library: PeerLibrary, peer: PeerClass, clazz: idl.IDLInterface) {
     peer.originalClassName = clazz.name
     const parentDecl = getSuper(clazz, library)
-    // TODO: should we check other parents?
+    // Improve: should we check other parents?
     if (parentDecl) {
         const parentComponent = findComponentByDeclaration(library, parentDecl)!
         peer.originalParentName = parentDecl?.name
@@ -182,7 +182,7 @@ function generatePeer(library: PeerLibrary, component: IdlComponentDeclaration):
     }
 
     fillClass(library, peer, component.attributeDeclaration)
-    // TODO that changes ABI - some functions will not be merged. Do we want to continue with that? Or do we want to wait more
+    // Improve that changes ABI - some functions will not be merged. Do we want to continue with that? Or do we want to wait more
     // accurate methods merging algorithm?
     // collapseIdlEventsOverloads(this.library, peer)
     return peer

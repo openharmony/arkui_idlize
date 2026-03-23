@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Types for long line formatting system
  */
@@ -52,26 +67,26 @@ export interface LineBreakInsertion {
 export interface FormattingContext {
   /** Enhanced AST with query for formatting ArkTS/TypeScript code */
   enhancedAST: EnhancedASTWithQuery;
-  
+
   /** Source text */
   content: string;
-  
+
   /** Source text lines */
   lines: string[];
-  
+
   /** Formatter configuration */
   formatterConfig: FormatterConfig;
-  
+
   /** Line length check configuration */
   lineLengthConfig: LineLengthConfig;
-  
+
   /** Maximum line length */
   maxLineLength: number;
-  
+
   /** Indent unit (string with spaces or tabs) */
   indentUnit: string;
-  
-  /** 
+
+  /**
    * File name for caching and type determination
    * Examples: 'temp.ets' (ArkTS), 'temp.ts' (TypeScript)
    */

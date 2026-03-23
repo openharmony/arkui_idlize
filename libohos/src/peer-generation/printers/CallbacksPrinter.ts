@@ -67,7 +67,7 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
         idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.createPrimitiveType('number'), generateCallbackKindValue(it))
     )
     if (callbacksKindsEnum.elements.length === 0) {
-        // TODO We should skip generation of CallbackKind at all, but there are references to this type in common code
+        // Improve We should skip generation of CallbackKind at all, but there are references to this type in common code
         callbacksKindsEnum.elements.push(idl.createEnumMember("Kind_EMPTY_Callback", callbacksKindsEnum, idl.createPrimitiveType('number'), -1))
     }
     writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, {isExport: true}))
@@ -93,7 +93,7 @@ export function createCallbackKindPrinter(language: Language): PrinterFunction {
                 idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.createPrimitiveType('number'), generateCallbackKindValue(it))
             )
             if (callbacksKindsEnum.elements.length === 0) {
-                // TODO We should skip generation of CallbackKind at all, but there are references to this type in common code
+                // Improve We should skip generation of CallbackKind at all, but there are references to this type in common code
                 callbacksKindsEnum.elements.push(idl.createEnumMember("Kind_EMPTY_Callback", callbacksKindsEnum, idl.createPrimitiveType('number'), -1))
             }
             writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, { isExport: true }))
@@ -665,7 +665,7 @@ export function createDeserializeAndCallPrinter(libraryName: string, language: L
 }
 
 export function printManagedCaller(libraryName:string, library: PeerLibrary): SourceFile {
-    const destFile = new CppSourceFile('callback_managed_caller.cpp', library) // TODO combine with TargetFile
+    const destFile = new CppSourceFile('callback_managed_caller.cpp', library) // Improve combine with TargetFile
     const visitor = new ManagedCallCallbackVisitor(libraryName, library, destFile)
     visitor.visit()
     return destFile

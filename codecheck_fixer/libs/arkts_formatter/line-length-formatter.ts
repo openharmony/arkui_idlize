@@ -1,12 +1,27 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Refactored formatter for splitting long lines
  * Uses AST-first approach with text fallback for ETS files
  */
 
-import { 
+import {
   FormatterConfig,
   LineLengthConfig,
-  FormattingContext, 
+  FormattingContext,
   FormattingStrategy,
   LineBreakInsertion,
   TransformationResult
@@ -37,7 +52,7 @@ class ASTBuilder {
     // TypeScript is also imported inside arkts_enhanced_ast
     const ts = require('typescript');
     const { createEnhancedASTWithQuery } = require('../arkts_enhanced_ast');
-    
+
     // Create standard TypeScript AST (used as parser)
     const sourceFile = ts.createSourceFile(
       fileName,
@@ -65,7 +80,7 @@ export class LineLengthFormatter {
     this.formatterConfig = formatterConfig;
     this.lineLengthConfig = lineLengthConfig;
     this.transformationManager = new TransformationManager();
-    
+
     // Initialize strategies in priority order
     this.strategies = [
       new EnhancedASTFormattingStrategy()
@@ -96,11 +111,11 @@ export class LineLengthFormatter {
 
     // 4. Validate result (use same context)
     const validation = ResultValidator.validate(content, resultWithComments, context, context.fileName);
-    
+
     // 5. If validation failed - rollback to original code
     if (!validation.isValid) {
       console.warn('\nAST transformation failed validation, rolling back to original code\n');
-      
+
       // Group errors by line and show details
       const errorsByLine = new Map<number, ValidationIssue[]>();
       for (const issue of validation.issues.filter(i => i.severity === 'error')) {
@@ -111,31 +126,31 @@ export class LineLengthFormatter {
           errorsByLine.get(issue.line)!.push(issue);
         }
       }
-      
+
       // Show first 3 problematic lines
       const sortedLines = Array.from(errorsByLine.keys()).sort((a, b) => a - b).slice(0, 3);
       const originalLines = content.split('\n');
       const formattedLines = result.split('\n');
-      
+
       console.warn('First 3 issues:');
-      
+
       if (sortedLines.length > 0) {
         // If there are errors with line numbers - show them
       for (const lineNum of sortedLines) {
         const issues = errorsByLine.get(lineNum) || [];
         const lineIdx = lineNum - 1; // 0-based index
-        
+
         console.warn(`\n  Line ${lineNum}:`);
         for (const issue of issues) {
           console.warn(`    ${issue.type}: ${issue.message}`);
         }
-        
+
         // Show original and result (if line exists)
         if (lineIdx >= 0 && lineIdx < originalLines.length) {
           const origLine = originalLines[lineIdx] || '';
           console.warn(`    Original: ${origLine.substring(0, 100)}${origLine.length > 100 ? '...' : ''}`);
         }
-        
+
         if (lineIdx >= 0 && lineIdx < formattedLines.length) {
           const formLine = formattedLines[lineIdx] || '';
           const origLine = originalLines[lineIdx] || '';
@@ -150,12 +165,12 @@ export class LineLengthFormatter {
         for (const issue of errorIssues) {
           console.warn(`\n  ${issue.type}: ${issue.message}`);
         }
-        
+
         // Show normalized code fragments for comparison
         if (validation.normalized) {
           const origNorm = validation.normalized.original;
           const formNorm = validation.normalized.formatted;
-          
+
           // Find first difference
           let diffPos = -1;
           const minLen = Math.min(origNorm.length, formNorm.length);
@@ -165,13 +180,13 @@ export class LineLengthFormatter {
               break;
             }
           }
-          
+
           if (diffPos >= 0) {
             const contextStart = Math.max(0, diffPos - 50);
             const contextEnd = Math.min(origNorm.length, diffPos + 150);
             const origContext = origNorm.substring(contextStart, contextEnd);
             const formContext = formNorm.substring(contextStart, Math.min(formNorm.length, contextEnd));
-            
+
             console.warn(`\n  First difference at position ${diffPos} (showing ±50 characters context):`);
             console.warn(`\n  Original:`);
             console.warn(`    ...${origContext.replace(/\n/g, '\\n').replace(/\s+/g, ' ')}...`);
@@ -186,11 +201,11 @@ export class LineLengthFormatter {
           }
         }
       }
-      
+
       console.warn(''); // Empty line for readability
       return content;
     }
-    
+
     // 6. If validation passed - return result
     return resultWithComments;
   }
@@ -201,43 +216,43 @@ export class LineLengthFormatter {
   private wrapLongComments(content: string, context: FormattingContext): string {
     const lines = content.split('\n');
     const maxLength = context.maxLineLength;
-    
+
     const result: string[] = [];
-    
+
     for (const line of lines) {
       const trimmed = line.trim();
-      
+
       // Skip short lines
       if (line.length <= maxLength) {
         result.push(line);
         continue;
       }
-      
+
       // Handle single-line comments //
       if (trimmed.startsWith('//')) {
         const wrapped = this.wrapSingleLineComment(line, maxLength);
         result.push(...wrapped);
         continue;
       }
-      
+
       // Handle multi-line comment continuations (lines starting with *)
       if (trimmed.startsWith('*') && !trimmed.startsWith('*/')) {
         const wrapped = this.wrapMultiLineCommentContinuation(line, maxLength);
         result.push(...wrapped);
         continue;
       }
-      
+
       // Handle block comments /* ... */
       if (trimmed.startsWith('/*')) {
         const wrapped = this.wrapBlockComment(line, maxLength);
         result.push(...wrapped);
         continue;
       }
-      
+
       // Not a comment - leave as is
       result.push(line);
     }
-    
+
     return result.join('\n');
   }
 
@@ -248,18 +263,18 @@ export class LineLengthFormatter {
     const indent = line.substring(0, line.indexOf('//'));
     const trimmed = line.trim();
     const commentContent = trimmed.substring(2).trim();
-    
+
     if (commentContent.length === 0) {
       return [line];
     }
-    
+
     const commentPrefix = indent + '// ';
     const availableLength = maxLength - commentPrefix.length;
-    
+
     if (availableLength < 20) {
       return [line];
     }
-    
+
     return this.wrapCommentText(commentContent, commentPrefix, availableLength);
   }
 
@@ -270,18 +285,18 @@ export class LineLengthFormatter {
     const indent = line.substring(0, line.indexOf('*'));
     const trimmed = line.trim();
     const commentContent = trimmed.substring(1).trim(); // Remove * and spaces
-    
+
     if (commentContent.length === 0) {
       return [line];
     }
-    
+
     const commentPrefix = indent + ' * ';
     const availableLength = maxLength - commentPrefix.length;
-    
+
     if (availableLength < 20) {
       return [line];
     }
-    
+
     return this.wrapCommentText(commentContent, commentPrefix, availableLength);
   }
 
@@ -291,47 +306,47 @@ export class LineLengthFormatter {
   private wrapBlockComment(line: string, maxLength: number): string[] {
     const indent = line.substring(0, line.indexOf('/*'));
     const trimmed = line.trim();
-    
+
     // Check if comment closes on same line
     const hasClosing = trimmed.endsWith('*/');
-    
+
     if (!hasClosing) {
       // Multi-line comment starts but doesn't end - leave as is
       return [line];
     }
-    
+
     // Extract content between /* and */
     let commentContent = trimmed.substring(2, trimmed.length - 2).trim();
-    
+
     if (commentContent.length === 0) {
       return [line];
     }
-    
+
     // For JSDoc comments (/** ... */)
     const isJSDoc = trimmed.startsWith('/**');
     const openingPrefix = isJSDoc ? '/**' : '/*';
-    
+
     const firstLinePrefix = indent + openingPrefix + ' ';
     const continuationPrefix = indent + ' * ';
     const availableFirstLine = maxLength - firstLinePrefix.length;
     const availableContinuation = maxLength - continuationPrefix.length - 3; // -3 for " */"
-    
+
     if (availableFirstLine < 20 || availableContinuation < 20) {
       return [line];
     }
-    
+
     // Split content into words
     const words = commentContent.split(/\s+/);
     const result: string[] = [];
     let currentLine = '';
     let isFirstLine = true;
-    
+
     for (const word of words) {
       if (!word) continue;
-      
+
       const testLine = currentLine ? currentLine + ' ' + word : word;
       const available = isFirstLine ? availableFirstLine : availableContinuation;
-      
+
       if (testLine.length <= available) {
         currentLine = testLine;
       } else {
@@ -354,7 +369,7 @@ export class LineLengthFormatter {
         }
       }
     }
-    
+
     // Add last line with closing */
     if (currentLine) {
       if (isFirstLine) {
@@ -367,7 +382,7 @@ export class LineLengthFormatter {
       // Close comment
       result[result.length - 1] += ' */';
     }
-    
+
     return result.length > 0 ? result : [line];
   }
 
@@ -378,12 +393,12 @@ export class LineLengthFormatter {
     const words = text.split(/\s+/);
     const result: string[] = [];
     let currentLine = '';
-    
+
     for (const word of words) {
       if (!word) continue;
-      
+
       const testLine = currentLine ? currentLine + ' ' + word : word;
-      
+
       if (testLine.length <= availableLength) {
         currentLine = testLine;
       } else {
@@ -396,11 +411,11 @@ export class LineLengthFormatter {
         }
       }
     }
-    
+
     if (currentLine) {
       result.push(prefix + currentLine);
     }
-    
+
     return result.length > 0 ? result : [];
   }
 
@@ -415,7 +430,7 @@ export class LineLengthFormatter {
       : contentType === ContentType.TSX
         ? 'temp.tsx'
         : 'temp.ts';
-    
+
     // Build Enhanced AST through ASTBuilder utility
     // Responsibility for building AST lies with libs/arkts_enhanced_ast
     const enhancedAST = ASTBuilder.buildEnhancedAST(content, fileName);
@@ -432,7 +447,7 @@ export class LineLengthFormatter {
     };
   }
 
-  
+
 
   /**
    * Applies formatting using strategies
@@ -504,29 +519,29 @@ export class LineLengthFormatter {
     const originalLines = original.split('\n');
     const formattedLines = formatted.split('\n');
     const maxLength = this.lineLengthConfig.maxLineLength;
-    
+
     let originalLongLines = 0;
     let formattedLongLines = 0;
     let improvedLines = 0;
-    
+
     originalLines.forEach(line => {
       if (line.length > maxLength) originalLongLines++;
     });
-    
+
     formattedLines.forEach(line => {
       if (line.length > maxLength) formattedLongLines++;
     });
-    
+
     // Count improved lines
     for (let i = 0; i < Math.min(originalLines.length, formattedLines.length); i++) {
       const originalLength = originalLines[i]?.length || 0;
       const formattedLength = formattedLines[i]?.length || 0;
-      
+
       if (originalLength > maxLength && formattedLength <= maxLength) {
         improvedLines++;
       }
     }
-    
+
     return {
       originalLongLines,
       formattedLongLines,
@@ -550,7 +565,7 @@ export class LineLengthFormatter {
   public getLongLines(content: string): LongLineInfo[] {
     const lines = content.split('\n');
     const longLines: LongLineInfo[] = [];
-    
+
     lines.forEach((line, index) => {
       if (line.length > this.lineLengthConfig.maxLineLength) {
         longLines.push({
@@ -561,7 +576,7 @@ export class LineLengthFormatter {
         });
       }
     });
-    
+
     return longLines;
   }
 
@@ -570,19 +585,19 @@ export class LineLengthFormatter {
    * IMPORTANT: AST returns absolute positions in file, we use them directly for insertion
    */
   private convertLineBreaksToTransformations(
-    lineBreaks: LineBreakInsertion[], 
-    lines: string[], 
+    lineBreaks: LineBreakInsertion[],
+    lines: string[],
     lineIndex: number
   ): TransformationResult[] {
     const transformations: TransformationResult[] = [];
-    
+
     if (lineBreaks.length === 0) {
       return transformations;
     }
-    
+
     // Sort positions descending to apply from end of file
     const sortedBreaks = [...lineBreaks].sort((a, b) => b.position - a.position);
-    
+
     // Calculate absolute offset of current line start
     let lineStartOffset = 0;
     for (let j = 0; j < lineIndex; j++) {
@@ -597,7 +612,7 @@ export class LineLengthFormatter {
       const indentChar = this.formatterConfig.useTabs ? '\t' : ' ';
       const indentSize = this.formatterConfig.useTabs ? 1 : this.formatterConfig.tabSize;
       const indent = indentChar.repeat(lineBreak.indentLevel * indentSize);
-      
+
       // Trim spaces around break point within line
       let start = lineBreak.position;
       let end = lineBreak.position;
@@ -642,13 +657,12 @@ export class LineLengthFormatter {
         end,
         newText: '\n' + indent
       });
-      
+
     }
-    
+
     return transformations;
   }
 
-  
 }
 
 export interface FormattingStats {

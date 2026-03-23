@@ -15,8 +15,9 @@
 
 #define KOALA_INTEROP_MODULE NotSpecifiedInteropModule
 #include "common-interop.h"
-#include "test_manually_decomposed_promise.h"
 #include "oh_common.h"
+#include "test_manually_decomposed_promise.h"
+
 #include <thread>
 
 struct FooWork {
@@ -24,39 +25,45 @@ struct FooWork {
     OH_String name;
 };
 
-OH_TEST_MANUALLY_DECOMPOSED_PROMISE_FooWorkHandle FooWork_constructImpl() {
+OH_TEST_MANUALLY_DECOMPOSED_PROMISE_FooWorkHandle FooWork_constructImpl()
+{
     std::cout << "FooWork_constructImpl()" << std::endl;
     return reinterpret_cast<OH_TEST_MANUALLY_DECOMPOSED_PROMISE_FooWorkHandle>(new FooWork());
 }
 
-void FooWork_destructImpl(OH_TEST_MANUALLY_DECOMPOSED_PROMISE_FooWorkHandle thiz) {
+void FooWork_destructImpl(OH_TEST_MANUALLY_DECOMPOSED_PROMISE_FooWorkHandle thiz)
+{
     std::cout << "FooWork_destructImpl(thiz)" << std::endl;
     delete reinterpret_cast<FooWork*>(thiz);
 }
 
-void FooWork_CreateImpl(OH_NativePointer thisPtr) {
+void FooWork_CreateImpl(OH_NativePointer thisPtr)
+{
     std::cout << "FooWork_CreateImpl(thisPtr)" << std::endl;
     // Nothing to do
 }
 
-void FooWork_ExecuteImpl(OH_NativePointer thisPtr, const OH_Number* index, const OH_String* name) {
+void FooWork_ExecuteImpl(OH_NativePointer thisPtr, const OH_Number* index, const OH_String* name)
+{
     std::cout << "FooWork_ExecuteImpl(thisPtr, index, name)"
               << "\n  index = " << DumpOHNumber(*index)
               << "\n  name = " << DumpOHString(*name) << std::endl;
     // Simulates time-consuming operations
-    std::this_thread::sleep_for(std::chrono::seconds{3});
+    std::this_thread::sleep_for(std::chrono::seconds { 3 });
     auto* obj = reinterpret_cast<FooWork*>(thisPtr);
     obj->index = *index;
     obj->name = *name;
 }
 
-OH_TEST_MANUALLY_DECOMPOSED_PROMISE_FooResult FooWork_CompleteImpl(OH_NativePointer thisPtr) {
+OH_TEST_MANUALLY_DECOMPOSED_PROMISE_FooResult FooWork_CompleteImpl(OH_NativePointer thisPtr)
+{
     static unsigned callCounter = 0;
     callCounter += 1;
     std::cout << "FooWork_CompleteImpl(OH_NativePointer thisPtr)"
               << "\n  callCounter = " << callCounter << std::endl;
     auto* obj = reinterpret_cast<FooWork*>(thisPtr);
-    if (callCounter % 2 == 1) {
+    unsigned int parityDeterminator = 2;
+    if (callCounter % parityDeterminator == 1) {
         return { .returnValue = addOHNumber(obj->index, { .tag = INTEROP_TAG_INT32, .i32 = 1 }), .state = true };
     } else {
         return { .returnValue = { .tag = INTEROP_TAG_INT32, .i32 = 0 }, .state = false };

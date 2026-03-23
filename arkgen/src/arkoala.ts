@@ -259,7 +259,7 @@ export function generateArkoalaFromIdl(config: {
             path.join(arkoala.managedDir, 'framework', `${NativeModule.Generated.name}Empty${peerLibrary.language.extension}`),
             printTSArkUIGeneratedEmptyNativeModule(peerLibrary, NativeModule.Generated).printToString()
         )
-        // TODO restore me
+        // Improve: restore me
         // writeFile(
         //     arkoala.tsLib(new TargetFile('NativeModuleRecorder')),
         //     printNativeModuleRecorder(peerLibrary),

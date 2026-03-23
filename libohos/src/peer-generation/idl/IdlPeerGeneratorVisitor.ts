@@ -210,8 +210,8 @@ export class IdlPeerProcessor {
         const mFields = [...(groupedFields.values())]
             .map(props => this.makeMaterializedField(props))
         mMethods.push(...(decl.methods
-            // .concat(...methodsFromInterface) // TODO insert here methods from interfaces
-            // TODO: Properly handle methods with return Promise<T> type
+            // .concat(...methodsFromInterface) // Improve insert here methods from interfaces
+            // Improve: Properly handle methods with return Promise<T> type
             .filter(it => it.name != PeerMethodSignature.GET_FINALIZER)
             .filter(it => it.name != PeerMethodSignature.CALL_HOLDER)
             .map(method => this.makeMaterializedMethod(decl, method, fullCName, implemenationParentName))
@@ -391,7 +391,7 @@ export function createDependencyFilter(library: PeerLibrary): DependencyFilter {
                 })
         case Language.CJ: return new EmptyDependencyFilter()
     }
-    // TODO: support other languages
+    // Improve: support other languages
     return new EmptyDependencyFilter()
 }
 

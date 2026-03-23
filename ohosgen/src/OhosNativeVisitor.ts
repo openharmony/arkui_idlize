@@ -148,7 +148,7 @@ class OHOSNativeVisitor {
     }
 
     private writeCallback(callback: IDLCallback) {
-        // TODO commonize with StructPrinter.ts
+        // Improve commonize with StructPrinter.ts
         const callbackTypeName = this.mangleTypeName(callback.name);
         const args = generateCallbackAPIArguments(this.library, callback)
         let _ = this.hWriter
@@ -198,7 +198,7 @@ class OHOSNativeVisitor {
                     new NameType(_h.escapeKeyword(it.name), this.argTypeConvertor.convert(it.type!)))
                 let argConvertors = ctor.parameters.map(param => generateArgConvertor(this.library, param))
                 let cppArgs = this.generateCParameters(ctor, argConvertors, _h)
-                _h.print(`${handleType} (*${name})(${cppArgs});`) // TODO check
+                _h.print(`${handleType} (*${name})(${cppArgs});`) // Improve check
                 let implName = `${className}_${name}Impl`
                 _c.print(`&${implName},`)
                 this.impls.push({ name: implName, signature: { params, returnType: handleType, paramsCString: cppArgs } })
@@ -287,7 +287,7 @@ class OHOSNativeVisitor {
         _c.print(`}`)
     }
 
-    // TODO drop this method
+    // Improve drop this method
     private generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: ArgConvertor[], writer: LanguageWriter): string {
         const args = argConvertors.map(it => {
             const typeName = writer.getNodeName(it.nativeType())
@@ -467,10 +467,10 @@ class ReturnTypeConvertor extends CppReturnTypeConvertor {
     }
 }
 
-// TODO commonize this piece of code
+// Improve commonize this piece of code
 class OhosBridgeVisitor extends BridgeVisitor {
     protected generateApiCall(context: idl.IDLInterface): string {
-        // TODO: may be need some translation tables?
+        // Improve: may be need some translation tables?
         let clazz = getDeclarationUniqueName(context)
         return capitalize(clazz) + "()"
     }

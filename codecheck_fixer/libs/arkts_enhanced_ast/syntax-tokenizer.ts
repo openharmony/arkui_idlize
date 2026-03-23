@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Source code tokenization using TypeScript Scanner API
  * 
@@ -24,7 +39,7 @@ export class SyntaxTokenizer {
   private lineStarts: number[];
 
   constructor(
-    sourceText: string, 
+    sourceText: string,
     scriptTarget: ts.ScriptTarget = ts.ScriptTarget.Latest,
     languageVariant: ts.LanguageVariant = ts.LanguageVariant.Standard
   ) {
@@ -35,7 +50,7 @@ export class SyntaxTokenizer {
       languageVariant,
       sourceText
     );
-    
+
     // Compute line start positions for converting offset to line/column
     this.lineStarts = this.computeLineStarts(sourceText);
   }
@@ -45,13 +60,13 @@ export class SyntaxTokenizer {
    */
   private computeLineStarts(text: string): number[] {
     const result: number[] = [0]; // First line starts at position 0
-    
+
     for (let i = 0; i < text.length; i++) {
       if (text[i] === '\n') {
         result.push(i + 1);
       }
     }
-    
+
     return result;
   }
 
@@ -68,10 +83,10 @@ export class SyntaxTokenizer {
       }
       line = i;
     }
-    
+
     const lineStart = this.lineStarts[line];
     const column = lineStart !== undefined ? offset - lineStart : 0;
-    
+
     return {
       offset,
       line,
@@ -85,34 +100,34 @@ export class SyntaxTokenizer {
    * @param start - Starting position of range
    * @param end - Ending position of range
    * @returns Array of syntactic tokens
-   * ??? why is manual tokenizer needed if tokens exist in CST?? TODO: check
+   * ??? why is manual tokenizer needed if tokens exist in CST?? Improve: check
    */
   tokenize(start: number, end: number): SyntaxToken[] {
     const tokens: SyntaxToken[] = [];
-    
+
     // Set scanner position
     this.scanner.setTextPos(start);
-    
+
     while (this.scanner.getTextPos() < end) {
       const tokenStart = this.scanner.getTextPos();
       const tokenKind = this.scanner.scan();
-      
+
       // Break if reached end
       if (tokenKind === ts.SyntaxKind.EndOfFileToken) {
         break;
       }
-      
+
       const tokenEnd = this.scanner.getTextPos();
-      
+
       // Break if went beyond range boundaries
       if (tokenEnd > end) {
         break;
       }
-      
+
       const tokenText = this.sourceText.substring(tokenStart, tokenEnd);
       const position = this.offsetToPosition(tokenStart);
       const type = this.mapTokenKindToType(tokenKind);
-      
+
       tokens.push({
         type,
         text: tokenText,
@@ -120,7 +135,7 @@ export class SyntaxTokenizer {
         tsKind: tokenKind
       });
     }
-    
+
     return tokens;
   }
 
@@ -132,32 +147,32 @@ export class SyntaxTokenizer {
     if (kind >= ts.SyntaxKind.FirstKeyword && kind <= ts.SyntaxKind.LastKeyword) {
       return SyntaxTokenType.KEYWORD;
     }
-    
+
     // Specific tokens
     switch (kind) {
       case ts.SyntaxKind.Identifier:
         return SyntaxTokenType.IDENTIFIER;
-      
+
       case ts.SyntaxKind.OpenBraceToken:
         return SyntaxTokenType.OPEN_BRACE;
       case ts.SyntaxKind.CloseBraceToken:
         return SyntaxTokenType.CLOSE_BRACE;
-      
+
       case ts.SyntaxKind.OpenParenToken:
         return SyntaxTokenType.OPEN_PAREN;
       case ts.SyntaxKind.CloseParenToken:
         return SyntaxTokenType.CLOSE_PAREN;
-      
+
       case ts.SyntaxKind.LessThanToken:
         return SyntaxTokenType.OPEN_ANGLE;
       case ts.SyntaxKind.GreaterThanToken:
         return SyntaxTokenType.CLOSE_ANGLE;
-      
+
       case ts.SyntaxKind.OpenBracketToken:
         return SyntaxTokenType.OPEN_BRACKET;
       case ts.SyntaxKind.CloseBracketToken:
         return SyntaxTokenType.CLOSE_BRACKET;
-      
+
       case ts.SyntaxKind.CommaToken:
         return SyntaxTokenType.COMMA;
       case ts.SyntaxKind.SemicolonToken:
@@ -166,7 +181,7 @@ export class SyntaxTokenizer {
         return SyntaxTokenType.COLON;
       case ts.SyntaxKind.DotToken:
         return SyntaxTokenType.DOT;
-      
+
       case ts.SyntaxKind.EqualsToken:
         return SyntaxTokenType.EQUALS;
       case ts.SyntaxKind.EqualsGreaterThanToken:
@@ -177,29 +192,29 @@ export class SyntaxTokenizer {
         return SyntaxTokenType.NULLISH_COALESCING;
       case ts.SyntaxKind.DotDotDotToken:
         return SyntaxTokenType.SPREAD;
-      
+
       case ts.SyntaxKind.MinusToken:
         return SyntaxTokenType.MINUS;
       case ts.SyntaxKind.PlusToken:
         return SyntaxTokenType.PLUS;
-      
+
       // Union/intersection operators and others
       case ts.SyntaxKind.BarToken:  // |
       case ts.SyntaxKind.AmpersandToken:  // &
       case ts.SyntaxKind.BarBarToken:  // ||
       case ts.SyntaxKind.AmpersandAmpersandToken:  // &&
         return SyntaxTokenType.OPERATOR;
-      
+
       case ts.SyntaxKind.WhitespaceTrivia:
         return SyntaxTokenType.WHITESPACE;
       case ts.SyntaxKind.NewLineTrivia:
         return SyntaxTokenType.NEWLINE;
-      
+
       case ts.SyntaxKind.SingleLineCommentTrivia:
         return SyntaxTokenType.LINE_COMMENT;
       case ts.SyntaxKind.MultiLineCommentTrivia:
         return SyntaxTokenType.BLOCK_COMMENT;
-      
+
       default:
         return SyntaxTokenType.OTHER;
     }
@@ -221,4 +236,3 @@ export function createTokenizer(
 ): SyntaxTokenizer {
   return new SyntaxTokenizer(sourceText, scriptTarget, languageVariant);
 }
-

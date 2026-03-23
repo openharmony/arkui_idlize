@@ -1,5 +1,20 @@
 #!/usr/bin/env node
 
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -10,41 +25,41 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
   const start = node.getStart(sourceFile);
   const end = node.getEnd();
   const text = sourceText.substring(start, end);
-  
+
   const connectorSymbol = isLast ? '└───┨' : '├───┨';
   const childPrefix = prefix + (isLast ? '    ' : '│   ');
-  
+
   const displayText = text
     .replace(/\n/g, '\\n')
     .replace(/\r/g, '\\r')
     .replace(/\t/g, '\\t')
     .replace(/\\/g, '\\\\');
   const escapedDisplayText = displayText.replace(/"/g, '\\"');
-  
+
   const metadata: string[] = [];
-  
+
   // Calculate indent (number of spaces before text)
   const leadingTrivia = fullStart !== start ? sourceText.substring(fullStart, start) : '';
   const leadingSpaces = leadingTrivia.match(/^ */)?.[0]?.length || 0;
-  
+
   // First parameter - indent and text size
   metadata.push(`{indent: ${leadingSpaces}, textLen: ${text.length}}`);
-  
+
   metadata.push(`type: ${ts.SyntaxKind[node.kind]}`);
-  
+
   // Add positions
   if (fullStart !== start) {
     metadata.push(`pos: ${fullStart}-${start}-${end}`);
   } else {
     metadata.push(`pos: ${start}-${end}`);
   }
-  
+
   // Check modifiers
   if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
     const modifierNames = node.modifiers.map(m => ts.SyntaxKind[m.kind]).join(', ');
     metadata.push(`modifiers: [${modifierNames}]`);
   }
-  
+
   // Check flags
   if ('flags' in node && node.flags) {
     const flagNames: string[] = [];
@@ -52,14 +67,14 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
     if (node.flags & ts.NodeFlags.Let) flagNames.push('Let');
     if (node.flags & ts.NodeFlags.Using) flagNames.push('Using');
     if (node.flags & ts.NodeFlags.AwaitUsing) flagNames.push('AwaitUsing');
-    
+
     if (flagNames.length > 0) {
       metadata.push(`flags: [${flagNames.join(', ')}]`);
     } else {
       metadata.push(`flags: ${node.flags}`);
     }
   }
-  
+
   // Check leading trivia
   if (fullStart !== start) {
     const leadingTrivia = sourceText.substring(fullStart, start);
@@ -73,27 +88,27 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
       metadata.push(`trivia: "${triviaDisplay}"`);
     }
   }
-  
+
   // Add number of children
   const modifiersCount = ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) ? node.modifiers.length : 0;
   const childrenCount = modifiersCount + node.getChildCount(sourceFile);
   if (childrenCount > 0) {
     metadata.push(`children: ${childrenCount}`);
   }
-  
+
   // Output node in two-line format
   console.log(`${prefix}${connectorSymbol}"${escapedDisplayText}"`);
   const metadataLine = metadata.join('; ');
   console.log(`${childPrefix}┃(${metadataLine})`);
-  
+
   // Collect ALL child nodes, including modifiers
   const children: ts.Node[] = [];
-  
+
   // Add modifiers if any
   if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
     children.push(...node.modifiers);
   }
-  
+
   // Add regular child nodes
   ts.forEachChild(node, child => {
     // Avoid duplicating modifiers
@@ -105,7 +120,7 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
       children.push(child);
     }
   });
-  
+
   // Recursively output children
   children.forEach((child, index) => {
     const isLastChild = index === children.length - 1;
@@ -116,22 +131,22 @@ function printTreeStructure(node: ts.Node, sourceFile: ts.SourceFile, depth = 0,
 function printAST(node: ts.Node, sourceFile: ts.SourceFile, depth = 0) {
   const indent = '  '.repeat(depth);
   const sourceText = sourceFile.getFullText();
-  
+
   const fullStart = node.getFullStart();
   const start = node.getStart(sourceFile);
   const end = node.getEnd();
-  
+
   const fullText = sourceText.substring(fullStart, end);
   const text = sourceText.substring(start, end);
   const leadingTrivia = sourceText.substring(fullStart, start);
-  
+
   console.log(`${indent}${ts.SyntaxKind[node.kind]} (${fullStart}-${start}-${end})`);
   console.log(`${indent}  fullText: "${fullText}"`);
   console.log(`${indent}  text: "${text}"`);
   if (leadingTrivia) {
     console.log(`${indent}  leadingTrivia: "${leadingTrivia}"`);
   }
-  
+
   // Show modifiers
   if ('modifiers' in node && node.modifiers && Array.isArray(node.modifiers)) {
     console.log(`${indent}  modifiers:`);
@@ -140,7 +155,7 @@ function printAST(node: ts.Node, sourceFile: ts.SourceFile, depth = 0) {
       console.log(`${indent}    ${ts.SyntaxKind[modifier.kind]}: "${modText}"`);
     }
   }
-  
+
   // Show flags
   if ('flags' in node && node.flags) {
     const flagNames: string[] = [];
@@ -148,31 +163,31 @@ function printAST(node: ts.Node, sourceFile: ts.SourceFile, depth = 0) {
     if (node.flags & ts.NodeFlags.Let) flagNames.push('Let');
     if (node.flags & ts.NodeFlags.Using) flagNames.push('Using');
     if (node.flags & ts.NodeFlags.AwaitUsing) flagNames.push('AwaitUsing');
-    
+
     if (flagNames.length > 0) {
       console.log(`${indent}  flags: ${node.flags} (${flagNames.join(', ')})`);
     } else {
       console.log(`${indent}  flags: ${node.flags}`);
     }
   }
-  
+
   console.log('');
-  
+
   ts.forEachChild(node, child => printAST(child, sourceFile, depth + 1));
 }
 
 function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     console.log('Usage: npx ts-node ast-viewer.ts <file>');
     console.log('Or: npx ts-node ast-viewer.ts --code "code"');
     process.exit(1);
   }
-  
+
   let sourceCode: string;
   let fileName: string;
-  
+
   if (args[0] === '--code') {
     if (!args[1]) {
       console.error('Code not specified after --code');
@@ -193,21 +208,21 @@ function main() {
     sourceCode = fs.readFileSync(filePath, 'utf-8');
     fileName = path.basename(filePath);
   }
-  
+
   console.log(`=== AST for file: ${fileName} ===`);
   console.log(`Size: ${sourceCode.length} characters`);
   console.log('');
-  
+
   // Create AST
   const sourceFile = ts.createSourceFile(fileName, sourceCode, ts.ScriptTarget.Latest, true);
-  
+
   console.log('=== TREE STRUCTURE ===');
   printTreeStructure(sourceFile, sourceFile);
   console.log('');
-  
+
   console.log('=== DETAILED INFORMATION ===');
   printAST(sourceFile, sourceFile);
-  
+
   // console.log('');
   // console.log('=== SOURCE TEXT ===');
   // console.log(`"${sourceCode}"`);

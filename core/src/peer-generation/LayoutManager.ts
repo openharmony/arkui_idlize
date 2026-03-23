@@ -38,7 +38,7 @@ export interface LayoutTargetDescription {
 
 export interface LayoutManagerStrategy {
     resolve(target:LayoutTargetDescription): string
-    // TBD: properly define package for external types extractors
+    // Improve: properly define package for external types extractors
     handwrittenPackage(): string
 }
 

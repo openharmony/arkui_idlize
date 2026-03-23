@@ -1875,7 +1875,7 @@
 | done | Morozov Sergey |  |  |  | arkui.component.slider | SliderAttribute | trackBorderRadius | 0 | method | Slider | `setTrackBorderRadius`
 | done | Morozov Sergey |  |  |  | arkui.component.slider | SliderAttribute | selectedBorderRadius | 0 | method | Slider | `setSelectedBorderRadius`
 | done | Morozov Sergey |  |  |  | arkui.component.slider | SliderAttribute | blockSize | 0 | method | Slider | `setBlockSize`
-| blocked | Morozov Sergey |  |  | TBD | arkui.component.slider | SliderAttribute | blockStyle | 0 | method | Slider | `setBlockStyle`
+| blocked | Morozov Sergey |  |  | Improve | arkui.component.slider | SliderAttribute | blockStyle | 0 | method | Slider | `setBlockStyle`
 | done | Morozov Sergey |  |  |  | arkui.component.slider | SliderAttribute | stepSize | 0 | method | Slider | `setStepSize`
 | done | Morozov Sergey |  |  |  | arkui.component.slider | SliderAttribute | sliderInteractionMode | 0 | method | Slider | `setSliderInteractionMode`
 | done | Morozov Sergey |  |  |  | arkui.component.slider | SliderAttribute | minResponsiveDistance | 0 | method | Slider | `setMinResponsiveDistance`

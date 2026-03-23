@@ -5,7 +5,7 @@ import arkui.CheckCustomModifierModifier.CheckCustomModifierModifier as CheckCus
 import arkui.CheckTrivialModifierModifier.CheckTrivialModifierModifier as CheckTrivialModifierModifier;
 typedef DrawContext = _DrawContext;
 
-// TBD: used in conf/ets-sdk.refs.json
+// Improve: used in conf/ets-sdk.refs.json
 interface <T> AttributeModifier {
     void applyNormalAttribute(T instance);
 };
@@ -14,7 +14,7 @@ interface BaseEvent {
     attribute number timestamp;
 };
 
-// TBD: required for CallDrawModifierCallbacks in dummy_impl.cpp
+// Improve: required for CallDrawModifierCallbacks in dummy_impl.cpp
 [Synthetic]
 callback Callback_Void = void ();
 interface ClickEvent: BaseEvent {
@@ -26,7 +26,7 @@ interface AnimateParam {
     [Optional]
     attribute number duration;
 };
-// TBD: required for CallDrawModifierCallbacks in dummy_impl.cpp
+// Improve: required for CallDrawModifierCallbacks in dummy_impl.cpp
 [Synthetic]
 callback Callback_DrawContext_Void = void (DrawContext drawContext);
 [Entity=Class]

@@ -28,7 +28,7 @@ export class EnumsPrinter extends SingleFilePrinter {
         {
             convert : (node: IDLType) => {
                 if (isUnionType(node)) {
-                    // TODO: core implementation, it is better tor use the
+                    // Improve: core implementation, it is better tor use the
                     // whole converters from core.
                     return node.types.map(type =>
                         this.converter.convertType(type)

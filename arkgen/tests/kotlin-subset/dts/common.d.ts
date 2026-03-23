@@ -16579,7 +16579,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 11
    */
-  // TODO: temporary!
+  // Improve: temporary!
   onClick(event: (event: ClickEvent) => void): T;
 
   /**

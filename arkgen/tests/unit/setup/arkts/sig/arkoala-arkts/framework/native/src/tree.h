@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023, 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,17 @@
 
 #pragma once
 
+#include "interop-types.h"
+
 #include <algorithm>
-#include <functional>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
-#include <cstdint>
+#include <functional>
 #include <string>
-#include <vector>
-#include <utility>
 #include <unordered_map>
-
-#include "interop-types.h"
+#include <utility>
+#include <vector>
 
 using std::string;
 
@@ -34,50 +34,52 @@ const int DrawBehind = 0;
 const int DrawContent = 1;
 const int DrawFront = 2;
 
-struct Dimension
-{
+struct Dimension {
     float value = 0;
     int32_t unit = UndefinedDimensionUnit;
 };
 
 struct DrawModifierCaller {
-    private:
+private:
     std::function<void(Ark_DrawContext event)> _drawBehindCallback;
     std::function<void(Ark_DrawContext event)> _drawContentCallback;
     std::function<void(Ark_DrawContext event)> _drawFrontCallback;
 
-    public:
-    void setDrawModifierCallback(std::function<void(Ark_DrawContext event)> callback, int type) {
-        switch (type)
-        {
-        case DrawBehind:
-            _drawBehindCallback = callback;
-            break;
-        case DrawContent:
-            _drawContentCallback = callback;
-            break;
-        case DrawFront:
-            _drawFrontCallback = callback;
-            break;
-        default:
-            break;
+public:
+    void setDrawModifierCallback(std::function<void(Ark_DrawContext event)> callback, int type)
+    {
+        switch (type) {
+            case DrawBehind:
+                _drawBehindCallback = callback;
+                break;
+            case DrawContent:
+                _drawContentCallback = callback;
+                break;
+            case DrawFront:
+                _drawFrontCallback = callback;
+                break;
+            default:
+                break;
         }
     }
 
-    void callDrawModifierCallback(Ark_DrawContext context, int type) {
-        switch (type)
-        {
-        case DrawBehind:
-            if (_drawBehindCallback) _drawBehindCallback(context);
-            break;
-        case DrawContent:
-            if (_drawContentCallback) _drawContentCallback(context);
-            break;
-        case DrawFront:
-            if (_drawFrontCallback) _drawFrontCallback(context);
-            break;
-        default:
-            break;
+    void callDrawModifierCallback(Ark_DrawContext context, int type)
+    {
+        switch (type) {
+            case DrawBehind:
+                if (_drawBehindCallback)
+                    _drawBehindCallback(context);
+                break;
+            case DrawContent:
+                if (_drawContentCallback)
+                    _drawContentCallback(context);
+                break;
+            case DrawFront:
+                if (_drawFrontCallback)
+                    _drawFrontCallback(context);
+                break;
+            default:
+                break;
         }
     }
 };
@@ -85,12 +87,12 @@ struct DrawModifierCaller {
 std::unordered_map<Ark_DrawModifier, std::shared_ptr<DrawModifierCaller>> DrawModifiersQueue;
 
 struct TreeNode {
-  private:
+private:
     static int _globalId;
     static string _noAttribute;
     string _name;
     int _customIntData;
-    std::unique_ptr<void, std::function<void(const void *)>> _customVoidData;
+    std::unique_ptr<void, std::function<void(const void*)>> _customVoidData;
     int _peerId;
     int _flags;
     // Id of our peer.
@@ -113,44 +115,78 @@ struct TreeNode {
 
     std::function<void(Ark_ClickEvent event)> _clickCallback;
 
-
-  public:
-    TreeNode(const string& name, int peerId, int flags) :
-        _name(name), _customIntData(0), _peerId(peerId), _flags(flags), _id(_globalId++), _updaterId(0), _indexerId(0), _parent(nullptr) {}
+public:
+    TreeNode(const string& name, int peerId, int flags)
+        : _name(name), _customIntData(0), _peerId(peerId), _flags(flags), _id(_globalId++), _updaterId(0), _indexerId(0), _parent(nullptr) {}
 
     ~TreeNode() = default;
 
-    string name() const { return _name; }
+    string name() const
+    {
+        return _name;
+    }
 
-    void setCustomIntData(int intData) {
+    void setCustomIntData(int intData)
+    {
         _customIntData = intData;
     }
 
     template<class T>
-    void setCustomVoidData(T *const ptr) {
-        _customVoidData = {ptr, [ptr](const void *) { delete ptr; }};
+    void setCustomVoidData(T* const ptr)
+    {
+        _customVoidData = { ptr, [ptr](const void*) { delete ptr; } };
     }
 
-    void *customVoidData() const {
+    void* customVoidData() const
+    {
         return _customVoidData.get();
     }
-    const char* namePtr() const { return _name.c_str(); }
+    const char* namePtr() const
+    {
+        return _name.c_str();
+    }
 
-    int peerId() const { return _peerId; }
+    int peerId() const
+    {
+        return _peerId;
+    }
 
-    int id() const { return _id; }
+    int id() const
+    {
+        return _id;
+    }
 
-    int updaterId() const { return _updaterId; }
-    int indexerId() const { return _indexerId; }
-    int customId() const { return _customId; }
+    int updaterId() const
+    {
+        return _updaterId;
+    }
+    int indexerId() const
+    {
+        return _indexerId;
+    }
+    int customId() const
+    {
+        return _customId;
+    }
 
-    void setUpdaterId(int updaterId) { _updaterId = updaterId; }
-    void setIndexerId(int indexerId) { _indexerId = indexerId; }
-    void setCustomId(int customId) { _customId = customId; }
-    void setClickEvent(std::function<void(Ark_ClickEvent event)> event) {
+    void setUpdaterId(int updaterId)
+    {
+        _updaterId = updaterId;
+    }
+    void setIndexerId(int indexerId)
+    {
+        _indexerId = indexerId;
+    }
+    void setCustomId(int customId)
+    {
+        _customId = customId;
+    }
+    void setClickEvent(std::function<void(Ark_ClickEvent event)> event)
+    {
         _clickCallback = event;
     }
-    void callClickEvent(Ark_ClickEvent event) {
+    void callClickEvent(Ark_ClickEvent event)
+    {
         if (_clickCallback) {
             _clickCallback(event);
         } else {
@@ -158,24 +194,35 @@ struct TreeNode {
         }
     }
 
-    void setDrawModifier(Ark_DrawModifier modifier) { _drawModifier = modifier; }
+    void setDrawModifier(Ark_DrawModifier modifier)
+    {
+        _drawModifier = modifier;
+    }
 
-    const std::vector<TreeNode*>* children() { return &_children; }
+    const std::vector<TreeNode*>* children()
+    {
+        return &_children;
+    }
 
-    void dispose() {
-        if (_drawModifier) DrawModifiersQueue.erase(_drawModifier);
+    void dispose()
+    {
+        if (_drawModifier)
+            DrawModifiersQueue.erase(_drawModifier);
         delete this;
     }
 
-    void setParent(TreeNode* parent) {
+    void setParent(TreeNode* parent)
+    {
         this->_parent = parent;
     }
 
-    TreeNode* parent() const {
+    TreeNode* parent() const
+    {
         return this->_parent;
     }
 
-    int addChild(TreeNode* node) {
+    int addChild(TreeNode* node)
+    {
         _children.push_back(node);
         node->setParent(this);
         return 0;
@@ -194,7 +241,8 @@ struct TreeNode {
     void setYValue(float value);
     float getYValue();
 
-    void removeChild(TreeNode* node) {
+    void removeChild(TreeNode* node)
+    {
         auto it = std::find(_children.begin(), _children.end(), node);
         if (it != _children.end()) {
             _children.erase(it);
@@ -202,7 +250,8 @@ struct TreeNode {
         }
     }
 
-    int insertChildAfter(TreeNode* node, TreeNode* sibling) {
+    int insertChildAfter(TreeNode* node, TreeNode* sibling)
+    {
         if (sibling == (TreeNode*)1 || sibling == nullptr) {
             node->setParent(this);
             _children.push_back(node);
@@ -224,7 +273,8 @@ struct TreeNode {
         return 0;
     }
 
-    int insertChildBefore(TreeNode* node, TreeNode* sibling) {
+    int insertChildBefore(TreeNode* node, TreeNode* sibling)
+    {
         if (sibling == (TreeNode*)1 || sibling == nullptr) {
             _children.insert(_children.begin(), node);
             return 0;
@@ -244,7 +294,8 @@ struct TreeNode {
         return 0;
     }
 
-    int insertChildAt(TreeNode* node, int position) {
+    int insertChildAt(TreeNode* node, int position)
+    {
         if ((size_t)position <= _children.size()) {
             _children.insert(std::next(_children.begin(), position), node);
         } else {
@@ -254,7 +305,8 @@ struct TreeNode {
         return 0;
     }
 
-    void* needMoreElements(void* mark, int32_t direction) {
+    void* needMoreElements(void* mark, int32_t direction)
+    {
         fprintf(stderr, "needMoreElements %p %d\n", mark, direction);
         if (_children.size() == 0)
             return (void*)0x1;
@@ -263,7 +315,8 @@ struct TreeNode {
         return direction == 0 ? _children.front() : _children.back();
     }
 
-    const string& getAttribute(const std::string& key) const {
+    const string& getAttribute(const std::string& key) const
+    {
         auto it = _attributes.find(key);
         if (it != _attributes.end())
             return it->second;
@@ -271,11 +324,13 @@ struct TreeNode {
             return _noAttribute;
     }
 
-    void setAttribute(const string& key, const string& value) {
+    void setAttribute(const string& key, const string& value)
+    {
         _attributes[key] = value;
     }
 
-    void resetAttribute(const string& key) {
+    void resetAttribute(const string& key)
+    {
         _attributes.erase(key);
     }
 
@@ -290,11 +345,14 @@ struct Color {
     char r;
     char g;
     char b;
-    Color(char r, char g, char b) : r(r), g(g), b(b) {}
-    bool operator==(const Color& other) const {
+    Color(char r, char g, char b)
+        : r(r), g(g), b(b) {}
+    bool operator==(const Color& other) const
+    {
         return (r == other.r && g == other.g && b == other.b);
     }
-    bool operator!=(const Color& other) const {
+    bool operator!=(const Color& other) const
+    {
         return !(r == other.r && g == other.g && b == other.b);
     }
 };
@@ -302,22 +360,23 @@ struct LAB {
     float l;
     float a;
     float b;
-    LAB(float l = 1, float a = 1, float b = 1) : l(l), a(a), b(b) {}
+    LAB(float l = 1, float a = 1, float b = 1)
+        : l(l), a(a), b(b) {}
 };
 #pragma pack(push, 1)
 struct TGAHeader {
-    uint8_t  idLength;
-    uint8_t  colorMapType;
-    uint8_t  imageType;
+    uint8_t idLength;
+    uint8_t colorMapType;
+    uint8_t imageType;
     uint16_t colorMapOrigin;
     uint16_t colorMapLength;
-    uint8_t  colorMapDepth;
+    uint8_t colorMapDepth;
     uint16_t xOrigin;
     uint16_t yOrigin;
     uint16_t width;
     uint16_t height;
-    uint8_t  bitsPerPixel;
-    uint8_t  imageDescriptor;
+    uint8_t bitsPerPixel;
+    uint8_t imageDescriptor;
 };
 #pragma pack(pop)
 
@@ -331,47 +390,60 @@ struct TGAInfo {
     std::vector<char> pixels;
 };
 
-LAB rgbToLAB(Color &c) {
+LAB rgbToLAB(Color& c)
+{
     float x, y, z, r, g, b;
-    r = c.r / 255.0; g = c.g / 255.0; b = c.b / 255.0;
+    r = c.r / 255.0;
+    g = c.g / 255.0;
+    b = c.b / 255.0;
     if (r > 0.04045)
-        r = powf(( (r + 0.055) / 1.055 ), 2.4);
-    else r /= 12.92;
+        r = powf(((r + 0.055) / 1.055), 2.4);
+    else
+        r /= 12.92;
     if (g > 0.04045)
-        g = powf(( (g + 0.055) / 1.055 ), 2.4);
-    else g /= 12.92;
+        g = powf(((g + 0.055) / 1.055), 2.4);
+    else
+        g /= 12.92;
     if (b > 0.04045)
-        b = powf(( (b + 0.055) / 1.055 ), 2.4);
-    else b /= 12.92;
-    r *= 100; g *= 100; b *= 100;
+        b = powf(((b + 0.055) / 1.055), 2.4);
+    else
+        b /= 12.92;
+    r *= 100;
+    g *= 100;
+    b *= 100;
     x = r * 0.4124 + g * 0.3576 + b * 0.1805;
     y = r * 0.2126 + g * 0.7152 + b * 0.0722;
     z = r * 0.0193 + g * 0.1192 + b * 0.9505;
 
     const float refX = 95.047, refY = 100.0, refZ = 108.883;
-    x = x / refX; y = y / refY; z = z / refZ;
+    x = x / refX;
+    y = y / refY;
+    z = z / refZ;
     if (x > 0.008856)
         x = powf(x, 1 / 3.0);
-    else x = (7.787 * x) + (16.0 / 116.0);
+    else
+        x = (7.787 * x) + (16.0 / 116.0);
     if (y > 0.008856)
         y = powf(y, 1 / 3.0);
-    else y = (7.787 * y) + (16.0 / 116.0);
+    else
+        y = (7.787 * y) + (16.0 / 116.0);
     if (z > 0.008856)
         z = powf(z, 1 / 3.0);
-    else z = (7.787 * z) + (16.0 / 116.0);
+    else
+        z = (7.787 * z) + (16.0 / 116.0);
 
     auto lab = LAB(
         116 * y - 16,
         500 * (x - y),
-        200 * (y - z)
-    );
+        200 * (y - z));
     return lab;
 }
 
 const std::string GoldenPath = "../ui2abc/ets-tests/ets/golden-tests/golden/dummy/";
 const std::string OutPath = "../ui2abc/ets-tests/build/golden/dummy/";
 
-bool WriteImageTGA(std::string name, TGAInfo &info) {
+bool WriteImageTGA(std::string name, TGAInfo& info)
+{
     fprintf(stderr, "image: %s %s\n", std::filesystem::current_path().c_str(), name.c_str());
     std::ofstream file(name + ".tga", std::ios::out | std::ios::binary);
     if (!file.is_open()) {
@@ -379,7 +451,7 @@ bool WriteImageTGA(std::string name, TGAInfo &info) {
         INTEROP_FATAL("Error");
         return false;
     }
-    info.header.imageType = 2; // Uncompressed RGB
+    info.header.imageType = 2;     // Uncompressed RGB
     info.header.bitsPerPixel = 24; // 24-bit RGB
 
     file.write(reinterpret_cast<const char*>(&info.header), sizeof(TGAHeader));
@@ -390,7 +462,8 @@ bool WriteImageTGA(std::string name, TGAInfo &info) {
     return true;
 }
 
-bool ReadImageTGA(std::string name, TGAInfo &info) {
+bool ReadImageTGA(std::string name, TGAInfo& info)
+{
     std::ifstream file(name + ".tga", std::ios::binary);
     if (!file.is_open()) {
         fprintf(stderr, "Cannot read image: %s\n", name.c_str());
@@ -404,10 +477,11 @@ bool ReadImageTGA(std::string name, TGAInfo &info) {
     return true;
 }
 
-bool WriteDiffTGA(std::string name, std::vector<char> &golden, std::vector<char> &target, TGAHeader &header) {
+bool WriteDiffTGA(std::string name, std::vector<char>& golden, std::vector<char>& target, TGAHeader& header)
+{
     uint32_t size = header.width * header.height * (header.bitsPerPixel / 8);
     std::vector<uint8_t> pixels(size);
-    for(uint32_t i = 0; i < size; i += 3) {
+    for (uint32_t i = 0; i < size; i += 3) {
         // BGR
         Color gld(golden[i], golden[i + 1], golden[i + 2]);
         Color trg(target[i], target[i + 1], target[i + 2]);
@@ -432,13 +506,14 @@ bool WriteDiffTGA(std::string name, std::vector<char> &golden, std::vector<char>
     return true;
 }
 
-bool CompareTwoTGA(std::string test, std::string name, TGAInfo golden, TGAInfo target) {
+bool CompareTwoTGA(std::string test, std::string name, TGAInfo golden, TGAInfo target)
+{
     bool result = true;
     if (golden.pixels.size() != target.pixels.size()) {
         fprintf(stderr, "Image sizes is not identical! Golden: %ld vs Target: %ld\n", golden.pixels.size(), target.pixels.size());
         return false;
     }
-    for(uint32_t i = 0; i < golden.pixels.size(); i++) {
+    for (uint32_t i = 0; i < golden.pixels.size(); i++) {
         auto gld = golden.pixels[i];
         auto trg = target.pixels[i];
         if (trg != gld) {
@@ -452,20 +527,19 @@ bool CompareTwoTGA(std::string test, std::string name, TGAInfo golden, TGAInfo t
         std::filesystem::copy(
             GoldenPath + std::string(name + ".tga"),
             OutPath + test + "/" + std::string(name + "_expected.tga"),
-            std::filesystem::copy_options::overwrite_existing
-        );
+            std::filesystem::copy_options::overwrite_existing);
         std::filesystem::copy(
             OutPath + std::string(name + ".tga"),
             OutPath + test + "/" + std::string(name + "_actual.tga"),
-            std::filesystem::copy_options::overwrite_existing
-        );
+            std::filesystem::copy_options::overwrite_existing);
     }
     std::filesystem::remove(OutPath + std::string(name + ".tga"));
 
     return result;
 }
 
-bool StubTGA(std::string name, TGAInfo &info) {
+bool StubTGA(std::string name, TGAInfo& info)
+{
     fprintf(stderr, "image: %s %s\n", std::filesystem::current_path().c_str(), name.c_str());
     std::ofstream file(name + ".tga", std::ios::out | std::ios::binary);
     if (!file.is_open()) {
@@ -477,7 +551,7 @@ bool StubTGA(std::string name, TGAInfo &info) {
     uint32_t size = info.header.width * info.header.height * (info.header.bitsPerPixel / 8);
     info.pixels.resize(size);
 
-    for(uint32_t i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         info.pixels[i] = 0x80;
     }
 
@@ -489,7 +563,8 @@ bool StubTGA(std::string name, TGAInfo &info) {
     return true;
 }
 
-void CopyTGAHeaders(TGAInfo &from, TGAInfo &to) {
+void CopyTGAHeaders(TGAInfo& from, TGAInfo& to)
+{
     to.header.idLength = from.header.idLength;
     to.header.colorMapDepth = from.header.colorMapDepth;
     to.header.colorMapLength = from.header.colorMapLength;

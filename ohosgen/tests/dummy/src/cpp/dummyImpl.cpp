@@ -18,14 +18,16 @@
 #include "dummy.h"
 
 #include <iostream>
-#include <string.h>
+#include <cstring>
 
 // GlobalScope
 
-void GlobalScope_idlDummyImpl() {
+void GlobalScope_idlDummyImpl()
+{
     printf("Output from IDL dummy\n");
 }
-void GlobalScope_dtsDummyImpl() {
+void GlobalScope_dtsDummyImpl()
+{
     printf("Output from DTS dummy\n");
 }
 

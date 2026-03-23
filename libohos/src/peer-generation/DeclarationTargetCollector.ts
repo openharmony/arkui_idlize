@@ -34,7 +34,7 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
 
     let orderer = new DependencySorter(library, options.unionFlatteningMode)
     for (const file of library.files) {
-        if (!file.entries.length || !isInCurrentModule(file.entries[0]/*TODO just IDLFile*/))
+        if (!file.entries.length || !isInCurrentModule(file.entries[0]/*Improve just IDLFile*/))
             continue
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (peerGeneratorConfiguration().ignoreEntry(entry.name, library.language) ||
@@ -68,7 +68,7 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
                             orderer.addDep(library.toDeclaration(idl.maybeOptional(parameter.type!, parameter.isOptional)))
                     }
                 } else if (generateUnused && !isInIdlize(entry) && !idl.hasTypeParameters(entry)) {
-                    // TODO seems like we do not need this in CAPI, just useful for managed side
+                    // Improve seems like we do not need this in CAPI, just useful for managed side
                     orderer.addDep(library.toDeclaration(entry))
                     for (const property of entry.properties) {
                         if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name))

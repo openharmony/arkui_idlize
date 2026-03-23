@@ -131,7 +131,7 @@ kotlin_library_name = 'NativeBridgeKotlin'
 ohos_library_name = 'NativeBridge_ohos'
 
 if is_clang
-    # TODO: remove all -Wno-* when generation is fixed.
+    # Improve: remove all -Wno-* when generation is fixed.
     cflags += [
         '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable',
         '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations',
@@ -196,7 +196,7 @@ cj_sources = [
 
 if is_node
     node_ldflags = []
-    # TODO: support v8 on arm32 board.
+    # Improve: support v8 on arm32 board.
     if get_option('is_ohos_v8') and arch == 'arm64'
         node_ldflags += [ '-lnode' ]
     endif
@@ -266,7 +266,7 @@ if is_kotlin
     )
 endif
 
-# TODO: fix on Windows as well
+# Improve: fix on Windows as well
 if (os != 'windows') and (is_unit == false)
     executable('test_arkoala_api',
         arkoala_dir / 'api_test.c',

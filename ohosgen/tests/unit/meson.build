@@ -51,7 +51,7 @@ is_clang = meson.get_compiler('cpp').get_id() == 'clang'
 is_gcc = meson.get_compiler('cpp').get_id() == 'gcc'
 
 if is_clang
-    # TODO: remove all -Wno-* when generation is fixed.
+    # Improve: remove all -Wno-* when generation is fixed.
     cflags += [
         '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable',
         '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations',

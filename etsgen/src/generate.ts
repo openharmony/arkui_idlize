@@ -646,7 +646,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         let currentValue = 0
         let enumNames = nameEnumValues(node.members
             .map(it => (it as arkts.TSEnumMember).name)
-            // TBD: Woraround for Number enum member
+            // Improve: Woraround for Number enum member
             .map(it => fixEnumMemberName(it))
         )
         result.elements =

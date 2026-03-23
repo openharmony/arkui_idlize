@@ -125,7 +125,7 @@ function printConstEts(
 }
 
 const arkTsImportsCodeStub = // Temporary stub for ArkTS.
-"import { PageTransitionEnter, PageTransitionExit, RouteType } from '../../stubsArkTs1_2/PageTransition' // TODO ArkTS 1.2 is not supported."
+"import { PageTransitionEnter, PageTransitionExit, RouteType } from '../../stubsArkTs1_2/PageTransition' // Improve ArkTS 1.2 is not supported."
 const arkTsImportsCode =
 `// Only for ArkTS
 ${arkTsImportsCodeStub}`

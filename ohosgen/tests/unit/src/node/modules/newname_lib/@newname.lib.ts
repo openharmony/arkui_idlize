@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 import { SerializerBase, DeserializerBase } from "@koalaui/interop"
 
 export interface RenamedModuleDataInterface {

@@ -35,7 +35,8 @@ public:
      * \return Processing result after applying transformation to input
      */
     int DoxygenMethod(int value) {
-        return value * 2;
+        int multCoeff = 2;
+        return value * multCoeff;
     }
 
 private:

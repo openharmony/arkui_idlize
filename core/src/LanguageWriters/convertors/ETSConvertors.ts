@@ -26,7 +26,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
             if (typeName.startsWith(namespacesPath))
                 typeName = typeName.substring(namespacesPath.length)
         }
-        // TODO: Fix for 'TypeError: Type 'Function<R>' is generic but type argument were not provided.'
+        // Improve: Fix for 'TypeError: Type 'Function<R>' is generic but type argument were not provided.'
         if (typeName === "Function") {
             return isInsideInstanceof() ? "Function" : "Function<void>"
         }

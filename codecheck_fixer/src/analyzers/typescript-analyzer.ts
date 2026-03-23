@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Analyzer for TypeScript code using TypeScript Compiler API
  */
@@ -27,7 +42,7 @@ export class TypeScriptAnalyzer extends BaseAnalyzer {
     // 1. Analysis using TypeScript Compiler API (syntax, types)
     const program = this.createProgram(virtualFile, content);
     const diagnostics = ts.getPreEmitDiagnostics(program);
-    
+
     diagnostics.forEach(diagnostic => {
         if (diagnostic.file && diagnostic.file.fileName === virtualFile) {
             const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
@@ -51,7 +66,7 @@ export class TypeScriptAnalyzer extends BaseAnalyzer {
       issues,
     };
   }
-  
+
   private mapDiagnosticSeverity(category: ts.DiagnosticCategory): 'error' | 'warning' | 'info' {
       switch(category) {
           case ts.DiagnosticCategory.Error:

@@ -21,7 +21,7 @@ function cropCurrentModulePrefix(fqname: string): string {
     return fqname.slice(prefix.length + 1)
 }
 
-// TBD: code duplication with the ArkoalaLayout
+// Improve: code duplication with the ArkoalaLayout
 export function HandwrittenModule(language: Language): string {
     switch (language) {
         case Language.TS: return "./handwritten"

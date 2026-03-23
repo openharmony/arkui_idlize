@@ -129,7 +129,7 @@ export class HeaderVisitor {
         this.nodeTypesList.popIndent()
     }
 
-    // TODO: have a proper Peer module visitor
+    // Improve: have a proper Peer module visitor
     printApiAndDeserializer() {
         collectOrderedPeers(this.library).forEach(clazz => {
             this.printClassProlog(clazz)

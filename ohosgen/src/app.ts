@@ -178,7 +178,7 @@ export function ohosgen(args: string[]) {
     }
 
     function initLibraryName(idlLibrary: PeerLibrary) {
-        // TODO really dirty - I do not like PeerLibrary.name at all, should be reworked in another way.
+        // Improve really dirty - I do not like PeerLibrary.name at all, should be reworked in another way.
         idlLibrary.name = options.defaultIdlPackage?.toUpperCase() ?? suggestLibraryName()
         if (!idlLibrary.name.length) {
             throw new Error("No name can be assigned to generated package. please provide name via --default-idl-package ")

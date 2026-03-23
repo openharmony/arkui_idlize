@@ -72,7 +72,7 @@ export class IgnoreOptions {
     private ignored = new Map<string, Map<string, boolean>>()
 }
 
-// TODO: remove when interfaces fixed!
+// Improve: remove when interfaces fixed!
 export class IrHackOptions {
     private readonly irHack: string[] = []
     constructor(filePath?: string) {

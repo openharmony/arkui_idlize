@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { assert, suite, test } from '@koalaui/harness';
 import * as ts from 'typescript';
 import { ResultValidator } from '../libs/arkts_formatter/result-validator';
@@ -11,14 +26,14 @@ function makeContext(content: string): FormattingContext {
   // Use .ets to disable syntax checking for fragments
   const fileName = 'temp.ets';
   const sourceFile = ts.createSourceFile(fileName, content, ts.ScriptTarget.Latest, true);
-  
+
   // Build Enhanced AST with query engine
   const enhancedAST = createEnhancedASTWithQuery(sourceFile, {
     preserveComments: true,
     preserveWhitespace: false,
     enableDiagnostics: false
   });
-  
+
   const formatterConfig: FormatterConfig = {
     tabSize: 4,
     useTabs: false,
@@ -74,7 +89,7 @@ suite('Expression Normalizer fixtures (ResultValidator.normalizeCode)', () => {
       test(description, () => {
         const ctx = makeContext(original);
         const res = ResultValidator.validate(original, expected, ctx, 'temp.ts');
-        
+
         logCaseResult('equivalent', description, res.isValid, true, res.normalized);
         assert(res.isValid, `Expected validation to pass for: ${description}`);
         assert.equal(res.normalized, undefined);
@@ -87,7 +102,7 @@ suite('Expression Normalizer fixtures (ResultValidator.normalizeCode)', () => {
       test(description, () => {
         const ctx = makeContext(original);
         const res = ResultValidator.validate(original, expected, ctx, 'temp.ts');
-        
+
         logCaseResult('not-equivalent', description, res.isValid, false, res.normalized);
         assert.equal(res.isValid, false, `Expected validation to fail for: ${description}`);
         assert.notEqual(res.normalized, undefined);

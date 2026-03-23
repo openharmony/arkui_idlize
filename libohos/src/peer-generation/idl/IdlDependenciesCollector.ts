@@ -226,7 +226,7 @@ export class KotlinDependenciesCollector extends DependenciesCollector {
         return result
     }
     private synthesizeUnionEntry(type: idl.IDLUnionType): idl.IDLEntry {
-        // TBD: Synthesize unions for Kotlin in a unified way in one place
+        // Improve: Synthesize unions for Kotlin in a unified way in one place
         const entry = idl.createInterface(this.typeNameConvertor.convert(type), idl.IDLInterfaceSubkind.Interface)
         const packageName = getSyntheticTypesFileName()
         const file = idl.createFile([entry], packageName, [packageName])

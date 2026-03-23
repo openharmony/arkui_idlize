@@ -1,6 +1,6 @@
 package arkui.Graphics;
 
-// TBD: required for CallDrawModifierCallbacks in dummy_impl.cpp
+// Improve: required for CallDrawModifierCallbacks in dummy_impl.cpp
 [Entity=Class]
 interface DrawContext {
     constructor();

@@ -128,7 +128,7 @@ export class E2ESuitesCreator extends MultiFileVisitor {
     }
 
     protected override makePlaceholderTest(testName: string, component: string): void {
-        // TODO: Add empty disabled test for statistic
+        // Improve: Add empty disabled test for statistic
     }
 
     protected override makeDefaultTest(testName: string, data: TestData): void {
@@ -617,7 +617,7 @@ function makeArguments(
             mArgsInfo.push(info)
         }
     }
-    // Remove last optional arguments. TODO ArkTS requires explicit arguments.
+    // Remove last optional arguments. Improve ArkTS requires explicit arguments.
     // for (let i = args.length - 1; i >= 0; --i) {
     //     if (args[i] === "undefined") {
     //         args.pop()

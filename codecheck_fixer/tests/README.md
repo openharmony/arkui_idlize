@@ -156,7 +156,7 @@ Located in `tests/fixtures/input/cpp/`:
 - `long_lines.cpp` — File with long lines requiring reformatting
 - `bad_formatting.cpp` — File with poor spacing and indentation
 - `complex_template.cpp` — Complex C++ templates and SFINAE
-- `simple_header.hpp` — Header file with include guards
+- `simple_header.h` — Header file with include guards
 - `comments_doc.cpp` — Various comment styles and documentation
 
 ### Adding New C++ Fixtures

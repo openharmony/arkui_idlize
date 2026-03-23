@@ -133,7 +133,7 @@ ${lines}
 
 export function dummyImplementations(library: LibraryInterface, modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number, apiGeneratedFile: string): LanguageWriter {
     let prologue = readTemplate('dummy_impl_prologue.cpp')
-    // TBD: Properly move handwritten code from the dummy_impl_prologue
+    // Improve: Properly move handwritten code from the dummy_impl_prologue
     const withHandwrittenCode = !peerGeneratorConfiguration().modules.has("unit")
     let handwrittenPrologue = withHandwrittenCode ? readTemplate('dummy_impl_prologue_hw.cpp') : ""
     let epilogue = readTemplate('dummy_impl_epilogue.cpp')

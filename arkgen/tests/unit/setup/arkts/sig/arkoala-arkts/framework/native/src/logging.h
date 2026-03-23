@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023, 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,16 +18,12 @@
 #include <cassert>
 
 #ifdef ASSERT_VERBOSE
-#define ASSERT0(expression, msg) (void)( \
-            (!!(expression)) || \
-            (ARKOALA_LOG0(msg), assert(expression), 0) \
-        )
-#define ASSERT(expression, msg, ...) (void)( \
-            (!!(expression)) || \
-            (ARKOALA_LOG(msg, __VA_ARGS__), assert(expression), 0) \
-        )
+#define ASSERT0(expression, msg) (void)((!!(expression)) || \
+                                        (ARKOALA_LOG0(msg), assert(expression), 0))
+#define ASSERT(expression, msg, ...) (void)((!!(expression)) || \
+                                            (ARKOALA_LOG(msg, __VA_ARGS__), assert(expression), 0))
 #else
-    #define ASSERT(expression) assert(expression)
+#define ASSERT(expression) assert(expression)
 #endif
 
 #ifdef KOALA_OHOS

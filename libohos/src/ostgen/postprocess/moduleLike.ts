@@ -43,7 +43,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                         Builders.return().call(E.v('deserializeAndCall' + it, [Hs.isType()])).arg('deserializer').$().$()
                     ]
                 }})).$().$().$()
-            // TODO: throw new Error('Unknown callback kind')
+            // Improve: throw new Error('Unknown callback kind')
     const camelCaseModuleName = snakeCaseToCamelCase(peerGeneratorConfiguration().moduleName.split(".").join("_"))
     const register = Builders.func(managedName(`engine.register${camelCaseModuleName}ApiHandler`))
         .block()

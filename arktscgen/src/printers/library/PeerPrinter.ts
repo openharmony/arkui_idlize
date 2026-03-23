@@ -170,14 +170,14 @@ export class PeerPrinter {
                 return out
         }, { creates: [], updates: [], other: [] } as Methods)
 
-        // TODO: isAbstract checks if an interface has AstNode type this is not
+        // Improve: isAbstract checks if an interface has AstNode type this is not
         // suitable for other namespaces than ir.
         if (isAbstract(iface) && nativeType(iface) === undefined) {
             console.log(`Skipped ${iface.name}.create/update methods`);
         } else {
             // Compatibility: keep only one create method if we found 'universal'
             // and all methods if not (updates is not filtered, why?).
-            // TODO: Do not filter methods in peers
+            // Improve: Do not filter methods in peers
             const isCompat = ['ETSTuple', 'ExportNamedDeclaration', 'ETSParameterExpression']
                 .includes(iface.name)
 

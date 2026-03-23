@@ -265,7 +265,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     printTaggedMethods(clazz: MaterializedClass, filter: MethodFilter) {
-        // TBD: Refactor tagged methods staff
+        // Improve: Refactor tagged methods staff
         const seenTaggedMethods = new Set<string>()
         clazz.taggedMethods
             .filter(filter)
@@ -282,7 +282,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     method.parameters.map(it => it.type!),
                     method.parameters.map(it => it.name)
                 )
-                // TBD: Add tagged methods implementation
+                // Improve: Add tagged methods implementation
                 this.printer.writeMethodImplementation(new Method(method.name!, signature), writer => {
                     const hook = getHookMethod(clazz.className, method.name!)
                     if (hook) {
@@ -382,7 +382,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 }
             }
             const mField = field.field
-            // TBD: use deserializer to get complex type from native
+            // Improve: use deserializer to get complex type from native
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
@@ -600,7 +600,7 @@ function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWriter): v
     const finalizer = new Method(
         "getFinalizer",
         new MethodSignature(idl.createPrimitiveType('pointer'), []),
-        // TODO: private static getFinalizer() method conflicts with its implementation in the parent class
+        // Improve: private static getFinalizer() method conflicts with its implementation in the parent class
         [MethodModifier.STATIC])
     writer.writeMethodImplementation(finalizer, writer => {
         writer.writeStatement(
@@ -935,7 +935,7 @@ function getSuperName(clazz: MaterializedClass, resolver:ReferenceResolver): str
     return clazz.isInterface ? getInternalClassName(nsName) : nsName
 }
 
-// TBD: Refactor tagged method staff
+// Improve: Refactor tagged method staff
 function getTaggedName(node: idl.IDLEntry): stringOrNone {
     return idl.getExtAttribute(node, idl.IDLExtendedAttributes.DtsName) ?? node.name
 }

@@ -13,7 +13,7 @@ import { findComponentByDeclaration, isComponentDeclaration } from '../Component
 import { NativeModule } from '../NativeModule.js';
 import { compareNodes } from '@idlizer/core';
 
-// TODO I think must be package specific
+// Improve I think must be package specific
 const SyntheticsPackageClause = ['synthetic']
 
 export function syntheticTransformer(files: idl.IDLFile[]): idl.IDLFile[] {

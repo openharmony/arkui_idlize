@@ -13,52 +13,62 @@
  * limitations under the License.
  */
 
-#include <string>
-#include <sstream>
 #include <algorithm>
 #include <chrono>
 #include <iomanip>
+#include <sstream>
+#include <string>
 #include <unordered_map>
 
 #define KOALA_INTEROP_MODULE ArkUINativeModule
+#include "Serializers.h"
+#include "arkoala_api_generated.h"
 #include "common-interop.h"
 #include "interop-logging.h"
 
-#include "arkoala_api_generated.h"
-#include "Serializers.h"
-
 const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
-static const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
+static const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI()
+{
     return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(
         GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%BASIC),
-        %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, nullptr));
+            %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, nullptr));
 }
 
-static const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
+static const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI()
+{
     return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedNodeAPI*>(
         GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED),
-        %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, nullptr));
+            %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, nullptr));
 }
 
 CustomDeserializer* DeserializerBase::customDeserializers = nullptr;
 
+namespace {
+    // Conversion factor from nanoseconds to microseconds
+    constexpr float NS_TO_US = 1000.0f;
+}
+
 // Improve: Remove all this.
-void disposeNode(KNativePointer* ptr) {
+void disposeNode(KNativePointer* ptr)
+{
     GetArkUIBasicNodeAPI()->disposeNode((Ark_NodeHandle)ptr);
 }
-KNativePointer impl_GetNodeFinalizer() {
+KNativePointer impl_GetNodeFinalizer()
+{
     return fnPtr<KNativePointer>(disposeNode);
 }
 KOALA_INTEROP_DIRECT_0(GetNodeFinalizer, KNativePointer)
 
 // custom methods
-void impl_ShowCrash(const KStringPtr& messagePtr) {
+void impl_ShowCrash(const KStringPtr& messagePtr)
+{
     GetArkUIExtendedNodeAPI()->showCrash(messagePtr.c_str());
 }
 KOALA_INTEROP_V1(ShowCrash, KStringPtr)
 
-Ark_Int32 impl_LayoutNode(KVMContext vmContext, Ark_NativePointer nodePtr, KFloatArray data) {
+Ark_Int32 impl_LayoutNode(KVMContext vmContext, Ark_NativePointer nodePtr, KFloatArray data)
+{
     return GetArkUIExtendedNodeAPI()->layoutNode(static_cast<Ark_VMContext>(vmContext), static_cast<Ark_NodeHandle>(nodePtr), reinterpret_cast<Ark_Float32(*)[2]>(data));
 }
 KOALA_INTEROP_CTX_2(LayoutNode, Ark_Int32, Ark_NativePointer, KFloatArray)
@@ -68,55 +78,64 @@ struct PerfInfo {
     int64_t end;
     int64_t cost;
     std::string perf_name;
-    void Print(std::stringstream& result, float counterSelf = 0.0) {
-        result << "Perf trace_name(" << perf_name <<  ") cost " << (cost / 1000.0 - counterSelf) << " us.";
+    void Print(std::stringstream& result, float counterSelf = 0.0)
+    {
+        result << "Perf trace_name(" << perf_name << ") cost " << (cost / NS_TO_US - counterSelf) << " us.";
     }
 };
 
 class Performance {
-  public:
-    void PrintAvgs(std::stringstream& result) {
+public:
+    void PrintAvgs(std::stringstream& result)
+    {
         for (const auto& [name, perfs] : perfs_) {
-            if (name == "perf_counter_self_cost") continue;
+            if (name == "perf_counter_self_cost")
+                continue;
             float totalCost = 0;
             for (const auto& perf : perfs) {
-                totalCost += perf.cost / 1000.0 - self_cost_;
+                totalCost += perf.cost / NS_TO_US - self_cost_;
             }
             auto avg = totalCost / perfs.size();
             result << "Perf trace_name(" << name << ") " << perfs.size() << " call avg cost " << avg << " us.";
         }
     }
-    void PrintTotals(std::stringstream& result) {
+    void PrintTotals(std::stringstream& result)
+    {
         for (const auto& [name, perfs] : perfs_) {
             float totalCost = 0;
             for (const auto& perf : perfs) {
-                totalCost += perf.cost / 1000.0 - self_cost_;
+                totalCost += perf.cost / NS_TO_US - self_cost_;
             }
             result << "Perf trace_name(" << name << ") " << perfs.size() << " call total cost " << totalCost << " us.";
         }
     }
-    void PrintPeak(std::stringstream& result) {
-        for(auto &kv : perfs_) {
-            std::sort(kv.second.begin(), kv.second.end(), [](const PerfInfo &perf1, const PerfInfo &perf2) {
+    void PrintPeak(std::stringstream& result)
+    {
+        for (auto& kv : perfs_) {
+            std::sort(kv.second.begin(), kv.second.end(), [](const PerfInfo& perf1, const PerfInfo& perf2) {
                 return perf1.cost > perf2.cost;
             });
-            auto maxCost = kv.second.front().cost / 1000.0 - self_cost_;
-            auto minCost = kv.second.back().cost / 1000.0 - self_cost_;
-            result << "Perf trace_name(" << kv.first << ") " << " maxCost = " << maxCost << " us, ";
+            auto maxCost = kv.second.front().cost / NS_TO_US - self_cost_;
+            auto minCost = kv.second.back().cost / NS_TO_US - self_cost_;
+            result << "Perf trace_name(" << kv.first << ") "
+                   << " maxCost = " << maxCost << " us, ";
             result << "minCost = " << minCost << " us.";
         }
     }
-    void PrintDetails(std::stringstream& result) {
+    void PrintDetails(std::stringstream& result)
+    {
         for (const auto& [name, perfs] : perfs_) {
             for (auto perf : perfs) {
                 perf.Print(result);
             }
         }
     }
-    void FinishOne() {
+    void FinishOne()
+    {
         perfs_[current_.perf_name].emplace_back(current_);
     }
-    void CalcSelfCost() {
+    void CalcSelfCost()
+    {
         float totalCost = 0.0;
         auto it = perfs_.find("perf_counter_self_cost");
         if (it == perfs_.end()) {
@@ -124,25 +143,32 @@ class Performance {
             return;
         }
         for (const auto& perf : it->second) {
-            totalCost += perf.cost / 1000.0;
+            totalCost += perf.cost / NS_TO_US;
         }
         self_cost_ = totalCost / it->second.size();
     }
-    void Clean() {
+    void Clean()
+    {
         perfs_.clear();
     }
-    PerfInfo* GetCurrent() { return &current_; }
-    static Performance* GetInstance() {
+    PerfInfo* GetCurrent()
+    {
+        return &current_;
+    }
+    static Performance* GetInstance()
+    {
         static Performance perf;
         return &perf;
     }
+
 private:
     std::unordered_map<std::string, std::vector<PerfInfo>> perfs_;
     PerfInfo current_;
     float self_cost_;
 };
 
-void impl_StartPerf(const KStringPtr& traceName) {
+void impl_StartPerf(const KStringPtr& traceName)
+{
     PerfInfo* perf = Performance::GetInstance()->GetCurrent();
     perf->perf_name = traceName.c_str();
     auto now = std::chrono::high_resolution_clock::now();
@@ -150,7 +176,8 @@ void impl_StartPerf(const KStringPtr& traceName) {
 }
 KOALA_INTEROP_V1(StartPerf, KStringPtr)
 
-void impl_EndPerf(const KStringPtr& traceName) {
+void impl_EndPerf(const KStringPtr& traceName)
+{
     auto now = std::chrono::high_resolution_clock::now();
     PerfInfo* perf = Performance::GetInstance()->GetCurrent();
     perf->end = std::chrono::time_point_cast<std::chrono::nanoseconds>(now).time_since_epoch().count();
@@ -167,7 +194,8 @@ enum DumpOptions {
     CLEAR = 4
 };
 
-KNativePointer impl_DumpPerf(KInt options) {
+KNativePointer impl_DumpPerf(KInt options)
+{
     std::stringstream result;
     auto perf = Performance::GetInstance();
     perf->CalcSelfCost();
@@ -210,14 +238,14 @@ KOALA_INTEROP_DIRECT_0(GetNodeByViewStack, Ark_NativePointer)
 
 void impl_DisposeNode(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIBasicNodeAPI()->disposeNode(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_V1(DisposeNode, Ark_NativePointer)
 
 void impl_DumpTreeNode(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIBasicNodeAPI()->dumpTreeNode(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_V1(DumpTreeNode, Ark_NativePointer)
@@ -275,22 +303,22 @@ KOALA_INTEROP_DIRECT_3(InsertChildAt, Ark_Int32, Ark_NativePointer, Ark_NativePo
 
 void impl_ApplyModifierFinish(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIBasicNodeAPI()->applyModifierFinish(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_V1(ApplyModifierFinish, Ark_NativePointer)
 
 void impl_MarkDirty(Ark_NativePointer nodePtr, KInt dirtyFlag)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
-    Ark_UInt32 dirtyFlagCast = (Ark_UInt32) dirtyFlag;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
+    Ark_UInt32 dirtyFlagCast = (Ark_UInt32)dirtyFlag;
     GetArkUIBasicNodeAPI()->markDirty(nodePtrCast, dirtyFlagCast);
 }
 KOALA_INTEROP_V2(MarkDirty, Ark_NativePointer, KInt)
 
 KBoolean impl_IsBuilderNode(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     return GetArkUIBasicNodeAPI()->isBuilderNode(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_1(IsBuilderNode, KBoolean, Ark_NativePointer)
@@ -303,16 +331,16 @@ KOALA_INTEROP_DIRECT_3(ConvertLengthMetricsUnit, Ark_Float32, Ark_Float32, Ark_I
 
 void impl_MeasureLayoutAndDraw(KVMContext vmContext, Ark_NativePointer nodePtr)
 {
-    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_VMContext vmContextCast = (Ark_VMContext)vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->measureLayoutAndDraw(vmContextCast, nodePtrCast);
 }
 KOALA_INTEROP_CTX_V1(MeasureLayoutAndDraw, Ark_NativePointer)
 
 Ark_Int32 impl_MeasureNode(KVMContext vmContext, Ark_NativePointer nodePtr, KFloatArray data)
 {
-    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_VMContext vmContextCast = (Ark_VMContext)vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     Ark_Float32* dataCast = reinterpret_cast<Ark_Float32*>(data);
     return GetArkUIExtendedNodeAPI()->measureNode(vmContextCast, nodePtrCast, dataCast);
 }
@@ -320,8 +348,8 @@ KOALA_INTEROP_CTX_2(MeasureNode, Ark_Int32, Ark_NativePointer, KFloatArray)
 
 Ark_Int32 impl_DrawNode(KVMContext vmContext, Ark_NativePointer nodePtr, KFloatArray data)
 {
-    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_VMContext vmContextCast = (Ark_VMContext)vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     Ark_Float32* dataCast = reinterpret_cast<Ark_Float32*>(data);
     return GetArkUIExtendedNodeAPI()->drawNode(vmContextCast, nodePtrCast, dataCast);
 }
@@ -329,108 +357,108 @@ KOALA_INTEROP_CTX_2(DrawNode, Ark_Int32, Ark_NativePointer, KFloatArray)
 
 Ark_Int32 impl_IndexerChecker(KVMContext vmContext, Ark_NativePointer nodePtr)
 {
-    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_VMContext vmContextCast = (Ark_VMContext)vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     return GetArkUIExtendedNodeAPI()->indexerChecker(vmContextCast, nodePtrCast);
 }
 KOALA_INTEROP_CTX_1(IndexerChecker, Ark_Int32, Ark_NativePointer)
 
 void impl_SetLazyItemIndexer(KVMContext vmContext, Ark_NativePointer nodePtr, Ark_Int32 indexerId)
 {
-    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_VMContext vmContextCast = (Ark_VMContext)vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setLazyItemIndexer(vmContextCast, nodePtrCast, indexerId);
 }
 KOALA_INTEROP_CTX_V2(SetLazyItemIndexer, Ark_NativePointer, Ark_Int32)
 
 void impl_SetCustomCallback(KVMContext vmContext, Ark_NativePointer nodePtr, Ark_Int32 updaterId)
 {
-    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_VMContext vmContextCast = (Ark_VMContext)vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setCustomCallback(vmContextCast, nodePtrCast, updaterId);
 }
 KOALA_INTEROP_CTX_V2(SetCustomCallback, Ark_NativePointer, Ark_Int32)
 
 void impl_SetMeasureWidth(Ark_NativePointer nodePtr, Ark_Int32 value)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setMeasureWidth(nodePtrCast, value);
 }
 KOALA_INTEROP_DIRECT_V2(SetMeasureWidth, Ark_NativePointer, Ark_Int32)
 
 Ark_Int32 impl_GetMeasureWidth(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     return GetArkUIExtendedNodeAPI()->getMeasureWidth(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_1(GetMeasureWidth, Ark_Int32, Ark_NativePointer)
 
 void impl_SetMeasureHeight(Ark_NativePointer nodePtr, Ark_Int32 value)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setMeasureHeight(nodePtrCast, value);
 }
 KOALA_INTEROP_DIRECT_V2(SetMeasureHeight, Ark_NativePointer, Ark_Int32)
 
 Ark_Int32 impl_GetMeasureHeight(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     return GetArkUIExtendedNodeAPI()->getMeasureHeight(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_1(GetMeasureHeight, Ark_Int32, Ark_NativePointer)
 
 void impl_SetX(Ark_NativePointer nodePtr, Ark_Int32 value)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setX(nodePtrCast, value);
 }
 KOALA_INTEROP_DIRECT_V2(SetX, Ark_NativePointer, Ark_Int32)
 
 Ark_Int32 impl_GetX(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     return GetArkUIExtendedNodeAPI()->getX(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_1(GetX, Ark_Int32, Ark_NativePointer)
 
 void impl_SetY(Ark_NativePointer nodePtr, Ark_Int32 value)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setY(nodePtrCast, value);
 }
 KOALA_INTEROP_DIRECT_V2(SetY, Ark_NativePointer, Ark_Int32)
 
 Ark_Int32 impl_GetY(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     return GetArkUIExtendedNodeAPI()->getY(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_1(GetY, Ark_Int32, Ark_NativePointer)
 
 void impl_SetAlignment(Ark_NativePointer nodePtr, Ark_Int32 value)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setAlignment(nodePtrCast, value);
 }
 KOALA_INTEROP_DIRECT_V2(SetAlignment, Ark_NativePointer, Ark_Int32)
 
 Ark_Int32 impl_GetAlignment(Ark_NativePointer nodePtr)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     return GetArkUIExtendedNodeAPI()->getAlignment(nodePtrCast);
 }
 KOALA_INTEROP_DIRECT_1(GetAlignment, Ark_Int32, Ark_NativePointer)
 
 void impl_SetRangeUpdater(Ark_NativePointer nodePtr, Ark_Int32 updaterId)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setRangeUpdater(nodePtrCast, updaterId);
 }
 KOALA_INTEROP_DIRECT_V2(SetRangeUpdater, Ark_NativePointer, Ark_Int32)
 
 void impl_SetChildTotalCount(Ark_NativePointer nodePtr, Ark_Int32 totalCount)
 {
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle)nodePtr;
     GetArkUIExtendedNodeAPI()->setChildTotalCount(nodePtrCast, totalCount);
 }
 KOALA_INTEROP_DIRECT_V2(SetChildTotalCount, Ark_NativePointer, Ark_Int32)

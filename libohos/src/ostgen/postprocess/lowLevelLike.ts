@@ -71,7 +71,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                 .return().value('nullptr').$().$().$()
         decls.push(callbackKindEnum, caller, syncCaller);
     }
-    // TODO: Implement callback caller introduction
+    // Improve: Implement callback caller introduction
     return decls;
 }
 

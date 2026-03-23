@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * Orchestrator for code analysis and formatting
  */
@@ -18,12 +33,12 @@ import {
   formatTsx as prettierFormatTsx
 } from '../../libs/prettier_formatter';
 import type { FormatOverrides } from '../../libs/prettier_formatter';
-import { 
-  AnalysisResult, 
-  AnalysisConfig, 
-  FormatterConfig, 
+import {
+  AnalysisResult,
+  AnalysisConfig,
+  FormatterConfig,
   ProjectConfig,
-  CliOptions 
+  CliOptions
 } from '@/types';
 
 export class Orchestrator {
@@ -39,7 +54,7 @@ export class Orchestrator {
 
   async analyzeFiles(filePaths: string[]): Promise<AnalysisResult[]> {
     const results: AnalysisResult[] = [];
-    
+
     for (const filePath of filePaths) {
       try {
         const content = fs.readFileSync(filePath, 'utf-8');
@@ -49,33 +64,33 @@ export class Orchestrator {
         console.error(`Error analyzing file ${filePath}:`, error);
       }
     }
-    
+
     return results;
   }
 
   async analyzeProject(options: CliOptions): Promise<AnalysisResult[]> {
     const allFiles: string[] = [];
-    
+
     // Collect all files for analysis
     for (const pattern of options.paths) {
-      const files = await glob(pattern, { 
+      const files = await glob(pattern, {
         cwd: this.projectConfig.repoPath,
-        absolute: true 
+        absolute: true
       });
       allFiles.push(...files);
     }
-    
+
     // Filter files by type
-    const filteredFiles = allFiles.filter(file => 
+    const filteredFiles = allFiles.filter(file =>
       this.shouldAnalyzeFile(file)
     );
-    
+
     return this.analyzeFiles(filteredFiles);
   }
 
   public async analyzeFileContent(filePath: string, content: string): Promise<AnalysisResult> {
     const extension = path.extname(filePath).toLowerCase();
-    
+
     switch (extension) {
       case '.ts':
       case '.tsx':
@@ -101,16 +116,16 @@ export class Orchestrator {
     const analyzer = new LineLengthAnalyzer(this.analysisConfig, lineLengthConfig);
     const contentType = ContentTypeDetector.detectFileType(filePath);
     const result = await analyzer.analyze(content, contentType);
-    
+
     const fixableIssues = result.issues.filter(issue => issue.isFixable);
-    
+
     if (fixableIssues.length > 0) {
       const formatter = new LineLengthFormatter(this.formatterConfig, lineLengthConfig);
       const contentType = ContentTypeDetector.detectFileType(filePath);
       const fixedContent = formatter.format(content, contentType);
       return { result: { ...result, filePath }, fixedContent };
     }
-    
+
     return { result: { ...result, filePath }, fixedContent: null };
   }
 
@@ -130,26 +145,26 @@ export class Orchestrator {
 
   async analyzeLineLength(filePath: string, content: string, lineLengthConfig: any): Promise<AnalysisResult> {
     const extension = path.extname(filePath).toLowerCase();
-    
+
     if (extension === '.ts' || extension === '.tsx' || extension === '.ets') {
       const analyzer = new LineLengthAnalyzer(this.analysisConfig, lineLengthConfig);
       const contentType = ContentTypeDetector.detectFileType(filePath);
       const res = await analyzer.analyze(content, contentType);
       return { ...res, filePath };
     }
-    
+
     throw new Error(`Line length analysis not supported for file type: ${extension}`);
   }
 
   async formatLineLength(filePath: string, content: string, lineLengthConfig: any): Promise<string> {
     const extension = path.extname(filePath).toLowerCase();
-    
+
     if (extension === '.ts' || extension === '.tsx' || extension === '.ets') {
       const formatter = new LineLengthFormatter(this.formatterConfig, lineLengthConfig);
       const contentType = ContentTypeDetector.detectFileType(filePath);
       return formatter.format(content, contentType);
     }
-    
+
     throw new Error(`Line length formatting not supported for file type: ${extension}`);
   }
 
@@ -162,15 +177,15 @@ export class Orchestrator {
       try {
         const content = fs.readFileSync(filePath, 'utf-8');
         const formatted = await this.formatFile(filePath, content);
-        
+
         // Create path for fixed file, preserving directory structure
         const relativePath = path.relative(process.cwd(), filePath);
         const outputPath = path.join(outputDir, relativePath);
-        
+
         // Create directories if needed
         const outputDirPath = path.dirname(outputPath);
         fs.mkdirSync(outputDirPath, { recursive: true });
-        
+
         // Write fixed file
         fs.writeFileSync(outputPath, formatted);
       } catch (error) {
@@ -181,7 +196,7 @@ export class Orchestrator {
 
   public async formatFile(filePath: string, content: string): Promise<string> {
     const extension = path.extname(filePath).toLowerCase();
-    
+
     switch (extension) {
       case '.ts':
       case '.tsx':
@@ -292,24 +307,24 @@ export class Orchestrator {
   private shouldAnalyzeFile(filePath: string): boolean {
     const extension = path.extname(filePath).toLowerCase();
     const supportedExtensions = ['.ts', '.tsx', '.ets', '.cpp', '.cc', '.cxx', '.c++', '.hpp', '.h'];
-    
+
     if (!supportedExtensions.includes(extension)) {
       return false;
     }
-    
+
     // Check file size
     const stats = fs.statSync(filePath);
     if (stats.size > this.analysisConfig.maxFileSize) {
       return false;
     }
-    
+
     // Check exclusions
     for (const excludePattern of this.analysisConfig.excludePatterns) {
       if (filePath.includes(excludePattern)) {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -317,33 +332,33 @@ export class Orchestrator {
     let report = '# Code Analysis Report\n\n';
     report += `Generated: ${new Date().toISOString()}\n`;
     report += `Files analyzed: ${results.length}\n\n`;
-    
+
     let totalIssues = 0;
     const issuesByType: Record<string, number> = {};
     const issuesBySeverity: Record<string, number> = {};
-    
+
     for (const result of results) {
       totalIssues += result.issues.length;
-      
+
       for (const issue of result.issues) {
         issuesByType[issue.type] = (issuesByType[issue.type] || 0) + 1;
         issuesBySeverity[issue.severity] = (issuesBySeverity[issue.severity] || 0) + 1;
       }
     }
-    
+
     report += `Total issues found: ${totalIssues}\n\n`;
-    
+
     if (totalIssues > 0) {
       report += '## Issues by Type\n';
       for (const [type, count] of Object.entries(issuesByType)) {
         report += `- ${type}: ${count}\n`;
       }
-      
+
       report += '\n## Issues by Severity\n';
       for (const [severity, count] of Object.entries(issuesBySeverity)) {
         report += `- ${severity}: ${count}\n`;
       }
-      
+
       report += '\n## Detailed Issues\n';
       for (const result of results) {
         if (result.issues.length > 0) {
@@ -359,9 +374,7 @@ export class Orchestrator {
         }
       }
     }
-    
+
     return report;
   }
 }
-
-

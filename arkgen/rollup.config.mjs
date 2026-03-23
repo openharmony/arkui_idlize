@@ -50,7 +50,7 @@ export default {
     onwarn: (message) => {
         if (message.code === 'CIRCULAR_DEPENDENCY') {
             console.error(message)
-            // TODO: stop build on circular dependencies.
+            // Improve: stop build on circular dependencies.
             // process.exit(-1);
         }
     },

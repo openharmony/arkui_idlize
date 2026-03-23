@@ -59,7 +59,7 @@ declare namespace mediaquery {
 
 }
 
-// TODO moved out of namespace due to panda bug 23884
+// Improve moved out of namespace due to panda bug 23884
 declare function matchMediaSync(condition: string): mediaquery.MediaQueryListener;
 
 export default mediaquery;

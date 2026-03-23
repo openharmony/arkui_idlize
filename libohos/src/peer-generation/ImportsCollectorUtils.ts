@@ -182,7 +182,7 @@ export function collectDeclDependencies(
 
 function isDefaultDeclaration(node: idl.IDLNode, lang: Language): boolean {
     if (lang !== Language.ARKTS) return false
-    // TBD: handle default imports for declarations
+    // Improve: handle default imports for declarations
     if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.DefaultExport)) return true
     const ns = node.parent
     if (ns && idl.isNamespace(ns) && idl.hasExtAttribute(ns, idl.IDLExtendedAttributes.DefaultExport)) return true

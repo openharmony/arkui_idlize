@@ -20,37 +20,41 @@
 
 struct MyDeserializer : CustomDeserializer {
     std::vector<std::string> supported;
-    MyDeserializer() {
+    MyDeserializer()
+    {
         supported.push_back("Function");
         supported.push_back("Resource");
         DeserializerBase::registerCustomDeserializer(this);
     }
-    virtual bool supports(const std::string& kind) {
+    virtual bool supports(const std::string& kind)
+    {
         return std::find(supported.begin(), supported.end(), kind) != supported.end();
     }
-    virtual InteropCustomObject deserialize(DeserializerBase* deserializer, const std::string& kind) {
+    virtual InteropCustomObject deserialize(DeserializerBase* deserializer, const std::string& kind)
+    {
         InteropString value = deserializer->readString();
         (void)value;
-        //fprintf(stderr, "native deserialize() for %s, got %s\n", kind.c_str(), value.chars);
         InteropCustomObject result;
         strcpy(result.kind, "NativeError");
         result.id = 0;
         strcat(result.kind, kind.c_str());
         return result;
     }
-
 };
 MyDeserializer deserilizer;
 
 struct DateDeserializer final : CustomDeserializer {
-    const std::vector<std::string> supported = {"Date"};
-    DateDeserializer() {
+    const std::vector<std::string> supported = { "Date" };
+    DateDeserializer()
+    {
         DeserializerBase::registerCustomDeserializer(this);
     }
-    virtual bool supports(const std::string& kind) {
+    virtual bool supports(const std::string& kind)
+    {
         return std::find(supported.begin(), supported.end(), kind) != supported.end();
     }
-    virtual InteropCustomObject deserialize(DeserializerBase* deserializer, const std::string& kind) {
+    virtual InteropCustomObject deserialize(DeserializerBase* deserializer, const std::string& kind)
+    {
         InteropCustomObject result = {};
         result.string = deserializer->readString();
         strncpy(result.kind, kind.c_str(), sizeof(result.kind) - 1);

@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ohosgen_unit
 
 import kotlin.math.pow
@@ -165,7 +180,7 @@ fun checkConstructors() {
 
 fun checkClassWithComplexPropertyType() {
     val value = ClassWithComplexPropertyType()
-    // TBD: implement constants for classes
+    // Improve: implement constants for classes
     // "ClassWithComplexPropertyType.prop": "ClassWithPrimitivePropertyType(true, 10)",
     assertEQ(9.0, value.prop.counter)
     assertEQ(true, value.prop.flag)
@@ -578,7 +593,7 @@ fun checkExternalTypes() {
     val subnsExternalType = object: hookns.subhookns.SubNSExternalType { override var subnsNativePointer = toBigInt(7) }
     // val internalType: InternalType = {
     //   index: 123,
-    //   // TBD:
+    //   // Improve:
     //   // external: { nativePointer: toBigInt(9) }
     // }
     check.checkExternalType(externalType)
@@ -747,7 +762,7 @@ fun checkHierarchy() {
     assertEQ("Child", childC.childMethod("33", true, 33.0))
     assertEQ("ChildCommon", childC.commonMethod(true, 34.0, "34"))
 
-    // TBD: check setting parent properties
+    // Improve: check setting parent properties
     // childC.parentFlag = false
     // childC.parentCount = -201
     // childC.parentText = ""
@@ -761,7 +776,7 @@ fun checkHierarchy() {
     assertEQ(-202.0, childC.childCount)
     assertEQ("", childC.childText)
 
-    // TBD: check setting parent properties
+    // Improve: check setting parent properties
     // childC.parentFlag = true
     // childC.parentCount = 201
     // childC.parentText = "201"
