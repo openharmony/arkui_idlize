@@ -19,6 +19,7 @@
 #include "test_buffer.h"
 
 #include <cstring>
+#include <algorithm>
 
 struct FooObject {
     int index;
@@ -58,7 +59,7 @@ OH_Buffer Foo_getInDataImpl(OH_NativePointer thisPtr)
     uint64_t data[4];
     std::fill_n(data, std::size(data), 0x0123'4567'89AB'CDEF);
     OH_Buffer res = MakeOHBuffer(sizeof(data));
-    std::memcpy(res.data, data, sizeof(data));
+    std::copy_n(reinterpret_cast<char*>(data), sizeof(data), reinterpret_cast<char*>(res.data));
     return res;
 }
 
@@ -73,6 +74,6 @@ OH_TEST_BUFFER_FooResult Foo_getResultImpl(OH_NativePointer thisPtr)
     uint32_t data[16];
     std::fill_n(data, std::size(data), 0x1234'5678);
     res.inData = MakeOHBuffer(sizeof(data));
-    std::memcpy(res.inData.data, data, sizeof(data));
+    std::copy_n(reinterpret_cast<char*>(data), sizeof(data), reinterpret_cast<char*>(res.inData.data));
     return res;
 }

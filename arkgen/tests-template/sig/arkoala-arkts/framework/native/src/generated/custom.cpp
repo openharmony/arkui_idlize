@@ -35,13 +35,14 @@ struct MyDeserializer : CustomDeserializer {
         InteropString value = deserializer->readString();
         (void)value;
         InteropCustomObject result;
-        strcpy(result.kind, "NativeError");
+        std::string kindStr = std::string("NativeError") + kind;
+        std::copy_n(kindStr.c_str(), std::min(kindStr.size(), sizeof(result.kind) - 1), result.kind);
+        result.kind[std::min(kindStr.size(), sizeof(result.kind) - 1)] = '\0';
         result.id = 0;
-        strcat(result.kind, kind.c_str());
         return result;
     }
 };
-MyDeserializer deserilizer;
+MyDeserializer g_deserilizer;
 
 struct DateDeserializer final : CustomDeserializer {
     const std::vector<std::string> supported = { "Date" };
@@ -57,8 +58,9 @@ struct DateDeserializer final : CustomDeserializer {
     {
         InteropCustomObject result = {};
         result.string = deserializer->readString();
-        strncpy(result.kind, kind.c_str(), sizeof(result.kind) - 1);
+        std::copy_n(kind.c_str(), std::min(kind.size(), sizeof(result.kind) - 1), result.kind);
+        result.kind[std::min(kind.size(), sizeof(result.kind) - 1)] = '\0';
         return result;
     }
 };
-DateDeserializer dateDeserializer;
+DateDeserializer g_dateDeserializer;

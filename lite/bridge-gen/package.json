@@ -11,7 +11,7 @@
   ],
   "main": "build/lib/bridge-gen.js",
   "scripts": {
-    "compile": "npm run -C ../ost compile && npm run -C ../core compile && npm run compile:self",
+    "compile": "npm run -C ../../ost compile && npm run -C ../../core compile && npm run compile:self",
     "compile:self": "rollup -c",
     "clean": "rimraf build",
     "test": "echo \"Error: no test specified\" && exit 1"

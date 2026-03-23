@@ -183,10 +183,10 @@ void xml_XmlPullParser_destructImpl(OH_OHOS_XML_xml_XmlPullParserHandle thiz)
     delete parser;
 }
 
-void temp_hold(int resId) {}
-void temp_release(int resId) {}
-void temp_call(const OH_Int32 resourceId, const OH_Boolean value) {}
-void temp_call_sync(const OH_OHOS_XML_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean value) {}
+void TempHold(int resId) {}
+void TempRelease(int resId) {}
+void TempCall(const OH_Int32 resourceId, const OH_Boolean value) {}
+void TempCallSync(const OH_OHOS_XML_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean value) {}
 
 Throws_void xml_XmlPullParser_parseXmlImpl(OH_NativePointer thisPtr, const OH_OHOS_XML_xml_ParseOptions* option)
 {
@@ -197,14 +197,14 @@ Throws_void xml_XmlPullParser_parseXmlImpl(OH_NativePointer thisPtr, const OH_OH
             callback->call(callback->resource.resourceId,
                 OH_String { name, (OH_Int32)strlen(name) },
                 OH_String { value, (OH_Int32)strlen(value) }, {
-                                                                  {
-                                                                      1,
-                                                                      temp_hold,
-                                                                      temp_release,
-                                                                  },
-                                                                  temp_call,
-                                                                  temp_call_sync,
-                                                              });
+                    {
+                        1,
+                        TempHold,
+                        TempRelease,
+                    },
+                    TempCall,
+                    TempCallSync,
+                });
         });
     }
     if (option->attributeValueCallbackFunction.tag != INTEROP_TAG_UNDEFINED) {
@@ -213,14 +213,14 @@ Throws_void xml_XmlPullParser_parseXmlImpl(OH_NativePointer thisPtr, const OH_OH
             callback->call(callback->resource.resourceId,
                 OH_String { name, (OH_Int32)strlen(name) },
                 OH_String { value, (OH_Int32)strlen(value) }, {
-                                                                  {
-                                                                      1,
-                                                                      temp_hold,
-                                                                      temp_release,
-                                                                  },
-                                                                  temp_call,
-                                                                  temp_call_sync,
-                                                              });
+                    {
+                        1,
+                        TempHold,
+                        TempRelease,
+                    },
+                    TempCall,
+                    TempCallSync,
+                });
         });
     }
     // Improve: handle other properties from ParseOptions
@@ -234,7 +234,7 @@ private:
     int result = 0;
 
 public:
-    TestPromiseHandler(OHOS_XML_Callback_Opt_Number_Opt_Array_String_Void callback)
+    explicit TestPromiseHandler(OHOS_XML_Callback_Opt_Number_Opt_Array_String_Void callback)
         : callback(callback)
     {
         callback.resource.hold(callback.resource.resourceId);

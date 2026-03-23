@@ -19,7 +19,7 @@
 #include "oh_common.h"
 
 namespace {
-int dummy = 0;
+int g_dummy = 0;
 }
 
 void HuksClass_callHolderImpl(OH_NativePointer thisPtr)
@@ -30,7 +30,7 @@ void HuksClass_callHolderImpl(OH_NativePointer thisPtr)
 OH_HUKS_WITH_CLASS_HuksClassHandle HuksClass_constructImpl()
 {
     std::cout << "HuksClass_constructImpl()" << std::endl;
-    return reinterpret_cast<OH_HUKS_WITH_CLASS_HuksClassHandle>(&dummy);
+    return reinterpret_cast<OH_HUKS_WITH_CLASS_HuksClassHandle>(&g_dummy);
 }
 
 void HuksClass_destructImpl(OH_HUKS_WITH_CLASS_HuksClassHandle thiz)

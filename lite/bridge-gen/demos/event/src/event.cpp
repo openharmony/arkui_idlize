@@ -41,12 +41,12 @@ public:
     {
         this->_onEventHandler.empty = 1;
     };
-    void setEventHandler(_OnEvent handler)
+    void SetEventHandler(_OnEvent handler)
     {
         this->_onEventHandler.empty = 0;
         this->_onEventHandler.value = handler;
     }
-    void emit()
+    void Emit()
     {
         if (this->_onEventHandler.empty) {
             return;
@@ -74,10 +74,10 @@ extern "C" EventEmitter* EventEmitter_getOne()
 }
 extern "C" void EventEmitter_setHandler(EventEmitter* self, _OnEvent onEvent)
 {
-    self->setEventHandler(onEvent);
+    self->SetEventHandler(onEvent);
 }
 extern "C" void EventEmitter_setOnExitHandler(EventEmitter* self, _OnExit onExit) {}
 extern "C" void EventEmitter_emit(EventEmitter* self)
 {
-    self->emit();
+    self->Emit();
 }

@@ -59,8 +59,8 @@ OH_TEST_MANUALLY_DECOMPOSED_PROMISE_FooResult FooWork_CompleteImpl(OH_NativePoin
 {
     static unsigned callCounter = 0;
     callCounter += 1;
-    std::cout << "FooWork_CompleteImpl(OH_NativePointer thisPtr)"
-              << "\n  callCounter = " << callCounter << std::endl;
+    std::cout << "FooWork_CompleteImpl(OH_NativePointer thisPtr)" <<
+        "\n  callCounter = " << callCounter << std::endl;
     auto* obj = reinterpret_cast<FooWork*>(thisPtr);
     unsigned int parityDeterminator = 2;
     if (callCounter % parityDeterminator == 1) {

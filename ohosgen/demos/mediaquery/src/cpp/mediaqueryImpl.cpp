@@ -4,6 +4,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 class FakeMediaQuery {};
 
@@ -75,13 +76,13 @@ OH_String GlobalScope_mediaquery_testConcatStringImpl(
     const OH_String* x, const OH_String* y)
 {
     char* buf = (char*)malloc(x->length + y->length + 1);
-    memcpy(buf, x->chars, x->length);
-    memcpy(buf + x->length, y->chars, y->length);
+    std::copy_n(x->chars, x->length, buf);
+    std::copy_n(y->chars, y->length, buf + x->length);
     buf[x->length + y->length] = 0;
     return OH_String { buf, x->length + y->length };
 }
 
-void parse_option(const OH_OHOS_MEDIAQUERY_mediaquery_Option* op)
+void ParseOption(const OH_OHOS_MEDIAQUERY_mediaquery_Option* op)
 {
     OH_String src = op->src;
     std::string srcNative = std::string(src.chars);
@@ -99,20 +100,20 @@ void parse_option(const OH_OHOS_MEDIAQUERY_mediaquery_Option* op)
 void GlobalScope_mediaquery_optionArg1Impl(const OH_String* str, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op1)
 {
     std::string res = std::string(str->chars);
-    parse_option(op1);
+    ParseOption(op1);
 }
 void GlobalScope_mediaquery_optionArg2Impl(const OH_String* str, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op1, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op2)
 {
     std::string res = std::string(str->chars);
-    parse_option(op1);
-    parse_option(op2);
+    ParseOption(op1);
+    ParseOption(op2);
 }
 void GlobalScope_mediaquery_optionArg3Impl(const OH_String* str, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op1, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op2, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op3)
 {
     std::string res = std::string(str->chars);
-    parse_option(op1);
-    parse_option(op2);
-    parse_option(op3);
+    ParseOption(op1);
+    ParseOption(op2);
+    ParseOption(op3);
 }
 
 void GlobalScope_mediaquery_optionPrimImpl(const OH_Number* num)

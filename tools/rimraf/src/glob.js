@@ -18,16 +18,85 @@
  * No external dependencies; matches patterns used in rimraf scripts.
  */
 
-import fs from "node:fs";
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Convert a single path segment pattern to a RegExp.
  * * matches any characters except path separator.
  */
 function segmentRegex(seg) {
-  const escaped = seg.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]*");
+  const escaped = seg.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*');
   return new RegExp(`^${escaped}$`);
+}
+
+/**
+ * Walk directory tree recursively according to glob pattern parts.
+ * @param {string} dir - Current directory
+ * @param {number} segIdx - Current segment index in parts
+ * @param {string[]} parts - Glob pattern parts
+ * @param {string} cwd - Current working directory
+ * @param {string[]} results - Accumulated results
+ */
+function walk(dir, segIdx, parts, cwd, results) {
+  if (segIdx >= parts.length) {
+    const rel = path.relative(cwd, dir);
+    results.push(rel || '.');
+    return;
+  }
+  const seg = parts[segIdx];
+  if (seg === '**') {
+    walk(dir, segIdx + 1, parts, cwd, results);
+    const entries = readDirectoryEntries(dir);
+    for (const e of entries) {
+      if (!e.isDirectory() || e.name === '.' || e.name === '..') {
+        continue;
+      }
+      walk(path.join(dir, e.name), segIdx, parts, cwd, results);
+    }
+    return;
+  }
+  const hasStar = seg.includes('*');
+  if (!hasStar) {
+    const nextDir = path.join(dir, seg);
+    if (existsSync(nextDir)) {
+      walk(nextDir, segIdx + 1, parts, cwd, results);
+    }
+    return;
+  }
+  const entries = readDirectoryEntries(dir);
+  const re = segmentRegex(seg);
+  for (const e of entries) {
+    if (re.test(e.name)) {
+      walk(path.join(dir, e.name), segIdx + 1, parts, cwd, results);
+    }
+  }
+}
+
+/**
+ * Safely read directory entries, ignoring errors.
+ * @param {string} dir - Directory to read
+ * @returns {fs.Dirent[]} Array of directory entries
+ */
+function readDirectoryEntries(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Safely check if path exists, ignoring errors.
+ * @param {string} path - Path to check
+ * @returns {boolean} True if path exists
+ */
+function existsSync(path) {
+  try {
+    return fs.existsSync(path);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -46,53 +115,6 @@ export function globSync(pattern, cwd = process.cwd()) {
   }
   const results = [];
   const startDir = isAbsolute ? root : cwd;
-
-  function walk(dir, segIdx) {
-    if (segIdx >= parts.length) {
-      const rel = path.relative(cwd, dir);
-      results.push(rel || ".");
-      return;
-    }
-    const seg = parts[segIdx];
-    if (seg === "**") {
-      walk(dir, segIdx + 1);
-      try {
-        const entries = fs.readdirSync(dir, { withFileTypes: true });
-        for (const e of entries) {
-          if (e.isDirectory() && e.name !== "." && e.name !== "..") {
-            walk(path.join(dir, e.name), segIdx);
-          }
-        }
-      } catch {
-        // ignore ENOENT etc.
-      }
-      return;
-    }
-    const hasStar = seg.includes("*");
-    if (!hasStar) {
-      const nextDir = path.join(dir, seg);
-      try {
-        if (fs.existsSync(nextDir)) {
-          walk(nextDir, segIdx + 1);
-        }
-      } catch {
-        // ignore
-      }
-      return;
-    }
-    try {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-      const re = segmentRegex(seg);
-      for (const e of entries) {
-        if (re.test(e.name)) {
-          walk(path.join(dir, e.name), segIdx + 1);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  walk(startDir, 0);
+  walk(startDir, 0, parts, cwd, results);
   return results;
 }

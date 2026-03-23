@@ -1,40 +1,40 @@
 #include "stdint.h"
 #include "stdio.h"
 
-typedef struct vec2 {
+typedef struct Vec2 {
     int32_t x;
     int32_t y;
-} vec2;
+} Vec2;
 
-typedef struct vec3 {
+typedef struct Vec3 {
     int32_t x;
     int32_t y;
     int32_t z;
-} vec3;
+} Vec3;
 
 typedef struct NamedDot {
     const char* name;
-    vec3 position;
+    Vec3 position;
 } NamedDot;
 
 
 typedef struct NamedDotMap {
-    uint8_t dots_size;
+    uint8_t dotsSize;
     NamedDot dots[128];
 } NamedDotMap;
 
-uint8_t objects_size = 0;
-NamedDotMap dots[128];
+uint8_t g_objectsSize = 0;
+NamedDotMap g_dots[128];
 
-void name_dot_space_push(uint64_t idx, NamedDot dot)
+void NameDotSpacePush(uint64_t idx, NamedDot dot)
 {
-    NamedDotMap* object = dots + idx;
-    object->dots[object->dots_size++] = dot;
+    NamedDotMap* object = g_dots + idx;
+    object->dots[object->dotsSize++] = dot;
 }
-void name_dot_space_print(uint64_t idx)
+void NameDotSpacePrint(uint64_t idx)
 {
-    NamedDotMap* object = dots + idx;
-    for (uint8_t ii = 0; ii < object->dots_size; ++ii) {
+    NamedDotMap* object = g_dots + idx;
+    for (uint8_t ii = 0; ii < object->dotsSize; ++ii) {
         NamedDot* dot = object->dots + ii;
         printf(
             "DOT %s (%d, %d, %d)\n",
@@ -45,13 +45,13 @@ void name_dot_space_print(uint64_t idx)
         );
     }
 }
-vec3 name_dot_space_gen_new_position(int32_t seed)
+Vec3 NameDotSpaceGenNewPosition(int32_t seed)
 {
-    return (vec3) { .x = 1, .y = 2, .z = 3 };
+    return (Vec3) { .x = 1, .y = 2, .z = 3 };
 }
-vec3 name_dot_space_add3(vec3 a, vec3 b)
+Vec3 NameDotSpaceAdd3(Vec3 a, Vec3 b)
 {
-    return (vec3)
+    return (Vec3)
     {
         .x = a.x = b.x,
         .y = a.y = b.y,

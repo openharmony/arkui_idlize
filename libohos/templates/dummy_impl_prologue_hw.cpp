@@ -267,6 +267,9 @@ Ark_NativePointer srcNode = nullptr;
 
 void RunFor(std::function<void(double)> func, unsigned int delay, unsigned int duration, unsigned int granularity)
 {
+    if (granularity == 0) {
+        granularity = 1;
+    }
     std::thread([func, delay, duration, granularity]() {
         if (delay > 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(delay));
@@ -369,29 +372,37 @@ void SetPageTransitionImpl(Ark_NativePointer node,
     out.append(") \n");
     appendGroupedLog(1, out);
 
-    if (param->onProgress.tag != INTEROP_TAG_UNDEFINED) {
-        auto delay = param->pageTransitionOptions.delay.tag != INTEROP_TAG_UNDEFINED ?
-            param->pageTransitionOptions.delay.value : 0;
-        auto duration = param->pageTransitionOptions.duration.tag != INTEROP_TAG_UNDEFINED ?
-            param->pageTransitionOptions.duration.value : 0;
-        if (duration > 0) {
-            auto callback = param->onProgress.value;
-            auto routeType = param->routeType.tag != INTEROP_TAG_UNDEFINED ?
-                param->routeType.value : ARK_ROUTE_TYPE_NONE;
-            callback.resource.hold(callback.resource.resourceId);
-            auto onProgress = [callback, routeType](double progress) {
-                if (callback.call) {
-                    callback.call(callback.resource.resourceId, routeType, (InteropFloat32)progress);
-                }
-            };
+    // Early return if no progress callback
+    if (param->onProgress.tag == INTEROP_TAG_UNDEFINED) {
+        return;
+    }
 
-            unsigned int granularity = 10;
-            if (param->pageTransitionType == ARK_PAGE_TRANSITION_TYPE_ENTER) {
-                enterAnimations[node] = std::bind(RunFor, onProgress, delay, duration, granularity);
-            } else {
-                exitAnimations[node] = std::bind(RunFor, onProgress, delay, duration, granularity);
-            }
+    auto delay = param->pageTransitionOptions.delay.tag != INTEROP_TAG_UNDEFINED ?
+        param->pageTransitionOptions.delay.value : 0;
+    auto duration = param->pageTransitionOptions.duration.tag != INTEROP_TAG_UNDEFINED ?
+        param->pageTransitionOptions.duration.value : 0;
+
+    // Early return if duration is zero or negative
+    if (duration <= 0) {
+        return;
+    }
+
+    auto callback = param->onProgress.value;
+    auto routeType = param->routeType.tag != INTEROP_TAG_UNDEFINED ?
+        param->routeType.value : ARK_ROUTE_TYPE_NONE;
+    callback.resource.hold(callback.resource.resourceId);
+
+    auto onProgress = [callback, routeType](double progress) {
+        if (callback.call) {
+            callback.call(callback.resource.resourceId, routeType, (InteropFloat32)progress);
         }
+    };
+
+    unsigned int granularity = 10;
+    if (param->pageTransitionType == ARK_PAGE_TRANSITION_TYPE_ENTER) {
+        enterAnimations[node] = std::bind(RunFor, onProgress, delay, duration, granularity);
+    } else {
+        exitAnimations[node] = std::bind(RunFor, onProgress, delay, duration, granularity);
     }
 }
 } // namespace StageExtenderAccessor

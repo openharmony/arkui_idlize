@@ -201,9 +201,9 @@ struct ArkUIResourceColorType {
 };
 
 struct ArkUIIconsStruct {
-    ArkUI_CharPtr ShowIconInfo;
-    ArkUI_CharPtr HiddenIconInfo;
-    ArkUI_CharPtr SwitchingIconInfo;
+    ArkUI_CharPtr showIconInfo;
+    ArkUI_CharPtr hiddenIconInfo;
+    ArkUI_CharPtr switchingIconInfo;
 };
 
 struct ArkUIIconOptionsStruct {

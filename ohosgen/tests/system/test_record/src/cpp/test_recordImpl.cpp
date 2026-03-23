@@ -48,41 +48,41 @@ void Foo_destructImpl(OH_TEST_RECORD_FooHandle thiz)
 Map_String_Number Foo_getPropsImpl(OH_NativePointer thisPtr)
 {
     std::cout << "Foo_getPropsImpl(thisPtr)" << std::endl;
-    constexpr size_t SIZE = 4;
+    constexpr size_t size = 4;
     // Improve: How to handle dynamic-allocated maps?
-    static OH_String keys[SIZE] = {
+    static OH_String keys[size] = {
         { .chars = "one", .length = 4 },
         { .chars = "two", .length = 4 },
         { .chars = "three", .length = 6 },
         { .chars = "four", .length = 5 },
     };
-    static OH_Number values[SIZE] = {
+    static OH_Number values[size] = {
         { .tag = INTEROP_TAG_INT32, .i32 = 1 },
         { .tag = INTEROP_TAG_FLOAT32, .f32 = 2.25 },
         { .tag = INTEROP_TAG_INT32, .i32 = 3 },
         { .tag = INTEROP_TAG_FLOAT32, .f32 = 4.125 }
     };
-    return Map_String_Number { .size = SIZE, .keys = keys, .values = values };
+    return Map_String_Number { .size = size, .keys = keys, .values = values };
 }
 
 OH_TEST_RECORD_FooResult Foo_getResultImpl(OH_NativePointer thisPtr)
 {
     std::cout << "Foo_getResultImpl(thisPtr)" << std::endl;
     static int counter = 0;
-    constexpr size_t SIZE = 3;
+    constexpr size_t size = 3;
     // Improve: How to handle dynamic-allocated maps?
-    static OH_String keys[SIZE] = {
+    static OH_String keys[size] = {
         { .chars = "ten", .length = 4 },
         { .chars = "hundred", .length = 8 },
         { .chars = "thousand", .length = 9 },
     };
-    static OH_Number values[SIZE] = {
+    static OH_Number values[size] = {
         { .tag = INTEROP_TAG_INT32, .i32 = 10 },
         { .tag = INTEROP_TAG_FLOAT32, .f32 = 99.875 },
         { .tag = INTEROP_TAG_INT32, .i32 = 1000 },
     };
     return OH_TEST_RECORD_FooResult {
         .index = { .tag = INTEROP_TAG_INT32, .i32 = (counter += 42) },
-        .props = { .size = SIZE, .keys = keys, .values = values }
+        .props = { .size = size, .keys = keys, .values = values }
     };
 }

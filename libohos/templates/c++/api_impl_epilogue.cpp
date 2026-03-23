@@ -27,7 +27,9 @@ const OH_AnyAPI* GetAnyAPIImpl(int kind, int version) {
 
 extern "C" const OH_AnyAPI* GENERATED_GetArkAnyAPI(int kind, int version) {
     int maxKind = 15;
-    if (kind < 0 || kind > maxKind) return nullptr;
+    if (kind < 0 || kind > maxKind) {
+        return nullptr;
+    }
     if (!impls[kind]) {
         impls[kind] = GetAnyAPIImpl(kind, version);
     }

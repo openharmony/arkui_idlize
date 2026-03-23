@@ -21,6 +21,7 @@
 #include <sstream>
 #include <cstring>
 #include <unordered_map>
+#include <algorithm>
 
 namespace {
     
@@ -37,39 +38,42 @@ void resourceRelease(const OH_UNIT_CallbackResource& resource) {
 
 } // namespace
 
-OH_String copy_string(OH_String str)
+OH_String CopyString(OH_String str)
 {
     if (str.length == 0) {
         return { .chars = "", .length = 0 };
     }
     char* chars = reinterpret_cast<char*>(calloc(str.length, sizeof(char)));
-    memcpy(chars, str.chars, str.length);
+    std::copy_n(str.chars, str.length, chars);
     return OH_String { .chars = chars, .length = str.length };
 }
 
-InteropInt32 string_len(const char* str)
+InteropInt32 StringLen(const char* str)
 {
     return static_cast<InteropInt32>(strlen(str));
 }
 
-void assert_eq_bool(bool golden, OH_Boolean b, const char* comment)
+void AssertEqBool(bool golden, OH_Boolean b, const char* comment)
 {
-    if (b == golden)
+    if (b == golden) {
         return;
+    }
     INTEROP_FATAL("%s, golden: %d, curr: %d", comment, golden, b);
 }
 
-void assert_eq_int(int golden, OH_Number num, const char* comment)
+void AssertEqInt(int golden, OH_Number num, const char* comment)
 {
-    if (num.tag == INTEROP_TAG_INT32 && num.i32 == golden)
+    if (num.tag == INTEROP_TAG_INT32 && num.i32 == golden) {
         return;
+    }
     INTEROP_FATAL("%s, golden: %d, curr: [tag: %d, i32: %d]", comment, golden, num.tag, num.i32);
 }
 
-void assert_eq_str(const char* golden, OH_String str, const char* comment)
+void AssertEqStr(const char* golden, OH_String str, const char* comment)
 {
-    if (str.length == string_len(golden) && strcmp(golden, str.chars) == 0)
+    if (str.length == StringLen(golden) && strcmp(golden, str.chars) == 0) {
         return;
+    }
     INTEROP_FATAL("%s, golden: '%s', curr: [length: %d, chars: '%s']", comment, golden, str.length, str.chars);
 }
 
@@ -206,8 +210,8 @@ OH_Buffer TestBuffer_BufferGenerator_giveMeBufferImpl(OH_NativePointer thisPtr)
     return {};
 }
 
-void stub_hold(OH_Int32 resourceId) {}
-void stub_release(OH_Int32 resourceId) {}
+void StubHold(OH_Int32 resourceId) {}
+void StubRelease(OH_Int32 resourceId) {}
 
 /**
  * Create a buffer with the given size and fill it with values from 0 to size-1.
@@ -215,8 +219,8 @@ void stub_release(OH_Int32 resourceId) {}
 static OH_Buffer createBufferImpl(OH_UInt32 size)
 {
     OH_Buffer result;
-    result.resource.hold = stub_hold;
-    result.resource.release = stub_release;
+    result.resource.hold = StubHold;
+    result.resource.release = StubRelease;
     result.length = size;
     result.data = malloc(size);
     for (uint32_t i = 0; i < size; i++) {
@@ -307,7 +311,7 @@ OH_Number ForceCallbackClass_callListenerImpl(OH_NativePointer thisPtr)
     forceCallbackListener.onStatus.call(forceCallbackListener.onStatus.resource.resourceId, number);
 
     // onChange call
-    OH_UNIT_CallbackResource resource = { .resourceId = 12, .hold = stub_hold, .release = stub_release };
+    OH_UNIT_CallbackResource resource = { .resourceId = 12, .hold = StubHold, .release = StubRelease };
 
     UNIT_Callback_String_Void continuation = {
         .resource = resource,
@@ -368,13 +372,13 @@ OH_Number GlobalScope_sum_numbersImpl(const OH_Number* v1, const OH_Number* v2)
                 case InteropTag::INTEROP_TAG_FLOAT32:
                     return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->i32 + v2->f32 };
             }
-            case InteropTag::INTEROP_TAG_FLOAT32: {
-                switch (v2->tag) {
-                    case InteropTag::INTEROP_TAG_INT32:
-                        return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->i32 };
-                    case InteropTag::INTEROP_TAG_FLOAT32:
-                        return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->f32 };
-                }
+        }
+        case InteropTag::INTEROP_TAG_FLOAT32: {
+            switch (v2->tag) {
+                case InteropTag::INTEROP_TAG_INT32:
+                    return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->i32 };
+                case InteropTag::INTEROP_TAG_FLOAT32:
+                    return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->f32 };
             }
         }
     }
@@ -592,7 +596,7 @@ EntityName DataObjectTest(const EntityName* arg) {
         result.propNumber.i32 += 1;
     else
         result.propNumber.f32 += 1;
-    result.propString = copy_string(arg->propString);
+    result.propString = CopyString(arg->propString);
     result.propString.chars++;
     result.propString.length--;
     result.propObject = arg->propObject;
@@ -640,7 +644,7 @@ OH_UNIT_Tuple_Boolean_Number_String MaterializedDataClass_getPropObjectImpl(OH_N
 }
 OH_String MaterializedDataClass_getPropStringImpl(OH_NativePointer thisPtr)
 {
-    return copy_string(reinterpret_cast<DataClassPeer*>(thisPtr)->propString);
+    return CopyString(reinterpret_cast<DataClassPeer*>(thisPtr)->propString);
 }
 void MaterializedDataClass_setPropBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value)
 {
@@ -657,7 +661,7 @@ void MaterializedDataClass_setPropObjectImpl(
 }
 void MaterializedDataClass_setPropStringImpl(OH_NativePointer thisPtr, const OH_String* value)
 {
-    reinterpret_cast<DataClassPeer*>(thisPtr)->propString = copy_string(*value);
+    reinterpret_cast<DataClassPeer*>(thisPtr)->propString = CopyString(*value);
 }
 
 OH_UNIT_DataInterface GlobalScope_testDataInterfaceImpl(const OH_UNIT_DataInterface* arg) {
@@ -677,7 +681,7 @@ OH_UNIT_MaterializedDataClass GlobalScope_testMaterializedDataClassImpl(OH_UNIT_
         result->propNumber.i32 += 1;
     else
         result->propNumber.f32 += 1;
-    result->propString = copy_string(arg->propString);
+    result->propString = CopyString(arg->propString);
     result->propString.chars++;
     result->propString.length--;
     result->propObject = arg->propObject;
@@ -870,8 +874,8 @@ struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer :
         InteropInt32 newLength = utils.fieldString.length + suffixLength;
         char* newChars = reinterpret_cast<char*>(calloc(newLength, sizeof(char)));
         toClean.push_back(newChars);
-        memcpy(newChars, utils.fieldString.chars, utils.fieldString.length);
-        memcpy(newChars + utils.fieldString.length, suffix, suffixLength);
+        std::copy_n(utils.fieldString.chars, utils.fieldString.length, newChars);
+        std::copy_n(suffix, suffixLength, newChars + utils.fieldString.length);
 
         int32_t arrayLength = utils.fieldArrayNumber.length;
         OH_Number* newArrayNumber = reinterpret_cast<OH_Number*>(calloc(arrayLength, sizeof(OH_Number)));
@@ -905,7 +909,7 @@ struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer :
             std::string stringifyNum = std::to_string(array.array[i].i32);
             char* newChars = reinterpret_cast<char*>(calloc(stringifyNum.size(), sizeof(char)));
             toClean.push_back(newChars);
-            memcpy(newChars, stringifyNum.c_str(), stringifyNum.size());
+            std::copy_n(stringifyNum.c_str(), stringifyNum.size(), newChars);
             newArrayString[i] = OH_String { .chars = newChars, .length = (InteropInt32)stringifyNum.size() };
         }
 
@@ -966,7 +970,7 @@ OH_UInt64 GlobalScope_test_bigint_testImpl(OH_Int64 num)
     int64_t shiftAmount = 54;
     if (num != expected)
         INTEROP_FATAL("Input bigint: %d does not equal to: %d\n", num, expected);
-    return 1ll << shiftAmount;
+    return 1LL << shiftAmount;
 }
 OH_UInt64 GlobalScope_test_bigint_test_negativeImpl(OH_Int64 num)
 {
@@ -974,7 +978,7 @@ OH_UInt64 GlobalScope_test_bigint_test_negativeImpl(OH_Int64 num)
     int64_t shiftAmount = 54;
     if (num != expected)
         INTEROP_FATAL("Input bigint: %d does not equal to: %d\n", num, expected);
-    return -(1ll << shiftAmount);
+    return -(1LL << shiftAmount);
 }
 OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_paramsImpl(
     const OH_UNIT_test_bigint_BigIntParams* params)
@@ -983,7 +987,7 @@ OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_paramsImpl(
     int64_t shiftAmount = 52;
     if (params->prime != expected)
         INTEROP_FATAL("Input bigint param,: %ld does not equal to: %d\n", params->prime, expected);
-    return { .prime = 1ll << shiftAmount };
+    return { .prime = 1LL << shiftAmount };
 }
 OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_params_negativeImpl(
     const OH_UNIT_test_bigint_BigIntParams* params)
@@ -991,7 +995,7 @@ OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_params_negativeImp
     int64_t expected = -789;
     if (params->prime != expected)
         INTEROP_FATAL("Input bigint param,: %ld does not equal to: %d\n", params->prime, expected);
-    return { .prime = -(1ll << SOME_NUMBER) };
+    return { .prime = -(1LL << SOME_NUMBER) };
 }
 
 OH_UNIT_test_enums_TestHandle test_enums_Test_constructImpl()
@@ -1166,34 +1170,7 @@ Array_test_ret_B GlobalScope_test_return_types_returnMaterializedArrayImpl()
 }
 
 // Needs: wait for the interface FQN fix for ArkTS
-/*
 // namespaces
-OH_Boolean GlobalScope_hello_MyFuncImpl(OH_UNIT_hello_MyNamespace_FooXXX a) {
-    return {};
-}
-OH_Boolean GlobalScope_MyFunc1Impl(const OH_UNIT_Union_MyNamespace_MyEnum1_MyNamespace_MyEnum2* a) {
-    return {};
-}
-OH_Boolean GlobalScope_MyFunc2Impl(const Map_String_MyNamespace_MyInterface* a) {
-    return {};
-}
-OH_UNIT_hello_MyNamespace_FooXXXHandle hello_MyNamespace_FooXXX_constructImpl() {
-    return {};
-}
-void hello_MyNamespace_FooXXX_destructImpl(OH_UNIT_hello_MyNamespace_FooXXXHandle thisPtr) {
-}
-OH_Number hello_MyNamespace_FooXXX_getXImpl(OH_NativePointer thisPtr) {
-    return {};
-}
-OH_UNIT_hello_FooXXXHandle hello_FooXXX_constructImpl() {
-    return {};
-}
-void hello_FooXXX_destructImpl(OH_UNIT_hello_FooXXXHandle thisPtr) {
-}
-OH_Number hello_FooXXX_getYImpl(OH_NativePointer thisPtr) {
-    return {};
-}
-*/
 
 // throw exception
 
@@ -1405,11 +1382,11 @@ void TestBuffer_BufferGenerator_callHolderImpl(OH_NativePointer thisPtr) {}
 class RefCounter {
 public:
     RefCounter() {}
-    void hold(const void* const ptr)
+    void Hold(const void* const ptr)
     {
         ++counters_[ptr];
     }
-    size_t release(const void* const ptr)
+    size_t Release(const void* const ptr)
     {
         auto it = counters_.find(ptr);
         if (it == counters_.end()) {
@@ -1470,7 +1447,7 @@ void SomeClass_callHolderImpl(OH_NativePointer thisPtr)
 {
     SomeClass* someClassPtr = reinterpret_cast<SomeClass*>(thisPtr);
     if (someClassPtr) {
-        GetRefCounter().hold(someClassPtr);
+        GetRefCounter().Hold(someClassPtr);
     }
 }
 
@@ -1478,7 +1455,7 @@ void SomeClass_destructImpl(OH_UNIT_SomeClassHandle thisPtr)
 {
     SomeClass* someClassPtr = reinterpret_cast<SomeClass*>(thisPtr);
     if (someClassPtr) {
-        if (GetRefCounter().release(someClassPtr) == 0) {
+        if (GetRefCounter().Release(someClassPtr) == 0) {
             delete someClassPtr;
         }
     }
@@ -1961,7 +1938,7 @@ void ParentC_callHolderImpl(OH_NativePointer thisPtr)
 OH_UNIT_ParentCHandle ParentC_constructImpl(
     OH_Boolean parentFlag, const OH_Number* parentCount, const OH_String* parentText)
 {
-    return (OH_UNIT_ParentCHandle) new IDLParentCPeer(parentFlag, *parentCount, copy_string(*parentText));
+    return (OH_UNIT_ParentCHandle) new IDLParentCPeer(parentFlag, *parentCount, CopyString(*parentText));
 }
 void ParentC_destructImpl(OH_UNIT_ParentCHandle thisPtr)
 {
@@ -1988,27 +1965,27 @@ void ParentC_setParentCountImpl(OH_NativePointer thisPtr, const OH_Number* value
 }
 void ParentC_setParentTextImpl(OH_NativePointer thisPtr, const OH_String* value)
 {
-    ((IDLParentCPeer*)thisPtr)->text = copy_string(*value);
+    ((IDLParentCPeer*)thisPtr)->text = CopyString(*value);
 }
 OH_String ParentC_parentMethodImpl(
     OH_NativePointer thisPtr, OH_Boolean parentFlag, const OH_Number* parentCount, const OH_String* parentText)
 {
     int32_t expectedCount = 31;
     const char* expectedText = "31";
-    assert_eq_bool(true, parentFlag, "parent flag value is not correct");
-    assert_eq_int(expectedCount, *parentCount, "parent count value is not correct");
-    assert_eq_str(expectedText, *parentText, "parent text value is not correct");
-    return OH_String { .chars = "Parent", .length = string_len("Parent") };
+    AssertEqBool(true, parentFlag, "parent flag value is not correct");
+    AssertEqInt(expectedCount, *parentCount, "parent count value is not correct");
+    AssertEqStr(expectedText, *parentText, "parent text value is not correct");
+    return OH_String { .chars = "Parent", .length = StringLen("Parent") };
 }
 OH_String ParentC_commonMethodImpl(
     OH_NativePointer thisPtr, OH_Boolean commonFlag, const OH_Number* commonCount, const OH_String* commonText)
 {
     int32_t expectedCount = 32;
     const char* expectedText = "32";
-    assert_eq_bool(true, commonFlag, "parent common flag value is not correct");
-    assert_eq_int(expectedCount, *commonCount, "parent common count value is not correct");
-    assert_eq_str(expectedText, *commonText, "parent common text value is not correct");
-    return OH_String { .chars = "ParentCommon", .length = string_len("ParentCommon") };
+    AssertEqBool(true, commonFlag, "parent common flag value is not correct");
+    AssertEqInt(expectedCount, *commonCount, "parent common count value is not correct");
+    AssertEqStr(expectedText, *commonText, "parent common text value is not correct");
+    return OH_String { .chars = "ParentCommon", .length = StringLen("ParentCommon") };
 }
 
 void ChildC_callHolderImpl(OH_NativePointer thisPtr)
@@ -2017,7 +1994,7 @@ void ChildC_callHolderImpl(OH_NativePointer thisPtr)
 OH_UNIT_ChildCHandle ChildC_constructImpl(
     const OH_Number* childCount, const OH_String* childText, OH_Boolean childFlag)
 {
-    return (OH_UNIT_ChildCHandle) new IDLChildCPeer(*childCount, copy_string(*childText), childFlag);
+    return (OH_UNIT_ChildCHandle) new IDLChildCPeer(*childCount, CopyString(*childText), childFlag);
 }
 void ChildC_destructImpl(OH_UNIT_ChildCHandle thisPtr)
 {
@@ -2044,7 +2021,7 @@ void ChildC_setChildCountImpl(OH_NativePointer thisPtr, const OH_Number* value)
 }
 void ChildC_setChildTextImpl(OH_NativePointer thisPtr, const OH_String* value)
 {
-    ((IDLChildCPeer*)thisPtr)->childText = copy_string(*value);
+    ((IDLChildCPeer*)thisPtr)->childText = CopyString(*value);
 }
 
 OH_String ChildC_childMethodImpl(
@@ -2052,20 +2029,20 @@ OH_String ChildC_childMethodImpl(
 {
     int32_t expectedCount = 33;
     const char* expectedText = "33";
-    assert_eq_bool(true, childFlag, "child flag value is not correct");
-    assert_eq_int(expectedCount, *childCount, "child count value is not correct");
-    assert_eq_str(expectedText, *childText, "child text value is not correct");
-    return OH_String { .chars = "Child", .length = string_len("Child") };
+    AssertEqBool(true, childFlag, "child flag value is not correct");
+    AssertEqInt(expectedCount, *childCount, "child count value is not correct");
+    AssertEqStr(expectedText, *childText, "child text value is not correct");
+    return OH_String { .chars = "Child", .length = StringLen("Child") };
 }
 OH_String ChildC_commonMethodImpl(
     OH_NativePointer thisPtr, OH_Boolean commonFlag, const OH_Number* commonCount, const OH_String* commonText)
 {
     int32_t expectedCount = 34;
     const char* expectedText = "34";
-    assert_eq_bool(true, commonFlag, "child common flag value is not correct");
-    assert_eq_int(expectedCount, *commonCount, "child common count value is not correct");
-    assert_eq_str(expectedText, *commonText, "child common text value is not correct");
-    return OH_String { .chars = "ChildCommon", .length = string_len("ChildCommon") };
+    AssertEqBool(true, commonFlag, "child common flag value is not correct");
+    AssertEqInt(expectedCount, *commonCount, "child common count value is not correct");
+    AssertEqStr(expectedText, *commonText, "child common text value is not correct");
+    return OH_String { .chars = "ChildCommon", .length = StringLen("ChildCommon") };
 }
 
 OH_UNIT_ParentI GlobalScope_testParentInterfaceHierarchyImpl(const OH_UNIT_ParentI* arg)

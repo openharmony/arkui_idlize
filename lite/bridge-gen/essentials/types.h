@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef TYPES_H
+#define TYPES_H
 #include <stdint.h>
 
 typedef void* NativePointer;
@@ -24,3 +25,5 @@ typedef uint64_t UInt64;
 typedef float Float32;
 typedef const char* String;
 typedef uint8_t Boolean;
+
+#endif

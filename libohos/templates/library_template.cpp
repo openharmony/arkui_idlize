@@ -45,8 +45,6 @@ void* FindModule(int kind) {
         if (module) {
             LOGE("ACE module at: %s", libraryName.c_str());
             return module;
-        } else {
-            // LOGE("Cannot find ACE module: %s %s", libraryName.c_str(), libraryError());
         }
     }
     return nullptr;
@@ -54,7 +52,7 @@ void* FindModule(int kind) {
 
 static const int API_KIND_MAX = 100;
 static const OH_AnyAPI* impls[API_KIND_MAX + 1] = { 0 };
-const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
+const char* GET_ARK_ANY_API_FUNC_NAME = "%CPP_PREFIX%GetArkAnyAPI";
 
 #ifdef KOALA_LIBACE_LINKED
 extern "C" const OH_AnyAPI* GENERATED_GetArkAnyAPI(int kind, int version);
@@ -85,7 +83,7 @@ const OH_AnyAPI* GetImpl(int kind, int version, std::string* result) {
 
     char* envValue = getenv("__LIBACE_ENTRY_POINT");
     if (envValue) {
-        long long value = strtoll(envValue, NULL, 16);
+        long long value = strtoll(envValue, nullptr, 16);
         if (value != 0) {
             getAPI = reinterpret_cast<GetAPI_t>(static_cast<uintptr_t>(value));
         }
@@ -96,9 +94,9 @@ const OH_AnyAPI* GetImpl(int kind, int version, std::string* result) {
             ReportMsg(result, "Cannot find dynamic module");
             return nullptr;
         }
-        getAPI = reinterpret_cast<GetAPI_t>(findSymbol(module, getArkAnyAPIFuncName));
+        getAPI = reinterpret_cast<GetAPI_t>(findSymbol(module, GET_ARK_ANY_API_FUNC_NAME));
         if (!getAPI) {
-            ReportMsg(result, std::string("Cannot find ") + getArkAnyAPIFuncName, true);
+            ReportMsg(result, std::string("Cannot find ") + GET_ARK_ANY_API_FUNC_NAME, true);
             return nullptr;
         }
     }

@@ -20,6 +20,7 @@
 
 #include <cstring>
 #include <string>
+#include <algorithm>
 
 struct FooObject {
     int index;
@@ -56,7 +57,7 @@ OH_String getOHString(FooObject* obj)
     std::string resStr = obj->MakeTitle();
     // todo: Potential MEMORY LEAK with dynamically allocated string data
     char* chars = new char[resStr.length() + 1];
-    std::memcpy(chars, resStr.data(), resStr.length() + 1);
+    std::copy_n(resStr.data(), resStr.length() + 1, chars);
     OH_String res = { .chars = chars, .length = resStr.length() + 1 };
     return res;
 }
