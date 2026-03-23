@@ -18,7 +18,7 @@ endif
 
 cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []
-deps = [dependency('expat')]
+deps = []
 
 include_dirs = [
    'generated/native',
