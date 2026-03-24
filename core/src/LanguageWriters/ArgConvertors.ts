@@ -266,29 +266,12 @@ export class EnumConvertor extends BaseArgConvertor {
         return false
     }
     targetType(writer: LanguageWriter): string {
-        return writer.getNodeName(this.idlType) // this.enumTypeName(writer.language)
+        return writer.getNodeName(this.idlType)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        const convertorNativeType = this.nativeType()
-        const decl = writer.resolver.resolveTypeReference(
-            idl.isReferenceType(convertorNativeType)
-                ? convertorNativeType
-                : idl.createReferenceType(this.targetType(writer))
-        )
-        if (decl === undefined || !idl.isEnum(decl)) {
-            throwException(`The type reference ${decl?.name} must be Enum`)
-        }
-        const ordinal = idl.isStringEnum(decl)
-            ? writer.i32FromEnum(
-                writer.makeCast(writer.makeString(writer.getObjectAccessor(this, value)), this.idlType),
-                decl,
-            )
-            : writer.makeUnionVariantCast(writer.getObjectAccessor(this, value), writer.getNodeName(idl.createPrimitiveType('i32')), this, index)
-        const { low, high } = idl.extremumOfOrdinals(decl)
-        return writer.makeNaryOp("&&", [
-            writer.makeNaryOp(">=", [ordinal, writer.makeString(low.toString())]),
-            writer.makeNaryOp("<=", [ordinal, writer.makeString(high.toString())])
-        ])
+        return writer.makeMethodCall(
+            writer.makeMethodCall('Object', 'values', [writer.makeString(writer.getNodeName(this.enumEntry))]).asString(),
+            'includes', [writer.makeString(value)])
     }
     enumSerializeInteropType(): string {
         // Note that the serializes do not have methods for unsigned types
