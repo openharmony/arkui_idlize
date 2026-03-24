@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { Builders, E, Hs, Md, T, Ts } from "@idlizer/ost"
 import { expectType, managedName } from "../common.js"
 import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
-import { capitalize, getSuperType, isInExternalModule, isMaterialized } from "@idlizer/core"
+import { capitalize, getSuperType, isDefined, isInExternalModule, isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine/index.js"
 import { ProducerResult } from "@idlizer/kit"
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
@@ -91,16 +91,23 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
     // client constructors
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
     // property getters + setters
-    ...node.properties.flatMap(prop => [
-      idl.createMethod('get' + capitalize(prop.name), [], prop.type, undefined, {
-        extendedAttributes: [
-          { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Getter },
-          { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
-      idl.createMethod('set' + capitalize(prop.name), [idl.createParameter(prop.name, prop.type)], idl.createPrimitiveType('void'), undefined, {
-        extendedAttributes: [
-          { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter },
-          { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
-    ]),
+    ...node.properties.flatMap(prop => {
+      const accessor = idl.getExtAttribute(prop, idl.IDLExtendedAttributes.Accessor)
+      return [
+        accessor === idl.IDLAccessorAttribute.Setter
+          ? undefined
+          : idl.createMethod('get' + capitalize(prop.name), [], prop.type, undefined, {
+              extendedAttributes: [
+                { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Getter },
+                { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
+        prop.isReadonly || accessor === idl.IDLAccessorAttribute.Getter
+          ? undefined
+          : idl.createMethod('set' + capitalize(prop.name), [idl.createParameter(prop.name, prop.type)], idl.createPrimitiveType('void'), undefined, {
+              extendedAttributes: [
+                { name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter },
+                { name: idl.IDLExtendedAttributes.DtsName, value: prop.name }]}),
+      ].filter(isDefined)
+    }),
     // getFinalizer
     idl.createMethod('getFinalizer', [], idl.createPrimitiveType('pointer'), {
       isStatic: true, isAsync: false, isOptional: false, isFree: false}),
