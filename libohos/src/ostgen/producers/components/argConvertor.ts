@@ -43,8 +43,9 @@ function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
         default: throw new Error(`Missing primitive convertor for "${idl.DebugUtils.debugPrintTrace(type)}"`)
     }
 }
-function selectWriteName(type: idl.IDLPrimitiveType): string {
-    return type.name === 'any' ? 'holdAndWriteObject'
+function selectWriteName(type: idl.IDLPrimitiveType, native?: boolean): string {
+    return type.name === 'any' && !native
+        ? 'holdAndWriteObject'
         : "write" + selectPrimitiveTypeName(type)
 }
 function selectReadName(type: idl.IDLPrimitiveType): string {
@@ -130,7 +131,7 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
         }
     }
     isPointer(): boolean {
-        return idl.isPrimitiveType(this.type, 'number') || idl.isPrimitiveType(this.type, 'String')
+        return ['buffer', 'number', 'String'].includes(this.type.name)
     }
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
         switch (this.type.name) {
@@ -147,10 +148,24 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
         }
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
-        return [Builders.stmt().call(selectWriteName(this.type))
-            .receiver(serializerName)
-            .arg(accessor).$().$()
+        const stmts: LWStatement[] = [
+            Builders.stmt().call(selectWriteName(this.type, native))
+                .receiver(serializerName)
+                .arg(accessor).$().$()
         ]
+        // if (this.type.name === 'any' && native) {
+        //     stmts.unshift(
+        //         Builders.decl('argResource', T.c(cApiName('CallbackResource'))).value()
+        //             .ctor().asStruct()
+        //                 .arg().access('resourceId').receiver().access('resource').receiver(accessor).$().$().$().$()
+        //                 .arg('holdManagedCallbackResource')
+        //                 .arg('releaseManagedCallbackResource').$().$().$(),
+        //         Builders.stmt().call('holdCallbackResource')
+        //             .receiver().access('resourceHolder').receiver('callbackBuffer').$().$()
+        //             .arg().unary(Op.ref).value('argResource').$().$().$().$()
+        //     )
+        // }
+        return stmts
     }
 
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
