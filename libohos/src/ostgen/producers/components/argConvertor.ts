@@ -275,6 +275,10 @@ class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
         super(ctx, type)
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        if (!native && idl.getExtAttribute(this.decl, idl.IDLExtendedAttributes.Entity) === idl.IDLEntity.Tuple) {
+            return this.decl.properties.flatMap((prop, index) =>
+                argConvertor(this.ctx, prop.type, prop.isOptional).write(E.get(accessor, E.c(index)), serializerName, false))
+        }
         return [Builders.expr().call().function()
             .access('write')
                 .receiver(this.getSerializer(this.decl, native))
@@ -283,6 +287,18 @@ class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        if (!native && idl.getExtAttribute(this.decl, idl.IDLExtendedAttributes.Entity) === idl.IDLEntity.Tuple) {
+            const [propReads, propValues] = this.decl.properties
+                .map((prop, index) => argConvertor(this.ctx, prop.type, prop.isOptional).read(name + index, serializerName, false))
+                .reduce<[lw.LWStatement[], lw.LWExpression[]]>(([accReads, accValues], [curReads, curValue]) =>
+                    [accReads.concat(curReads), [...accValues, curValue]], [[], []])
+            const tupleType = Ts.intersection(this.decl.properties.map(prop => expectType(this.ctx, prop.type, 'managed')))
+            const decl = Builders.decl(name, tupleType).value().ctor().array().args(propValues).$().$().$()
+            return [
+                [...propReads, decl],
+                E.v(name)
+            ]
+        }
         return [
             [Builders.decl(name).value().call()
                 .function()
@@ -322,7 +338,7 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
             ? Builders.decl(name).type(arrayType).mutable()
                 .value().ctor().asStruct().$().$().$()
             : Builders.decl(name).value()
-                .ctor(std.names.types.array).array().typeArgs([elemType]).arg(name + 'Length').$().$().$()
+                .ctor(std.names.types.array).typeArgs([elemType]).arg(name + 'Length').$().$().$()
         const [reads, readValue] = argConvertor(this.ctx, this.type.elementType[0])
             .read(name + 'Element', serializerName, native);
         const arrayAccess = native

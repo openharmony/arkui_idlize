@@ -282,17 +282,28 @@ export class TSPrinter {
         break
       }
       case lw.LWKind.ConstructorExpression: {
+        if (utils.hasHint(expression, std.names.hints.arrayInstance)) {
+          this.p.put('[')
+          expression.args.forEach((arg, i) => {
+            if (i > 0) {
+              this.p.put(',', ' ')
+            }
+            this.printExpression(arg)
+          })
+          this.p.put(']')
+          return
+        }
         if (utils.hasHint(expression, std.names.hints.asStruct)) {
           this.p.put('{')
           expression.args.forEach((arg, i) => {
             if (i > 0) {
               this.p.put(',', ' ')
             }
-            const filedName = utils.getHint(arg, std.names.hints.named)
-            if (!filedName) {
+            const fieldName = utils.getHint(arg, std.names.hints.named)
+            if (!fieldName) {
               throw new Error("!!!")
             }
-            this.p.put(filedName, ':')
+            this.p.put(fieldName, ':')
             this.printExpression(arg)
           })
           this.p.put('}')
@@ -399,7 +410,7 @@ export class TSPrinter {
               }
               this.printExpression(arg)
             })
-            this.p.put('}', ';')
+            this.p.put('}')
           } else {
             this.printExpression(statement.expression)
           }
