@@ -91,7 +91,7 @@ export function arkgen(argv:string[]) {
         .option('--interop-bridges <string>', "Generate interop bridges macros")
         .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
         .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
-        .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
+        .option('--no-attribute-modifier-hooks', "Do not generate hooks for components attribute modifier methods")
         .option('--interop-types <path>', 'Path to interop-types.h file')
 
     const options = command

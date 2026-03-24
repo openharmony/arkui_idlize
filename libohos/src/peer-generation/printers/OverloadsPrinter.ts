@@ -445,7 +445,7 @@ export class OverloadsPrinter {
             if (argNameTmp.endsWith('_')) {
                 argNameTmp = argName.slice(0, -1)
             }
-            const castedArgName = `${argNameTmp}Casted`
+            const castedArgName = `${argNameTmp}_casted`
             const castedType = idl.maybeOptional(peerMethod.method.signature.args[index], peerMethod.method.signature.isArgOptional(index))
             if (this.printer.language == Language.CJ) {
                 if (idl.isOptionalType(collapsedMethod.signature.args[index])) {

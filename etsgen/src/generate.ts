@@ -1242,9 +1242,10 @@ class IDLVisitor extends arkts.AbstractVisitor {
             return this.contextual.extend(methodName, () => {
                 const key = parentName + '.' + methodName
                 if (this.config.Throws.includes(key) || arkts.getJsDoc(method)?.includes("@throws")) {
-                    extendedAttributes.push({
-                        name: idl.IDLExtendedAttributes.Throws
-                    })
+                    console.log('WARNING: throws disabled now to provide smooth migration between old and new generator.')
+                    // extendedAttributes.push({
+                    //     name: idl.IDLExtendedAttributes.Throws
+                    // })
                 }
                 const parameters = arktsParameters.map(param => {
                     return idl.createParameter(param.name, this.serializeType(param.typeAnnotation), param.isOptional)
