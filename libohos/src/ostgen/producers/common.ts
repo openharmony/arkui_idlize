@@ -56,6 +56,7 @@ export function typeNameExpr(typeName: string): lw.LWExpression {
 
 export function isDirectInteropType(type: lw.LWType) {
     return type !== Ts.prim.interopReturnBuffer
+        && type !== Ts.prim.interopString
 }
 
 export function createOhosEffect() {

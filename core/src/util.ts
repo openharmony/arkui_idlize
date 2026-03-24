@@ -25,6 +25,8 @@ export function isDefined<T>(value: T | null | undefined): value is T {
     return !!value
 }
 
+export const id = <T>(it: T) => it
+
 export function capitalize(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1)
 }

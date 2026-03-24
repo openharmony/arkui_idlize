@@ -67,6 +67,7 @@ const specialTypeNames = {
     array: '@ARRAY',
     vector: '@VECTOR',
     map: '@MAP',
+    promise: '@PROMISE',
     optional: '@OPTIONAL',
 
     auto: '@LW.AUTO',
@@ -214,4 +215,5 @@ export const Ts = {
     array: (elemType: LWType) => T.c(specialTypeNames.array, elemType),
     vector: (elemType: LWType) => T.c(specialTypeNames.vector, elemType),
     map: (keyType: LWType, valueType: LWType) => T.c(specialTypeNames.map, keyType, valueType),
+    promise: (resultType: LWType) => T.c(specialTypeNames.promise, resultType),
 }

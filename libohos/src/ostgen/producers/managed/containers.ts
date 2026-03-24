@@ -15,26 +15,19 @@
 
 import { Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { createProducer, OhosSeed } from "../../engine/index.js"
+import { createProducer, OhosSeed, throwError } from "../../engine/index.js"
 
 export const containerProducer = createProducer(
   { is: idl.isContainerType },
   (type, ctx, role) => {
-    if (idl.IDLContainerUtils.isSequence(type)) {
-      const elemRef = ctx.expectType(new OhosSeed(type.elementType[0], role))
-      return {
-        continuation: Ts.array(elemRef),
-        declarations: []
-      }
+    const elemTypes = type.elementType.map(ty => ctx.expectType(new OhosSeed(ty, role)))
+    const continuation = idl.IDLContainerUtils.isSequence(type) ? Ts.array(elemTypes[0])
+      : idl.IDLContainerUtils.isRecord(type) ? Ts.map(elemTypes[0], elemTypes[1])
+      : idl.IDLContainerUtils.isPromise(type) ? Ts.promise(elemTypes[0])
+      : throwError(`Unknown container type "${idl.DebugUtils.debugPrintTrace(type)}"`)
+    return {
+      continuation,
+      declarations: []
     }
-    if (idl.IDLContainerUtils.isRecord(type)) {
-      const keyRef = ctx.expectType(new OhosSeed(type.elementType[0], role))
-      const valRef = ctx.expectType(new OhosSeed(type.elementType[1], role))
-      return {
-        continuation: Ts.map(keyRef, valRef),
-        declarations: []
-      }
-    }
-    throw new Error(`Unknown type "${idl.DebugUtils.debugPrintTrace(type)}"`)
   }
 )

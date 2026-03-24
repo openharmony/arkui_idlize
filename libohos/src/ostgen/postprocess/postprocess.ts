@@ -47,10 +47,10 @@ export function monoName(type: lw.LWType, prefix: string = C_API_PREFIX): string
     }
 }
 
-export function callbackKindDeclaration(callers: string[], nameFunc: (base: string) => string) {
+export function callbackKindDeclaration(callers: string[], nameFunc: (name: string) => string) {
     return Builders.enum(nameFunc('CallbackKind'))
         .members(callers.map(it => {
-            const name = 'KIND_' + it.toUpperCase();
+            const name = it.toUpperCase()
             return { name, value: hashCodeFromString(name) }
         })).$()
 }

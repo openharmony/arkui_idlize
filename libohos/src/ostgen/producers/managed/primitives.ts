@@ -34,6 +34,7 @@ function convertType(type: idl.IDLPrimitiveType): lw.LWType {
         case 'pointer': return Ts.prim.pointer
         case 'SerializerBuffer': return Ts.prim.serializerBuffer
         case 'String': return Ts.prim.str
+        case 'this': return Ts.prim.self
         case 'u8': return Ts.prim.u8
         case 'u32': return Ts.prim.u32
         case 'u64': return Ts.prim.u64

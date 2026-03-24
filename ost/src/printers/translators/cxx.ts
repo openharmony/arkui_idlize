@@ -304,7 +304,7 @@ export class CXXPrinter {
       }
     }
   }
-  printStatement(statement: lw.LWStatement) {
+  printStatement(statement: lw.LWStatement, semicolon: boolean = true) {
     switch (statement.kind) {
       case lw.LWKind.CompoundStatement: {
         this.p.put('{')
@@ -332,7 +332,7 @@ export class CXXPrinter {
         if (statement.expression) {
           this.printExpression(statement.expression)
         }
-        this.p.put(';')
+        if (semicolon) this.p.put(';')
         break
       }
       case lw.LWKind.DeclarationStatement: {
@@ -424,11 +424,11 @@ export class CXXPrinter {
         this.p.put('for', ' ', '(')
         if (statement.init)
           this.printStatement(statement.init)
-        this.p.put(';', ' ')
+        this.p.put(' ')
         this.printExpression(statement.condition)
         this.p.put(';', ' ')
         if (statement.step)
-          this.printStatement(statement.step)
+          this.printStatement(statement.step, false)
         this.p.put(')', ' ')
         this.printStatement(statement.body)
         break

@@ -35,7 +35,7 @@ export const propertyProducer = createProducer<idl.IDLProperty, ArkUIRole<idl.ID
     return {
       continuation: expectExpr(ctx, propMethod, 'managed'),
       declarations: [
-        Builders.class(attrName).interface()
+        Builders.class(attrName).kind('interface')
           .method(prop.name)
             .param('value').type(propType).$()
             .returns(Ts.prim.self).$().$(),

@@ -14,10 +14,10 @@
  */
 
 import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from "@idlizer/ost"
-import { generatorConfiguration, zipStrip } from "@idlizer/core";
-import { callbackKindDeclaration, monoName } from "./postprocess.js";
-import { bridgeName, cApiName, implName } from "../producers/common.js";
-import { lowLevelLike } from "@idlizer/kit";
+import { generatorConfiguration, zipStrip } from "@idlizer/core"
+import { lowLevelLike } from "@idlizer/kit"
+import { callbackKindDeclaration, monoName } from "./postprocess.js"
+import { bridgeName, C_API_PREFIX, cApiName, implName } from "../producers/common.js"
 
 export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>, callbacks: string[]): Map<string, lw.LWDeclaration[]> {
     decls = introduceOptionalTypes(decls)
@@ -25,7 +25,11 @@ export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, st
     decls = monomorphizeGenerics(decls)
     decls = monomorphizeAlgebraicTypes(decls)
     decls = makeApis(decls, modifiers)
-    return lowLevelLike.postprocess(decls)
+    const files = lowLevelLike.postprocess(decls)
+    const capi = files.get(C_API_PREFIX)
+    if (capi)
+        files.set(C_API_PREFIX, sortDeclarationsByDependency(capi))
+    return files
 }
 
 class MakeOptional extends IdentityTransformer {
@@ -55,7 +59,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
             .block()
                 .switch().selector().var('kind').$()
                     .cases(callbacks.map(it => { return {
-                        value: E.c(`KIND_${it.toUpperCase()}`),
+                        value: E.c(`CALLBACK_KIND_${it.toUpperCase()}`),
                         body: [Builders.return().cast(Ts.prim.pointer).value('CallManaged' + it).$().$()]
                     }})).$()
                 .return().value('nullptr').$().$().$()
@@ -65,7 +69,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
             .block()
                 .switch().selector().var('kind').$()
                     .cases(callbacks.map(it => { return {
-                        value: E.c(`KIND_${it.toUpperCase()}`),
+                        value: E.c(`CALLBACK_KIND_${it.toUpperCase()}`),
                         body: [Builders.return().cast(Ts.prim.pointer).value('SyncCallManaged' + it).$().$()]
                     }})).$()
                 .return().value('nullptr').$().$().$()
@@ -114,7 +118,7 @@ class GenericMonomorphizer extends IdentityTransformer {
             std.names.types.array,
             DD({ generics: [{ name: 'T' }] }).struct('synthetic.mono.Array', [
                 { name: 'length', type: Ts.prim.i32 },
-                { name: 'value', type: Ts.ptr(T.c('T')) }
+                { name: 'array', type: Ts.ptr(T.c('T')) }
             ])
         )
         this.index.set(
@@ -143,7 +147,7 @@ class GenericMonomorphizer extends IdentityTransformer {
                     subst.set(gen.name, arg)
                 })
                 const instance = this.goDeclaration(
-                    new MakeInstance(subst).goStructureDeclaration(decl)
+                    new MakeInstance(subst).goDeclaration(decl)
                 )
                 instance.name = specialName
                 this.newDecls.push(instance)
@@ -200,6 +204,116 @@ class AlgebraicMonomorphizer extends IdentityTransformer {
 }
 function monomorphizeAlgebraicTypes(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     return new AlgebraicMonomorphizer(decls).go()
+}
+
+/**
+ * Collect all ValueType names referenced by a type, skipping pointer-wrapped types.
+ */
+function collectTypeDeps(type: lw.LWType, deps: Set<string>): void {
+    switch (type.kind) {
+        case lw.LWKind.ValueType:
+            if (type.name !== std.names.types.pointer && type.name !== std.names.types.reference) {
+                deps.add(type.name)
+                for (const arg of type.args)
+                    collectTypeDeps(arg, deps)
+            }
+            break
+        case lw.LWKind.FunctionalType:
+            for (const param of type.params)
+                collectTypeDeps(param.type, deps)
+            collectTypeDeps(type.returnType, deps)
+            break
+        case lw.LWKind.HoleType:
+            throw new Error('Encountered HoleType while postprocessing')
+    }
+}
+
+/**
+ * Sort declarations using Kahn's algorithm so that declarations with no
+ * dependencies come first, followed by those that depend on them.
+ * Only StructureDeclarations participate in the topological sort;
+ * all other declaration kinds are left in their original positions.
+ * Pointer-typed fields are not treated as dependencies.
+ */
+export function sortDeclarationsByDependency(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
+    // Separate struct declarations and track their original indices
+    const structIndices: number[] = []
+    const structs: lw.StructureDeclaration[] = []
+    for (let i = 0; i < decls.length; i++) {
+        if (decls[i].kind === lw.LWKind.StructureDeclaration) {
+            structIndices.push(i)
+            structs.push(decls[i] as lw.StructureDeclaration)
+        }
+    }
+
+    if (structs.length <= 1) return decls
+
+    // Build name-to-index map for structs
+    const nameToIdx = new Map<string, number>()
+    for (let i = 0; i < structs.length; i++) {
+        nameToIdx.set(structs[i].name, i)
+    }
+
+    // Build adjacency list and in-degree array
+    // dependents[i] = set of struct indices that depend on struct i
+    const dependsOn: Set<number>[] = structs.map(() => new Set<number>())
+    const dependents: Set<number>[] = structs.map(() => new Set<number>())
+    const inDegree: number[] = new Array(structs.length).fill(0)
+
+    for (let i = 0; i < structs.length; i++) {
+        const deps = new Set<string>()
+        for (const member of structs[i].members) {
+            collectTypeDeps(member.type, deps)
+        }
+        for (const depName of deps) {
+            const depIdx = nameToIdx.get(depName)
+            if (depIdx !== undefined && depIdx !== i) {
+                if (!dependsOn[i].has(depIdx)) {
+                    dependsOn[i].add(depIdx)
+                    dependents[depIdx].add(i)
+                    inDegree[i]++
+                }
+            }
+        }
+    }
+
+    // Kahn's algorithm
+    const queue: number[] = []
+    for (let i = 0; i < structs.length; i++) {
+        if (inDegree[i] === 0) {
+            queue.push(i)
+        }
+    }
+
+    const sorted: lw.StructureDeclaration[] = []
+    const visited = new Set<number>()
+
+    while (queue.length > 0) {
+        const idx = queue.shift()!
+        sorted.push(structs[idx])
+        visited.add(idx)
+        for (const depIdx of dependents[idx]) {
+            inDegree[depIdx]--
+            if (inDegree[depIdx] === 0) {
+                queue.push(depIdx)
+            }
+        }
+    }
+
+    // Cycle fallback: append remaining structs in original order
+    for (let i = 0; i < structs.length; i++) {
+        if (!visited.has(i)) {
+            sorted.push(structs[i])
+        }
+    }
+
+    // Reconstruct the result array: non-struct declarations stay in place,
+    // struct slots are filled with the sorted structs in order
+    const result = decls.slice()
+    for (let i = 0; i < structIndices.length; i++) {
+        result[structIndices[i]] = sorted[i]
+    }
+    return result
 }
 
 function makeApis(decls: lw.LWDeclaration[], modifierNames: Map<string, string[]>): lw.LWDeclaration[] {

@@ -44,11 +44,11 @@ export class ConvertTSTypes extends IdentityTransformer {
       case std.names.types.boolean: return T.c('boolean')
       case std.names.types.buffer: return T.c('ArrayBuffer')
       case std.names.types.pointer: return T.c('bigint')
-      case std.names.types.f32: return T.c('number')
-      case std.names.types.f64: return T.c('double')
-      case std.names.types.i8: return T.c('byte')
-      case std.names.types.i32: return T.c('number')
-      case std.names.types.i64: return T.c('long')
+      case std.names.types.f32: return T.c('float32')
+      case std.names.types.f64: return T.c('float64')
+      case std.names.types.i8: return T.c('int8')
+      case std.names.types.i32: return T.c('int32')
+      case std.names.types.i64: return T.c('int64')
       case std.names.types.object: return T.c('object')
       case std.names.types.nativePointer: return T.c('bigint')
       case std.names.types.number:
@@ -57,9 +57,9 @@ export class ConvertTSTypes extends IdentityTransformer {
       case std.names.types.serializerBuffer: return T.c('KSerializerBuffer')
       case std.names.types.string:
       case std.names.types.interopString: return T.c('string')
-      case std.names.types.u8: return T.c('number')
-      case std.names.types.u32: return T.c('number')
-      case std.names.types.u64: return T.c('bigint')
+      case std.names.types.u8: return T.c('uint8')
+      case std.names.types.u32: return T.c('uint32')
+      case std.names.types.u64: return T.c('uint64')
       case std.names.types.undefined: return T.c('undefined')
       case std.names.types.void: return T.c('void')
       case std.names.types.self: return T.c('this')
@@ -70,6 +70,7 @@ export class ConvertTSTypes extends IdentityTransformer {
         case std.names.types.array:
         case std.names.types.map:
         case std.names.types.vector:
+        case std.names.types.promise:
           return T.c(this.convertSpecialName(type.name), ...type.args)
       }
     }
@@ -97,6 +98,7 @@ export class ConvertTSTypes extends IdentityTransformer {
       case std.names.types.vector: return 'Array'
       case std.names.types.array: return 'Array'
       case std.names.types.map: return 'Map'
+      case std.names.types.promise: return 'Promise'
     }
     return name
   }

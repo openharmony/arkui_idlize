@@ -14,13 +14,11 @@
  */
 
 import { callbackProducer } from "./callback.js";
-import { enumProducer } from "./enum.js";
 import { constructorProducer, functionProducer } from "./function.js";
 import { serializerProducer } from "./serializer.js";
 import { structureProducer } from "./structure.js";
 
 export const producers = {
-    enumProducer,
     structureProducer,
     callbackProducer,
     functionProducer,

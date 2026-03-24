@@ -1,0 +1,5 @@
+package ost.sequences;
+
+i32 checkOSTSequence(sequence<i32> value);
+sequence<boolean> getOSTSequenceBoolean();
+sequence<i32> getOSTSequenceInt();

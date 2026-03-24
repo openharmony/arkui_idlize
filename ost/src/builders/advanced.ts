@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { id } from "@idlizer/core"
 import { D, DD, E, S, T } from "./original.js"
 import {
     AccessorExpression, Hint, BinaryExpression, CallExpression, ClassDeclaration,
@@ -20,7 +21,7 @@ import {
     IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier,
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
-    EnumDeclaration, SwitchStatement, ConstantExpression, BreakStatement
+    EnumDeclaration, SwitchStatement, ConstantExpression
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -60,12 +61,6 @@ import { Hs, Md, std, Ts } from "../stdlib.js";
  * Strings and numbers are automatically wrapped in constant expressions.
  */
 type ExpressionLike = string | number | LWExpression
-
-/**
- * Identity function - returns the input unchanged.
- * Used as a default continuation in builders.
- */
-const id = <T>(it: T) => it
 
 /**
  * Creates a function that transforms a value and assigns it to an object property.
@@ -330,6 +325,8 @@ class CallBuilder<P> {
     ) {}
     private _receiver?: LWExpression
     private _args: LWExpression[] = []
+    private _typeArgs: LWType[] = []
+
     /**
      * Set the receiver expression (the object on which the method is called).
      * If called with an argument, sets the receiver directly and returns this builder.
@@ -373,6 +370,13 @@ class CallBuilder<P> {
         return push(this, '_args', value)
     }
     /**
+     * Add multiple type parameters (generics) to the call.
+     *
+     * @param args - Array of type parameters
+     * @returns This builder for chaining
+     */
+    typeArgs(args: LWType[]) { this._typeArgs.push(...args); return this }
+    /**
      * Finalize the builder and return the constructed call expression.
      *
      * @returns The built CallExpression
@@ -383,7 +387,7 @@ class CallBuilder<P> {
         const callee = this._receiver ? E.get(this._receiver, this._func!)
             : typeof this._func === 'object' ? this._func
             : E.v(this._func!)
-        return this._cont(E.call(callee, this._args))
+        return this._cont(E.call(callee, this._args, this._typeArgs))
     }
 }
 
@@ -410,6 +414,12 @@ class ConstructorBuilder<P> {
      * @returns This builder for chaining
      */
     asStruct() { this._hints.push(Hs.asStruct()); return this }
+    /**
+     * Add arrayInstance hint to indicate the instance should be constructed as an array.
+     *
+     * @returns This builder for chaining
+     */
+    array() { this._hints.push(Hs.arrayInstance()); return this }
     /**
      * Add stackInstance hint to indicate the instance should be allocated on the stack.
      *
@@ -730,6 +740,7 @@ class DeclarationBuilder<P> {
      * @returns This builder for chaining
      */
     static() { this._static = true; return this }
+    type(type: LWType) { this._type = type; return this }
     /**
      * Set the initial value for the variable.
      * If called with an argument, sets the value directly and returns this builder.
@@ -879,6 +890,27 @@ class ReturnBuilder<P> {
         }
         // plain `return`
         return this._cont(S.return())
+    }
+}
+
+/**
+ * Builder for creating none statement based on context.
+ *
+ * @typeParam P - The type returned by the continuation function (usually LWStatement or a parent builder)
+ *
+ * @example
+ * ```typescript
+ * const noneStmt = Builders.none().$()
+ * ```
+ */
+class NoneBuilder<P> {
+    /**
+     * @param _cont - Continuation function that receives the built statement
+     */
+    constructor(private _cont: (stmt: LWStatement) => P) {}
+
+    $(): P {
+        return this._cont(S.none())
     }
 }
 
@@ -1238,6 +1270,15 @@ class StatementBuilder<P> {
      */
     return(type?: LWType): ReturnBuilder<StatementBuilder<P>> {
         return new ReturnBuilder(morphInto(this, '_stmt', id), type)
+    }
+    /**
+     * Create none statement.
+     * Returns an NoneBuilder for specifying condition and branches.
+     *
+     * @returns NoneBuilder for deferred construction
+     */
+    none(): NoneBuilder<StatementBuilder<P>> {
+        return new NoneBuilder(morphInto(this, '_stmt', id))
     }
     /**
      * Finalize the builder and return the constructed statement.
@@ -1854,7 +1895,7 @@ class StructBuilder extends StructLikeBuilder {
  *
  * // Create an interface
  * const interface = Builders.class('Drawable')
- *   .interface()
+ *   .kind('interface')
  *   .method('draw')
  *     .returns(T.void())
  *     .$()
@@ -1910,14 +1951,14 @@ class ClassBuilder extends StructLikeBuilder {
      * @example
      * ```typescript
      * Builders.class('Drawable')
-     *   .interface()
+     *   .kind('interface')
      *   .method('draw')
      *     .returns(T.void())
      *     .$()
      *   .$();
      * ```
      */
-    interface() { this._oop!.kind = 'interface'; return this }
+    kind(kind: 'class' | 'interface') { this._oop!.kind = kind; return this }
     /**
      * Add a method to the class/interface.
      * Returns a FunctionBuilder for defining the method's signature and body.
@@ -2380,4 +2421,5 @@ export class Builders {
     static switch(): SwitchBuilder<SwitchStatement> { return new SwitchBuilder(id) }
     static loop(): LoopBuilder<LoopStatement> { return new LoopBuilder(id) }
     static return(type?: LWType): ReturnBuilder<LWStatement> { return new ReturnBuilder(id, type) }
+    static none(): NoneBuilder<LWStatement> { return new NoneBuilder(id) }
 }

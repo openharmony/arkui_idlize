@@ -64,6 +64,7 @@ const OSTFeature: Feature<Role<idl.IDLNode>> = {
         .filter(e =>
             !idl.isImport(e) &&
             !idl.isNamespace(e) &&
+            !idl.isConstant(e) &&
             !idl.isCallback(e))
         .map(e => new OhosSeed(e, 'managed'))
 }
@@ -102,6 +103,9 @@ const Features = new Map([
 
 function defaultImports(): ImportsCollector {
     const imports = new ImportsCollector()
+    imports.addFeatures([
+        'int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32', 'int64', 'uint64', 'float32', 'float64'
+    ], '@koalaui/compat')
     imports.addFeatures([
         'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
         'SerializerBase', 'DeserializerBase', 'MaterializedBase',
@@ -219,7 +223,6 @@ function dumpCLike(decls: LWDeclaration[], effect: OhosEffect, moduleName: strin
     return new Map([
         [new TargetFile(`${moduleName.toLowerCase()}.h`), h],
         [new TargetFile(`${moduleName.toLowerCase()}.cpp`), cpp],
-        [new TargetFile(`${moduleName.toLowerCase()}Impl_temp.cpp`), ''],
         [new TargetFile(`${moduleName.toLowerCase()}ApiImpl_temp.cpp`), apiImpl],
     ])
 }
