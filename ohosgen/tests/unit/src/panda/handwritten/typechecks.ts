@@ -16,16 +16,16 @@
 import { SingleGenericType, DoubleGenericType } from "../../../generated/arkts"
 
 export namespace typechecks {
-    export function isGeneric_Test_unionSingleGenericType_Number<T>(genericType: SingleGenericType<T>) {
+    export function isGeneric_Test_unionSingleGenericType_Number(genericType: SingleGenericType<Any>) {
         return genericType.value instanceof number
     }
-    export function isGeneric_Test_unionSingleGenericType_String<T>(genericType: SingleGenericType<T>) {
+    export function isGeneric_Test_unionSingleGenericType_String(genericType: SingleGenericType<Any>) {
         return genericType.value instanceof string
     }
-    export function isGeneric_Test_unionDoubleGenericType_Boolean_Number<T, S>(genericType: DoubleGenericType<T, S>) {
+    export function isGeneric_Test_unionDoubleGenericType_Boolean_Number(genericType: DoubleGenericType<Any, Any>) {
         return genericType.valueT instanceof boolean && genericType.valueS instanceof number
     }
-    export function isGeneric_Test_unionDoubleGenericType_Number_String<T, S>(genericType: DoubleGenericType<T, S>) {
+    export function isGeneric_Test_unionDoubleGenericType_Number_String(genericType: DoubleGenericType<Any, Any>) {
         return genericType.valueT instanceof number && genericType.valueS instanceof string
     }
 }

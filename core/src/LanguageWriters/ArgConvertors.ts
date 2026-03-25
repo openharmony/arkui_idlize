@@ -1907,6 +1907,14 @@ function withGenericDiscriminator(
     writer.addFeature("typechecks", library.layout.handwrittenPackage())
     const decl = writer.resolver.resolveTypeReference(type)!
     const checkGenericFunc = idl.entryToFunctionName(writer.language, decl, "isGeneric_", "")
+    if (writer.language === Language.ARKTS) {
+        const genericClause: string = mayBeGeneric.typeArguments!.map(it => "Any").join(", ")
+        return writer.makeAnd(
+            discriminator,
+            writer.makeFunctionCall(`typechecks.${checkGenericFunc}`,
+                [writer.makeString(`${value} as ${withInsideInstanceof(true, () => writer.getNodeName(type))}<${genericClause}>`)])
+        )
+    }
     return writer.makeAnd(
         discriminator,
         writer.makeFunctionCall(`typechecks.${checkGenericFunc}`, [writer.makeString(value)])
