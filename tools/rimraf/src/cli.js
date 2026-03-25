@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import { program } from "commander";
-import fs from "node:fs";
-import path from "node:path";
-import { globSync } from "./glob.js";
+import { program } from 'commander';
+import fs from 'node:fs';
+import path from 'node:path';
+import { globSync } from './glob.js';
 
 const argv = process.argv.slice(2);
-const sep = argv.indexOf("--");
+const sep = argv.indexOf('--');
 const optsArgv = sep >= 0 ? argv.slice(0, sep) : argv;
 const explicitPaths = sep >= 0 ? argv.slice(sep + 1) : null;
 
 program
-  .option("-g, --glob", "treat path arguments as glob patterns")
-  .option("-G, --no-glob", "treat path arguments as literal paths (default)")
+  .option('-g, --glob', 'treat path arguments as glob patterns')
+  .option('-G, --no-glob', 'treat path arguments as literal paths (default)')
   .allowUnknownOption()
-  .parse(optsArgv, { from: "user" });
+  .parse(optsArgv, { from: 'user' });
 
 const opts = program.opts();
 const useGlob = opts.glob === true;
@@ -62,7 +62,7 @@ function rimrafSync(target) {
       fs.unlinkSync(resolved);
     }
   } catch (err) {
-    if (err?.code !== "ENOENT") {
+    if (err?.code !== 'ENOENT') {
       console.error(`rimraf: ${target}: ${err?.message ?? err}`);
       process.exitCode = 1;
     }

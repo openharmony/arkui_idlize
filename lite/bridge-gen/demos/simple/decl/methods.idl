@@ -17,12 +17,12 @@ interface NamedDot {
 };
 
 interface NameDotSpace {
-    [Name="name_dot_space_push"]
+    [Name="NameDotSpacePush"]
     void push(NamedDot dot);
-    [Name="name_dot_space_print"]
+    [Name="NameDotSpacePrint"]
     void print();
-    [Name="name_dot_space_gen_new_position"]
+    [Name="NameDotSpaceGenNewPosition"]
     static Vec3 genNewPosition(i32 seed);
-    [Name="name_dot_space_add3"]
+    [Name="NameDotSpaceAdd3"]
     static Vec3 add3(Vec3 a, Vec3 b);
 };

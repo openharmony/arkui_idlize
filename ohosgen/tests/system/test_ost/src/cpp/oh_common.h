@@ -56,7 +56,7 @@ inline OH_Buffer MakeOHBuffer(size_t sizeBytes)
 
 struct DumpOHNumber {
     OH_Number value;
-    DumpOHNumber(OH_Number v)
+    explicit DumpOHNumber(OH_Number v)
         : value(v) {}
 
     friend std::ostream& operator<<(std::ostream& out, DumpOHNumber dn)

@@ -93,7 +93,7 @@ public:
                 continue;
             float totalCost = 0;
             for (const auto& perf : perfs) {
-                totalCost += perf.cost / NS_TO_US - self_cost_;
+                totalCost += perf.cost / NS_TO_US - selfCost_;
             }
             auto avg = totalCost / perfs.size();
             result << "Perf trace_name(" << name << ") " << perfs.size() << " call avg cost " << avg << " us.";
@@ -104,7 +104,7 @@ public:
         for (const auto& [name, perfs] : perfs_) {
             float totalCost = 0;
             for (const auto& perf : perfs) {
-                totalCost += perf.cost / NS_TO_US - self_cost_;
+                totalCost += perf.cost / NS_TO_US - selfCost_;
             }
             result << "Perf trace_name(" << name << ") " << perfs.size() << " call total cost " << totalCost << " us.";
         }
@@ -115,8 +115,8 @@ public:
             std::sort(kv.second.begin(), kv.second.end(), [](const PerfInfo& perf1, const PerfInfo& perf2) {
                 return perf1.cost > perf2.cost;
             });
-            auto maxCost = kv.second.front().cost / NS_TO_US - self_cost_;
-            auto minCost = kv.second.back().cost / NS_TO_US - self_cost_;
+            auto maxCost = kv.second.front().cost / NS_TO_US - selfCost_;
+            auto minCost = kv.second.back().cost / NS_TO_US - selfCost_;
             result << "Perf trace_name(" << kv.first << ") "
                    << " maxCost = " << maxCost << " us, ";
             result << "minCost = " << minCost << " us.";
@@ -139,13 +139,13 @@ public:
         float totalCost = 0.0;
         auto it = perfs_.find("perf_counter_self_cost");
         if (it == perfs_.end()) {
-            self_cost_ = totalCost;
+            selfCost_ = totalCost;
             return;
         }
         for (const auto& perf : it->second) {
             totalCost += perf.cost / NS_TO_US;
         }
-        self_cost_ = totalCost / it->second.size();
+        selfCost_ = totalCost / it->second.size();
     }
     void Clean()
     {
@@ -164,7 +164,7 @@ public:
 private:
     std::unordered_map<std::string, std::vector<PerfInfo>> perfs_;
     PerfInfo current_;
-    float self_cost_;
+    float selfCost_;
 };
 
 void impl_StartPerf(const KStringPtr& traceName)

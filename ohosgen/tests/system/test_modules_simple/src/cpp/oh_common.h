@@ -23,7 +23,7 @@
 
 struct DumpPointer {
     const void* pointer;
-    DumpPointer(const void* p): pointer(p) {}
+    explicit DumpPointer(const void* p): pointer(p) {}
 
     friend std::ostream& operator << (std::ostream& out, DumpPointer dp) {
         std::ios::fmtflags flags = out.flags();

@@ -46,13 +46,13 @@ void SetDummyLogger(const GroupLogger* logger) {
     loggerInstance = logger;
 }
 
-void startGroupedLog(int kind) {
+void StartGroupedLog(int kind) {
     GetDummyLogger()->startGroupedLog(kind);
 }
-void stopGroupedLog(int kind) {
+void StopGroupedLog(int kind) {
     GetDummyLogger()->stopGroupedLog(kind);
 }
-const char* getGroupedLog(int kind) {
+const char* GetGroupedLog(int kind) {
     return GetDummyLogger()->getGroupedLog(kind);
 }
 int needGroupedLog(int kind) {
@@ -220,7 +220,7 @@ Ark_Float32 parseLength(Ark_Float32 parentValue, Ark_Float32 value, Ark_Int32 un
     }
 }
 
-void align(TreeNode *child, Ark_Float32 width, Ark_Float32 height, Ark_Float32* args) {
+void Align(TreeNode *child, Ark_Float32 width, Ark_Float32 height, Ark_Float32* args) {
     constexpr float two = 2.0;
     switch (child->alignment) {
         case Alignment::TOP_START: {
@@ -262,6 +262,7 @@ void align(TreeNode *child, Ark_Float32 width, Ark_Float32 height, Ark_Float32* 
             args[1] += height - child->measureResult[1];
             break;
         }
+        default: break;
     }
 }
 
@@ -351,7 +352,7 @@ float TreeNode::layout(Ark_VMContext vmContext, float* data) {
 
     for (auto* it: *children()) {
         Ark_Float32 itData[] = { data[0], data[1], data[2], data[3] };
-        align(it, _width, _height, &itData[0]);
+        Align(it, _width, _height, &itData[0]);
         it->layout(vmContext, &itData[0]);
     }
 
@@ -430,10 +431,10 @@ Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
     Ark_NodeHandle result = AsNodeHandle(node);
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result)) + " = GetBasicNodeApi()->createNode(GENERATED_Ark_NodeType("
+        std::string logData;
+        logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result)) + " = GetBasicNodeApi()->createNode(GENERATED_Ark_NodeType("
             + std::to_string(type) + "), " + std::to_string(id) + ", " + std::to_string(flags) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -453,7 +454,7 @@ Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
 
 namespace GeneratedApiImpl {
 
-static int res_num = 0;
+static int g_resNum = 0;
 
 void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method) {
     callbacks = method;
@@ -507,9 +508,9 @@ Ark_Float32 GetDesignWidthScale(Ark_Int32 deviceId) {
 Ark_NodeHandle GetNodeByViewStack() {
     Ark_NodeHandle result = reinterpret_cast<Ark_NodeHandle>(234);
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result)) + " = GetBasicNodeApi()->getNodeByViewStack();\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        std::string logData;
+        logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result)) + " = GetBasicNodeApi()->getNodeByViewStack();\n");
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
         return result;
@@ -521,9 +522,9 @@ Ark_NodeHandle GetNodeByViewStack() {
 
 void DisposeNode(Ark_NodeHandle node) {
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  GetBasicNodeApi()->disposeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        std::string logData;
+        logData.append("  GetBasicNodeApi()->disposeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
     if (needGroupedLog(LogKinds::BASIC_LOG)) {
         string out("disposeNode(");
@@ -538,9 +539,9 @@ void DumpTreeNode(Ark_NodeHandle node) {
     DumpTree(AsNode(node), 0);
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  GetBasicNodeApi()->dumpTreeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        std::string logData;
+        logData.append("  GetBasicNodeApi()->dumpTreeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -557,10 +558,10 @@ Ark_Int32 AddChild(Ark_NodeHandle parent, Ark_NodeHandle child) {
     int result = AsNode(parent)->addChild(AsNode(child));
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  Ark_Int32 res" + std::to_string(res_num++) + " = GetBasicNodeApi()->addChild(peer"
+        std::string logData;
+        logData.append("  Ark_Int32 res" + std::to_string(g_resNum++) + " = GetBasicNodeApi()->addChild(peer"
             + std::to_string((uintptr_t)parent) + ", peer" + std::to_string((uintptr_t)child) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -584,10 +585,10 @@ void RemoveChild(Ark_NodeHandle parent, Ark_NodeHandle child) {
     parentPtr->removeChild(childPtr);
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  GetBasicNodeApi()->removeChild(peer"
+        std::string logData;
+        logData.append("  GetBasicNodeApi()->removeChild(peer"
             + std::to_string((uintptr_t)parent) + ", peer" + std::to_string((uintptr_t)child) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -606,11 +607,11 @@ Ark_Int32 InsertChildAfter(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Node
     int result = AsNode(parent)->insertChildAfter(AsNode(child), AsNode(sibling));
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  Ark_Int32 res" + std::to_string(res_num++) + " = GetBasicNodeApi()->insertChildAfter(peer"
+        std::string logData;
+        logData.append("  Ark_Int32 res" + std::to_string(g_resNum++) + " = GetBasicNodeApi()->insertChildAfter(peer"
             + std::to_string((uintptr_t)parent) + ", peer" + std::to_string((uintptr_t)child)
             + ", peer" + std::to_string((uintptr_t)sibling) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -632,11 +633,11 @@ Ark_Int32 InsertChildBefore(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Nod
     int result = AsNode(parent)->insertChildBefore(AsNode(child), AsNode(sibling));
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  Ark_Int32 res" + std::to_string(res_num++) + " = GetBasicNodeApi()->insertChildBefore(peer"
+        std::string logData;
+        logData.append("  Ark_Int32 res" + std::to_string(g_resNum++) + " = GetBasicNodeApi()->insertChildBefore(peer"
             + std::to_string((uintptr_t)parent) + ", peer" + std::to_string((uintptr_t)child)
             + ", peer" + std::to_string((uintptr_t)sibling) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -658,11 +659,11 @@ Ark_Int32 InsertChildAt(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Int32 p
     int result = AsNode(parent)->insertChildAt(AsNode(child), position);
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  Ark_Int32 res" + std::to_string(res_num++) + " = GetBasicNodeApi()->insertChildAt(peer"
+        std::string logData;
+        logData.append("  Ark_Int32 res" + std::to_string(g_resNum++) + " = GetBasicNodeApi()->insertChildAt(peer"
             + std::to_string((uintptr_t)parent) + ", peer" + std::to_string((uintptr_t)child)
             + ", " + std::to_string(position) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -683,9 +684,9 @@ Ark_Int32 InsertChildAt(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Int32 p
 void ApplyModifierFinish(Ark_NodeHandle node) {
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  GetBasicNodeApi()->applyModifierFinish(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        std::string logData;
+        logData.append("  GetBasicNodeApi()->applyModifierFinish(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -700,9 +701,9 @@ void ApplyModifierFinish(Ark_NodeHandle node) {
 void MarkDirty(Ark_NodeHandle node, Ark_UInt32 flag) {
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  GetBasicNodeApi()->markDirty(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ", " + std::to_string(flag) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        std::string logData;
+        logData.append("  GetBasicNodeApi()->markDirty(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ", " + std::to_string(flag) + ");\n");
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -720,10 +721,10 @@ Ark_Boolean IsBuilderNode(Ark_NodeHandle node) {
     Ark_Boolean result = true;
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  Ark_Boolean res" + std::to_string(res_num++) + " = GetBasicNodeApi()->isBuilderNode(peer"
+        std::string logData;
+        logData.append("  Ark_Boolean res" + std::to_string(g_resNum++) + " = GetBasicNodeApi()->isBuilderNode(peer"
             + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -740,10 +741,10 @@ Ark_Float32 ConvertLengthMetricsUnit(Ark_Float32 value, Ark_Int32 originUnit, Ar
     Ark_Float32 result = value * originUnit;
 
     if (needGroupedLog(LogKinds::DETAILED_LOG)) {
-        std::string _logData;
-        _logData.append("  Ark_Float32 res" + std::to_string(res_num++) + " = GetBasicNodeApi()->convertLengthMetricsUnit("
+        std::string logData;
+        logData.append("  Ark_Float32 res" + std::to_string(g_resNum++) + " = GetBasicNodeApi()->convertLengthMetricsUnit("
             + std::to_string(value) + ", " + std::to_string(originUnit) + ", " + std::to_string(targetUnit) + ");\n");
-        appendGroupedLog(LogKinds::DETAILED_LOG, _logData);
+        appendGroupedLog(LogKinds::DETAILED_LOG, logData);
     }
 
     if (!needGroupedLog(LogKinds::BASIC_LOG)) {
@@ -838,9 +839,14 @@ Ark_PipelineContext GetPipelineContext(Ark_NodeHandle node) {
 void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback callback) {
     using namespace std::chrono_literals;
     auto producer = std::thread([pipelineContext, callback] {
+        static size_t counter = 0;
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
             callback(pipelineContext);
+            ++counter;
+            if (counter == std::numeric_limits<size_t>::max()) {
+                break;
+            }
         }
     });
     producer.detach();

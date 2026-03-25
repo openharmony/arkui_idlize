@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-const tsNode = require("ts-node")
-const path = require("path")
-const { goldenSetup } = require("@koalaui/harness/golden")
+const tsNode = require('ts-node')
+const path = require('path')
+const { goldenSetup } = require('@koalaui/harness/golden')
 
 goldenSetup('.', '.')
 
-unmemoized_suffix = process.env.UNMEMOIZED_SUFFIX
-if (unmemoized_suffix == undefined) {
-    unmemoized_suffix = ''
+unmemoizedSuffix = process.env.UNMEMOIZED_SUFFIX
+if (unmemoizedSuffix === undefined) {
+    unmemoizedSuffix = ''
 }
 
 tsNode.register({
     files: true,
     // If uncommented, running tests doesn't perform type checks.
     // transpileOnly: true,
-    project: path.resolve(`test`, `tsconfig${unmemoized_suffix}.json`),
-})
+    project: path.resolve(`test`, `tsconfig${unmemoizedSuffix}.json`),
+});

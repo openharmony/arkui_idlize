@@ -19,16 +19,16 @@
 #include "test_modules_struct.h"
 
 namespace {
-int counter = 0;
+int g_counter = 0;
 }
 
 struct FooInt {
     OH_Number value;
 
-    FooInt(OH_Number initialValue)
+    explicit FooInt(OH_Number initialValue)
     {
         std::cout << "FooInt()" << std::endl;
-        value = addOHNumber(OH_Number { .tag = INTEROP_TAG_INT32, .i32 = (++counter) }, initialValue);
+        value = addOHNumber(OH_Number { .tag = INTEROP_TAG_INT32, .i32 = (++g_counter) }, initialValue);
     }
 };
 

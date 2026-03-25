@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef CXXAPI_H
+#define CXXAPI_H
 
 #include <cstdint>
 
@@ -31,3 +33,5 @@ public:
     void print(const char*);
     static Printer* createPrinter();
 };
+
+#endif

@@ -269,7 +269,7 @@ endif
 # Improve: fix on Windows as well
 if (os != 'windows') and (is_unit == false)
     executable('test_arkoala_api',
-        arkoala_dir / 'api_test.c',
+        '../tests/unit/setup/arkts/sig/arkoala-arkts/framework/native/src/generated/api_test.c',
         c_args: cflags,
         include_directories: include_dirs
     )
@@ -279,7 +279,7 @@ if (os != 'windows') and (is_unit == false)
         include_directories: include_dirs
     )
     executable('test_converter',
-        arkoala_dir / 'converter_test.cpp',
+        '../tests/unit/setup/arkts/sig/arkoala-arkts/framework/native/src/generated/converter_test.cpp',
         cpp_args: cflags,
         include_directories: include_dirs + [libace_dir + '/utility/generated']
     )

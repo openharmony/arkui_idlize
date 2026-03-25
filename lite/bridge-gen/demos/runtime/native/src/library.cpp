@@ -29,151 +29,151 @@ typedef struct interop_buffer {
     char memory[INTEROP_BUFFER_SIZE];
 } interop_buffer;
 
-static interop_buffer cached_buffers[INTEROP_BUFFER_COUNT];
-static Int32 free_buffer_stack_top = INTEROP_BUFFER_COUNT;
-static bool free_buffer_initialized = false;
-static Int32 free_buffer_stack[INTEROP_BUFFER_COUNT];
+static interop_buffer g_cachedBuffers[INTEROP_BUFFER_COUNT];
+static Int32 g_freeBufferStackTop = INTEROP_BUFFER_COUNT;
+static bool g_freeBufferInitialized = false;
+static Int32 g_freeBufferStack[INTEROP_BUFFER_COUNT];
 
-interop_buffer* get_buffer(void* ptr)
+interop_buffer* GetBuffer(void* ptr)
 {
-    return cached_buffers + (Int32)(uintptr_t)ptr;
+    return g_cachedBuffers + (Int32)(uintptr_t)ptr;
 }
 
-void initialize_buffers()
+void InitializeBuffers()
 {
-    if (free_buffer_initialized) {
+    if (g_freeBufferInitialized) {
         return;
     }
-    free_buffer_initialized = true;
+    g_freeBufferInitialized = true;
     for (int i = 0; i < INTEROP_BUFFER_COUNT; ++i) {
-        free_buffer_stack[i] = INTEROP_BUFFER_COUNT - 1 - i;
+        g_freeBufferStack[i] = INTEROP_BUFFER_COUNT - 1 - i;
     }
 }
 
-static Int32 string_pool_index = 0;
-static std::unordered_map<UInt64, std::string> string_pool;
+static Int32 g_stringPoolIndex = 0;
+static std::unordered_map<UInt64, std::string> g_stringPool;
 
-UInt64 idlize_runtime_StringPool_add(const char* string)
+UInt64 IdlizeRuntimeStringPoolAdd(const char* string)
 {
     std::string allocated = string;
     UInt64 hash = std::hash<std::string> {}(allocated);
-    if (string_pool.find(hash) != string_pool.end()) {
+    if (g_stringPool.find(hash) != g_stringPool.end()) {
         return hash;
     }
-    string_pool[hash] = std::move(allocated);
+    g_stringPool[hash] = std::move(allocated);
     return hash;
 }
-const char* idlize_runtime_StringPool_get(UInt64 hash)
+const char* IdlizeRuntimeStringPoolGet(UInt64 hash)
 {
-    return string_pool[hash].c_str();
+    return g_stringPool[hash].c_str();
 }
 
-void* idlize_runtime_RawMemory_allocate()
+void* IdlizeRuntimeRawMemoryAllocate()
 {
-    initialize_buffers();
-    --free_buffer_stack_top;
-    Int32 last = free_buffer_stack[free_buffer_stack_top];
+    InitializeBuffers();
+    --g_freeBufferStackTop;
+    Int32 last = g_freeBufferStack[g_freeBufferStackTop];
     return (void*)(uintptr_t)(last);
 }
-int32_t idlize_runtime_RawMemory_getLength(void* self)
+int32_t IdlizeRuntimeRawMemoryGetLength(void* self)
 {
-    interop_buffer* buffer = get_buffer(self);
-    return (int32_t)buffer->top;
+    interop_buffer* buffer = GetBuffer(self);
+    return static_cast<int32_t>(buffer->top);
 }
-void idlize_runtime_RawMemory_free(void* self)
+void IdlizeRuntimeRawMemoryFree(void* self)
 {
-    interop_buffer* buffer = get_buffer(self);
+    interop_buffer* buffer = GetBuffer(self);
     buffer->top = 0;
     Int32 idx = (Int32)(uintptr_t)self;
-    free_buffer_stack[free_buffer_stack_top++] = idx;
+    g_freeBufferStack[g_freeBufferStackTop++] = idx;
 }
 
 template<typename T>
-void idlize_runtime_WriteT(void* self, T val)
+void IdlizeRuntimeWriteT(void* self, T val)
 {
-    interop_buffer* buffer = get_buffer(self);
-    T* mem = (T*)(buffer->memory + buffer->top);
+    interop_buffer* buffer = GetBuffer(self);
+    T* mem = reinterpret_cast<T*>(buffer->memory + buffer->top);
     *mem = val;
     buffer->top += sizeof(T);
 }
 
-void idlize_runtime_SerializerBase_writeUInt8(void* self, UInt8 val)
+void IdlizeRuntimeSerializerBaseWriteUInt8(void* self, UInt8 val)
 {
-    idlize_runtime_WriteT<UInt8>(self, val);
+    IdlizeRuntimeWriteT<UInt8>(self, val);
 }
-void idlize_runtime_SerializerBase_writeInt32(void* self, Int32 val)
+void IdlizeRuntimeSerializerBaseWriteInt32(void* self, Int32 val)
 {
-    idlize_runtime_WriteT<Int32>(self, val);
+    IdlizeRuntimeWriteT<Int32>(self, val);
 }
-void idlize_runtime_SerializerBase_writeUInt64(void* self, UInt64 val)
+void IdlizeRuntimeSerializerBaseWriteUInt64(void* self, UInt64 val)
 {
-    idlize_runtime_WriteT<UInt64>(self, val);
+    IdlizeRuntimeWriteT<UInt64>(self, val);
 }
-void idlize_runtime_SerializerBase_writeString(void* self, String val)
+void IdlizeRuntimeSerializerBaseWriteString(void* self, String val)
 {
-    UInt64 hash = idlize_runtime_StringPool_add(val);
-    idlize_runtime_SerializerBase_writeUInt64(self, hash);
+    UInt64 hash = IdlizeRuntimeStringPoolAdd(val);
+    IdlizeRuntimeSerializerBaseWriteUInt64(self, hash);
 }
-void idlize_runtime_SerializerBase_writePointer(void* self, NativePointer val)
+void IdlizeRuntimeSerializerBaseWritePointer(void* self, NativePointer val)
 {
-    idlize_runtime_WriteT<NativePointer>(self, val);
+    IdlizeRuntimeWriteT<NativePointer>(self, val);
 }
-void* idlize_runtime_SerializerBase_swap(void* self)
+void* IdlizeRuntimeSerializerBaseSwap(void* self)
 {
-    interop_buffer* buffer = get_buffer(self);
+    interop_buffer* buffer = GetBuffer(self);
     buffer->top = 0;
     return self;
 }
-void* idlize_runtime_SerializerBase_use(void* self)
+void* IdlizeRuntimeSerializerBaseUse(void* self)
 {
     return self;
 }
 
 template<typename T>
-T idlize_runtime_ReadT(void* self)
+T IdlizeRuntimeReadT(void* self)
 {
-    interop_buffer* buffer = get_buffer(self);
-    T* mem = (T*)(buffer->memory + buffer->top);
+    interop_buffer* buffer = GetBuffer(self);
+    T* mem = reinterpret_cast<T*>(buffer->memory + buffer->top);
     T result = *mem;
     buffer->top += sizeof(T);
     return result;
 }
 
-UInt8 idlize_runtime_DeserializerBase_readUInt8(void* self)
+UInt8 IdlizeRuntimeDeserializerBaseReadUInt8(void* self)
 {
-    return idlize_runtime_ReadT<UInt8>(self);
+    return IdlizeRuntimeReadT<UInt8>(self);
 }
-Int32 idlize_runtime_DeserializerBase_readInt32(void* self)
+Int32 IdlizeRuntimeDeserializerBaseReadInt32(void* self)
 {
-    return idlize_runtime_ReadT<Int32>(self);
+    return IdlizeRuntimeReadT<Int32>(self);
 }
-UInt64 idlize_runtime_DeserializerBase_readUInt64(void* self)
+UInt64 IdlizeRuntimeDeserializerBaseReadUInt64(void* self)
 {
-    return idlize_runtime_ReadT<UInt64>(self);
+    return IdlizeRuntimeReadT<UInt64>(self);
 }
-String idlize_runtime_DeserializerBase_readString(void* self)
+String IdlizeRuntimeDeserializerBaseReadString(void* self)
 {
-    UInt64 hash = idlize_runtime_DeserializerBase_readUInt64(self);
-    return idlize_runtime_StringPool_get(hash);
+    UInt64 hash = IdlizeRuntimeDeserializerBaseReadUInt64(self);
+    return IdlizeRuntimeStringPoolGet(hash);
 }
-NativePointer idlize_runtime_DeserializerBase_readPointer(void* self)
+NativePointer IdlizeRuntimeDeserializerBaseReadPointer(void* self)
 {
-    return idlize_runtime_ReadT<NativePointer>(self);
+    return IdlizeRuntimeReadT<NativePointer>(self);
 }
-void* idlize_runtime_DeserializerBase_swap(void* self)
+void* IdlizeRuntimeDeserializerBaseSwap(void* self)
 {
-    interop_buffer* buffer = get_buffer(self);
+    interop_buffer* buffer = GetBuffer(self);
     buffer->top = 0;
     return self;
 }
-void* idlize_runtime_DeserializerBase_use(void* self)
+void* IdlizeRuntimeDeserializerBaseUse(void* self)
 {
     return self;
 }
 
 static std::queue<_idlizer_runtime_native_Event> queuedEvents;
 
-void enqueueCallback(Int32 resourceId, RawMemory memory)
+void EnqueueCallback(Int32 resourceId, RawMemory memory)
 {
     queuedEvents.push(
         (_idlizer_runtime_native_Event) {
@@ -182,7 +182,7 @@ void enqueueCallback(Int32 resourceId, RawMemory memory)
             .memory = memory.getPointer() });
 }
 
-_idlizer_runtime_native_Event idlize_runtime_poll()
+_idlizer_runtime_native_Event IdlizeRuntimePoll()
 {
     if (queuedEvents.size()) {
         _idlizer_runtime_native_Event event = queuedEvents.front();
@@ -199,37 +199,37 @@ _idlizer_runtime_native_Event idlize_runtime_poll()
 idlize_runtime_api* getAPI()
 {
     static idlize_runtime_api api = (idlize_runtime_api) {
-        idlize_runtime_RawMemory_allocate,
-        idlize_runtime_RawMemory_getLength,
-        idlize_runtime_RawMemory_free,
-        idlize_runtime_SerializerBase_writeUInt8,
-        idlize_runtime_SerializerBase_writeInt32,
-        idlize_runtime_SerializerBase_writeString,
-        idlize_runtime_SerializerBase_writePointer,
-        idlize_runtime_SerializerBase_swap,
-        idlize_runtime_SerializerBase_use,
-        idlize_runtime_DeserializerBase_readUInt8,
-        idlize_runtime_DeserializerBase_readInt32,
-        idlize_runtime_DeserializerBase_readString,
-        idlize_runtime_DeserializerBase_readPointer,
-        idlize_runtime_DeserializerBase_swap,
-        idlize_runtime_DeserializerBase_use,
-        idlize_runtime_poll,
+        IdlizeRuntimeRawMemoryAllocate,
+        IdlizeRuntimeRawMemoryGetLength,
+        IdlizeRuntimeRawMemoryFree,
+        IdlizeRuntimeSerializerBaseWriteUInt8,
+        IdlizeRuntimeSerializerBaseWriteInt32,
+        IdlizeRuntimeSerializerBaseWriteString,
+        IdlizeRuntimeSerializerBaseWritePointer,
+        IdlizeRuntimeSerializerBaseSwap,
+        IdlizeRuntimeSerializerBaseUse,
+        IdlizeRuntimeDeserializerBaseReadUInt8,
+        IdlizeRuntimeDeserializerBaseReadInt32,
+        IdlizeRuntimeDeserializerBaseReadString,
+        IdlizeRuntimeDeserializerBaseReadPointer,
+        IdlizeRuntimeDeserializerBaseSwap,
+        IdlizeRuntimeDeserializerBaseUse,
+        IdlizeRuntimePoll,
     };
     return &api;
 }
 
 RawMemory RawMemory::allocate()
 {
-    return RawMemory { idlize_runtime_RawMemory_allocate() };
+    return RawMemory { IdlizeRuntimeRawMemoryAllocate() };
 }
 void RawMemory::free()
 {
-    return idlize_runtime_RawMemory_free(this->_idx);
+    return IdlizeRuntimeRawMemoryFree(this->_idx);
 }
 Int32 RawMemory::getLength()
 {
-    return idlize_runtime_RawMemory_getLength(this->_idx);
+    return IdlizeRuntimeRawMemoryGetLength(this->_idx);
 }
 NativePointer RawMemory::getPointer()
 {
@@ -238,50 +238,50 @@ NativePointer RawMemory::getPointer()
 
 DeserializerBase DeserializerBase::fromPointer(NativePointer ptr, Int32 length)
 {
-    return DeserializerBase { idlize_runtime_SerializerBase_swap(ptr) };
+    return DeserializerBase { IdlizeRuntimeSerializerBaseSwap(ptr) };
 }
 UInt8 DeserializerBase::readUInt8()
 {
-    return idlize_runtime_DeserializerBase_readUInt8(this->_idx);
+    return IdlizeRuntimeDeserializerBaseReadUInt8(this->_idx);
 }
 Int32 DeserializerBase::readInt32()
 {
-    return idlize_runtime_DeserializerBase_readInt32(this->_idx);
+    return IdlizeRuntimeDeserializerBaseReadInt32(this->_idx);
 }
 String DeserializerBase::readString()
 {
-    return idlize_runtime_DeserializerBase_readString(this->_idx);
+    return IdlizeRuntimeDeserializerBaseReadString(this->_idx);
 }
 NativePointer DeserializerBase::readPointer()
 {
-    return idlize_runtime_DeserializerBase_readPointer(this->_idx);
+    return IdlizeRuntimeDeserializerBaseReadPointer(this->_idx);
 }
 SerializerBase DeserializerBase::swap()
 {
-    return SerializerBase { idlize_runtime_DeserializerBase_swap(this->_idx) };
+    return SerializerBase { IdlizeRuntimeDeserializerBaseSwap(this->_idx) };
 }
 
 SerializerBase SerializerBase::use(RawMemory memory)
 {
-    return SerializerBase { idlize_runtime_SerializerBase_use(memory._idx) };
+    return SerializerBase { IdlizeRuntimeSerializerBaseUse(memory._idx) };
 }
 void SerializerBase::writeUInt8(UInt8 val)
 {
-    idlize_runtime_SerializerBase_writeUInt8(this->_idx, val);
+    IdlizeRuntimeSerializerBaseWriteUInt8(this->_idx, val);
 }
 void SerializerBase::writeInt32(Int32 val)
 {
-    idlize_runtime_SerializerBase_writeInt32(this->_idx, val);
+    IdlizeRuntimeSerializerBaseWriteInt32(this->_idx, val);
 }
 void SerializerBase::writeString(String val)
 {
-    idlize_runtime_SerializerBase_writeString(this->_idx, val);
+    IdlizeRuntimeSerializerBaseWriteString(this->_idx, val);
 }
 void SerializerBase::writePointer(NativePointer val)
 {
-    idlize_runtime_SerializerBase_writePointer(this->_idx, val);
+    IdlizeRuntimeSerializerBaseWritePointer(this->_idx, val);
 }
 DeserializerBase SerializerBase::swap()
 {
-    return DeserializerBase { idlize_runtime_SerializerBase_swap(this->_idx) };
+    return DeserializerBase { IdlizeRuntimeSerializerBaseSwap(this->_idx) };
 }

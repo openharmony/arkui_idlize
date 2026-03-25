@@ -18,23 +18,23 @@
 
 /// C API
 
-void* idlize_runtime_RawMemory_allocate();
-int32_t idlize_runtime_RawMemory_getLength(void*);
-void idlize_runtime_RawMemory_free(void*);
+void* IdlizeRuntimeRawMemoryAllocate();
+int32_t IdlizeRuntimeRawMemoryGetLength(void*);
+void IdlizeRuntimeRawMemoryFree(void*);
 
-void idlize_runtime_SerializerBase_writeUInt8(void*, uint8_t);
-void idlize_runtime_SerializerBase_writeInt32(void*, int32_t);
-void idlize_runtime_SerializerBase_writeString(void*, String);
-void idlize_runtime_SerializerBase_writePointer(void*, NativePointer);
-void* idlize_runtime_SerializerBase_swap(void*);
-void* idlize_runtime_SerializerBase_use(void*);
+void IdlizeRuntimeSerializerBaseWriteUInt8(void*, uint8_t);
+void IdlizeRuntimeSerializerBaseWriteInt32(void*, int32_t);
+void IdlizeRuntimeSerializerBaseWriteString(void*, String);
+void IdlizeRuntimeSerializerBaseWritePointer(void*, NativePointer);
+void* IdlizeRuntimeSerializerBaseSwap(void*);
+void* IdlizeRuntimeSerializerBaseUse(void*);
 
-UInt8 idlize_runtime_DeserializerBase_readUInt8(void*);
-Int32 idlize_runtime_DeserializerBase_readInt32(void*);
-String idlize_runtime_DeserializerBase_readString(void*);
-NativePointer idlize_runtime_DeserializerBase_readPointer(void*);
-void* idlize_runtime_DeserializerBase_swap(void*);
-void* idlize_runtime_DeserializerBase_use(void*);
+UInt8 IdlizeRuntimeDeserializerBaseReadUInt8(void*);
+Int32 IdlizeRuntimeDeserializerBaseReadInt32(void*);
+String IdlizeRuntimeDeserializerBaseReadString(void*);
+NativePointer IdlizeRuntimeDeserializerBaseReadPointer(void*);
+void* IdlizeRuntimeDeserializerBaseSwap(void*);
+void* IdlizeRuntimeDeserializerBaseUse(void*);
 
 typedef struct _idlizer_runtime_native_Event {
     Int32 eventKind;
@@ -43,22 +43,22 @@ typedef struct _idlizer_runtime_native_Event {
 } _idlizer_runtime_native_Event;
 
 typedef struct idlize_runtime_api {
-    NativePointer (*RawMemory_allocate)();
-    int32_t (*RawMemory_getLength)(NativePointer);
-    void (*RawMemory_free)(NativePointer);
-    void (*SerializerBase_writeUInt8)(NativePointer, UInt8);
-    void (*SerializerBase_writeInt32)(NativePointer, Int32);
-    void (*SerializerBase_writeString)(NativePointer, String);
-    void (*SerializerBase_writePointer)(NativePointer, NativePointer);
-    NativePointer (*SerializerBase_swap)(NativePointer);
-    NativePointer (*SerializerBase_use)(NativePointer);
-    UInt8 (*DeserializerBase_readUInt8)(NativePointer);
-    Int32 (*DeserializerBase_readInt32)(NativePointer);
-    String (*DeserializerBase_readString)(NativePointer);
-    NativePointer (*DeserializerBase_readPointer)(NativePointer);
-    NativePointer (*DeserializerBase_swap)(NativePointer);
-    NativePointer (*DeserializerBase_use)(NativePointer);
-    _idlizer_runtime_native_Event (*poll)();
+    NativePointer (*RawMemoryAllocate)();
+    int32_t (*RawMemoryGetLength)(NativePointer);
+    void (*RawMemoryFree)(NativePointer);
+    void (*SerializerBaseWriteUInt8)(NativePointer, UInt8);
+    void (*SerializerBaseWriteInt32)(NativePointer, Int32);
+    void (*SerializerBaseWriteString)(NativePointer, String);
+    void (*SerializerBaseWritePointer)(NativePointer, NativePointer);
+    NativePointer (*SerializerBaseSwap)(NativePointer);
+    NativePointer (*SerializerBaseUse)(NativePointer);
+    UInt8 (*DeserializerBaseReadUInt8)(NativePointer);
+    Int32 (*DeserializerBaseReadInt32)(NativePointer);
+    String (*DeserializerBaseReadString)(NativePointer);
+    NativePointer (*DeserializerBaseReadPointer)(NativePointer);
+    NativePointer (*DeserializerBaseSwap)(NativePointer);
+    NativePointer (*DeserializerBaseUse)(NativePointer);
+    _idlizer_runtime_native_Event (*Poll)();
 } idlize_runtime_api;
 
 idlize_runtime_api* getAPI();

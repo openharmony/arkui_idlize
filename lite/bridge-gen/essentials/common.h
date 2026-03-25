@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef COMMON_H
+#define COMMON_H
 
 #ifndef PLATFORM_ENV_TYPE
 #define PLATFORM_ENV_TYPE int
@@ -26,3 +27,5 @@ struct BridgeConvertor {
     static PlatformType fromBridgeType(PLATFORM_ENV_TYPE, T) = delete;
     static void cleanup(T) {};
 };
+
+#endif
