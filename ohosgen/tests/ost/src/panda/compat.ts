@@ -5,6 +5,7 @@ import {
 
 import {
     registerUnitOstApiHandler,
+    UNIT_OSTNativeModule,
  } from '../../generated/arkts'
 
 export {
@@ -18,11 +19,10 @@ export {
     getOSTSequenceInt,
 } from '../../generated/arkts'
 
-/*
 export {
-    getOSTPromise,
+    // getOSTPromise,
+    getCallbackInt,
 } from '../../generated/arkts'
-*/
 
 export type OHBuffer = ArrayBuffer
 

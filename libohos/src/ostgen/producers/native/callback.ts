@@ -26,6 +26,11 @@ export const callbackProducer = createProducer(
     const callbackParams = callback.parameters.map(p => ({name: p.name, type: Ts.const(expectType(ctx, p.type, 'capi'))}))
     const callbackParamWrites = callback.parameters.flatMap(p => argConvertor(ctx, p.type).write(E.v(p.name), E.v('argsSerializer'), true))
     const asyncParams = [{name: 'resourceId', type: Ts.const(Ts.prim.i32)}, ...callbackParams]
+    if (!idl.isVoidType(callback.returnType)) {
+      const ref = ctx.library.createContinuationCallbackReference(callback.returnType)!
+      const continuation = ctx.library.resolveTypeReference(ref)!
+      asyncParams.push({ name: 'continuation', type: Ts.const(expectType(ctx, continuation, `capi`)) })
+    }
     const syncParams = [{name: 'vmContext', type: T.c(cApiName('VMContext'))}, ...asyncParams]
     return {
       continuation: T.c(generatedDeclName),

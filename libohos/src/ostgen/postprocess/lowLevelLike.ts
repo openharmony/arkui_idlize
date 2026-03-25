@@ -122,6 +122,12 @@ class GenericMonomorphizer extends IdentityTransformer {
             ])
         )
         this.index.set(
+            std.names.types.promise,
+            DD({ generics: [{ name: 'T' }] }).struct('synthetic.mono.Promise', [
+                { name: 'resource', type: Ts.prim.i32 },
+            ])
+        )
+        this.index.set(
             std.names.types.map,
             DD({ generics: [{ name: 'K' }, { name: 'V' }] }).struct('synthetic.mono.Map', [
                 { name: 'length', type: Ts.prim.i32 },

@@ -266,6 +266,7 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
             files.set('other', [])
         }
         files.get('other')?.push(decl)
+        refIndex.set(decl.name, 'other')
     })
 
     // do namespace stuff

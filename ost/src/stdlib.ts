@@ -24,6 +24,7 @@ const knownHints = {
     staticMethod: 'staticMethod',
     stackInstance: 'stackInstance',
     arrayInstance: 'arrayInstance',
+    promise: 'promise',
     excl: 'excl',
     macroCall: 'macroCall',
     questionMark: 'questionMark',
@@ -118,6 +119,7 @@ export const Hs = {
     staticMethod: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.staticMethod }),
     stackInstance: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.stackInstance }),
     arrayInstance: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.arrayInstance }),
+    promise: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.promise }),
     excl: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.excl }),
     macroCall: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.macroCall }),
     questionMark: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.questionMark })
