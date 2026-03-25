@@ -15,10 +15,9 @@
 
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration, hashCodeFromString, isMaterialized } from "@idlizer/core"
-import { Builders, E, Hs, LWExpression, LWStatement, LWType, lw, Op, std, T, Ts } from "@idlizer/ost"
+import { Builders, E, LWExpression, LWStatement, lw, Op, std, T, Ts } from "@idlizer/ost"
 import { cApiName, expectExpr, expectType, typeNameExpr } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
-import { monoName } from "../../postprocess/postprocess.js"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
@@ -480,48 +479,51 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
 
 class OptionalConvertor extends StructConvertor<idl.IDLOptionalType> {
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
-        if (native) {
-            // Improve: implement
-            return [Builders.stmt().call('writeInt8')
-                .receiver(serializerName)
-                .arg(this.runtimeType('UNDEFINED', native)).$().$()]
-        }
-        return [Builders.if()
-            .cond().unary(Op.not).value(accessor).$().$()
-            .then().block()
-                .call('writeInt8').receiver(serializerName).arg(this.runtimeType('UNDEFINED', native)).$().$().$()
-            .else().block()
-                .call('writeInt8').receiver(serializerName).arg(this.runtimeType('OBJECT', native)).$()
-                .statements(argConvertor(this.ctx, this.type.type).write(accessor, serializerName, native)).$().$().$()
+        const isUndefinedCondition = native
+            ? Builders.binary(Op.eq).left().access('tag').receiver(accessor).$().$().right('INTEROP_TAG_UNDEFINED').$()
+            : Builders.binary(Op.eq).left(accessor).right('undefined').$()
+        const definedValue = native
+            ? Builders.access('value').receiver(accessor).$()
+            : Builders.unary(Op.assert).value(accessor).$()
+        return [
+            Builders.if()
+                .condition(isUndefinedCondition)
+                .then().block()
+                    .call('writeInt8').receiver(serializerName).arg(this.runtimeType('UNDEFINED', native)).$().$().$()
+                .else().block()
+                    .call('writeInt8').receiver(serializerName).arg(this.runtimeType('OBJECT', native)).$()
+                    .statements(argConvertor(this.ctx, this.type.type).write(definedValue, serializerName, native)).$().$().$()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         const type = this.convertType(this.type, native);
-        if (native) {
-            // Improve: implement
-            return [[
-                Builders.decl(name, Ts.optional(type)).mutable().$(),
-                Builders.decl(`${name}RuntimeType`).value().call('readInt8').receiver(serializerName).$().$().$(),
-                Builders.stmt().binary('=')
-                    .left().access('tag').receiver(name).$().$()
-                    .right('INTEROP_TAG_UNDEFINED').$().$()
-            ], E.v(name)]
-        } else {
-            const [typeReads, typeValue] = argConvertor(this.ctx, this.type.type).read(`${name}Value`, serializerName, native)
-            return [[
-                Builders.decl(name, Ts.union([type, Ts.prim.undefined])).mutable().$(),
-                Builders.decl(`${name}RuntimeType`).value().call('readInt8').receiver(serializerName).$().$().$(),
-                Builders.if()
-                    .cond().binary(Op.ne).left(`${name}RuntimeType`).right(this.runtimeType('UNDEFINED', native)).$().$()
-                    .then().block()
-                        .statements(typeReads)
-                        .binary('=').left(name).right(typeValue).$().$().$().$()
-            ], E.v(name)]
-        }
+        const runtimeTypeVarName = name + 'RuntimeType'
+        const initialValue = native
+            ? Builders.ctor().asStruct().$()
+            : E.c('undefined')
+        const valueReceiver = native
+            ? Builders.access('value').receiver(name).$()
+            : E.v(name)
+        const tagAssignment = native
+            ? Builders.stmt().binary('=')
+                .left().access('tag').receiver(name).$().$()
+                .right().call('runtimeTypeToTag').arg(runtimeTypeVarName).$().$().$().$()
+            : Builders.none().$()
+        const [typeReads, typeValue] = argConvertor(this.ctx, this.type.type).read(`${name}Value`, serializerName, native)
+        return [[
+            Builders.decl(name, type).mutable().value(initialValue).$(),
+            Builders.decl(runtimeTypeVarName).value().call('readInt8').receiver(serializerName).$().$().$(),
+            tagAssignment,
+            Builders.if()
+                .cond().binary(Op.ne).left(runtimeTypeVarName).right(this.runtimeType('UNDEFINED', native)).$().$()
+                .then().block()
+                    .statements(typeReads)
+                    .binary('=').left(valueReceiver).right(typeValue).$().$().$().$()
+        ], E.v(name)]
     }
     private runtimeType(name: string, native: boolean): lw.LWExpression {
         return native
-            ? E.v(`INTEROP_RUNTIME_${name}`)
+            ? E.c('INTEROP_RUNTIME_' + name)
             : Builders.access(name).receiver('RuntimeType').$()
     }
 }
