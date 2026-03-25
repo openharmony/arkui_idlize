@@ -138,6 +138,6 @@ const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result)
     return impls[kind];
 }
 
-InteropTag runtimeTypeToTag(OH_Int8 rtType) {
+InteropTag runtimeTypeToTag(InteropInt8 rtType) {
     return rtType == INTEROP_RUNTIME_UNDEFINED ? INTEROP_TAG_UNDEFINED : INTEROP_TAG_OBJECT;
 }

@@ -62,6 +62,7 @@
                 "test_multiple_instances",
                 "test_non_static",
                 "test_number",
+                "test_optional",
                 "test_override_methods",
                 "test_promise",
                 "test_props",
