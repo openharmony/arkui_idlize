@@ -1,0 +1,15 @@
+package component_content_generic;
+[Entity=Class]
+interface <T> ComponentContent {
+    void update(T value);
+};
+[Entity=Class, Component]
+interface ComponentWithComponentContentAttribute {
+    [CommonMethod]
+    attribute (ComponentContent<Object> or String or undefined) overlay;
+};
+[ComponentInterface]
+interface ComponentWithComponentContentInterface {
+    [Annotations=memo, CallSignature]
+    ComponentWithComponentContentAttribute invoke();
+};
