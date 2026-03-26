@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <iostream>
+
 #include "oh_common.h"
 #include "test_ost.h"
-
-#include <iostream>
-#include <algorithm>
 
 struct Counted {
     OH_Number index;
@@ -148,10 +148,10 @@ OH_Number callbacks_Callbacks_getXImpl(OH_NativePointer thisPtr)
     return reinterpret_cast<Counted*>(thisPtr)->index;
 }
 
-void callbacks_Callbacks_callNumberImpl(OH_NativePointer thisPtr, const OH_Number* y, const OH_TEST_OST_Callback_Number* cb)
+void callbacks_Callbacks_callNumberImpl(
+    OH_NativePointer thisPtr, const OH_Number* y, const OH_TEST_OST_Callback_Number* cb)
 {
-    std::cout << "Callbacks_callNumberImpl(thisPtr, y, cb)"
-              << "\n  y = " << DumpOHNumber(*y) << std::endl;
+    std::cout << "Callbacks_callNumberImpl(thisPtr, y, cb)" << "\n  y = " << DumpOHNumber(*y) << std::endl;
     OH_Number sum = addOHNumber(reinterpret_cast<Counted*>(thisPtr)->index, *y);
     cb->call(cb->resource.resourceId, sum);
 }
@@ -165,23 +165,18 @@ void callbacks_Callbacks_callVoidImpl(OH_NativePointer thisPtr, const OH_TEST_OS
 // FQN
 void fqnDeps_resizeImpl(const OH_TEST_OST_fqnDeps_Size* arg)
 {
-    std::cout << "resize(intSize="
-              << arg->intWidth << "x" << arg->intHeight
-              << ")" << std::endl;
+    std::cout << "resize(intSize=" << arg->intWidth << "x" << arg->intHeight << ")" << std::endl;
 }
 
 void fqnDeps_fp_resizeImpl(const OH_TEST_OST_fqnDeps_fp_Size* arg)
 {
-    std::cout << "resize(floatSize="
-              << arg->floatWidth << "x" << arg->floatHeight
-              << ")" << std::endl;
+    std::cout << "resize(floatSize=" << arg->floatWidth << "x" << arg->floatHeight << ")" << std::endl;
 }
 
 void fqnMain_resizeImpl(const OH_TEST_OST_fqnMain_Size* arg)
 {
-    std::cout << "resize(numSize="
-              << DumpOHNumber(arg->numWidth) << "x" << DumpOHNumber(arg->numHeight)
-              << ")" << std::endl;
+    std::cout << "resize(numSize=" << DumpOHNumber(arg->numWidth) << "x" << DumpOHNumber(arg->numHeight) << ")"
+              << std::endl;
 }
 
 void fqnMain_resizeAllImpl(const OH_TEST_OST_Sizes* arg)
@@ -191,9 +186,7 @@ void fqnMain_resizeAllImpl(const OH_TEST_OST_Sizes* arg)
     fqnDeps_fp_resizeImpl(&arg->floatSize);
 }
 
-void fqnMain_resize3Impl(
-    const OH_TEST_OST_fqnMain_Size* numSize,
-    const OH_TEST_OST_fqnDeps_Size* intSize,
+void fqnMain_resize3Impl(const OH_TEST_OST_fqnMain_Size* numSize, const OH_TEST_OST_fqnDeps_Size* intSize,
     const OH_TEST_OST_fqnDeps_fp_Size* floatSize)
 {
     fqnMain_resizeImpl(numSize);

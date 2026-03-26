@@ -17,196 +17,295 @@
 #include "common-interop.h"
 #include "ohos_security_huks.h"
 
-void GlobalScope_huks_abort0Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
-{
-}
-void GlobalScope_huks_abort1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_abortSession0Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
-{
-}
-void GlobalScope_huks_abortSession1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_anonAttestKeyItem0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
-{
-}
-void GlobalScope_huks_anonAttestKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_anonAttestKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_attestKeyItem0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
-{
-}
-void GlobalScope_huks_attestKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_attestKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_deleteKey0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
-{
-}
-void GlobalScope_huks_deleteKey1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_deleteKeyItem0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
-{
-}
-void GlobalScope_huks_deleteKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_deleteKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_exportKey0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
-{
-}
-void GlobalScope_huks_exportKey1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_exportKeyItem0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
-{
-}
-void GlobalScope_huks_exportKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_exportKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_finish0Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
-{
-}
-void GlobalScope_huks_finish1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_finishSession0Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
-{
-}
-void GlobalScope_huks_finishSession1Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OH_Buffer* token, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
-{
-}
-void GlobalScope_huks_finishSession2Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const Opt_Buffer* token, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_generateKey0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
-{
-}
-void GlobalScope_huks_generateKey1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_generateKeyItem0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
-{
-}
-void GlobalScope_huks_generateKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_generateKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_getKeyItemProperties0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
-{
-}
-void GlobalScope_huks_getKeyItemProperties1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_getKeyItemPropertiesAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_getKeyProperties0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
-{
-}
-void GlobalScope_huks_getKeyProperties1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
+void GlobalScope_huks_abort0Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
+{}
+void GlobalScope_huks_abort1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_abortSession0Impl(const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
+{}
+void GlobalScope_huks_abortSession1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_anonAttestKeyItem0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
+{}
+void GlobalScope_huks_anonAttestKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_anonAttestKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_attestKeyItem0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
+{}
+void GlobalScope_huks_attestKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_attestKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_deleteKey0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
+{}
+void GlobalScope_huks_deleteKey1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_deleteKeyItem0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
+{}
+void GlobalScope_huks_deleteKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_deleteKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_exportKey0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
+{}
+void GlobalScope_huks_exportKey1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_exportKeyItem0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
+{}
+void GlobalScope_huks_exportKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_exportKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_finish0Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
+{}
+void GlobalScope_huks_finish1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_finishSession0Impl(const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
+{}
+void GlobalScope_huks_finishSession1Impl(const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OH_Buffer* token,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
+{}
+void GlobalScope_huks_finishSession2Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const Opt_Buffer* token,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_generateKey0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
+{}
+void GlobalScope_huks_generateKey1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_generateKeyItem0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
+{}
+void GlobalScope_huks_generateKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_generateKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_getKeyItemProperties0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
+{}
+void GlobalScope_huks_getKeyItemProperties1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_getKeyItemPropertiesAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_getKeyProperties0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
+{}
+void GlobalScope_huks_getKeyProperties1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
 OH_String GlobalScope_huks_getSdkVersionImpl(const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options)
 {
     return {};
 }
-void GlobalScope_huks_hasKeyItem0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Boolean_Void* callback_)
-{
-}
-void GlobalScope_huks_hasKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_Boolean_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_hasKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_Boolean_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_importKey0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
-{
-}
-void GlobalScope_huks_importKey1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_importKeyItem0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
-{
-}
-void GlobalScope_huks_importKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_importKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_importWrappedKeyItem0Impl(const OH_String* keyAlias, const OH_String* wrappingKeyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
-{
-}
-void GlobalScope_huks_importWrappedKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_String* wrappingKeyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_importWrappedKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_String* wrappingKeyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_init0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksHandle_Void* callback_)
-{
-}
-void GlobalScope_huks_init1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksHandle_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_initSession0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksSessionHandle_Void* callback_)
-{
-}
-void GlobalScope_huks_initSession1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksSessionHandle_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_initSessionAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksSessionHandle_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_isKeyExist0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Boolean_Void* callback_)
-{
-}
-void GlobalScope_huks_isKeyExist1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_Boolean_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_isKeyItemExist0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Boolean_Void* callback_)
-{
-}
-void GlobalScope_huks_isKeyItemExist1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_Boolean_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_listAliasesImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksListAliasesReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_unwrapKeyItemImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* params, const OH_Buffer* wrappedKey, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_update0Impl(const OH_CustomObject* handle, const Opt_Buffer* token, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
-{
-}
-void GlobalScope_huks_update1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle, const Opt_Buffer* token, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_updateSession0Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
-{
-}
-void GlobalScope_huks_updateSession1Impl(const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OH_Buffer* token, const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
-{
-}
-void GlobalScope_huks_updateSession2Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const Opt_Buffer* token, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
-void GlobalScope_huks_wrapKeyItemImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext, OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* params, const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
-{
-}
+void GlobalScope_huks_hasKeyItem0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_Boolean_Void* callback_)
+{}
+void GlobalScope_huks_hasKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Boolean_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_hasKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Boolean_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_importKey0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
+{}
+void GlobalScope_huks_importKey1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_importKeyItem0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
+{}
+void GlobalScope_huks_importKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_importKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_importWrappedKeyItem0Impl(const OH_String* keyAlias, const OH_String* wrappingKeyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OHOS_SECURITY_HUKS_AsyncCallback_Void_Void* callback_)
+{}
+void GlobalScope_huks_importWrappedKeyItem1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias, const OH_String* wrappingKeyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_importWrappedKeyItemAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_String* wrappingKeyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_init0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksHandle_Void* callback_)
+{}
+void GlobalScope_huks_init1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksHandle_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_initSession0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksSessionHandle_Void* callback_)
+{}
+void GlobalScope_huks_initSession1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksSessionHandle_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_initSessionAsUserImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, OH_Int32 userId, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* huksOptions,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksSessionHandle_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_isKeyExist0Impl(const OH_String* keyAlias, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_Boolean_Void* callback_)
+{}
+void GlobalScope_huks_isKeyExist1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Boolean_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_isKeyItemExist0Impl(const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_Boolean_Void* callback_)
+{}
+void GlobalScope_huks_isKeyItemExist1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_Boolean_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_listAliasesImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksListAliasesReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_unwrapKeyItemImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* params, const OH_Buffer* wrappedKey,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_update0Impl(const OH_CustomObject* handle, const Opt_Buffer* token,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksResult_Void* callback_)
+{}
+void GlobalScope_huks_update1Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle, const Opt_Buffer* token,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksResult_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_updateSession0Impl(const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
+{}
+void GlobalScope_huks_updateSession1Impl(const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const OH_Buffer* token,
+    const OHOS_SECURITY_HUKS_AsyncCallback_huks_HuksReturnResult_Void* callback_)
+{}
+void GlobalScope_huks_updateSession2Impl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_CustomObject* handle,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* options, const Opt_Buffer* token,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}
+void GlobalScope_huks_wrapKeyItemImpl(OH_OHOS_SECURITY_HUKS_VMContext vmContext,
+    OH_OHOS_SECURITY_HUKS_AsyncWorkerPtr asyncWorker, const OH_String* keyAlias,
+    const OH_OHOS_SECURITY_HUKS_huks_HuksOptions* params,
+    const OHOS_SECURITY_HUKS_Callback_Opt_huks_HuksReturnResult_Opt_Array_String_Void*
+        outputArgumentForReturningPromise)
+{}

@@ -45,8 +45,7 @@ void HuksClass_fooVoidVoidImpl(OH_NativePointer thisPtr)
 
 void HuksClass_fooVoidNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg)
 {
-    std::cout << "HuksClass_fooVoidNumberImpl(thisPtr, arg)"
-              << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
+    std::cout << "HuksClass_fooVoidNumberImpl(thisPtr, arg)" << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
 }
 
 OH_Number HuksClass_fooNumberVoidImpl(OH_NativePointer thisPtr)
@@ -59,16 +58,14 @@ OH_Number HuksClass_fooNumberVoidImpl(OH_NativePointer thisPtr)
 OH_Number HuksClass_fooNumberNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg)
 {
     static int counter = 0;
-    std::cout << "HuksClass_fooNumberNumberImpl(thisPtr, arg)"
-              << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
+    std::cout << "HuksClass_fooNumberNumberImpl(thisPtr, arg)" << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
     return addOHNumber(OH_Number { .tag = INTEROP_TAG_INT32, .i32 = ++counter }, *arg);
 }
 
 OH_HUKS_WITH_CLASS_HuksResult HuksClass_fooResultNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg)
 {
     static int counter = 0;
-    std::cout << "HuksClass_fooResultNumberImpl(thisPtr, arg)"
-              << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
+    std::cout << "HuksClass_fooResultNumberImpl(thisPtr, arg)" << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
     OH_HUKS_WITH_CLASS_HuksResult result {};
     result.errorCode = OH_Number { .tag = INTEROP_TAG_INT32, .i32 = ++counter };
     result.outData = { .tag = INTEROP_TAG_UNDEFINED };
@@ -84,7 +81,8 @@ OH_Number HuksClass_fooNumberOptionsImpl(OH_NativePointer thisPtr, const OH_HUKS
     return OH_Number { .tag = INTEROP_TAG_INT32, .i32 = ++counter };
 }
 
-OH_HUKS_WITH_CLASS_HuksResult HuksClass_generateKeyItemSyncImpl(const OH_String* keyAlias, const OH_HUKS_WITH_CLASS_HuksOptions* options)
+OH_HUKS_WITH_CLASS_HuksResult HuksClass_generateKeyItemSyncImpl(
+    const OH_String* keyAlias, const OH_HUKS_WITH_CLASS_HuksOptions* options)
 {
     static int counter = 0;
     std::cout << "HuksClass_generateKeyItemSyncImpl(thisPtr, keyAlias, options)"

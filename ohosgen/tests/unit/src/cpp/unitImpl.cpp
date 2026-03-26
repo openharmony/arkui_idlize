@@ -14,25 +14,27 @@
  */
 
 #define KOALA_INTEROP_MODULE NotSpecifiedInteropModule
+#include <algorithm>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+#include <unordered_map>
+
 #include "common-interop.h"
 #include "unit.h"
 
-#include <iostream>
-#include <sstream>
-#include <cstring>
-#include <unordered_map>
-#include <algorithm>
-
 namespace {
-    
-int32_t SOME_NUMBER = 42;
-void* SOME_POINTER = reinterpret_cast<void*>(42);
 
-void resourceHold(const OH_UNIT_CallbackResource& resource) {
+int32_t g_someNumber = 42;
+void* g_somePointer = reinterpret_cast<void*>(42);
+
+void resourceHold(const OH_UNIT_CallbackResource& resource)
+{
     resource.hold(resource.resourceId);
 }
 
-void resourceRelease(const OH_UNIT_CallbackResource& resource) {
+void resourceRelease(const OH_UNIT_CallbackResource& resource)
+{
     resource.release(resource.resourceId);
 }
 
@@ -81,12 +83,8 @@ OH_UNIT_HelloHandle Hello_constructImpl()
 {
     return {};
 }
-void Hello_destructImpl(OH_UNIT_HelloHandle thiz)
-{
-}
-void Hello_helloImpl(OH_NativePointer thisPtr, const OH_UNIT_HelloType* value)
-{
-}
+void Hello_destructImpl(OH_UNIT_HelloHandle thiz) {}
+void Hello_helloImpl(OH_NativePointer thisPtr, const OH_UNIT_HelloType* value) {}
 
 /// InterfaceWithMethods real implementations
 
@@ -94,9 +92,7 @@ OH_UNIT_InterfaceWithMethodsHandle InterfaceWithMethods_constructImpl()
 {
     return {};
 }
-void InterfaceWithMethods_destructImpl(OH_UNIT_InterfaceWithMethodsHandle thiz)
-{
-}
+void InterfaceWithMethods_destructImpl(OH_UNIT_InterfaceWithMethodsHandle thiz) {}
 OH_Boolean InterfaceWithMethods_isUsedImpl(OH_NativePointer thisPtr, const OH_Number* value)
 {
     return {};
@@ -105,16 +101,12 @@ OH_Boolean InterfaceWithMethods_getPropBooleanImpl(OH_NativePointer thisPtr)
 {
     return 0;
 }
-void InterfaceWithMethods_setPropBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value)
-{
-}
+void InterfaceWithMethods_setPropBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value) {}
 OH_Number InterfaceWithMethods_getPropNumberImpl(OH_NativePointer thisPtr)
 {
     return { .tag = INTEROP_TAG_INT32, .i32 = 0 };
 }
-void InterfaceWithMethods_setPropNumberImpl(OH_NativePointer thisPtr, const OH_Number* value)
-{
-}
+void InterfaceWithMethods_setPropNumberImpl(OH_NativePointer thisPtr, const OH_Number* value) {}
 
 /// PersonInfo real implementations
 
@@ -122,9 +114,7 @@ OH_UNIT_PersonInfoHandle PersonInfo_constructImpl()
 {
     return {};
 }
-void PersonInfo_destructImpl(OH_UNIT_PersonInfoHandle thiz)
-{
-}
+void PersonInfo_destructImpl(OH_UNIT_PersonInfoHandle thiz) {}
 OH_Number PersonInfo_MyfuncImpl(OH_NativePointer thisPtr, const OH_Number* a)
 {
     return {};
@@ -133,16 +123,12 @@ OH_String PersonInfo_getNameImpl(OH_NativePointer thisPtr)
 {
     return {};
 }
-void PersonInfo_setNameImpl(OH_NativePointer thisPtr, const OH_String* value)
-{
-}
+void PersonInfo_setNameImpl(OH_NativePointer thisPtr, const OH_String* value) {}
 OH_Number PersonInfo_getAgeImpl(OH_NativePointer thisPtr)
 {
     return {};
 }
-void PersonInfo_setAgeImpl(OH_NativePointer thisPtr, const OH_Number* value)
-{
-}
+void PersonInfo_setAgeImpl(OH_NativePointer thisPtr, const OH_Number* value) {}
 
 /// MyPersonHandler real implementations
 
@@ -150,9 +136,7 @@ OH_UNIT_MyPersonHandlerHandle MyPersonHandler_constructImpl()
 {
     return {};
 }
-void MyPersonHandler_destructImpl(OH_UNIT_MyPersonHandlerHandle thiz)
-{
-}
+void MyPersonHandler_destructImpl(OH_UNIT_MyPersonHandlerHandle thiz) {}
 OH_Number MyPersonHandler_Myfunc10Impl(OH_NativePointer thisPtr, const OH_Number* a, const Opt_PersonInfo* b)
 {
     return {};
@@ -165,36 +149,22 @@ OH_Number MyPersonHandler_Myfunc12Impl(OH_NativePointer thisPtr, OH_UNIT_PersonI
 {
     return {};
 }
-void MyPersonHandler_MyFunc20Impl(OH_NativePointer thisPtr, const OH_Number* b, const Opt_Boolean* c)
-{
-}
-void MyPersonHandler_MyFunc21Impl(OH_NativePointer thisPtr, const OH_Number* b, const Opt_String* c)
-{
-}
-void MyPersonHandler_MyFunc22Impl(OH_NativePointer thisPtr, const OH_Number* b, const Opt_Number* c)
-{
-}
+void MyPersonHandler_MyFunc20Impl(OH_NativePointer thisPtr, const OH_Number* b, const Opt_Boolean* c) {}
+void MyPersonHandler_MyFunc21Impl(OH_NativePointer thisPtr, const OH_Number* b, const Opt_String* c) {}
+void MyPersonHandler_MyFunc22Impl(OH_NativePointer thisPtr, const OH_Number* b, const Opt_Number* c) {}
 
 OH_UNIT_NS_ForceContextNSHandle NS_ForceContextNS_constructImpl()
 {
     return {};
 }
-void NS_ForceContextNS_destructImpl(OH_UNIT_NS_ForceContextNSHandle thisPtr)
-{
-}
+void NS_ForceContextNS_destructImpl(OH_UNIT_NS_ForceContextNSHandle thisPtr) {}
 OH_String NS_ForceContextNS_getProp_Impl(OH_NativePointer thisPtr)
 {
     return {};
 }
-void NS_ForceContextNS_method_Impl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr)
-{
-}
-void NS_ForceContextNS_setProp_Impl(OH_NativePointer thisPtr, const OH_String* value)
-{
-}
-void NS_ForceContextNS_static_methodImpl(OH_UNIT_VMContext vmContext)
-{
-}
+void NS_ForceContextNS_method_Impl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {}
+void NS_ForceContextNS_setProp_Impl(OH_NativePointer thisPtr, const OH_String* value) {}
+void NS_ForceContextNS_static_methodImpl(OH_UNIT_VMContext vmContext) {}
 
 /// BufferGenerator
 
@@ -202,9 +172,7 @@ OH_UNIT_TestBuffer_BufferGeneratorHandle TestBuffer_BufferGenerator_constructImp
 {
     return {};
 }
-void TestBuffer_BufferGenerator_destructImpl(OH_UNIT_TestBuffer_BufferGeneratorHandle thiz)
-{
-}
+void TestBuffer_BufferGenerator_destructImpl(OH_UNIT_TestBuffer_BufferGeneratorHandle thiz) {}
 OH_Buffer TestBuffer_BufferGenerator_giveMeBufferImpl(OH_NativePointer thisPtr)
 {
     return {};
@@ -218,6 +186,9 @@ void StubRelease(OH_Int32 resourceId) {}
  */
 static OH_Buffer createBufferImpl(OH_UInt32 size)
 {
+    if (size > 1000000000) {
+        std::cerr << "Warning: allocating too big buffer of size " << size << '\n';
+    }
     OH_Buffer result;
     result.resource.hold = StubHold;
     result.resource.release = StubRelease;
@@ -253,8 +224,7 @@ OH_Buffer GlobalScope_test_buffer_idl_reverseImpl(const OH_Buffer* buffer)
     return reverseBufferImpl(buffer);
 }
 
-class ForceCallbackClassPeer {
-};
+class ForceCallbackClassPeer {};
 static OH_UNIT_ForceCallbackListener forceCallbackListener = {};
 
 OH_UNIT_ForceCallbackClassHandle ForceCallbackClass_constructImpl()
@@ -262,9 +232,7 @@ OH_UNIT_ForceCallbackClassHandle ForceCallbackClass_constructImpl()
     return (OH_UNIT_ForceCallbackClassHandle) new ForceCallbackClassPeer();
 }
 
-void ForceCallbackClass_destructImpl(OH_UNIT_ForceCallbackClassHandle thiz)
-{
-}
+void ForceCallbackClass_destructImpl(OH_UNIT_ForceCallbackClassHandle thiz) {}
 void ForceCallbackClass_registerListenerImpl(OH_NativePointer thisPtr, const OH_UNIT_ForceCallbackListener* listener)
 {
     forceCallbackListener = *listener;
@@ -276,22 +244,14 @@ OH_UNIT_ForceContextHandle ForceContext_constructImpl()
 {
     return {};
 }
-void ForceContext_destructImpl(OH_UNIT_ForceContextHandle thisPtr)
-{
-}
+void ForceContext_destructImpl(OH_UNIT_ForceContextHandle thisPtr) {}
 OH_String ForceContext_getProp_Impl(OH_NativePointer thisPtr)
 {
     return {};
 }
-void ForceContext_method_Impl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr)
-{
-}
-void ForceContext_setProp_Impl(OH_NativePointer thisPtr, const OH_String* value)
-{
-}
-void ForceContext_static_methodImpl(OH_UNIT_VMContext vmContext)
-{
-}
+void ForceContext_method_Impl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {}
+void ForceContext_setProp_Impl(OH_NativePointer thisPtr, const OH_String* value) {}
+void ForceContext_static_methodImpl(OH_UNIT_VMContext vmContext) {}
 
 void forceCallbackOnChangeCallContinuation(const OH_Int32 resourceId, const OH_String value)
 {
@@ -319,11 +279,8 @@ OH_Number ForceCallbackClass_callListenerImpl(OH_NativePointer thisPtr)
         .callSync = forceCallbackOnChangeCallSyncContinuation,
     };
 
-    forceCallbackListener.onChange.call(
-        forceCallbackListener.onChange.resource.resourceId,
-        true,
-        { .tag = INTEROP_TAG_INT32, .i32 = 78910 },
-        continuation);
+    forceCallbackListener.onChange.call(forceCallbackListener.onChange.resource.resourceId, true,
+        { .tag = INTEROP_TAG_INT32, .i32 = 78910 }, continuation);
 
     // release callbacks
     resourceRelease(forceCallbackListener.onStatus.resource);
@@ -337,18 +294,10 @@ OH_UNIT_GenericInterfaceHandle GenericInterface_constructImpl()
 {
     return {};
 }
-void GenericInterface_destructImpl(OH_UNIT_GenericInterfaceHandle thisPtr)
-{
-}
-void GenericInterface_setDataImpl(OH_NativePointer thisPtr, const OH_CustomObject* data)
-{
-}
-void GenericInterface_callHandlerImpl(OH_NativePointer thisPtr)
-{
-}
-void GlobalScope_registerForceCallbackListenerImpl(const OH_UNIT_ForceCallbackListener* listener)
-{
-}
+void GenericInterface_destructImpl(OH_UNIT_GenericInterfaceHandle thisPtr) {}
+void GenericInterface_setDataImpl(OH_NativePointer thisPtr, const OH_CustomObject* data) {}
+void GenericInterface_callHandlerImpl(OH_NativePointer thisPtr) {}
+void GlobalScope_registerForceCallbackListenerImpl(const OH_UNIT_ForceCallbackListener* listener) {}
 OH_Number GlobalScope_callForceCallbackListenerImpl()
 {
     return { .tag = INTEROP_TAG_INT32, .i32 = 102 };
@@ -364,25 +313,19 @@ OH_Boolean GlobalScope_and_valuesImpl(OH_Boolean v1, OH_Boolean v2)
 
 OH_Number GlobalScope_sum_numbersImpl(const OH_Number* v1, const OH_Number* v2)
 {
-    switch (v1->tag) {
-        case InteropTag::INTEROP_TAG_INT32: {
-            switch (v2->tag) {
-                case InteropTag::INTEROP_TAG_INT32:
-                    return { .tag = InteropTag::INTEROP_TAG_INT32, .i32 = v1->i32 + v2->i32 };
-                case InteropTag::INTEROP_TAG_FLOAT32:
-                    return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->i32 + v2->f32 };
-            }
+    if (v1->tag == InteropTag::INTEROP_TAG_INT32) {
+        if (v2->tag == InteropTag::INTEROP_TAG_INT32) {
+            return { .tag = InteropTag::INTEROP_TAG_INT32, .i32 = v1->i32 + v2->i32 };
+        } else {
+            return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->i32 + v2->f32 };
         }
-        case InteropTag::INTEROP_TAG_FLOAT32: {
-            switch (v2->tag) {
-                case InteropTag::INTEROP_TAG_INT32:
-                    return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->i32 };
-                case InteropTag::INTEROP_TAG_FLOAT32:
-                    return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->f32 };
-            }
+    } else {
+        if (v2->tag == InteropTag::INTEROP_TAG_INT32) {
+            return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->i32 };
+        } else {
+            return { .tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->f32 };
         }
     }
-    INTEROP_FATAL("Unknown args tags v1: %d, v2: %d\n", v1->tag, v2->tag);
 }
 
 // Enums
@@ -422,14 +365,12 @@ OH_UNIT_IntEnumNegative GlobalScope_checkIntNegativeEnumsImpl(
             "Enum OH_UNIT_INT_ENUM_NEGATIVE_E3 %d does not equal to: %d", OH_UNIT_INT_ENUM_NEGATIVE_E3, enumValueE2);
     }
     if (value1 != OH_UNIT_INT_ENUM_NEGATIVE_E1) {
-        INTEROP_FATAL(
-            "Enum param value1 %d does not equal OH_UNIT_INT_ENUM_NEGATIVE_E1: %d",
-            value1, OH_UNIT_INT_ENUM_NEGATIVE_E1);
+        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_INT_ENUM_NEGATIVE_E1: %d", value1,
+            OH_UNIT_INT_ENUM_NEGATIVE_E1);
     }
     if (value2 != OH_UNIT_INT_ENUM_NEGATIVE_E3) {
-        INTEROP_FATAL(
-            "Enum param value2 %d does not equal OH_UNIT_INT_ENUM_NEGATIVE_E3: %d",
-            value2, OH_UNIT_INT_ENUM_NEGATIVE_E3);
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_INT_ENUM_NEGATIVE_E3: %d", value2,
+            OH_UNIT_INT_ENUM_NEGATIVE_E3);
     }
     return OH_UNIT_INT_ENUM_NEGATIVE_E15;
 }
@@ -462,13 +403,11 @@ OH_UNIT_BigHexEnum GlobalScope_checkBigHexEnumsImpl(OH_UNIT_BigHexEnum value1, O
     int64_t expectedEFFFFFFFF = 0xFFFFFFFF;
     int64_t expectedEFFFFFFFFAB = 0xFFFFFFFFAB;
     if (OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF != expectedEFFFFFFFF) {
-        INTEROP_FATAL(
-            "Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF %d does not equal to: %d",
-            OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF, expectedEFFFFFFFF);
+        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF %d does not equal to: %d", OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF,
+            expectedEFFFFFFFF);
     }
     if (OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB != expectedEFFFFFFFFAB) {
-        INTEROP_FATAL(
-            "Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB %d does not equal to: %d",
+        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB %d does not equal to: %d",
             OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB, expectedEFFFFFFFFAB);
     }
     return OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB;
@@ -506,14 +445,12 @@ OH_UNIT_DuplicateIntEnum GlobalScope_checkDuplicateIntEnumsImpl(
     OH_UNIT_DuplicateIntEnum value1, OH_UNIT_DuplicateIntEnum value2)
 {
     if (value2 != OH_UNIT_DUPLICATE_INT_ENUM_SECOND) {
-        INTEROP_FATAL(
-            "Enum param value2 %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_SECOND: %d",
-            value1, OH_UNIT_DUPLICATE_INT_ENUM_SECOND);
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_SECOND: %d", value1,
+            OH_UNIT_DUPLICATE_INT_ENUM_SECOND);
     }
     if (value2 != OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_SECOND) {
-        INTEROP_FATAL(
-            "Enum param value2 %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_SECOND: %d",
-            value1, OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_SECOND);
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_SECOND: %d", value1,
+            OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_SECOND);
     }
     if (OH_UNIT_DUPLICATE_INT_ENUM_THIRD != OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_THIRD) {
         INTEROP_FATAL(
@@ -534,12 +471,10 @@ OH_UNIT_StringEnum GlobalScope_checkStringEnumOrdinalImpl(OH_UNIT_StringEnum val
 OH_UNIT_StringEnum GlobalScope_checkStringEnumsImpl(OH_UNIT_StringEnum value1, OH_UNIT_StringEnum value2)
 {
     if (value1 != OH_UNIT_STRING_ENUM_E1) {
-        INTEROP_FATAL(
-            "Enum param value1 %d does not equal OH_UNIT_STRING_ENUM_E1: %d", value1, OH_UNIT_STRING_ENUM_E1);
+        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_STRING_ENUM_E1: %d", value1, OH_UNIT_STRING_ENUM_E1);
     }
     if (value2 != OH_UNIT_STRING_ENUM_E2) {
-        INTEROP_FATAL(
-            "Enum param value2 %d does not equal OH_UNIT_STRING_ENUM_E2: %d", value2, OH_UNIT_STRING_ENUM_E2);
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_STRING_ENUM_E2: %d", value2, OH_UNIT_STRING_ENUM_E2);
     }
     return OH_UNIT_STRING_ENUM_E3;
 }
@@ -549,8 +484,7 @@ class IDLCheckConstructorPeer {
 public:
     OH_Number count;
     OH_Boolean flag;
-    IDLCheckConstructorPeer(const OH_Number c, const OH_Boolean f)
-        : count(c), flag(f) {}
+    IDLCheckConstructorPeer(const OH_Number c, const OH_Boolean f) : count(c), flag(f) {}
 };
 
 OH_UNIT_IDLCheckConstructorHandle IDLCheckConstructor_construct0Impl(const OH_Number* count)
@@ -567,9 +501,7 @@ OH_UNIT_IDLCheckConstructorHandle IDLCheckConstructor_construct2Impl(const OH_Nu
     return (OH_UNIT_IDLCheckConstructorHandle) new IDLCheckConstructorPeer(*count, flag);
 }
 
-void IDLCheckConstructor_destructImpl(OH_UNIT_IDLCheckConstructorHandle thisPtr)
-{
-}
+void IDLCheckConstructor_destructImpl(OH_UNIT_IDLCheckConstructorHandle thisPtr) {}
 OH_Boolean IDLCheckConstructor_getFlagImpl(OH_NativePointer thisPtr)
 {
     return reinterpret_cast<const IDLCheckConstructorPeer*>(thisPtr)->flag;
@@ -578,33 +510,32 @@ OH_Number IDLCheckConstructor_getCountImpl(OH_NativePointer thisPtr)
 {
     return reinterpret_cast<const IDLCheckConstructorPeer*>(thisPtr)->count;
 }
-void IDLCheckConstructor_setCountImpl(OH_NativePointer thisPtr, const OH_Number* value)
-{
-}
-void IDLCheckConstructor_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value)
-{
-}
+void IDLCheckConstructor_setCountImpl(OH_NativePointer thisPtr, const OH_Number* value) {}
+void IDLCheckConstructor_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value) {}
 
 // Data object tests
 
-template <typename EntityName>
-EntityName DataObjectTest(const EntityName* arg) {
+template<typename EntityName>
+EntityName DataObjectTest(const EntityName* arg)
+{
     EntityName result;
     result.propBoolean = !arg->propBoolean;
     result.propNumber = arg->propNumber;
-    if (arg->propNumber.tag == InteropTag::INTEROP_TAG_INT32)
+    if (arg->propNumber.tag == InteropTag::INTEROP_TAG_INT32) {
         result.propNumber.i32 += 1;
-    else
+    } else {
         result.propNumber.f32 += 1;
+    }
     result.propString = CopyString(arg->propString);
     result.propString.chars++;
     result.propString.length--;
     result.propObject = arg->propObject;
     result.propObject.value0 = !arg->propObject.value0;
-    if (arg->propObject.value1.tag == InteropTag::INTEROP_TAG_INT32)
+    if (arg->propObject.value1.tag == InteropTag::INTEROP_TAG_INT32) {
         result.propObject.value1.i32 = -arg->propObject.value1.i32;
-    else
+    } else {
         result.propObject.value1.f32 = -arg->propObject.value1.f32;
+    }
     result.propObject.value2.chars = arg->propObject.value2.chars + 6;
     result.propObject.value2.length = arg->propObject.value2.length - 6;
     return result;
@@ -615,20 +546,16 @@ public:
     OH_Boolean propBoolean = 0;
     OH_Number propNumber = { .tag = INTEROP_TAG_INT32, .i32 = 0 };
     OH_String propString = { .chars = "", .length = 0 };
-    OH_UNIT_Tuple_Boolean_Number_String propObject = {
-        .value0 = 0,
+    OH_UNIT_Tuple_Boolean_Number_String propObject = { .value0 = 0,
         .value1 = { .tag = INTEROP_TAG_INT32, .i32 = 0 },
-        .value2 = { .chars = "", .length = 0 }
-    };
+        .value2 = { .chars = "", .length = 0 } };
 };
 
 OH_UNIT_MaterializedDataClassHandle MaterializedDataClass_constructImpl()
 {
     return reinterpret_cast<OH_UNIT_MaterializedDataClassHandle>(new DataClassPeer());
 }
-void MaterializedDataClass_destructImpl(OH_UNIT_MaterializedDataClassHandle thisPtr)
-{
-}
+void MaterializedDataClass_destructImpl(OH_UNIT_MaterializedDataClassHandle thisPtr) {}
 // Needs: Provide DataClass type instead of OH_NativePointer
 OH_Boolean MaterializedDataClass_getPropBooleanImpl(OH_NativePointer thisPtr)
 {
@@ -654,8 +581,7 @@ void MaterializedDataClass_setPropNumberImpl(OH_NativePointer thisPtr, const OH_
 {
     reinterpret_cast<DataClassPeer*>(thisPtr)->propNumber = *value;
 }
-void MaterializedDataClass_setPropObjectImpl(
-    OH_NativePointer thisPtr, const OH_UNIT_Tuple_Boolean_Number_String* value)
+void MaterializedDataClass_setPropObjectImpl(OH_NativePointer thisPtr, const OH_UNIT_Tuple_Boolean_Number_String* value)
 {
     reinterpret_cast<DataClassPeer*>(thisPtr)->propObject = *value;
 }
@@ -664,32 +590,37 @@ void MaterializedDataClass_setPropStringImpl(OH_NativePointer thisPtr, const OH_
     reinterpret_cast<DataClassPeer*>(thisPtr)->propString = CopyString(*value);
 }
 
-OH_UNIT_DataInterface GlobalScope_testDataInterfaceImpl(const OH_UNIT_DataInterface* arg) {
+OH_UNIT_DataInterface GlobalScope_testDataInterfaceImpl(const OH_UNIT_DataInterface* arg)
+{
     return DataObjectTest<OH_UNIT_DataInterface>(arg);
 }
-OH_UNIT_DataClass GlobalScope_testDataClassImpl(const OH_UNIT_DataClass* arg) {
+OH_UNIT_DataClass GlobalScope_testDataClassImpl(const OH_UNIT_DataClass* arg)
+{
     return DataObjectTest<OH_UNIT_DataClass>(arg);
 }
 
-OH_UNIT_MaterializedDataClass GlobalScope_testMaterializedDataClassImpl(OH_UNIT_MaterializedDataClass value) {
+OH_UNIT_MaterializedDataClass GlobalScope_testMaterializedDataClassImpl(OH_UNIT_MaterializedDataClass value)
+{
     // Improve: Unify with DataObjectTest
     DataClassPeer* arg = reinterpret_cast<DataClassPeer*>(value);
     DataClassPeer* result = new DataClassPeer();
     result->propBoolean = !arg->propBoolean;
     result->propNumber = arg->propNumber;
-    if (arg->propNumber.tag == InteropTag::INTEROP_TAG_INT32)
+    if (arg->propNumber.tag == InteropTag::INTEROP_TAG_INT32) {
         result->propNumber.i32 += 1;
-    else
+    } else {
         result->propNumber.f32 += 1;
+    }
     result->propString = CopyString(arg->propString);
     result->propString.chars++;
     result->propString.length--;
     result->propObject = arg->propObject;
     result->propObject.value0 = !arg->propObject.value0;
-    if (arg->propObject.value1.tag == InteropTag::INTEROP_TAG_INT32)
+    if (arg->propObject.value1.tag == InteropTag::INTEROP_TAG_INT32) {
         result->propObject.value1.i32 = -arg->propObject.value1.i32;
-    else
+    } else {
         result->propObject.value1.f32 = -arg->propObject.value1.f32;
+    }
     result->propObject.value2.chars = arg->propObject.value2.chars + 6;
     result->propObject.value2.length = arg->propObject.value2.length - 6;
     return reinterpret_cast<OH_UNIT_MaterializedDataClass>(result);
@@ -703,8 +634,7 @@ OH_UNIT_test_materialized_classes_StaticMaterializedHandle test_materialized_cla
 }
 void test_materialized_classes_StaticMaterialized_destructImpl(
     OH_UNIT_test_materialized_classes_StaticMaterializedHandle thisPtr)
-{
-}
+{}
 
 void test_materialized_classes_StaticMaterialized_methodImpl(const OH_Number* valNumber, const OH_String* valString)
 {
@@ -719,7 +649,7 @@ struct UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer {
     };
 };
 OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle
-    test_materialized_classes_MaterializedOverloadedMethods_constructImpl()
+test_materialized_classes_MaterializedOverloadedMethods_constructImpl()
 {
     return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle>(
         new UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer({}));
@@ -737,12 +667,12 @@ void test_materialized_classes_MaterializedOverloadedMethods_method1Impl(
         if (valBoolean->tag == INTEROP_TAG_UNDEFINED) {
             reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1();
         } else {
-            reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)
-                ->method1(valBoolean->value);
+            reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(
+                valBoolean->value);
         }
     } else {
-        reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)
-            ->method1(valBoolean->value, valString->value);
+        reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(
+            valBoolean->value, valString->value);
     }
 }
 void test_materialized_classes_MaterializedOverloadedMethods_method12Impl(OH_NativePointer thisPtr)
@@ -752,10 +682,9 @@ void test_materialized_classes_MaterializedOverloadedMethods_method12Impl(OH_Nat
 
 //"Materialized" class implementation with MORE overloaded methods
 
-struct OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer :
-    UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer {
-    void method2(
-        OH_Number valNumber = { .tag = INTEROP_TAG_INT32, .i32 = 132 },
+struct OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer
+    : UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer {
+    void method2(OH_Number valNumber = { .tag = INTEROP_TAG_INT32, .i32 = 132 },
         OH_String valString = { .chars = "hi", .length = 2 })
     {
         printf("method2. Got number - %d, string - %s.\n", valNumber.i32, valString.chars);
@@ -763,7 +692,7 @@ struct OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer :
 };
 
 OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsHandle
-    test_materialized_classes_MaterializedMoreOverloadedMethods_constructImpl()
+test_materialized_classes_MaterializedMoreOverloadedMethods_constructImpl()
 {
     return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsHandle>(
         new OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer({}));
@@ -780,32 +709,32 @@ void test_materialized_classes_MaterializedMoreOverloadedMethods_method20Impl(OH
 void test_materialized_classes_MaterializedMoreOverloadedMethods_method21Impl(
     OH_NativePointer thisPtr, const OH_Number* valNumber)
 {
-    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)
-        ->method2(*valNumber);
+    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)->method2(
+        *valNumber);
 }
 void test_materialized_classes_MaterializedMoreOverloadedMethods_method22Impl(
     OH_NativePointer thisPtr, const OH_Number* valNumber, const OH_String* valString)
 {
-    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)
-        ->method2(*valNumber, *valString);
+    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)->method2(
+        *valNumber, *valString);
 }
 
 // "MaterializedWithConstructorAndFields"
-struct OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer :
-    OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer {
+struct OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer
+    : OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer {
     OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(OH_Number num, OH_Boolean bol)
-        : valNumber(num), valBoolean(bol) {}
+        : valNumber(num), valBoolean(bol)
+    {}
     OH_Number valNumber;
     OH_Boolean valBoolean;
 };
 
 OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsHandle
-    test_materialized_classes_MaterializedWithConstructorAndFields_constructImpl(
+test_materialized_classes_MaterializedWithConstructorAndFields_constructImpl(
     const OH_Number* initValNumber, OH_Boolean initValBoolean)
 {
     return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsHandle>(
-        new OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(
-            *initValNumber, initValBoolean));
+        new OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(*initValNumber, initValBoolean));
 }
 void test_materialized_classes_MaterializedWithConstructorAndFields_destructImpl(
     OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsHandle thisPtr)
@@ -831,8 +760,8 @@ OH_Boolean test_materialized_classes_MaterializedWithConstructorAndFields_getVal
 void test_materialized_classes_MaterializedWithConstructorAndFields_setValBooleanImpl(
     OH_NativePointer thisPtr, OH_Boolean value)
 {
-    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer*>(thisPtr)
-        ->valBoolean = value;
+    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer*>(thisPtr)->valBoolean =
+        value;
 }
 
 // "MaterializedWithCreateMethod"
@@ -843,23 +772,24 @@ OH_UNIT_test_materialized_classes_MaterializedWithCreateMethodHandle
         new OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(
             { .tag = INTEROP_TAG_INT32, .i32 = 123456789 }, true));
 }
-void test_materialized_classes_MaterializedWithCreateMethod_destructImpl(OH_UNIT_test_materialized_classes_MaterializedWithCreateMethodHandle thisPtr)
+void test_materialized_classes_MaterializedWithCreateMethod_destructImpl(
+    OH_UNIT_test_materialized_classes_MaterializedWithCreateMethodHandle thisPtr)
 {
     delete reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithCreateMethodHandle*>(thisPtr);
 }
 OH_UNIT_test_materialized_classes_MaterializedWithCreateMethod
-    test_materialized_classes_MaterializedWithCreateMethod_createImpl(
-    const OH_Number* valNumber, OH_Boolean valBoolean)
+test_materialized_classes_MaterializedWithCreateMethod_createImpl(const OH_Number* valNumber, OH_Boolean valBoolean)
 {
     return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithCreateMethod>(
         test_materialized_classes_MaterializedWithCreateMethod_constructImpl());
 }
 
 // "MaterializedComplexArguments"
-struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer :
-    OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer {
+struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer
+    : OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer {
     OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer(OH_Number valNumber, OH_Boolean valBoolean)
-        : OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(valNumber, valBoolean) {}
+        : OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(valNumber, valBoolean)
+    {}
     ~OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer()
     {
         for (auto data : toClean) {
@@ -918,8 +848,8 @@ struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer :
 
     Array_UtilityInterface method5(Array_UtilityInterface arrayUtils)
     {
-        OH_UNIT_UtilityInterface* modifiedUtils = reinterpret_cast<OH_UNIT_UtilityInterface*>(
-            calloc(arrayUtils.length, sizeof(OH_UNIT_UtilityInterface)));
+        OH_UNIT_UtilityInterface* modifiedUtils =
+            reinterpret_cast<OH_UNIT_UtilityInterface*>(calloc(arrayUtils.length, sizeof(OH_UNIT_UtilityInterface)));
         toClean.push_back(modifiedUtils);
         for (int32_t i = 0; i < arrayUtils.length; i++) {
             modifiedUtils[i] = method3(arrayUtils.array[i]);
@@ -929,8 +859,8 @@ struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer :
     };
 };
 
-OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsHandle
-    test_materialized_classes_MaterializedComplexArguments_constructImpl(/** todo: where is constructor params? */)
+OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsHandle test_materialized_classes_MaterializedComplexArguments_constructImpl(
+    /** todo: where is constructor params? */)
 {
     return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsHandle>(
         new OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer(
@@ -944,20 +874,20 @@ void test_materialized_classes_MaterializedComplexArguments_destructImpl(
 OH_UNIT_UtilityInterface test_materialized_classes_MaterializedComplexArguments_method3Impl(
     OH_NativePointer thisPtr, const OH_UNIT_UtilityInterface* interface_)
 {
-    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)
-        ->method3(*interface_);
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method3(
+        *interface_);
 }
 Array_String test_materialized_classes_MaterializedComplexArguments_method4Impl(
     OH_NativePointer thisPtr, const Array_Number* array)
 {
-    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)
-        ->method4(*array);
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method4(
+        *array);
 }
 Array_UtilityInterface test_materialized_classes_MaterializedComplexArguments_method5Impl(
     OH_NativePointer thisPtr, const Array_UtilityInterface* arrayInterfaces)
 {
-    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)
-        ->method5(*arrayInterfaces);
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method5(
+        *arrayInterfaces);
 }
 void GlobalScope_test_any_testImpl(const OH_UNIT_test_any_WithAny* x, const UNIT_Callback_Any_Void* f)
 {
@@ -968,43 +898,44 @@ OH_UInt64 GlobalScope_test_bigint_testImpl(OH_Int64 num)
 {
     int64_t expected = 123;
     int64_t shiftAmount = 54;
-    if (num != expected)
+    if (num != expected) {
         INTEROP_FATAL("Input bigint: %d does not equal to: %d\n", num, expected);
+    }
     return 1LL << shiftAmount;
 }
 OH_UInt64 GlobalScope_test_bigint_test_negativeImpl(OH_Int64 num)
 {
     int64_t expected = -123;
     int64_t shiftAmount = 54;
-    if (num != expected)
+    if (num != expected) {
         INTEROP_FATAL("Input bigint: %d does not equal to: %d\n", num, expected);
+    }
     return -(1LL << shiftAmount);
 }
-OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_paramsImpl(
-    const OH_UNIT_test_bigint_BigIntParams* params)
+OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_paramsImpl(const OH_UNIT_test_bigint_BigIntParams* params)
 {
     int64_t expected = 456;
     int64_t shiftAmount = 52;
-    if (params->prime != expected)
+    if (params->prime != expected) {
         INTEROP_FATAL("Input bigint param,: %ld does not equal to: %d\n", params->prime, expected);
+    }
     return { .prime = 1LL << shiftAmount };
 }
 OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_params_negativeImpl(
     const OH_UNIT_test_bigint_BigIntParams* params)
 {
     int64_t expected = -789;
-    if (params->prime != expected)
+    if (params->prime != expected) {
         INTEROP_FATAL("Input bigint param,: %ld does not equal to: %d\n", params->prime, expected);
-    return { .prime = -(1LL << SOME_NUMBER) };
+    }
+    return { .prime = -(1LL << g_someNumber) };
 }
 
 OH_UNIT_test_enums_TestHandle test_enums_Test_constructImpl()
 {
-    return (OH_UNIT_test_enums_TestHandle)SOME_POINTER;
+    return (OH_UNIT_test_enums_TestHandle)g_somePointer;
 }
-void test_enums_Test_destructImpl(OH_UNIT_test_enums_TestHandle thisPtr)
-{
-}
+void test_enums_Test_destructImpl(OH_UNIT_test_enums_TestHandle thisPtr) {}
 OH_Number test_enums_Test_getAImpl(OH_NativePointer thisPtr)
 {
     return {};
@@ -1017,58 +948,44 @@ OH_Number GlobalScope_test_enums_MyFunc2Impl(OH_UNIT_test_enums_MyEnum a)
 {
     return {};
 }
-void test_enums_Test_setAImpl(OH_NativePointer thisPtr, const OH_Number* value)
-{
-}
+void test_enums_Test_setAImpl(OH_NativePointer thisPtr, const OH_Number* value) {}
 void GlobalScope_hilog_debugImpl(
     const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args)
-{
-}
+{}
 void GlobalScope_hilog_infoImpl(
     const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args)
-{
-}
+{}
 void GlobalScope_hilog_warnImpl(
     const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args)
-{
-}
+{}
 void GlobalScope_hilog_errorImpl(
     const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args)
-{
-}
+{}
 void GlobalScope_hilog_fatalImpl(
     const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args)
-{
-}
-OH_Boolean GlobalScope_hilog_isLoggableImpl(
-    const OH_Number* domain, const OH_String* tag, OH_UNIT_hilog_LogLevel level)
+{}
+OH_Boolean GlobalScope_hilog_isLoggableImpl(const OH_Number* domain, const OH_String* tag, OH_UNIT_hilog_LogLevel level)
 {
     return {};
 }
-void GlobalScope_hilog_setMinLogLevelImpl(OH_UNIT_hilog_LogLevel level)
-{
-}
+void GlobalScope_hilog_setMinLogLevelImpl(OH_UNIT_hilog_LogLevel level) {}
 OH_UNIT_ExampleHandle Example_constructImpl()
 {
-    return (OH_UNIT_ExampleHandle)SOME_POINTER;
+    return (OH_UNIT_ExampleHandle)g_somePointer;
 }
-void Example_destructImpl(OH_UNIT_ExampleHandle thisPtr)
-{
-}
+void Example_destructImpl(OH_UNIT_ExampleHandle thisPtr) {}
 OH_UNIT_Example Example_createExampleImpl()
 {
-    return (OH_UNIT_Example)SOME_POINTER;
+    return (OH_UNIT_Example)g_somePointer;
 }
 
 // return entities tests
 
 OH_UNIT_test_ret_BHandle test_ret_B_constructImpl()
 {
-    return (OH_UNIT_test_ret_BHandle)SOME_POINTER;
+    return (OH_UNIT_test_ret_BHandle)g_somePointer;
 }
-void test_ret_B_destructImpl(OH_UNIT_test_ret_BHandle thisPtr)
-{
-}
+void test_ret_B_destructImpl(OH_UNIT_test_ret_BHandle thisPtr) {}
 OH_Number test_ret_B_actionImpl(OH_NativePointer thisPtr)
 {
     OH_Number n;
@@ -1077,13 +994,11 @@ OH_Number test_ret_B_actionImpl(OH_NativePointer thisPtr)
     return n;
 }
 
-void GlobalScope_test_return_types_returnNothingImpl()
-{
-}
+void GlobalScope_test_return_types_returnNothingImpl() {}
 OH_Number GlobalScope_test_return_types_returnNumberImpl()
 {
     OH_Number n;
-    n.i32 = SOME_NUMBER;
+    n.i32 = g_someNumber;
     n.tag = INTEROP_TAG_INT32;
     return n;
 }
@@ -1111,13 +1026,13 @@ OH_String GlobalScope_test_return_types_returnStringImpl()
 OH_UNIT_test_ret_A GlobalScope_test_return_types_returnInterfaceImpl()
 {
     OH_UNIT_test_ret_A entity;
-    entity.field.i32 = SOME_NUMBER;
+    entity.field.i32 = g_someNumber;
     entity.field.tag = INTEROP_TAG_INT32;
     return entity;
 }
 OH_UNIT_test_ret_B GlobalScope_test_return_types_returnMaterializedImpl()
 {
-    return (OH_UNIT_test_ret_B)SOME_POINTER;
+    return (OH_UNIT_test_ret_B)g_somePointer;
 }
 Array_Number GlobalScope_test_return_types_returnNumberArrayImpl()
 {
@@ -1174,11 +1089,9 @@ Array_test_ret_B GlobalScope_test_return_types_returnMaterializedArrayImpl()
 
 // throw exception
 
-class OH_UNIT_CheckExceptionInterfacePeer {
-};
+class OH_UNIT_CheckExceptionInterfacePeer {};
 
-class OH_UNIT_CheckExceptionClassPeer {
-};
+class OH_UNIT_CheckExceptionClassPeer {};
 
 class BaseGesture {
 public:
@@ -1226,28 +1139,23 @@ class CheckCallbackExceptionsPeer {
 public:
     static OH_UNIT_CallbackResource resource;
 };
-OH_UNIT_CallbackResource CheckCallbackExceptionsPeer::resource = {
-    .resourceId = 0,
+OH_UNIT_CallbackResource CheckCallbackExceptionsPeer::resource = { .resourceId = 0,
     .hold = [](const OH_Int32 resourceId) -> void {},
-    .release = [](const OH_Int32 resourceId) -> void {}
-};
-void CheckCallbackExceptions_callHolderImpl(OH_NativePointer thisPtr)
-{
-}
+    .release = [](const OH_Int32 resourceId) -> void {} };
+void CheckCallbackExceptions_callHolderImpl(OH_NativePointer thisPtr) {}
 Throws_void CheckCallbackExceptions_checkRethrowImpl(
     OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackVoid* value)
 {
     static Throws_void result;
-    result = {
-        .hasException = false
-    };
-    value->callSync(vmContext, value->resource.resourceId, {
-        .resource = CheckCallbackExceptionsPeer::resource,
-        .call = [](const OH_Int32 resourceId, const Throws_void value) -> void {},
-        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_void value) -> void {
-            result = value;
-        },
-    });
+    result = { .hasException = false };
+    value->callSync(vmContext, value->resource.resourceId,
+        {
+            .resource = CheckCallbackExceptionsPeer::resource,
+            .call = [](const OH_Int32 resourceId, const Throws_void value) -> void {},
+            .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_void value) -> void {
+                result = value;
+            },
+        });
     return result;
 }
 OH_Boolean CheckCallbackExceptions_checkThrowableCallbackI32_withParameterImpl(
@@ -1255,13 +1163,14 @@ OH_Boolean CheckCallbackExceptions_checkThrowableCallbackI32_withParameterImpl(
 {
     static bool gotException = false;
     gotException = false;
-    value->callSync(vmContext, value->resource.resourceId, 1, {
-        .resource = CheckCallbackExceptionsPeer::resource,
-        .call = [](const OH_Int32 resourceId, const Throws_Int32 value) -> void {},
-        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_Int32 value) -> void {
-            gotException = value.hasException;
-        },
-    });
+    value->callSync(vmContext, value->resource.resourceId, 1,
+        {
+            .resource = CheckCallbackExceptionsPeer::resource,
+            .call = [](const OH_Int32 resourceId, const Throws_Int32 value) -> void {},
+            .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_Int32 value) -> void {
+                gotException = value.hasException;
+            },
+        });
     return gotException;
 }
 OH_Boolean CheckCallbackExceptions_checkThrowableCallbackI32Impl(
@@ -1269,13 +1178,14 @@ OH_Boolean CheckCallbackExceptions_checkThrowableCallbackI32Impl(
 {
     static bool gotException = false;
     gotException = false;
-    value->callSync(vmContext, value->resource.resourceId, {
-        .resource = CheckCallbackExceptionsPeer::resource,
-        .call = [](const OH_Int32 resourceId, const Throws_Int32 value) -> void {},
-        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_Int32 value) -> void {
-            gotException = value.hasException;
-        },
-    });
+    value->callSync(vmContext, value->resource.resourceId,
+        {
+            .resource = CheckCallbackExceptionsPeer::resource,
+            .call = [](const OH_Int32 resourceId, const Throws_Int32 value) -> void {},
+            .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_Int32 value) -> void {
+                gotException = value.hasException;
+            },
+        });
     return gotException;
 }
 OH_Boolean CheckCallbackExceptions_checkThrowableCallbackVoidImpl(
@@ -1283,47 +1193,41 @@ OH_Boolean CheckCallbackExceptions_checkThrowableCallbackVoidImpl(
 {
     static bool gotException = false;
     gotException = false;
-    value->callSync(vmContext, value->resource.resourceId, {
-        .resource = CheckCallbackExceptionsPeer::resource,
-        .call = [](const OH_Int32 resourceId, const Throws_void value) -> void {},
-        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_void value) -> void {
-            gotException = value.hasException;
-        },
-    });
+    value->callSync(vmContext, value->resource.resourceId,
+        {
+            .resource = CheckCallbackExceptionsPeer::resource,
+            .call = [](const OH_Int32 resourceId, const Throws_void value) -> void {},
+            .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_void value) -> void {
+                gotException = value.hasException;
+            },
+        });
     return gotException;
 }
 UNIT_ThrowableCallbackVoid CheckCallbackExceptions_checkThrowFromNativeImpl(OH_NativePointer thisPtr)
 {
-    return {
-        .resource = CheckCallbackExceptionsPeer::resource,
+    return { .resource = CheckCallbackExceptionsPeer::resource,
         .call = [](const OH_Int32 resourceId, const UNIT_Callback_Throws_Void_Void continuation) {},
-        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId,
-            const UNIT_Callback_Throws_Void_Void continuation) {
-            auto message =
-                "Exception thrown from callback created in native CheckCallbackExceptions_checkThrowFromNative";
-            continuation.callSync(vmContext, continuation.resource.resourceId, {
-                .hasException=true,
-                .exception={
-                    .kind=EXCEPTION_INTERFACE,
-                    .interface={
-                        .code=1,
-                        .message={
-                            .chars=message,
-                            .length=static_cast<int>(strlen(message)),
-                        }
-                    }
-                }
-            }); }
-    };
+        .callSync =
+            [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId,
+                const UNIT_Callback_Throws_Void_Void continuation) {
+                auto message =
+                    "Exception thrown from callback created in native CheckCallbackExceptions_checkThrowFromNative";
+                continuation.callSync(vmContext, continuation.resource.resourceId,
+                    { .hasException = true,
+                        .exception = { .kind = EXCEPTION_INTERFACE,
+                            .interface = { .code = 1,
+                                .message = {
+                                    .chars = message,
+                                    .length = static_cast<int>(strlen(message)),
+                                } } } });
+            } };
 }
 OH_UNIT_CheckCallbackExceptionsHandle CheckCallbackExceptions_constructImpl()
 {
     const CheckCallbackExceptionsPeer* peer = new CheckCallbackExceptionsPeer();
     return (OH_UNIT_CheckCallbackExceptionsHandle)peer;
 }
-void CheckCallbackExceptions_destructImpl(OH_UNIT_CheckCallbackExceptionsHandle thisPtr)
-{
-}
+void CheckCallbackExceptions_destructImpl(OH_UNIT_CheckCallbackExceptionsHandle thisPtr) {}
 OH_Boolean CheckCallbackExceptions_ThrowableCallbackSequenceImpl(
     OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackSequence* value)
 {
@@ -1334,17 +1238,13 @@ OH_UNIT_DerivedGesture1Handle DerivedGesture1_constructImpl()
 {
     return {};
 }
-void DerivedGesture1_destructImpl(OH_UNIT_DerivedGesture1Handle thisPtr)
-{
-}
+void DerivedGesture1_destructImpl(OH_UNIT_DerivedGesture1Handle thisPtr) {}
 
 OH_UNIT_DerivedGesture2Handle DerivedGesture2_constructImpl()
 {
     return {};
 }
-void DerivedGesture2_destructImpl(OH_UNIT_DerivedGesture2Handle thisPtr)
-{
-}
+void DerivedGesture2_destructImpl(OH_UNIT_DerivedGesture2Handle thisPtr) {}
 
 void BaseGesture_callHolderImpl(OH_NativePointer thisPtr) {}
 void DerivedGesture1_callHolderImpl(OH_NativePointer thisPtr) {}
@@ -1467,9 +1367,7 @@ OH_UNIT_CheckExceptionInterfaceHandle CheckExceptionInterface_constructImpl()
     printf("CheckExceptionInterface construct peer: %p\n", peer);
     return (OH_UNIT_CheckExceptionInterfaceHandle)peer;
 }
-void CheckExceptionInterface_destructImpl(OH_UNIT_CheckExceptionInterfaceHandle thisPtr)
-{
-}
+void CheckExceptionInterface_destructImpl(OH_UNIT_CheckExceptionInterfaceHandle thisPtr) {}
 Throws_Array_I32 CheckExceptionClass_getArrayImpl(OH_NativePointer thisPtr)
 {
     return {};
@@ -1477,17 +1375,13 @@ Throws_Array_I32 CheckExceptionClass_getArrayImpl(OH_NativePointer thisPtr)
 Throws_void CheckExceptionInterface_checkExceptionImpl(OH_NativePointer thisPtr)
 {
     const char* message = "Exception from CheckExceptionInterface";
-    return {
-        .hasException = true,
-        .exception = {
-            .kind = EXCEPTION_INTERFACE,
-            .interface = {
-                .code = 1,
+    return { .hasException = true,
+        .exception = { .kind = EXCEPTION_INTERFACE,
+            .interface = { .code = 1,
                 .message = {
                     .chars = message,
                     .length = static_cast<InteropInt32>(strlen(message)),
-                } } }
-    };
+                } } } };
 }
 
 OH_UNIT_CheckExceptionClassHandle CheckExceptionClass_constructImpl()
@@ -1496,23 +1390,17 @@ OH_UNIT_CheckExceptionClassHandle CheckExceptionClass_constructImpl()
     printf("CheckExceptionClass construct peer: %p\n", peer);
     return (OH_UNIT_CheckExceptionClassHandle)peer;
 }
-void CheckExceptionClass_destructImpl(OH_UNIT_CheckExceptionClassHandle thisPtr)
-{
-}
+void CheckExceptionClass_destructImpl(OH_UNIT_CheckExceptionClassHandle thisPtr) {}
 Throws_void CheckExceptionClass_checkExceptionImpl(OH_NativePointer thisPtr)
 {
     const char* message = "Exception from CheckExceptionClass";
-    return {
-        .hasException = true,
-        .exception = {
-            .kind = EXCEPTION_INTERFACE,
-            .interface = {
-                .code = 1,
+    return { .hasException = true,
+        .exception = { .kind = EXCEPTION_INTERFACE,
+            .interface = { .code = 1,
                 .message = {
                     .chars = message,
                     .length = static_cast<InteropInt32>(strlen(message)),
-                } } }
-    };
+                } } } };
 }
 
 Throws_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_NativePointer thisPtr)
@@ -1524,8 +1412,8 @@ Throws_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_NativePoi
     };
 }
 
-void CheckExceptionClass_getPromiseInterfaceImpl(
-    OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr,
+void CheckExceptionClass_getPromiseInterfaceImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker,
+    OH_NativePointer thisPtr,
     const UNIT_Callback_Opt_CheckExceptionInterface_Opt_Array_String_Void* outputArgumentForReturningPromise)
 {
     auto const resource = outputArgumentForReturningPromise->resource;
@@ -1535,41 +1423,30 @@ void CheckExceptionClass_getPromiseInterfaceImpl(
     errors[0].chars = "1";
     errors[1].length = strlen(message);
     errors[1].chars = message;
-    outputArgumentForReturningPromise->callSync(
-        vmContext,
-        resource.resourceId, {
-            .tag = INTEROP_TAG_UNDEFINED
-        }, {
-            .tag = INTEROP_TAG_OBJECT,
+    outputArgumentForReturningPromise->callSync(vmContext, resource.resourceId, { .tag = INTEROP_TAG_UNDEFINED },
+        { .tag = INTEROP_TAG_OBJECT,
             .value = {
                 .array = errors,
                 .length = 2,
-            }
-        });
+            } });
 }
 Throws_void CheckExceptionClass_getThisImpl(OH_NativePointer thisPtr)
 {
     const char* message = "(Test passed) Promise for @throw annotated method with `this` return type was rejected";
-    return {
-        .hasException = true,
-        .exception = {
-            .kind = EXCEPTION_INTERFACE,
-            .interface = {
-                .code = 1,
+    return { .hasException = true,
+        .exception = { .kind = EXCEPTION_INTERFACE,
+            .interface = { .code = 1,
                 .message = {
                     .chars = message,
                     .length = static_cast<InteropInt32>(strlen(message)),
-                } } }
-    };
+                } } } };
 }
 
 OH_UNIT_generics_XHandle generics_X_constructImpl()
 {
-    return (OH_UNIT_generics_XHandle)SOME_POINTER;
+    return (OH_UNIT_generics_XHandle)g_somePointer;
 }
-void generics_X_destructImpl(OH_UNIT_generics_XHandle thisPtr)
-{
-}
+void generics_X_destructImpl(OH_UNIT_generics_XHandle thisPtr) {}
 OH_CustomObject generics_X_fooImpl(OH_NativePointer thisPtr, const OH_CustomObject* x, const OH_CustomObject* y)
 {
     return {};
@@ -1580,11 +1457,9 @@ OH_CustomObject generics_Y_barImpl(OH_NativePointer thisPtr, const OH_CustomObje
 }
 OH_UNIT_generics_YHandle generics_Y_constructImpl()
 {
-    return (OH_UNIT_generics_YHandle)SOME_POINTER;
+    return (OH_UNIT_generics_YHandle)g_somePointer;
 }
-void generics_Y_destructImpl(OH_UNIT_generics_YHandle thisPtr)
-{
-}
+void generics_Y_destructImpl(OH_UNIT_generics_YHandle thisPtr) {}
 
 // Check Length
 OH_Boolean GlobalScope_testLengthImpl(const OH_Number* step, const OH_UNIT_Length* value)
@@ -1637,8 +1512,7 @@ OH_Boolean GlobalScope_testLengthImpl(const OH_Number* step, const OH_UNIT_Lengt
 
 // Hooks
 // Needs: Do not generate native methods for hooks with the replaceImplementation set to true
-class HookInterfacePeer {
-};
+class HookInterfacePeer {};
 
 OH_UNIT_HookInterface GlobalScope_getHookInterfaceImpl()
 {
@@ -1649,18 +1523,10 @@ OH_UNIT_HookInterfaceHandle HookInterface_constructImpl()
 {
     return {};
 }
-void HookInterface_destructImpl(OH_UNIT_HookInterfaceHandle thisPtr)
-{
-}
-void HookInterface_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value)
-{
-}
-void HookInterface_methodImpl(OH_NativePointer thisPtr)
-{
-}
-void HookInterface_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue)
-{
-}
+void HookInterface_destructImpl(OH_UNIT_HookInterfaceHandle thisPtr) {}
+void HookInterface_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value) {}
+void HookInterface_methodImpl(OH_NativePointer thisPtr) {}
+void HookInterface_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {}
 OH_UNIT_ImportedHookValue HookInterface_methodImportedReturnImpl(OH_NativePointer thisPtr)
 {
     return {};
@@ -1670,47 +1536,36 @@ OH_UNIT_HookValue HookInterface_methodReturnImpl(OH_NativePointer thisPtr)
     return {};
 }
 
-class HookClassPeer {
-};
+class HookClassPeer {};
 OH_UNIT_HookClassHandle HookClass_constructImpl()
 {
     return (OH_UNIT_HookClassHandle) new HookClassPeer();
 }
-void HookClass_destructImpl(OH_UNIT_HookClassHandle thisPtr)
-{
-}
+void HookClass_destructImpl(OH_UNIT_HookClassHandle thisPtr) {}
 void HookClass_methodImpl(OH_NativePointer thisPtr)
 {
     printf("[native] [0] call HookClass_methodImpl\n");
 }
 // Needs: remove implementation for the hooked method
-void HookClass_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value)
-{
-}
+void HookClass_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value) {}
 OH_UNIT_HookValue HookClass_methodReturnImpl(OH_NativePointer thisPtr)
 {
     return {};
 }
-void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue)
-{
-}
+void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {}
 
 // Needs: update
-void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue)
-{
-}
+void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue) {}
 OH_UNIT_ImportedHookValue HookClass_methodImportedReturnImpl(OH_NativePointer thisPtr)
 {
     return {};
 }
 
 // Internal library
-class DTSCheckInternalLibPeer {
-};
+class DTSCheckInternalLibPeer {};
 
 OH_Number DTSCheckInternalLib_checkInternalDataInterfaceImpl(
-    OH_NativePointer thisPtr,
-    const OH_UNIT_InternalModuleDataInterface* internalType)
+    OH_NativePointer thisPtr, const OH_UNIT_InternalModuleDataInterface* internalType)
 {
     printf("checkInternalDataInterface count: %d\n", internalType->count.i32);
     return internalType->count;
@@ -1719,32 +1574,25 @@ OH_UNIT_DTSCheckInternalLibHandle DTSCheckInternalLib_constructImpl()
 {
     return (OH_UNIT_DTSCheckInternalLibHandle) new DTSCheckInternalLibPeer();
 }
-void DTSCheckInternalLib_destructImpl(OH_UNIT_DTSCheckInternalLibHandle thisPtr)
-{
-}
+void DTSCheckInternalLib_destructImpl(OH_UNIT_DTSCheckInternalLibHandle thisPtr) {}
 // Internal renamed library
 OH_Number DTSCheckInternalLib_checkRenamedModuleDataInterfaceImpl(
-    OH_NativePointer thisPtr,
-    const OH_UNIT_RenamedModuleDataInterface* renamedModuleType)
+    OH_NativePointer thisPtr, const OH_UNIT_RenamedModuleDataInterface* renamedModuleType)
 {
     return renamedModuleType->count;
 }
 
 // ExternalType
-class DTSCheckExternalLibPeer {
-};
+class DTSCheckExternalLibPeer {};
 
 OH_UNIT_DTSCheckExternalLibHandle DTSCheckExternalLib_constructImpl()
 {
     return (OH_UNIT_DTSCheckExternalLibHandle) new DTSCheckExternalLibPeer();
 }
-void DTSCheckExternalLib_destructImpl(OH_UNIT_DTSCheckExternalLibHandle thisPtr)
-{
-}
+void DTSCheckExternalLib_destructImpl(OH_UNIT_DTSCheckExternalLibHandle thisPtr) {}
 
 OH_Number DTSCheckExternalLib_checkExternalDataInterfaceImpl(
-    OH_NativePointer thisPtr,
-    const OH_UNIT_ExternalModuleDataInterface* externalType)
+    OH_NativePointer thisPtr, const OH_UNIT_ExternalModuleDataInterface* externalType)
 {
     return externalType->count;
 }
@@ -1754,9 +1602,7 @@ void DTSCheckExternalLib_checkExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT
     printf("[native] checkExternalType: %p\n", externalType);
 }
 
-void DTSCheckExternalLib_checkExternalClassImpl(OH_NativePointer thisPtr, OH_UNIT_ExternalClass externalClass)
-{
-}
+void DTSCheckExternalLib_checkExternalClassImpl(OH_NativePointer thisPtr, OH_UNIT_ExternalClass externalClass) {}
 
 void DTSCheckExternalLib_checkNSExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_hookns_NSExternalType externalType)
 {
@@ -1764,17 +1610,13 @@ void DTSCheckExternalLib_checkNSExternalTypeImpl(OH_NativePointer thisPtr, OH_UN
 }
 
 void DTSCheckExternalLib_checkSubNSExternalTypeImpl(
-    OH_NativePointer thisPtr,
-    OH_UNIT_hookns_subhookns_SubNSExternalType externalType)
+    OH_NativePointer thisPtr, OH_UNIT_hookns_subhookns_SubNSExternalType externalType)
 {
     printf("[native] checkSubNSExternalTypeImpl: %p\n", externalType);
 }
 
 static const char* ERROR_MSG = "(Test passed) Promise was rejected";
-void PromiseTester_waitImpl(
-    OH_UNIT_VMContext vmContext,
-    OH_UNIT_AsyncWorkerPtr asyncWorker,
-    const OH_Number* ms,
+void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, const OH_Number* ms,
     const UNIT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
 {
     OH_String* errors = new OH_String[2];
@@ -1783,18 +1625,14 @@ void PromiseTester_waitImpl(
     errors[1].length = strlen(ERROR_MSG);
     errors[1].chars = ERROR_MSG;
     outputArgumentForReturningPromise->callSync(
-        vmContext,
-        outputArgumentForReturningPromise->resource.resourceId,
-        { INTEROP_TAG_OBJECT, { errors, 2 } });
+        vmContext, outputArgumentForReturningPromise->resource.resourceId, { INTEROP_TAG_OBJECT, { errors, 2 } });
 }
 
 OH_UNIT_IDLCheckPropsHandle IDLCheckProps_constructImpl()
 {
     return {};
 }
-void IDLCheckProps_destructImpl(OH_UNIT_IDLCheckPropsHandle thisPtr)
-{
-}
+void IDLCheckProps_destructImpl(OH_UNIT_IDLCheckPropsHandle thisPtr) {}
 OH_Number IDLCheckProps_getPropImpl(OH_NativePointer thisPtr)
 {
     return { .tag = INTEROP_TAG_INT32, .i32 = 0 };
@@ -1811,18 +1649,10 @@ OH_Number IDLCheckProps_getPropWithGetterImpl(OH_NativePointer thisPtr)
 {
     return {};
 }
-void IDLCheckProps_setPropImpl(OH_NativePointer thisPtr, const OH_Number* value)
-{
-}
-void IDLCheckProps_setPropWithGetterAndSetterImpl(OH_NativePointer thisPtr, const OH_Number* value)
-{
-}
-void IDLCheckProps_setPropWithSetterImpl(OH_NativePointer thisPtr, const OH_Number* value)
-{
-}
-void IDLCheckProps_checkImpl(OH_NativePointer thisPtr)
-{
-}
+void IDLCheckProps_setPropImpl(OH_NativePointer thisPtr, const OH_Number* value) {}
+void IDLCheckProps_setPropWithGetterAndSetterImpl(OH_NativePointer thisPtr, const OH_Number* value) {}
+void IDLCheckProps_setPropWithSetterImpl(OH_NativePointer thisPtr, const OH_Number* value) {}
+void IDLCheckProps_checkImpl(OH_NativePointer thisPtr) {}
 OH_UNIT_IDLCheckProps GlobalScope_testIDLCheckPropsImpl(OH_UNIT_IDLCheckProps arg)
 {
     return {};
@@ -1852,13 +1682,10 @@ OH_UNIT_UnionSampleGenericTypeInterface GlobalScope_checkUnionGenericTypeSampleI
 {
     return *value;
 }
-void GlobalScope_cyclic_entryImpl(const OH_Object* a1, const OH_Object* a2, const OH_Object* a3)
-{
-}
+void GlobalScope_cyclic_entryImpl(const OH_Object* a1, const OH_Object* a2, const OH_Object* a3) {}
 void GlobalScope_generics_callWithDefaultsBImpl(
     const OH_UNIT_generics_WithDefaultsB_generics_WithDefaultsA_Number* value)
-{
-}
+{}
 
 OH_UNIT_GestureType GlobalScope_getBaseGestureTypeImpl(OH_NativePointer ptr)
 {
@@ -1919,8 +1746,7 @@ public:
     OH_Boolean flag;
     OH_Number count;
     OH_String text;
-    IDLParentCPeer(OH_Boolean f, const OH_Number c, const OH_String t)
-        : flag(f), count(c), text(t) {}
+    IDLParentCPeer(OH_Boolean f, const OH_Number c, const OH_String t) : flag(f), count(c), text(t) {}
 };
 
 class IDLChildCPeer {
@@ -1928,21 +1754,16 @@ public:
     OH_Boolean childFlag;
     OH_Number childCount;
     OH_String childText;
-    IDLChildCPeer(const OH_Number c, const OH_String t, OH_Boolean f)
-        : childFlag(f), childCount(c), childText(t) {}
+    IDLChildCPeer(const OH_Number c, const OH_String t, OH_Boolean f) : childFlag(f), childCount(c), childText(t) {}
 };
 
-void ParentC_callHolderImpl(OH_NativePointer thisPtr)
-{
-}
+void ParentC_callHolderImpl(OH_NativePointer thisPtr) {}
 OH_UNIT_ParentCHandle ParentC_constructImpl(
     OH_Boolean parentFlag, const OH_Number* parentCount, const OH_String* parentText)
 {
     return (OH_UNIT_ParentCHandle) new IDLParentCPeer(parentFlag, *parentCount, CopyString(*parentText));
 }
-void ParentC_destructImpl(OH_UNIT_ParentCHandle thisPtr)
-{
-}
+void ParentC_destructImpl(OH_UNIT_ParentCHandle thisPtr) {}
 OH_Boolean ParentC_getParentFlagImpl(OH_NativePointer thisPtr)
 {
     return ((IDLParentCPeer*)thisPtr)->flag;
@@ -1988,17 +1809,12 @@ OH_String ParentC_commonMethodImpl(
     return OH_String { .chars = "ParentCommon", .length = StringLen("ParentCommon") };
 }
 
-void ChildC_callHolderImpl(OH_NativePointer thisPtr)
-{
-}
-OH_UNIT_ChildCHandle ChildC_constructImpl(
-    const OH_Number* childCount, const OH_String* childText, OH_Boolean childFlag)
+void ChildC_callHolderImpl(OH_NativePointer thisPtr) {}
+OH_UNIT_ChildCHandle ChildC_constructImpl(const OH_Number* childCount, const OH_String* childText, OH_Boolean childFlag)
 {
     return (OH_UNIT_ChildCHandle) new IDLChildCPeer(*childCount, CopyString(*childText), childFlag);
 }
-void ChildC_destructImpl(OH_UNIT_ChildCHandle thisPtr)
-{
-}
+void ChildC_destructImpl(OH_UNIT_ChildCHandle thisPtr) {}
 OH_Boolean ChildC_getChildFlagImpl(OH_NativePointer thisPtr)
 {
     return ((IDLChildCPeer*)thisPtr)->childFlag;

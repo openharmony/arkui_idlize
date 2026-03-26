@@ -45,9 +45,9 @@ static const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI()
 CustomDeserializer* DeserializerBase::customDeserializers = nullptr;
 
 namespace {
-    // Conversion factor from nanoseconds to microseconds
-    constexpr float NS_TO_US = 1000.0f;
-}
+// Conversion factor from nanoseconds to microseconds
+constexpr float NS_TO_US = 1000.0f;
+} // namespace
 
 // Improve: Remove all this.
 void disposeNode(KNativePointer* ptr)
@@ -69,7 +69,8 @@ KOALA_INTEROP_V1(ShowCrash, KStringPtr)
 
 Ark_Int32 impl_LayoutNode(KVMContext vmContext, Ark_NativePointer nodePtr, KFloatArray data)
 {
-    return GetArkUIExtendedNodeAPI()->layoutNode(static_cast<Ark_VMContext>(vmContext), static_cast<Ark_NodeHandle>(nodePtr), reinterpret_cast<Ark_Float32(*)[2]>(data));
+    return GetArkUIExtendedNodeAPI()->layoutNode(static_cast<Ark_VMContext>(vmContext),
+        static_cast<Ark_NodeHandle>(nodePtr), reinterpret_cast<Ark_Float32(*)[2]>(data));
 }
 KOALA_INTEROP_CTX_2(LayoutNode, Ark_Int32, Ark_NativePointer, KFloatArray)
 
@@ -112,13 +113,11 @@ public:
     void PrintPeak(std::stringstream& result)
     {
         for (auto& kv : perfs_) {
-            std::sort(kv.second.begin(), kv.second.end(), [](const PerfInfo& perf1, const PerfInfo& perf2) {
-                return perf1.cost > perf2.cost;
-            });
+            std::sort(kv.second.begin(), kv.second.end(),
+                [](const PerfInfo& perf1, const PerfInfo& perf2) { return perf1.cost > perf2.cost; });
             auto maxCost = kv.second.front().cost / NS_TO_US - selfCost_;
             auto minCost = kv.second.back().cost / NS_TO_US - selfCost_;
-            result << "Perf trace_name(" << kv.first << ") "
-                   << " maxCost = " << maxCost << " us, ";
+            result << "Perf trace_name(" << kv.first << ") " << " maxCost = " << maxCost << " us, ";
             result << "minCost = " << minCost << " us.";
         }
     }
@@ -186,13 +185,7 @@ void impl_EndPerf(const KStringPtr& traceName)
 }
 KOALA_INTEROP_V1(EndPerf, KStringPtr)
 
-enum DumpOptions {
-    TOTAL = 0,
-    AVERAGE = 1,
-    PEAK = 2,
-    DETAILS = 3,
-    CLEAR = 4
-};
+enum DumpOptions { TOTAL = 0, AVERAGE = 1, PEAK = 2, DETAILS = 3, CLEAR = 4 };
 
 KNativePointer impl_DumpPerf(KInt options)
 {

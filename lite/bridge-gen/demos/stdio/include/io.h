@@ -15,9 +15,10 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdint.h>
 #include <unistd.h>
+
+#include <cstdint>
+#include <cstdio>
 
 static constexpr size_t PATH_BUFFER_SIZE = 1024;
 

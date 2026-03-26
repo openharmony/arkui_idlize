@@ -16,13 +16,13 @@
 #ifndef _ARKOALA_CALLBACKS_H
 #define _ARKOALA_CALLBACKS_H
 
+#include <cstdint>
+#include <cstdlib>
+
 #include "arkoala_api_generated.h"
 #include "callback-resource.h"
 #include "callback_kind.h"
 #include "koala-types.h"
-
-#include <stdint.h>
-#include <stdlib.h>
 
 Ark_NativePointer getManagedCallbackCaller(CallbackKind kind);
 Ark_NativePointer getManagedCallbackCallerSync(CallbackKind kind);

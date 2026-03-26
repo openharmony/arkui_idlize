@@ -20,7 +20,11 @@
 
 #define %LIBRARY_NAME%_API_VERSION 1
 
+#ifdef __cplusplus
+#include <cstdint>
+#else
 #include <stdint.h>
+#endif
 
 /* clang-format off */
 

@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "ohos_mediaquery.h"
-
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
-#include <algorithm>
+
+#include "ohos_mediaquery.h"
 
 class FakeMediaQuery {};
 
@@ -28,22 +28,17 @@ OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryListenerHandle mediaquery_MediaQueryList
     FakeMediaQuery* fake = new FakeMediaQuery();
     return (OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryListenerHandle)fake;
 }
-void mediaquery_MediaQueryListener_destructImpl(OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryListenerHandle thisPtr)
+void mediaquery_MediaQueryListener_destructImpl(OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryListenerHandle thisPtr) {}
+void mediaquery_MediaQueryListener_onChangeImpl(
+    OH_NativePointer thisPtr, const OHOS_MEDIAQUERY_Callback_mediaquery_MediaQueryResult* callback_)
 {
-}
-void mediaquery_MediaQueryListener_onChangeImpl(OH_NativePointer thisPtr, const OHOS_MEDIAQUERY_Callback_mediaquery_MediaQueryResult* callback_)
-{
-    OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryResult result = {
-        .matches = true,
-        .media = (OH_String) {
-            .chars = "hello",
-            .length = 5 }
-    };
+    OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryResult result = { .matches = true,
+        .media = (OH_String) { .chars = "hello", .length = 5 } };
     callback_->call(callback_->resource.resourceId, result);
 }
-void mediaquery_MediaQueryListener_offChangeImpl(OH_NativePointer thisPtr, const Opt_OHOS_MEDIAQUERY_Callback_mediaquery_MediaQueryResult* callback_)
-{
-}
+void mediaquery_MediaQueryListener_offChangeImpl(
+    OH_NativePointer thisPtr, const Opt_OHOS_MEDIAQUERY_Callback_mediaquery_MediaQueryResult* callback_)
+{}
 OH_Boolean mediaquery_MediaQueryListener_getMatchesImpl(OH_NativePointer thisPtr)
 {
     return true;
@@ -61,21 +56,21 @@ OH_Int64 GlobalScope_mediaquery_testImpl(OH_Int64 num)
     int64_t expectedStringCount = 2;
     return num * expectedStringCount;
 }
-void GlobalScope_mediaquery_testPutStringImpl(
-    const OH_String* x) {}
+void GlobalScope_mediaquery_testPutStringImpl(const OH_String* x) {}
 OH_String GlobalScope_mediaquery_testGetStringImpl()
 {
     return OH_String { "x", 1 };
 }
 void mediaquery_MediaQueryListener_callHolderImpl(OH_NativePointer thisPtr) {}
 
-static const char* STRING_128 =
-    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
-    "abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+static const char* STRING_128 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+                                "abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
 // 128 characters, 256B
 static const char* STRING_128_UNICODE =
-    "０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ";
+    "０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８"
+    "９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１"
+    "２３４５６７８９ａｂｃｄｅｆ";
 
 OH_String GlobalScope_mediaquery_testGetString128Impl()
 {
@@ -87,8 +82,7 @@ OH_String GlobalScope_mediaquery_testGetString128UnicodeImpl()
     return OH_String { STRING_128_UNICODE, (int)strlen(STRING_128_UNICODE) };
 }
 
-OH_String GlobalScope_mediaquery_testConcatStringImpl(
-    const OH_String* x, const OH_String* y)
+OH_String GlobalScope_mediaquery_testConcatStringImpl(const OH_String* x, const OH_String* y)
 {
     char* buf = (char*)malloc(x->length + y->length + 1);
     std::copy_n(x->chars, x->length, buf);
@@ -117,13 +111,15 @@ void GlobalScope_mediaquery_optionArg1Impl(const OH_String* str, const OH_OHOS_M
     std::string res = std::string(str->chars);
     ParseOption(op1);
 }
-void GlobalScope_mediaquery_optionArg2Impl(const OH_String* str, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op1, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op2)
+void GlobalScope_mediaquery_optionArg2Impl(const OH_String* str, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op1,
+    const OH_OHOS_MEDIAQUERY_mediaquery_Option* op2)
 {
     std::string res = std::string(str->chars);
     ParseOption(op1);
     ParseOption(op2);
 }
-void GlobalScope_mediaquery_optionArg3Impl(const OH_String* str, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op1, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op2, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op3)
+void GlobalScope_mediaquery_optionArg3Impl(const OH_String* str, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op1,
+    const OH_OHOS_MEDIAQUERY_mediaquery_Option* op2, const OH_OHOS_MEDIAQUERY_mediaquery_Option* op3)
 {
     std::string res = std::string(str->chars);
     ParseOption(op1);

@@ -13,25 +13,22 @@
  * limitations under the License.
  */
 
-#include <tuple>
 #include <string>
+#include <tuple>
 
-#include "interop-types.h"
 #include "dynamic-loader.h"
 #include "interop-logging.h"
+#include "interop-types.h"
 #include "interop-utils.h"
 
 %ANY_API%
 %GENERIC_SERVICE_API%
 
 // Improve: rework for generic OHOS case.
-void* FindModule(int kind) {
-    std::tuple<const char*, bool> candidates[] = {
-        { "ace_compatible", true},
-        { "ace", true },
-        { "ace_compatible_mock", true},
-        { nullptr, false }
-    };
+void* FindModule(int kind)
+{
+    std::tuple<const char*, bool> candidates[] = { { "ace_compatible", true }, { "ace", true },
+        { "ace_compatible_mock", true }, { nullptr, false } };
     char* envValue = getenv("ACE_LIBRARY_PATH");
     std::string prefix = envValue ? std::string(envValue) : "";
     LOGE("Search ACE in \"%s\" (env ACE_LIBRARY_PATH) for API %d", prefix.c_str(), kind);
@@ -59,7 +56,8 @@ extern "C" const OH_AnyAPI* GENERATED_GetArkAnyAPI(int kind, int version);
 #endif
 
 namespace {
-void ReportMsg(std::string* result, const std::string& msg, bool isError = false) {
+void ReportMsg(std::string* result, const std::string& msg, bool isError = false)
+{
     if (result) {
         *result = msg;
     } else if (isError) {
@@ -69,7 +67,8 @@ void ReportMsg(std::string* result, const std::string& msg, bool isError = false
     }
 }
 
-const OH_AnyAPI* GetImpl(int kind, int version, std::string* result) {
+const OH_AnyAPI* GetImpl(int kind, int version, std::string* result)
+{
     static const GroupLogger* logger = GetDefaultLogger();
 
     const OH_AnyAPI* impl = nullptr;
@@ -101,9 +100,11 @@ const OH_AnyAPI* GetImpl(int kind, int version, std::string* result) {
         }
     }
     // Provide custom logger and callback caller to loaded libs.
-    auto service = reinterpret_cast<const GenericServiceAPI*>((*getAPI)(GENERIC_SERVICE_API_KIND, GENERIC_SERVICE_API_VERSION));
+    auto service =
+        reinterpret_cast<const GenericServiceAPI*>((*getAPI)(GENERIC_SERVICE_API_KIND, GENERIC_SERVICE_API_VERSION));
     if (service) {
-        if (logger) service->setLogger(reinterpret_cast<const ServiceLogger*>(logger));
+        if (logger)
+            service->setLogger(reinterpret_cast<const ServiceLogger*>(logger));
     }
 
     impl = (*getAPI)(kind, version);
@@ -113,17 +114,18 @@ const OH_AnyAPI* GetImpl(int kind, int version, std::string* result) {
     }
     if (impl->version != version) {
         char buffer[256];
-        interop_snprintf(buffer, sizeof(buffer), "FATAL: API version mismatch for API %d: expected %d got %d",
-            kind, version, impl->version);
+        interop_snprintf(buffer, sizeof(buffer), "FATAL: API version mismatch for API %d: expected %d got %d", kind,
+            version, impl->version);
         ReportMsg(result, buffer, true);
         return nullptr;
     }
     return impl;
 }
 
-}  // namespace
+} // namespace
 
-const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
+const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result)
+{
     if (kind > API_KIND_MAX) {
         INTEROP_FATAL("Try to get api with kind more than expected: kind=%d, max=%d", kind, API_KIND_MAX);
     }

@@ -117,7 +117,9 @@ private:
 
 public:
     TreeNode(const string& name, int peerId, int flags)
-        : _name(name), _customIntData(0), _peerId(peerId), _flags(flags), _id(_globalId++), _updaterId(0), _indexerId(0), _parent(nullptr) {}
+        : _name(name), _customIntData(0), _peerId(peerId), _flags(flags), _id(_globalId++), _updaterId(0),
+          _indexerId(0), _parent(nullptr)
+    {}
 
     ~TreeNode() = default;
 
@@ -299,7 +301,8 @@ public:
         if ((size_t)position <= _children.size()) {
             _children.insert(std::next(_children.begin(), position), node);
         } else {
-            INTEROP_FATAL("TreeNode::insertChildAt position=%d larger than size of children(%d)", position, static_cast<int>(_children.size()));
+            INTEROP_FATAL("TreeNode::insertChildAt position=%d larger than size of children(%d)", position,
+                static_cast<int>(_children.size()));
         }
         node->setParent(this);
         return 0;
@@ -308,9 +311,11 @@ public:
     void* needMoreElements(void* mark, int32_t direction)
     {
         fprintf(stderr, "needMoreElements %p %d\n", mark, direction);
+        void* pointerMarker = reinterpret_cast<void*>(0x1);
+        constexpr int maxChildrenThreshold = 5;
         if (_children.size() == 0)
-            return (void*)0x1;
-        if (_children.size() > 5)
+            return pointerMarker;
+        if (_children.size() > maxChildrenThreshold)
             return nullptr;
         return direction == 0 ? _children.front() : _children.back();
     }
@@ -345,8 +350,7 @@ struct Color {
     char r;
     char g;
     char b;
-    Color(char r, char g, char b)
-        : r(r), g(g), b(b) {}
+    Color(char r, char g, char b) : r(r), g(g), b(b) {}
     bool operator==(const Color& other) const
     {
         return (r == other.r && g == other.g && b == other.b);
@@ -360,8 +364,7 @@ struct LAB {
     float l;
     float a;
     float b;
-    LAB(float l = 1, float a = 1, float b = 1)
-        : l(l), a(a), b(b) {}
+    LAB(float l = 1, float a = 1, float b = 1) : l(l), a(a), b(b) {}
 };
 #pragma pack(push, 1)
 struct TGAHeader {
@@ -380,11 +383,8 @@ struct TGAHeader {
 };
 #pragma pack(pop)
 
-const unsigned char tga_tail[26] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0x52,
-    0x55, 0x45, 0x56, 0x49, 0x53, 0x49, 0x4f, 0x4e, 0x2d, 0x58,
-    0x46, 0x49, 0x4c, 0x45, 0x2e, 0x00
-}; // TRUEVISION-XFILE.
+const unsigned char tga_tail[26] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0x52, 0x55, 0x45, 0x56, 0x49,
+    0x53, 0x49, 0x4f, 0x4e, 0x2d, 0x58, 0x46, 0x49, 0x4c, 0x45, 0x2e, 0x00 }; // TRUEVISION-XFILE.
 struct TGAInfo {
     TGAHeader header;
     std::vector<char> pixels;
@@ -392,50 +392,84 @@ struct TGAInfo {
 
 LAB rgbToLAB(Color& c)
 {
-    float x, y, z, r, g, b;
-    r = c.r / 255.0;
-    g = c.g / 255.0;
-    b = c.b / 255.0;
-    if (r > 0.04045)
-        r = powf(((r + 0.055) / 1.055), 2.4);
-    else
-        r /= 12.92;
-    if (g > 0.04045)
-        g = powf(((g + 0.055) / 1.055), 2.4);
-    else
-        g /= 12.92;
-    if (b > 0.04045)
-        b = powf(((b + 0.055) / 1.055), 2.4);
-    else
-        b /= 12.92;
-    r *= 100;
-    g *= 100;
-    b *= 100;
-    x = r * 0.4124 + g * 0.3576 + b * 0.1805;
-    y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-    z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+    float x;
+    float y;
+    float z;
+    float r;
+    float g;
+    float b;
+    constexpr float maxIntensity = 255.0;
+    r = c.r / maxIntensity;
+    g = c.g / maxIntensity;
+    b = c.b / maxIntensity;
+    constexpr float rgbThreshold = 0.04045;
+    constexpr float rgbAdd = 0.055;
+    constexpr float rgbDiv = 1.055;
+    constexpr float rgbAltDiv = 12.92;
+    constexpr float rgbPower = 2.4;
+    if (r > rgbThreshold) {
+        r = powf(((r + rgbAdd) / rgbDiv), rgbPower);
+    } else {
+        r /= rgbAltDiv;
+    }
+    if (g > rgbThreshold) {
+        g = powf(((g + rgbAdd) / rgbDiv), rgbPower);
+    } else {
+        g /= rgbAltDiv;
+    }
+    if (b > rgbThreshold) {
+        b = powf(((b + rgbAdd) / rgbDiv), rgbPower);
+    } else {
+        b /= rgbAltDiv;
+    }
+    constexpr float rgbMult = 100.0;
+    r *= rgbMult;
+    g *= rgbMult;
+    b *= rgbMult;
 
-    const float refX = 95.047, refY = 100.0, refZ = 108.883;
+    constexpr float r2x = 0.4124;
+    constexpr float g2x = 0.3576;
+    constexpr float b2x = 0.1805;
+    constexpr float r2y = 0.2126;
+    constexpr float g2y = 0.7152;
+    constexpr float b2y = 0.0722;
+    constexpr float r2z = 0.0193;
+    constexpr float g2z = 0.1192;
+    constexpr float b2z = 0.9505;
+    x = r * r2x + g * g2x + b * b2x;
+    y = r * r2y + g * g2y + b * b2y;
+    z = r * r2z + g * g2z + b * b2z;
+
+    const float refX = 95.047;
+    const float refY = 100.0;
+    const float refZ = 108.883;
     x = x / refX;
     y = y / refY;
     z = z / refZ;
-    if (x > 0.008856)
-        x = powf(x, 1 / 3.0);
+    constexpr float xyzThreshold = 0.008856;
+    constexpr float powDiv = 3.0;
+    constexpr float xyzPower = 1 / powDiv;
+    constexpr float xyzMult = 7.787;
+    constexpr float numenator = 16.0;
+    constexpr float denominator = 116.0;
+    if (x > xyzThreshold)
+        x = powf(x, xyzPower);
     else
-        x = (7.787 * x) + (16.0 / 116.0);
-    if (y > 0.008856)
-        y = powf(y, 1 / 3.0);
+        x = (xyzMult * x) + (numenator / denominator);
+    if (y > xyzThreshold)
+        y = powf(y, xyzPower);
     else
-        y = (7.787 * y) + (16.0 / 116.0);
-    if (z > 0.008856)
-        z = powf(z, 1 / 3.0);
+        y = (xyzMult * y) + (numenator / denominator);
+    if (z > xyzThreshold)
+        z = powf(z, xyzPower);
     else
-        z = (7.787 * z) + (16.0 / 116.0);
+        z = (xyzMult * z) + (numenator / denominator);
 
-    auto lab = LAB(
-        116 * y - 16,
-        500 * (x - y),
-        200 * (y - z));
+    constexpr float yMult = 116;
+    constexpr float ySub = 16;
+    constexpr float xMinYMult = 500;
+    constexpr float yMinZMult = 200;
+    auto lab = LAB(yMult * y - ySub, xMinYMult * (x - y), yMinZMult * (y - z));
     return lab;
 }
 
@@ -451,11 +485,14 @@ bool WriteImageTGA(std::string name, TGAInfo& info)
         INTEROP_FATAL("Error");
         return false;
     }
-    info.header.imageType = 2;     // Uncompressed RGB
-    info.header.bitsPerPixel = 24; // 24-bit RGB
+    uint8_t imageType = 2;     // Uncompressed RGB
+    uint8_t bitsPerPixel = 24; // 24-bit RGB
+    info.header.imageType = imageType;
+    info.header.bitsPerPixel = bitsPerPixel;
 
+    uint16_t numChannels = 3;
     file.write(reinterpret_cast<const char*>(&info.header), sizeof(TGAHeader));
-    file.write(reinterpret_cast<const char*>(info.pixels.data()), info.header.width * info.header.height * 3);
+    file.write(reinterpret_cast<const char*>(info.pixels.data()), info.header.width * info.header.height * numChannels);
     file.write(reinterpret_cast<const char*>(&tga_tail), sizeof(tga_tail));
 
     file.close();
@@ -470,7 +507,8 @@ bool ReadImageTGA(std::string name, TGAInfo& info)
         return false;
     }
     file.read(reinterpret_cast<char*>(&info.header), sizeof(TGAHeader));
-    uint32_t size = info.header.width * info.header.height * (info.header.bitsPerPixel / 8);
+    uint8_t bitsInByte = 8;
+    uint32_t size = info.header.width * info.header.height * (info.header.bitsPerPixel / bitsInByte);
     info.pixels.resize(size);
     file.read(reinterpret_cast<char*>(info.pixels.data()), size);
     file.close();
@@ -479,16 +517,20 @@ bool ReadImageTGA(std::string name, TGAInfo& info)
 
 bool WriteDiffTGA(std::string name, std::vector<char>& golden, std::vector<char>& target, TGAHeader& header)
 {
-    uint32_t size = header.width * header.height * (header.bitsPerPixel / 8);
+    uint8_t bitsInByte = 8;
+    uint32_t numChannels = 3;
+    uint32_t size = header.width * header.height * (header.bitsPerPixel / bitsInByte);
     std::vector<uint8_t> pixels(size);
-    for (uint32_t i = 0; i < size; i += 3) {
+    for (uint32_t i = 0; i < size; i += numChannels) {
         // BGR
         Color gld(golden[i], golden[i + 1], golden[i + 2]);
         Color trg(target[i], target[i + 1], target[i + 2]);
         LAB labG = rgbToLAB(gld);
         LAB labT = rgbToLAB(trg);
         float d = sqrtf(powf(labG.l - labT.l, 2) + powf(labG.a - labT.a, 2) + powf(labG.b - labT.b, 2));
-        auto diff = static_cast<char>(d / 100.0f * 255);
+        float divider = 100.0f;
+        float maxIntensity = 255.0;
+        auto diff = static_cast<char>(d / divider * maxIntensity);
         pixels[i + 0] = diff;
         pixels[i + 1] = diff;
         pixels[i + 2] = diff;
@@ -510,7 +552,8 @@ bool CompareTwoTGA(std::string test, std::string name, TGAInfo golden, TGAInfo t
 {
     bool result = true;
     if (golden.pixels.size() != target.pixels.size()) {
-        fprintf(stderr, "Image sizes is not identical! Golden: %ld vs Target: %ld\n", golden.pixels.size(), target.pixels.size());
+        fprintf(stderr, "Image sizes is not identical! Golden: %ld vs Target: %ld\n", golden.pixels.size(),
+            target.pixels.size());
         return false;
     }
     for (uint32_t i = 0; i < golden.pixels.size(); i++) {
@@ -523,13 +566,12 @@ bool CompareTwoTGA(std::string test, std::string name, TGAInfo golden, TGAInfo t
     }
     if (!result) {
         std::filesystem::create_directory(OutPath + "/" + test);
-        WriteDiffTGA(OutPath + "/" + test + "/" + std::string(name + "_diff"), golden.pixels, target.pixels, golden.header);
-        std::filesystem::copy(
-            GoldenPath + std::string(name + ".tga"),
+        WriteDiffTGA(
+            OutPath + "/" + test + "/" + std::string(name + "_diff"), golden.pixels, target.pixels, golden.header);
+        std::filesystem::copy(GoldenPath + std::string(name + ".tga"),
             OutPath + test + "/" + std::string(name + "_expected.tga"),
             std::filesystem::copy_options::overwrite_existing);
-        std::filesystem::copy(
-            OutPath + std::string(name + ".tga"),
+        std::filesystem::copy(OutPath + std::string(name + ".tga"),
             OutPath + test + "/" + std::string(name + "_actual.tga"),
             std::filesystem::copy_options::overwrite_existing);
     }
@@ -548,15 +590,17 @@ bool StubTGA(std::string name, TGAInfo& info)
         return false;
     }
 
-    uint32_t size = info.header.width * info.header.height * (info.header.bitsPerPixel / 8);
+    uint8_t bitsInByte = 8;
+    uint32_t size = info.header.width * info.header.height * (info.header.bitsPerPixel / bitsInByte);
     info.pixels.resize(size);
 
     for (uint32_t i = 0; i < size; i++) {
         info.pixels[i] = 0x80;
     }
 
+    uint16_t numChannels = 3;
     file.write(reinterpret_cast<const char*>(&info.header), sizeof(TGAHeader));
-    file.write(reinterpret_cast<const char*>(info.pixels.data()), info.header.width * info.header.height * 3);
+    file.write(reinterpret_cast<const char*>(info.pixels.data()), info.header.width * info.header.height * numChannels);
     file.write(reinterpret_cast<const char*>(&tga_tail), sizeof(tga_tail));
 
     file.close();

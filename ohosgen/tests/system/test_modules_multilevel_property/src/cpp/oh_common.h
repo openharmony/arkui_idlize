@@ -16,16 +16,18 @@
 #ifndef OH_TEST_PROMISE_OH_COMMON_H_
 #define OH_TEST_PROMISE_OH_COMMON_H_
 
-#include "test_modules_multilevel_property.h"
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 
+#include "test_modules_multilevel_property.h"
+
 struct DumpOHNumber {
     OH_Number value;
-    DumpOHNumber(OH_Number v): value(v) {}
+    explicit DumpOHNumber(OH_Number v) : value(v) {}
 
-    friend std::ostream& operator << (std::ostream& out, DumpOHNumber dn) {
+    friend std::ostream& operator<<(std::ostream& out, DumpOHNumber dn)
+    {
         if (dn.value.tag == INTEROP_TAG_INT32) {
             out << dn.value.i32 << " (int32)";
         } else if (dn.value.tag == INTEROP_TAG_FLOAT32) {
@@ -39,15 +41,17 @@ struct DumpOHNumber {
 
 struct DumpOHString {
     OH_String string;
-    DumpOHString(OH_String s): string(s) {}
+    explicit DumpOHString(OH_String s) : string(s) {}
 
-    friend std::ostream& operator << (std::ostream& out, DumpOHString ds) {
+    friend std::ostream& operator<<(std::ostream& out, DumpOHString ds)
+    {
         out.write(ds.string.chars, ds.string.length);
         return out;
     }
 };
 
-inline OH_Number addOHNumber(OH_Number x, OH_Number y) {
+inline OH_Number addOHNumber(OH_Number x, OH_Number y)
+{
     OH_Number res;
     res.tag = x.tag;
     if (res.tag == INTEROP_TAG_INT32) {

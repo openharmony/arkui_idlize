@@ -1,13 +1,14 @@
 #pragma once
 
-#include "expat.h"
 #include <cstddef>
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include <ostream>
 #include <string>
 #include <vector>
-#include <functional>
+
+#include "expat.h"
 
 struct ParserState {
     std::string tag;
@@ -15,7 +16,8 @@ struct ParserState {
 
 class ExpatParser {
 public:
-    ExpatParser(OH_Buffer buffer) : m_buffer(buffer) {
+    explicit ExpatParser(OH_Buffer buffer) : m_buffer(buffer)
+    {
         buffer.resource.hold(buffer.resource.resourceId);
         XML_SetUserData(m_parser, this);
         XML_SetStartElementHandler(m_parser, StartElementHandler);
@@ -27,52 +29,57 @@ public:
     ExpatParser(const ExpatParser&&) = delete;
     ExpatParser& operator=(const ExpatParser&&) = delete;
 
-    virtual ~ExpatParser() {
+    virtual ~ExpatParser()
+    {
         XML_ParserFree(m_parser);
         m_buffer.resource.release(m_buffer.resource.resourceId);
         std::cerr << "Parser destroy" << std::endl;
     }
 
-    void parse() {
-        const char *stringData = (const char*)m_buffer.data;
+    void Parse()
+    {
+        const char* stringData = (const char*)m_buffer.data;
         const int length = static_cast<int>(strlen(stringData));
         XML_Status result = XML_Parse(m_parser, stringData, length, true);
         if (result == XML_STATUS_ERROR) {
-            fprintf(stderr,
-                "Parse error at line %lu, symbol %lu:\n  %s\n",
-                XML_GetCurrentLineNumber(m_parser),
-                XML_GetCurrentColumnNumber(m_parser),
-                XML_ErrorString(XML_GetErrorCode(m_parser))
-            );
+            fprintf(stderr, "Parse error at line %lu, symbol %lu:\n  %s\n", XML_GetCurrentLineNumber(m_parser),
+                XML_GetCurrentColumnNumber(m_parser), XML_ErrorString(XML_GetErrorCode(m_parser)));
         }
     }
 
-    void setTagValueCallback(std::function<void(const char*, const char*)>&& callback) {
+    void SetTagValueCallback(std::function<void(const char*, const char*)>&& callback)
+    {
         this->m_tagValueCallback = callback;
     }
 
-    void setAttributeValueCallback(std::function<void(const char*, const char*)>&& callback) {
+    void SetAttributeValueCallback(std::function<void(const char*, const char*)>&& callback)
+    {
         this->m_attributeValueCallback = callback;
     }
 
-    void reset() {
+    void Reset()
+    {
         this->m_tagValueCallback = nullptr;
         this->m_attributeValueCallback = nullptr;
     }
 
 private:
-    static XMLCALL void StartElementHandler(void *userData, const XML_Char *name, const XML_Char **atts) {
-        ((ExpatParser*) userData)->onStartElement(name, atts);
+    static XMLCALL void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** atts)
+    {
+        ((ExpatParser*)userData)->OnStartElement(name, atts);
     }
-    static XMLCALL void EndElementHandler(void *userData, const XML_Char *name) {
-        ((ExpatParser*) userData)->onEndElement(name);
+    static XMLCALL void EndElementHandler(void* userData, const XML_Char* name)
+    {
+        ((ExpatParser*)userData)->OnEndElement(name);
     }
-    static XMLCALL void CharacterDataHandler(void *userData, const XML_Char *s, int len) {
-        ((ExpatParser*) userData)->onText(s, len);
+    static XMLCALL void CharacterDataHandler(void* userData, const XML_Char* s, int len)
+    {
+        ((ExpatParser*)userData)->OnText(s, len);
     }
 
 private:
-    void onStartElement(const char* name, const char* attrs[]) {
+    void OnStartElement(const char* name, const char* attrs[])
+    {
         ParserState ps = { name };
         m_stack.emplace_back(std::move(ps));
 
@@ -88,22 +95,28 @@ private:
         }
     }
 
-    void onEndElement(const char* name) {
+    void OnEndElement(const char* name)
+    {
         m_stack.pop_back();
     }
 
-    void onText(const char* data, size_t len) {
+    void OnText(const char* data, size_t len)
+    {
         if (m_tagValueCallback) {
             std::string value(data, len);
-            m_tagValueCallback(currentTag(), value.c_str());
+            m_tagValueCallback(CurrentTag(), value.c_str());
         }
     }
 
-    const char* currentTag() const {
-        if (m_stack.empty()) return "";
+    const char* CurrentTag() const
+    {
+        if (m_stack.empty()) {
+            return "";
+        }
 
         return m_stack.back().tag.c_str();
     }
+
 private:
     XML_Parser m_parser = XML_ParserCreate("UTF-8");
     OH_Buffer m_buffer;

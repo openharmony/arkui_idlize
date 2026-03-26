@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-#include "unit_ost.h"
+#include <cstdio>
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include "unit_ost.h"
 
 InteropInt32 string_len(const char* str) {
     return static_cast<InteropInt32>(strlen(str));
@@ -40,7 +41,8 @@ OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enum
 OH_Int32 ost_sequences_checkOSTSequenceImpl(const OH_UNIT_OST_Array_Int32* value)
 {
     OH_Int32 length = value->length;
-    if (length == 0) return 0;
+    if (length == 0)
+        return 0;
 
     OH_Int32* array = value->array;
     OH_Int32 firstValue = array[0];

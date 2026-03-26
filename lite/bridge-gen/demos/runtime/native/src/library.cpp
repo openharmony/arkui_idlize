@@ -14,9 +14,10 @@
  */
 
 #include <idlizer/runtime.h>
-#include <queue>
+
 #include <cstdint>
 #include <cstdio>
+#include <queue>
 #include <string>
 #include <unordered_map>
 
@@ -171,25 +172,22 @@ void* IdlizeRuntimeDeserializerBaseUse(void* self)
     return self;
 }
 
-static std::queue<_idlizer_runtime_native_Event> queuedEvents;
+static std::queue<IdlizerRuntimeNativeEvent> queuedEvents;
 
 void EnqueueCallback(Int32 resourceId, RawMemory memory)
 {
     queuedEvents.push(
-        (_idlizer_runtime_native_Event) {
-            .eventKind = 1,
-            .resourceId = resourceId,
-            .memory = memory.getPointer() });
+        (IdlizerRuntimeNativeEvent) { .eventKind = 1, .resourceId = resourceId, .memory = memory.getPointer() });
 }
 
-_idlizer_runtime_native_Event IdlizeRuntimePoll()
+IdlizerRuntimeNativeEvent IdlizeRuntimePoll()
 {
     if (queuedEvents.size()) {
-        _idlizer_runtime_native_Event event = queuedEvents.front();
+        IdlizerRuntimeNativeEvent event = queuedEvents.front();
         queuedEvents.pop();
         return event;
     }
-    return (_idlizer_runtime_native_Event) {
+    return (IdlizerRuntimeNativeEvent) {
         .eventKind = 0,
         .resourceId = 0,
         .memory = nullptr,

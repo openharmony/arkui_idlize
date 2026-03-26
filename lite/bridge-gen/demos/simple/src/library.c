@@ -56,8 +56,7 @@ void NameDotSpacePrint(uint64_t idx)
             dot->name,
             dot->position.x,
             dot->position.y,
-            dot->position.z
-        );
+            dot->position.z);
     }
 }
 Vec3 NameDotSpaceGenNewPosition(int32_t seed)

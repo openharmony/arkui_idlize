@@ -15,7 +15,7 @@
 
 #ifndef TYPES_H
 #define TYPES_H
-#include <stdint.h>
+#include <cstdint>
 
 typedef void* NativePointer;
 typedef uint8_t UInt8;

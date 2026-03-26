@@ -16,18 +16,20 @@
 #include "%API_HEADER_PATH%"
 
 #define KOALA_INTEROP_MODULE %INTEROP_MODULE_NAME%
-#include "common-interop.h"
-#include "callback-resource.h"
-#include "SerializerBase.h"
-#include "DeserializerBase.h"
 #include <unordered_map>
 
+#include "DeserializerBase.h"
+#include "SerializerBase.h"
+#include "callback-resource.h"
+#include "common-interop.h"
+
 #if defined(KOALA_USE_PANDA_VM)
-    #if defined(KOALA_ANI)
-        KOALA_ANI_INTEROP_MODULE_CLASSPATH(KOALA_INTEROP_MODULE, KOALA_QUOTE(ETS_MODULE_CLASSPATH_PREFIX) KOALA_QUOTE(KOALA_INTEROP_MODULE));
-    #endif
+#if defined(KOALA_ANI)
+KOALA_ANI_INTEROP_MODULE_CLASSPATH(
+    KOALA_INTEROP_MODULE, KOALA_QUOTE(ETS_MODULE_CLASSPATH_PREFIX) KOALA_QUOTE(KOALA_INTEROP_MODULE));
 #endif
-CustomDeserializer * DeserializerBase::customDeserializers = nullptr;
+#endif
+CustomDeserializer* DeserializerBase::customDeserializers = nullptr;
 
 %CALLBACK_KINDS%
 
