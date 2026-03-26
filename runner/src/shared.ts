@@ -38,3 +38,4 @@ export const ADDITIONAL_FILES = [
 ]
 export const SCRAPER_CWD = join(WORKING_DIR, 'scraper')
 export const CONFIG_RESULT_DIR = join(WORKING_DIR, 'configs')
+export const RESPONSE_FILE_DIR = join(WORKING_DIR, 'response-files')

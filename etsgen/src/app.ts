@@ -17,7 +17,8 @@ import {
     findVersion,
     formatInputPaths,
     scanInputDirs,
-    validatePaths
+    validatePaths,
+    expandResponseFile
 } from "@idlizer/core"
 import { generateFromSts } from "./generate"
 import { join, resolve } from "node:path"
@@ -49,18 +50,30 @@ export function etsgen(argv:string[]) {
     }
 
     const { baseDirs, inputDirs, auxInputDirs, inputFiles, auxInputFiles } = formatInputPaths(options)
+
+    // Expand response file if present (for large file lists)
+    const expandedInputFiles = inputFiles.length === 1 && inputFiles[0].startsWith('@')
+        ? expandResponseFile(inputFiles[0].slice(1))
+        : inputFiles
+    const expandedAuxInputFiles = auxInputFiles.length === 1 && auxInputFiles[0].startsWith('@')
+        ? expandResponseFile(auxInputFiles[0].slice(1))
+        : auxInputFiles
+
     validatePaths(baseDirs, "dir")
     validatePaths(inputDirs, "dir")
     validatePaths(auxInputDirs, "dir")
-    validatePaths(inputFiles, "file")
-    validatePaths(auxInputFiles, "file")
+    validatePaths(expandedInputFiles, "file")
+    validatePaths(expandedAuxInputFiles, "file")
 
-    const detsInputFiles = scanInputDirs(inputDirs, (it) => it.endsWith("d.ets"), true).concat(inputFiles)
+    const detsInputFiles = scanInputDirs(inputDirs, (it) => it.endsWith("d.ets"), true).concat(expandedInputFiles)
 
     if (options.ets2idl) {
         const { inputDirs, inputFiles } = formatInputPaths(options)
+        const expandedInputFiles = inputFiles.length === 1 && inputFiles[0].startsWith('@')
+            ? expandResponseFile(inputFiles[0].slice(1))
+            : inputFiles
         validatePaths(inputDirs, 'dir')
-        validatePaths(inputFiles, 'file')
+        validatePaths(expandedInputFiles, 'file')
         generateFromSts({
             inputFiles: detsInputFiles.map(it => resolveSymlinks(resolve(it))),
             baseDir: resolveSymlinks(resolve(options.baseDir)),

@@ -16,7 +16,7 @@
 import { execSync } from "child_process"
 import { readdirSync, readFileSync, statSync } from "fs"
 import { writeFileSync } from "node:fs"
-import { join, resolve } from "node:path"
+import * as path from "node:path"
 
 type RecursiveStrings = string | RecursiveStrings[]
 export function flat(xs:RecursiveStrings): string[] {
@@ -34,7 +34,7 @@ export function over<T>(x:T|undefined, f:(x:T) => string[]): string[] {
 
 export function scan(dir:string): string[] {
     return statSync(dir).isDirectory()
-        ? readdirSync(dir).flatMap(file => scan(join(dir, file)))
+        ? readdirSync(dir).flatMap(file => scan(path.join(dir, file)))
         : [dir]
 }
 
@@ -47,10 +47,12 @@ export function run(runner:(ctx:RunContext) => void) {
     let cwd = process.cwd()
     runner({
         exec: (command) => {
-            execSync(flat(command).join(' '), { cwd, stdio: 'inherit' })
+            const flatArgs = flat(command)
+            execSync(flatArgs.join(' '), { cwd, stdio: 'inherit' })
         },
         query: (command) => {
-            return execSync(flat(command).join(' '), { cwd }).toString('utf-8')
+            const flatArgs = flat(command)
+            return execSync(flatArgs.join(' '), { cwd }).toString('utf-8')
         },
         cd: (dir) => {
             cwd = dir
@@ -58,9 +60,9 @@ export function run(runner:(ctx:RunContext) => void) {
     })
 }
 
-const TEMPLATE_DIR = resolve(__dirname, '..', 'template')
+const TEMPLATE_DIR = path.resolve(__dirname, '..', 'template')
 export function installTemplate(name:string, installPath:string, replacements:Map<string, string>) {
-    let content = readFileSync(join(TEMPLATE_DIR, name + '.template'), 'utf-8')
+    let content = readFileSync(path.join(TEMPLATE_DIR, name + '.template'), 'utf-8')
     replacements.forEach((val, key) => {
         content = content.replaceAll('%' + key + '%', val)
     })

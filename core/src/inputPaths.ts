@@ -15,6 +15,50 @@
 
 import * as fs from "fs"
 import * as path from "path"
+import * as os from "os"
+
+const RESPONSE_FILE_THRESHOLD = 128 * 1024 // 128KB conservative threshold
+
+/**
+ * Check if command line arguments exceed the threshold for response files
+ */
+export function needsResponseFile(args: string[]): boolean {
+  return args.join(' ').length > RESPONSE_FILE_THRESHOLD
+}
+
+/**
+ * Write file list to a temporary response file.
+ * Files with newlines in paths will throw an error (newline is used as delimiter).
+ * @param files - list of file paths to write
+ * @param outputDir - optional directory to create response file in; defaults to OS temp dir
+ * @returns path to the response file
+ */
+export function createResponseFile(files: string[], outputDir?: string): string {
+  // Check for newlines in paths - they would corrupt the response file format
+  for (const file of files) {
+    if (file.includes('\n')) {
+      throw new Error(`File path contains newline character which is not supported: ${file}`)
+    }
+  }
+
+  const baseDir = outputDir ?? os.tmpdir()
+  if (!fs.existsSync(baseDir)) {
+    fs.mkdirSync(baseDir, { recursive: true })
+  }
+  const tempDir = fs.mkdtempSync(path.join(baseDir, 'idlize-input-'))
+  const responseFile = path.join(tempDir, 'files.txt')
+  fs.writeFileSync(responseFile, files.join('\n'), 'utf-8')
+  // Return absolute path so it works regardless of subprocess working directory
+  return path.resolve(responseFile)
+}
+
+/**
+ * Read file list from a response file
+ */
+export function expandResponseFile(filepath: string): string[] {
+  const content = fs.readFileSync(filepath, 'utf-8')
+  return content.split('\n').filter(Boolean)
+}
 
 function processInputOption(option: string | string[] | undefined): string[] {
     if (typeof option === 'undefined') {

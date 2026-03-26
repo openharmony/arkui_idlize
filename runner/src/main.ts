@@ -15,7 +15,7 @@
 
 import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { Command } from "commander"
-import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CWD, WORKING_DIR } from "./shared"
+import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CWD, WORKING_DIR, RESPONSE_FILE_DIR } from "./shared"
 import { commands } from "./commands"
 import { join, resolve } from "node:path"
 import { transformBuilderFunctions } from "./tools/builderFuncsTransformer"
@@ -32,6 +32,7 @@ function setup() {
     mkdirSync(WORKING_DIR, { recursive: true })
     mkdirSync(GENERATED_IDL_DIR, { recursive: true })
     mkdirSync(GENERATED_PEER_DIR, { recursive: true })
+    mkdirSync(RESPONSE_FILE_DIR, { recursive: true })
 }
 
 ///
@@ -68,7 +69,7 @@ function sdk2idl(sdkPath: string, options: PrepareSdkOptions): Ets2IdlResult {
                 etsgen: options.etsgen,
                 sdkPath,
                 arktsConfigPath: configPath,
-                optionsFile: options.etsgenOptionsFile
+                optionsFile: options.etsgenOptionsFile,
             }).idlPaths
         }
         case "idl": {
@@ -96,7 +97,7 @@ function m3(sdkPath: string, idlFiles: string[], options: ArkgenOptions) {
         optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
         idlPaths: [scrapedIDLs, ...idlFiles],
         interopTypes: options.arkgenInteropTypes,
-        noDummyImpl: !options.arkgenDummyImpl
+        noDummyImpl: !options.arkgenDummyImpl,
     })
 
     if (formatArkts({

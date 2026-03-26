@@ -29,6 +29,7 @@ import {
     nullsTransformer,
     transformOnSerializeTransformer,
     genericsTransformer,
+    expandResponseFile,
 } from "@idlizer/core"
 import {
     getFQName,
@@ -146,9 +147,14 @@ export function arkgen(argv:string[]) {
         const language = Language.fromString(options.language ?? "ts")
         const { inputFiles, inputDirs } = formatInputPaths(options)
 
+        // Expand response file if present (for large file lists)
+        const expandedInputFiles = inputFiles.length === 1 && inputFiles[0].startsWith('@')
+            ? expandResponseFile(inputFiles[0].slice(1))
+            : inputFiles
+
         let files: IDLFile[] = []
         const allInputFiles = scanInputDirs(inputDirs)
-            .concat(inputFiles)
+            .concat(expandedInputFiles)
             .concat(libohosPredefinedFiles())
             .concat(options.implicitPredefined ? readLibrary("arkuiExtra") : [])
         const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
