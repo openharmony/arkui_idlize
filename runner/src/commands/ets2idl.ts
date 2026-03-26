@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { flat, over, run, scan } from "../utils"
+import { over, run, scan } from "../utils"
 import { join } from "node:path"
-import { GENERATED_IDL_DIR } from "../shared"
-import { execSync } from "node:child_process"
+import { GENERATED_IDL_DIR, RESPONSE_FILE_DIR } from "../shared"
+import { createResponseFile } from "@idlizer/core"
 
 export interface Ets2IdlConfig {
     etsgen: string
@@ -26,7 +26,7 @@ export interface Ets2IdlConfig {
     traceStatus?: string
 }
 export interface Ets2IdlResult {
-    idlPaths:string
+    idlPaths: string
 }
 export function ets2idl({
     etsgen,
@@ -34,15 +34,17 @@ export function ets2idl({
     optionsFile,
     arktsConfigPath,
     traceStatus,
-}: Ets2IdlConfig):Ets2IdlResult {
+}: Ets2IdlConfig): Ets2IdlResult {
     const sdkApiPath = join(sdkPath, 'api')
     const files = scan(sdkApiPath).filter(it => it.endsWith(".d.ets"))
+    // Create response file to avoid passing huge array through command line
+    const responseFile = createResponseFile(files, RESPONSE_FILE_DIR)
     run(context => context.exec([
         etsgen,
         '--ets2idl',
         ['--output-dir', GENERATED_IDL_DIR],
         ['--base-dir', sdkApiPath],
-        ['--input-files', files],
+        ['--input-files', `@${responseFile}`],
         over(arktsConfigPath, path => ['--ets-config', path]),
         over(traceStatus, st => ['--trace-status', st]),
         ['--ignore-default-config'],

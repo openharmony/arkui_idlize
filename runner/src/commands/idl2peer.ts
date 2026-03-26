@@ -14,10 +14,11 @@
  */
 
 import { libraries as predefs } from "@idlizer/interfaces"
-import { GENERATED_PEER_DIR } from "../shared"
-import { flat, scan, over, run } from "../utils"
+import { GENERATED_PEER_DIR, RESPONSE_FILE_DIR } from "../shared"
+import { scan, over, run } from "../utils"
 import { basename, join, parse } from "node:path"
 import { writeFileSync } from "node:fs"
+import { createResponseFile } from "@idlizer/core"
 
 export interface Idl2PeerConfig {
     target: string
@@ -72,11 +73,14 @@ export function idl2peer({
         arkgenTarget = 'all'
     }
 
+    // Create response file to avoid passing huge file list to exec
+    const responseFile = createResponseFile(idlFiles, RESPONSE_FILE_DIR)
+
     run(context => context.exec([
         arkgen,
         '--idl2peer',
         ['--reference-names', 'ets'],
-        ['--input-files', flat(idlFiles).join(",")],
+        ['--input-files', `@${responseFile}`],
         ['--output-dir', GENERATED_PEER_DIR],
         ['--generator-target', arkgenTarget],
         ['--language', language],
@@ -85,7 +89,7 @@ export function idl2peer({
         '--no-component-named-overloads',
         '--no-implicit-predefined',
         ['--arkts-extension', '.ets'],
-        optionsFiles ? [`--options-file`, optionsFiles] : [],
+        optionsFiles ? ['--options-file', optionsFiles] : [],
         optionsFiles ? ['--ignore-default-config'] : [],
         ['--interop-types', interopTypes],
         over(trackerStatus, st => ['--tracker-status', st]),
@@ -106,14 +110,18 @@ export function idl2ohos({
         ...scan(idlPath),
         ...scan(predefs.arkuiExtra)
     ]
+
+    // Create response file to avoid passing huge file list to exec
+    const responseFile = createResponseFile(idlFiles, RESPONSE_FILE_DIR)
+
     run(context => context.exec([
         ohosgen,
         '--idl2peer',
-        ['--input-files', flat(idlFiles).join(",")],
+        ['--input-files', `@${responseFile}`],
         ['--output-dir', GENERATED_PEER_DIR],
         ['--language', language],
         ['--arkts-extension', '.ets'],
-        optionsFile ? [`--options-file`, optionsFile] : [],
+        optionsFile ? ['--options-file', optionsFile] : [],
     ]))
     writeArktsConfig()
     return {
