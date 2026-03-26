@@ -73,7 +73,9 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                         body: [Builders.return().cast(Ts.prim.pointer).value('SyncCallManaged' + it).$().$()]
                     }})).$()
                 .return().value('nullptr').$().$().$()
-        const deserializeCaller = Builders.func(bridgeName('deserializeAndCallCallback'))
+        const deserializeCallers = ['', 'Sync'].map(sync =>
+            Builders.func(bridgeName(`deserializeAndCallCallback${sync}`))
+            .parameters(sync ? [{ name: 'vmContext', type: T.c(cApiName('VMContext')) }] : [])
             .param('kind').type(Ts.prim.i32).$()
             .param('thisArray').type(Ts.prim.serializerBuffer).$()
             .param(`thisLength`).type(Ts.prim.i32).$()
@@ -83,14 +85,20 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                     .cases(callbacks.map(it => { return {
                         value: E.c(`CALLBACK_KIND_${it.toUpperCase()}`),
                         body: [
-                            Builders.return().call(E.v('deserializeAndCall' + it, [Hs.isType()]))
-                                .arg('thisArray').arg('thisLength').$().$()
-                        ]
-                    }})).$().$().$()
+                            Builders.return().call(E.v(`deserializeAndCall${sync}` + it, [Hs.isType()]))
+                                .args(sync ? [Builders.expr().const(`vmContext`).$()] : [])
+                                .arg('thisArray')
+                                .arg('thisLength').$().$()
+                            ]
+                    }})).$().$()
             // Improve: throw new Error('Unknown callback kind')
-        decls.push(callbackKindEnum, caller, syncCaller, deserializeCaller);
+            .macro('KOALA_EXECUTE', `deserializeAndCallCallback${sync}`,
+                Builders.call(`SetCallbackCaller${sync}`)
+                    .arg(generatorConfiguration().ApiKind)
+                    .arg().cast(T.c(`Callback_Caller${sync ? `_${sync}` : ''}_t`)).static().value(`deserializeAndCallCallback${sync}`).$().$().$()).$()
+            )
+        decls.push(callbackKindEnum, caller, syncCaller, ...deserializeCallers);
     }
-    // Improve: Implement callback caller introduction
     return decls;
 }
 

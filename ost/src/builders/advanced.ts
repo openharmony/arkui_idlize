@@ -1718,7 +1718,7 @@ class FunctionBuilder<P> {
      * @param args - Macro arguments (strings or types)
      * @returns This builder for chaining
      */
-    macro(name: string, ...args: (string | LWType)[]) {
+    macro(name: string, ...args: (string | LWExpression | LWType)[]) {
         const annotation: MacroInvocation = {
             kind: DecoratorKind.MacroInvocation,
             name,
