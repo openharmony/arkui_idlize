@@ -73,7 +73,22 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                         body: [Builders.return().cast(Ts.prim.pointer).value('SyncCallManaged' + it).$().$()]
                     }})).$()
                 .return().value('nullptr').$().$().$()
-        decls.push(callbackKindEnum, caller, syncCaller);
+        const deserializeCaller = Builders.func(bridgeName('deserializeAndCallCallback'))
+            .param('kind').type(Ts.prim.i32).$()
+            .param('thisArray').type(Ts.prim.serializerBuffer).$()
+            .param(`thisLength`).type(Ts.prim.i32).$()
+            .block()
+                .switch()
+                    .selector().cast(T.c('CallbackKind')).static().value('kind').$().$()
+                    .cases(callbacks.map(it => { return {
+                        value: E.c(`CALLBACK_KIND_${it.toUpperCase()}`),
+                        body: [
+                            Builders.return().call(E.v('deserializeAndCall' + it, [Hs.isType()]))
+                                .arg('thisArray').arg('thisLength').$().$()
+                        ]
+                    }})).$().$().$()
+            // Improve: throw new Error('Unknown callback kind')
+        decls.push(callbackKindEnum, caller, syncCaller, deserializeCaller);
     }
     // Improve: Implement callback caller introduction
     return decls;
