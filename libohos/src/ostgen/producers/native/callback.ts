@@ -38,6 +38,7 @@ export const callbackProducer = createProducer(
       continuation = expectType(ctx, callbackContinuation!, `capi`)
       continuationParams.push({ name: 'continuation', type: Ts.const(continuation) })
     }
+    const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), true))
     const readCall: (sync: boolean, params: { name: string, type: lw.LWType}[], callbackName: string) => lw.LWExpression
       = (sync, params, callbackName) => {
       return Builders.cast(T.fn(params.map(({ name, type }) => [name, type]), Ts.prim.void))
@@ -103,32 +104,26 @@ export const callbackProducer = createProducer(
               .decl('deserializer', T.c('DeserializerBase')).mutable().value()
                 .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
               .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
-            .statements(sync ? [Builders.stmt().call('readPointer').receiver('deserializer').$().$()] : [])
-            .decl(`call${sync}`).value(readCall(false, (sync ? syncParams : asyncParams).concat(continuationParams), callback.name)).$()
-            .statements(sync ? [] : [Builders.stmt().call('readPointer').receiver('deserializer').$().$()])
-              .statements(
-                callbackParams.map(({ name, type }) =>
-                  // TBD: Update read type name
-                  // TBD: Process const const declaration for const params to avoid the mutable hint
-                  Builders.decl(name).type(type).mutable().value().call(`readInt32`).receiver('deserializer').$().$().$()),
-              )
-            .statements([
-              continuation
-                ? Builders.decl('continuationResult').type(continuation)
-                  .value().ctor().asStruct()
-                  .arg().call('readCallbackResource').receiver('deserializer').$().$()
-                  .arg(readCall(false, asyncParams, continuationName!))
-                  .arg(readCall(true, syncParams, continuationName!))
-                  .$().$().$()
-                : Builders.none().$()
-            ])
-            .call(`call${sync}`)
-              .args(sync ? [Builders.expr().const('vmContext').$()] : [])
-              .arg(`resourceId`)
-              //.args(concat(callbackParams, continuation ? [{name: 'continuationResult', type: continuation}] : [])
-              .args(callbackParams.concat(continuation ? [{name: 'continuationResult', type: continuation}] : [])
-                .map(it => Builders.expr().const(it.name).$()))
-            .$().$().$()
+              .statements(sync ? [Builders.stmt().call('readPointer').receiver('deserializer').$().$()] : [])
+              .decl(`call${sync}`).value(readCall(false, (sync ? syncParams : asyncParams).concat(continuationParams), callback.name)).$()
+              .statements(sync ? [] : [Builders.stmt().call('readPointer').receiver('deserializer').$().$()])
+              .statements(reads.flatMap(it => it[0]))
+              .statements([
+                continuation
+                  ? Builders.decl('continuationResult').type(continuation)
+                    .value().ctor().asStruct()
+                    .arg().call('readCallbackResource').receiver('deserializer').$().$()
+                    .arg(readCall(false, asyncParams, continuationName!))
+                    .arg(readCall(true, syncParams, continuationName!))
+                    .$().$().$()
+                  : Builders.none().$()
+              ])
+              .call(`call${sync}`)
+                .args(sync ? [Builders.expr().const('vmContext').$()] : [])
+                .arg(`resourceId`)
+                .args(callbackParams.concat(continuation ? [{name: 'continuationResult', type: continuation}] : [])
+                  .map(it => Builders.expr().const(it.name).$()))
+              .$().$().$()
           )
       ]
     }
