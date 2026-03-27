@@ -11,6 +11,7 @@ import {
 export {
     OSTIntEnum,
     checkOSTIntEnum,
+    getCallbackBooleanIntString,
 } from '../../generated/arkts'
 
 export {

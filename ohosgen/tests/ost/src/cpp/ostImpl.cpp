@@ -70,7 +70,7 @@ OH_UNIT_OST_Array_Int32 ost_sequences_getOSTSequenceIntImpl()
 
 // Callback
 
-static OH_UNIT_OST_CallbackResource CALLBACKs_RESOURCE_IMPL = {
+static OH_UNIT_OST_CallbackResource CALLBACK_RESOURCE = {
     .resourceId = 0,
     .hold = [](const OH_Int32 resourceId) -> void {},
     .release = [](const OH_Int32 resourceId) -> void {}
@@ -78,9 +78,8 @@ static OH_UNIT_OST_CallbackResource CALLBACKs_RESOURCE_IMPL = {
 
 OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntIntImpl()
 {
-
     return {
-        .resource=CALLBACKs_RESOURCE_IMPL,
+        .resource=CALLBACK_RESOURCE,
         .call=[](const OH_Int32 resourceId, const OH_Int32 x, const OH_UNIT_OST_Callback_I32_Void continuation)
         {
             continuation.call(continuation.resource.resourceId, 3 * x);
@@ -94,12 +93,10 @@ OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntIntImpl()
 
 OH_UNIT_OST_Callback_Boolean_I32_String ost_callbacks_getCallbackBooleanIntStringImpl()
 {
-
     return {
-        .resource=CALLBACKs_RESOURCE_IMPL,
+        .resource=CALLBACK_RESOURCE,
         .call=[](const OH_Int32 resourceId, const OH_Boolean b, const OH_Int32 v, const OH_UNIT_OST_Callback_String_Void continuation)
         {
-
             char value[11];
             sprintf(value,"%d", b ? v * 5 : v + 5);
             OH_String result = {.chars = value, .length = string_len(value)};

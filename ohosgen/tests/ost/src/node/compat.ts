@@ -14,6 +14,7 @@ export {
 export {
     //getOSTPromise,
     getCallbackIntInt,
+    getCallbackBooleanIntString,
 } from '../../generated/ts'
 
 export type OHBuffer = ArrayBuffer
