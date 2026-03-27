@@ -1701,6 +1701,19 @@ class IDLVisitor extends arkts.AbstractVisitor {
             // convert components methods to attributes
             for (const component of components) {
                 const newShapeBuilderMethods: idl.IDLMethod[] = []
+                component.attributeDeclaration.methods = component.attributeDeclaration.methods.map(method => {
+                    if (method.typeParameters?.length ?? 0 > 0) {
+                        method = idl.clone(method)
+                        idl.updateEachChild(method, node => {
+                            if (idl.isTypeParameterType(node)) {
+                                return idl.createPrimitiveType('Object')
+                            }
+                            return node
+                        })
+                        method.typeParameters = undefined
+                    }
+                    return method
+                })
                 component.attributeDeclaration.methods = component.attributeDeclaration.methods.filter(method => {
                     if (this.isNewShapeBuilderMethod(method, component.attributeDeclaration.name)) {
                         newShapeBuilderMethods.push(method)
