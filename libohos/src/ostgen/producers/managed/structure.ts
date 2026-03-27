@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { Builders, E, Hs, Md, T, Ts } from "@idlizer/ost"
 import { expectType, managedName } from "../common.js"
 import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
-import { capitalize, getSuperType, isDefined, isInExternalModule, isMaterialized } from "@idlizer/core"
+import { capitalize, getInitializerDefaultValue, getSuperType, isDefined, isInExternalModule, isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine/index.js"
 import { ProducerResult } from "@idlizer/kit"
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
@@ -57,7 +57,10 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
             ...prop.isReadonly ? [Md.readonly()] : [],
             ...prop.isStatic ? [Md.static()] : [],
           ]
-          return Builders.field(prop.name).type(expectType(ctx, prop.type, 'managed')).modifiers(modifiers).$()
+          const field = Builders.field(prop.name).type(expectType(ctx, prop.type, 'managed')).modifiers(modifiers)
+          if (idl.isClassSubkind(node))
+            field.value(getInitializerDefaultValue(prop, ctx.library.language))
+          return field.$()
         }))
         .kind(idl.isClassSubkind(node) ? 'class' : 'interface')
         .extends(superType ? expectType(ctx, superType, 'managed') : undefined).$()

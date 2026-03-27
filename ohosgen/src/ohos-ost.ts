@@ -114,6 +114,7 @@ function defaultImports(): ImportsCollector {
         'loadNativeModuleLibrary', 'registerApiEventHandler',
         'InteropNativeModule', 'resourceFinalizerRegister',
     ], '@koalaui/interop')
+    imports.addFeature('initializers', '#handwritten')
     return imports
 }
 
