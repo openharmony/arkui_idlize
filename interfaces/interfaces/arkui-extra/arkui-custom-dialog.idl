@@ -61,6 +61,7 @@ interface PromptActionExtender {
 [Entity=Class]
 interface AlertDialog {
   static void show((AlertDialogParamWithConfirm or AlertDialogParamWithButtons or AlertDialogParamWithOptions) options);
+  static async void showWithPromise((AlertDialogParamWithConfirm or AlertDialogParamWithButtons or AlertDialogParamWithOptions) options);
 };
 
 [Entity=Class]
@@ -77,6 +78,7 @@ interface LevelOrderExtender {
 [Entity=Class]
 interface ActionSheet {
   static void show(ActionSheetOptions options);
+  static async void showWithPromise(ActionSheetOptions options);
 };
 
 [Synthetic]
