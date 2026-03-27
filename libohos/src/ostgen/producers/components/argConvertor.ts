@@ -179,41 +179,48 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
 }
 
 class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
+    private arity: number
     constructor(ctx: OhosProducerContext, protected decl: idl.IDLEnum) {
-        super(ctx, decl.elements[0]?.type ?? idl.createPrimitiveType('i32'))
+        const isLong = (n: number) => n >= 0x7FFFFFFF || n < -0x80000000
+        const elementType = decl.elements[0]?.type
+        const enumType: idl.IDLPrimitiveType['name'] =
+            elementType.name === 'String'
+                ? 'String'
+                : decl.elements.some(it => typeof it.initializer === 'number' && isLong(it.initializer))
+                    ? 'i64' : 'i32'
+        super(ctx, idl.createPrimitiveType(enumType))
+        this.arity = enumType === 'i64' ? 64 : 32
     }
     interopType(native: boolean): lw.LWType {
-        return this.type.name === 'String' && !native ? Ts.prim.str : Ts.prim.i32
+        return this.type.name === 'i64' ? Ts.prim.i64 : Ts.prim.i32
     }
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
-        return [Builders.return()
-            .call("fromValue").receiver(this.decl.name).arg().var(resultVarName).$().$().$()]
+        return [Builders.return().value(this.valueToEnum(E.v(resultVarName))).$()]
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         const enumValue = native
             ? accessor
-            : Builders.call('valueOf').receiver(accessor).$()
+            : Builders.call(this.type.name === 'String' ? 'getOrdinal' : 'valueOf').receiver(accessor).$()
         return [
-            Builders.expr().call('write' + this.elementTypeName())
-                .receiver(serializerName)
-                .arg(enumValue).$().$stmt()
+            Builders.stmt().call('writeInt' + this.arity).receiver(serializerName).arg(enumValue).$().$()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const readExpr = Builders.call('readInt' + this.arity).receiver(serializerName).$()
         return [
             [native
-                ? Builders.decl(name)
-                    .value().cast(expectType(this.ctx, this.decl, 'capi')).static()
-                      .value().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()
-                : Builders.decl(name)
-                    .value().call('fromValue').receiver(typeNameExpr(this.type.name))
-                        .arg().call('read' + this.elementTypeName()).receiver(serializerName).$().$().$().$().$()
+                ? Builders.decl(name).value()
+                    .cast(expectType(this.ctx, this.decl, 'capi')).static().value(readExpr).$().$().$()
+                : Builders.decl(name).value(this.valueToEnum(readExpr)).$()
             ],
             E.v(name)
         ]
     }
-    elementTypeName(): string {
-        return this.type.name === 'String' ? 'String' : 'Int32'
+    private valueToEnum(valueExpr: LWExpression): LWExpression {
+        const enumTypeNameExpr = E.type(expectType(this.ctx, this.decl, 'managed'))
+        return this.type.name === 'String'
+            ? Builders.access(valueExpr).receiver().call('values').receiver(enumTypeNameExpr).$().$().$()
+            : Builders.call('fromValue').receiver(enumTypeNameExpr).arg(valueExpr).$()
     }
 }
 
