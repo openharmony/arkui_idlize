@@ -28,17 +28,19 @@ export const callbackProducer = createProducer(
     const vmContextParam = {name: 'vmContext', type: T.c(cApiName('VMContext'))}
     const resourceIdParam = {name: 'resourceId', type: Ts.const(Ts.prim.i32)}
     const asyncParams = [resourceIdParam, ...callbackParams]
-    const syncParams = [vmContextParam, ...asyncParams]
     let continuation: lw.LWType | undefined
     let continuationName: string | undefined
-    const continuationParams: {name: string, type: lw.LWType}[] = []
+    const continuationReturnParams: {name: string, type: lw.LWType} [] = []
     if (!idl.isVoidType(callback.returnType)) {
       const ref = ctx.library.createContinuationCallbackReference(callback.returnType)!
       let callbackContinuation = ctx.library.resolveTypeReference(ref)
       continuationName = callbackContinuation!.name
       continuation = expectType(ctx, callbackContinuation!, `capi`)
-      continuationParams.push({ name: 'continuation', type: Ts.const(continuation) })
+      asyncParams.push({ name: 'continuation', type: Ts.const(continuation) })
+      continuationReturnParams.push(resourceIdParam)
+      continuationReturnParams.push({name: 'value', type: expectType(ctx, callback.returnType, 'capi')})
     }
+    const syncParams = [vmContextParam, ...asyncParams]
     const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), true))
     const readCall: (sync: boolean, params: { name: string, type: lw.LWType}[], callbackName: string) => lw.LWExpression
       = (sync, params, callbackName) => {
@@ -55,13 +57,13 @@ export const callbackProducer = createProducer(
         Builders.struct(generatedDeclName)
           .field('resource').type(T.c(cApiName('CallbackResource'))).$()
           .field('call').funcType()
-              .parameters(asyncParams.concat(continuationParams).map(({name, type}) => [name, type]))
+              .parameters(asyncParams.map(({name, type}) => [name, type]))
               .returns(Ts.prim.void).$().$()
           .field('callSync').funcType()
-              .parameters(syncParams.concat(continuationParams).map(({name, type}) => [name, type]))
+              .parameters(syncParams.map(({name, type}) => [name, type]))
               .returns(Ts.prim.void).$().$().$(),
         Builders.func(bridgeName(`CallManaged${callback.name}`))
-          .parameters(asyncParams.concat(continuationParams))
+          .parameters(asyncParams)
           .block()
             .decl('callbackBuffer', T.c('CallbackBuffer')).mutable().value()
               .ctor().asStruct().arg('{}').arg('{}').$().$().$()
@@ -81,7 +83,7 @@ export const callbackProducer = createProducer(
             .statements(callbackParamWrites)
             .call('enqueueCallback').arg('0').arg().unary(Op.ref).value('callbackBuffer').$().$().$().$().$(),
         Builders.func(bridgeName(`SyncCallManaged${callback.name}`))
-          .parameters(syncParams.concat(continuationParams))
+          .parameters(syncParams)
           .block()
             .decl('argsSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().arg('nullptr').$().$().$()
             .call('writeInt32').receiver('argsSerializer').arg('0').$()
@@ -106,7 +108,7 @@ export const callbackProducer = createProducer(
                 .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
               .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
               .statements(sync ? [Builders.stmt().call('readPointer').receiver('deserializer').$().$()] : [])
-              .decl(`call${sync}`).value(readCall(false, (sync ? syncParams : asyncParams).concat(continuationParams), callback.name)).$()
+              .decl(`call${sync}`).value(readCall(false, sync ? syncParams : asyncParams, callback.name)).$()
               .statements(sync ? [] : [Builders.stmt().call('readPointer').receiver('deserializer').$().$()])
               .statements(reads.flatMap(it => it[0]))
               .statements([
@@ -114,8 +116,8 @@ export const callbackProducer = createProducer(
                   ? Builders.decl('continuationResult').type(continuation)
                     .value().ctor().asStruct()
                     .arg().call('readCallbackResource').receiver('deserializer').$().$()
-                    .arg(readCall(false, [resourceIdParam, {name: 'value', type: expectType(ctx, callback.returnType, 'capi')}], continuationName!))
-                    .arg(readCall(true, [vmContextParam, resourceIdParam, {name: 'value', type: expectType(ctx, callback.returnType, 'capi')}], continuationName!))
+                    .arg(readCall(false, continuationReturnParams, continuationName!))
+                    .arg(readCall(true, [vmContextParam, ...continuationReturnParams], continuationName!))
                     .$().$().$()
                   : Builders.none().$()
               ])
