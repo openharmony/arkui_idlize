@@ -36,6 +36,7 @@ import {
     IDLPointerType,
     IDLStringType,
     IDLVoidType,
+    toCamelCase,
 } from '@idlizer/core'
 import {
     ImportsCollector,
@@ -187,7 +188,7 @@ class PeerFileVisitor {
 
     protected printPeer(peer: PeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
-            writer.print(`attributeSet?: ${peer.componentName}Modifier;`)
+            writer.print(`${toCamelCase(peer.componentName)}AttributeSet?: ${peer.componentName}Modifier;`)
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])
