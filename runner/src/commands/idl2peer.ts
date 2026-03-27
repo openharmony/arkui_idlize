@@ -65,6 +65,9 @@ export function idl2peer({
     if (target === 'tracker') {
         arkgenTarget = 'tracker'
     }
+    if (target === 'all') {
+        arkgenTarget = 'all'
+    }
 
     run(context => context.exec([
         arkgen,
