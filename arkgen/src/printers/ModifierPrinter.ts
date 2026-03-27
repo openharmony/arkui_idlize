@@ -62,6 +62,7 @@ function isOptionalType(type: idl.IDLType): boolean {
 }
 
 interface AttributeType {
+    peer: PeerClass;
     method: PeerMethod;
     args: string[];
     argTypes: idl.IDLType[];
@@ -136,15 +137,23 @@ class ModifiersFileVisitor {
         return `${name}Optimizer`
     }
 
+    generateAddrName(peer: PeerClass) {
+        return `_${peer.componentName}_addr`
+    }
+
+    generateFilledFlagName(peer: PeerClass) {
+        return `_${peer.componentName}_flagArray`
+    }
+
     generateFiledName(attribute: AttributeType, subfix: string = ''): string {
-        return `_${attribute.method.method.name}_${attribute.overloadIndex.toString()}_${subfix}value`
+        return `_${attribute.peer.componentName}_${attribute.method.method.name}_${attribute.overloadIndex.toString()}_${subfix}value`
     }
 
     generateFiledFlag(attribute: AttributeType, index: number, isLocal: boolean = false): string {
         if (isLocal) {
             return `flagArray[${index}]`
         }
-        return `this._flagArray[${index}]`
+        return `this.${this.generateFilledFlagName(attribute.peer)}[${index}]`
     }
 
     castResetType(writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
@@ -295,7 +304,7 @@ class ModifiersFileVisitor {
                 if (overloadCounter.has(functionName) && collectDepth > 1) return;
                 if (overloadCounter.has(functionName)) v = overloadCounter.get(functionName)! + 1;
                 overloadCounter.set(functionName, v)
-                attributeTypes.push({ method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
+                attributeTypes.push({ peer: currentPeer!, method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
             })
             if (!needCollect) {
                 break;
@@ -343,7 +352,7 @@ class ModifiersFileVisitor {
                 if (parentSet) writer.print('super.applyModifierPatch(node)');
                 writer.print(`this._state.addRef()`);
                 writer.print(`const peer = node as ${componentToPeerClass(component.name)};`)
-                writer.print(`const flagArray = this._flagArray;`);
+                writer.print(`const flagArray = this.${this.generateFilledFlagName(peer)};`);
                 for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
                     writer.print(`this.applyModifierPatch${batchIndex}(peer, flagArray);`);
                 }
@@ -436,7 +445,7 @@ class ModifiersFileVisitor {
         {
             if (parentSet) writer.print('super.mergeModifier(modifier)');
             writer.print(`this._state = modifier._state;`);
-            writer.print(`const flagArray = modifier._flagArray;`);
+            writer.print(`const flagArray = modifier.${this.generateFilledFlagName(peer)};`);
             for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
                 writer.print(`this.mergeModifier${batchIndex}(modifier, flagArray);`);
             }
@@ -512,6 +521,14 @@ class ModifiersFileVisitor {
         })
     }
 
+    private hasParent(peer: PeerClass) {
+        const component = findComponentByName(this.library, peer.componentName)
+        if (!component) {
+            throw new Error(`Can not find component with name ${peer.componentName}`)
+        }
+        return getSuper(component.attributeDeclaration, this.library) !== undefined
+    }
+
     printModifiers(peer: PeerClass): PrinterResult[] {
 
         const component = findComponentByName(this.library, peer.componentName)!
@@ -541,29 +558,32 @@ class ModifiersFileVisitor {
             }
 
             printer.writeClass(this.generateAttributeSetName(componentAttribute.name), (writer) => {
-                writer.print("_instanceId: number = -1;")
-                writer.print("_state: ModifierState = new ModifierState;")
-                writer.print(`_addr: ArrayBuffer = new ArrayBuffer(4096);`)
-                writer.print(`private _flagArray: Uint8Array = new Uint8Array(this._addr);`)
+                if (!this.hasParent(peer)) {
+                    writer.print("_instanceId: number = -1;")
+                    writer.print("_state: ModifierState = new ModifierState;")
+                }
+                writer.print(`private ${this.generateAddrName(peer)}: ArrayBuffer = new ArrayBuffer(4096);`)
+                writer.print(`private ${this.generateFilledFlagName(peer)}: Uint8Array = new Uint8Array(this.${this.generateAddrName(peer)});`)
 
                 writer.print(`constructor() {`)
                 writer.pushIndent()
                 if (parentSet) writer.print(`super();`)
-                writer.print(`this._flagArray.fill(0);`)
+                writer.print(`this.${this.generateFilledFlagName(peer)}.fill(0);`)
                 writer.popIndent()
                 writer.print(`}`)
 
-                writer.writeMethodImplementation(new Method(
-                    `setInstanceId`,
-                    new MethodSignature(idl.IDLVoidType, [idl.IDLNumberType], [], [], [], ['instanceId'])),
-                    writer => { 
-                        writer.writeStatement(writer.makeAssign('this._instanceId', undefined, writer.makeString('instanceId'), false))
-                    }
-                )
-
-                writer.print(`isUpdater: () => boolean = () => false`)
+                if (!this.hasParent(peer)) {
+                    writer.writeMethodImplementation(new Method(
+                        `setInstanceId`,
+                        new MethodSignature(idl.IDLVoidType, [idl.IDLNumberType], [], [], [], ['instanceId'])),
+                        writer => { 
+                            writer.writeStatement(writer.makeAssign('this._instanceId', undefined, writer.makeString('instanceId'), false))
+                        }
+                    )
+                }
 
                 if (!this.hasHeirs(peer)) {
+                    writer.print(`isUpdater: () => boolean = () => false`)
                     writer.print(`applyNormalAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
                     writer.print(`applyPressedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
                     writer.print(`applyFocusedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
