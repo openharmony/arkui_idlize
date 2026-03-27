@@ -44,7 +44,6 @@ export const callbackProducer = createProducer(
               .receiver().call('instance').receiver('ResourceHolder').$().$()
               .arg('resourceId').$().$().$().$().$()
             .statements(reads.flatMap(it => it[0]))
-            // callback
             .statements(continuation ? deserializeAndCallCallback('continuation', E.v('deserializer'), ctx, callback) : [])
             .call('call').args(reads.map(it => it[1])).$().$().$(),
             // TBD: workaround to include the continuation to the declaration processing

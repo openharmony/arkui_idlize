@@ -49,6 +49,7 @@ function checkSequence() {
 function checkCallback() {
     const cb = getCallbackInt()
     assertEQ(9, cb(3))
+    assertEQ(15, cb(5))
 }
 
 /*

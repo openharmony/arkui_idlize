@@ -95,7 +95,8 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
             .macro('KOALA_EXECUTE', `deserializeAndCallCallback${sync}`,
                 Builders.call(`SetCallbackCaller${sync}`)
                     .arg(generatorConfiguration().ApiKind)
-                    .arg().cast(T.c(`Callback_Caller${sync ? `_${sync}` : ''}_t`)).static().value(`deserializeAndCallCallback${sync}`).$().$().$()).$()
+                    .arg().cast(T.c(`Callback_Caller${sync ? `_${sync}` : ''}_t`)).static()
+                        .value(`deserializeAndCallCallback${sync}`).$().$().$()).$()
             )
         decls.push(callbackKindEnum, caller, syncCaller, ...deserializeCallers);
     }
@@ -144,6 +145,7 @@ class GenericMonomorphizer extends IdentityTransformer {
                 { name: 'array', type: Ts.ptr(T.c('T')) }
             ])
         )
+        // TBD: define Promise struct
         this.index.set(
             std.names.types.promise,
             DD({ generics: [{ name: 'T' }] }).struct('synthetic.mono.Promise', [

@@ -65,23 +65,23 @@ OH_UNIT_OST_Array_Int32 ost_sequences_getOSTSequenceIntImpl()
 
 // Callback
 
+static OH_UNIT_OST_CallbackResource CALLBACKs_RESOURCE_IMPL = {
+    .resourceId = 0,
+    .hold = [](const OH_Int32 resourceId) -> void {},
+    .release = [](const OH_Int32 resourceId) -> void {}
+};
+
 OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntImpl()
 {
-    printf("[Native] call ost_callbacks_getCallbackIntImpl()\n");
-
-    OH_UNIT_OST_CallbackResource CALLBACKs_RESOURCE_IMPL = {
-        .resourceId=0,
-        .hold=[](const OH_Int32 resourceId) -> void {},
-        .release=[](const OH_Int32 resourceId) -> void {}
-    };
 
     return {
         .resource=CALLBACKs_RESOURCE_IMPL,
-        .call=[](const OH_Int32 resourceId, const OH_Int32 x, const OH_UNIT_OST_Callback_I32_Void continuation) {
-            printf("[Native] call native callback\n");
+        .call=[](const OH_Int32 resourceId, const OH_Int32 x, const OH_UNIT_OST_Callback_I32_Void continuation)
+        {
+            continuation.call(continuation.resource.resourceId, 3 * x);
         },
-        .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_Int32 x, const OH_UNIT_OST_Callback_I32_Void continuation) {
-            printf("[Native] callSync native callback\n");
+        .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_Int32 x, const OH_UNIT_OST_Callback_I32_Void continuation)
+        {
             continuation.callSync(vmContext, continuation.resource.resourceId, 3 * x);
         }
     };
