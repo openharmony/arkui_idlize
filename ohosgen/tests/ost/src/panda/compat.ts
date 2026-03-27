@@ -21,7 +21,7 @@ export {
 
 export {
     // getOSTPromise,
-    getCallbackInt,
+    getCallbackIntInt,
 } from '../../generated/arkts'
 
 export type OHBuffer = ArrayBuffer

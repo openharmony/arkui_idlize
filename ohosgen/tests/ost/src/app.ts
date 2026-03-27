@@ -17,7 +17,7 @@ import {
 
 import {
     // getOSTPromise,
-    getCallbackInt,
+    getCallbackIntInt,
 } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
@@ -47,7 +47,7 @@ function checkSequence() {
 }
 
 function checkCallback() {
-    const cb = getCallbackInt()
+    const cb = getCallbackIntInt()
     assertEQ(9, cb(3))
     assertEQ(15, cb(5))
 }

@@ -71,7 +71,7 @@ static OH_UNIT_OST_CallbackResource CALLBACKs_RESOURCE_IMPL = {
     .release = [](const OH_Int32 resourceId) -> void {}
 };
 
-OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntImpl()
+OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntIntImpl()
 {
 
     return {

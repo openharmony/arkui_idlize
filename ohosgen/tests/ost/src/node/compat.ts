@@ -12,7 +12,8 @@ export {
 } from '../../generated/ts'
 
 export {
-    getOSTPromise,
+    //getOSTPromise,
+    getCallbackIntInt,
 } from '../../generated/ts'
 
 export type OHBuffer = ArrayBuffer
