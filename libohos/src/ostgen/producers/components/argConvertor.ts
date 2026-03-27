@@ -542,8 +542,8 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
         if (native) {
+            const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
             const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
             const kindName = E.v('CALLBACK_KIND_' + callbackName.toUpperCase())
             const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
@@ -562,11 +562,19 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
                                     .arg(kindName).$().$().$().$().$().$().$().$().$()
             ], E.v(name)]
         }
-        // TBD: serializer name
-        const returnCallbackSerializer = `serializer`
-        const paramWrites = this.decl.parameters.flatMap(param => argConvertor(this.ctx, param.type, param.isOptional)
+        return [
+            deserializeAndCallCallback(name, serializerName, this.ctx, this.decl),
+            E.v(`${name}Closure`)
+        ]
+    }
+}
+
+export function deserializeAndCallCallback(name: string, serializerName: lw.LWExpression, ctx: OhosProducerContext, decl: idl.IDLCallback): lw.LWStatement[] {
+        const returnCallbackSerializer = `continuationSerializer`
+        const callbackParams: [string, LWType][] = decl.parameters.map(p => [p.name, expectType(ctx, p.type, 'managed')])
+        const paramWrites = decl.parameters.flatMap(param => argConvertor(ctx, param.type, param.isOptional)
             .write(E.v(param.name), E.v(returnCallbackSerializer), false))
-        const returnCallbackType = expectType(this.ctx, this.decl.returnType, 'managed')
+        const returnCallbackType = expectType(ctx, decl.returnType, 'managed')
         const returnCallback = Builders.stmt()
             .decl(`${name}Closure`).funcType()
                 .parameters(callbackParams)
@@ -594,25 +602,22 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
                             .left(`${name}Result`)
                             .right(`value`).$().$().$().$().$().$(),
                     Builders.stmt().call('holdAndWriteCallback').receiver(returnCallbackSerializer).arg(`${name}Continuation`).$().$(),
-                    Builders.stmt().call('release').receiver(returnCallbackSerializer).$().$(),
-                    // TBD: Call callback
                     Builders.stmt().call('_CallCallbackSync').receiver(`InteropNativeModule`)
-                        //.arg('0') // TBD: ApiKind
                         .arg(generatorConfiguration().ApiKind)
-                        .arg(hashCodeFromString(this.decl.name.toUpperCase()))
+                        // TBD: Use CallbackKind
+                        .arg(hashCodeFromString(decl.name.toUpperCase()) + ` /* CallbackKind.${decl.name} */`)
                         .arg(Builders.call('asBuffer').receiver(returnCallbackSerializer).$())
                         .arg(Builders.call('length').receiver(returnCallbackSerializer).$())
                         .$().$(),
+                    Builders.stmt().call('release').receiver(returnCallbackSerializer).$().$(),
                     Builders.return(returnCallbackType).value(`${name}Result!`).$(),
                 ])
             .$().$().$().$().$().$()
-        return [[
-                Builders.decl(`${name}Resource`).value().call('readCallbackResource').receiver(serializerName).$().$().$(),
-                Builders.decl(`${name}Call`).type(Ts.prim.pointer).value().call('readPointer').receiver(serializerName).$().$().$(),
-                Builders.decl(`${name}CallSync`).type(Ts.prim.pointer).value().call('readPointer').receiver(serializerName).$().$().$(),
-                returnCallback,
-                Builders.stmt().call('resourceFinalizerRegister').arg(`${name}Closure`).arg(`${name}Resource`).$().$()
-            ],
-        E.v(`${name}Closure`)]
-    }
+    return [
+        Builders.decl(`${name}Resource`).value().call('readCallbackResource').receiver(serializerName).$().$().$(),
+        Builders.decl(`${name}Call`).type(Ts.prim.pointer).value().call('readPointer').receiver(serializerName).$().$().$(),
+        Builders.decl(`${name}CallSync`).type(Ts.prim.pointer).value().call('readPointer').receiver(serializerName).$().$().$(),
+        returnCallback,
+        Builders.stmt().call('resourceFinalizerRegister').arg(`${name}Closure`).arg(`${name}Resource`).$().$()
+    ]
 }
