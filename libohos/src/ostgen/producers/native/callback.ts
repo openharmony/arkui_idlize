@@ -26,7 +26,8 @@ export const callbackProducer = createProducer(
     const callbackParams = callback.parameters.map(p => ({name: p.name, type: Ts.const(expectType(ctx, p.type, 'capi')) as lw.LWType}))
     const callbackParamWrites = callback.parameters.flatMap(p => argConvertor(ctx, p.type).write(E.v(p.name), E.v('argsSerializer'), true))
     const vmContextParam = {name: 'vmContext', type: T.c(cApiName('VMContext'))}
-    const asyncParams = [{name: 'resourceId', type: Ts.const(Ts.prim.i32)}, ...callbackParams]
+    const resourceIdParam = {name: 'resourceId', type: Ts.const(Ts.prim.i32)}
+    const asyncParams = [resourceIdParam, ...callbackParams]
     const syncParams = [vmContextParam, ...asyncParams]
     let continuation: lw.LWType | undefined
     let continuationName: string | undefined
@@ -113,8 +114,8 @@ export const callbackProducer = createProducer(
                   ? Builders.decl('continuationResult').type(continuation)
                     .value().ctor().asStruct()
                     .arg().call('readCallbackResource').receiver('deserializer').$().$()
-                    .arg(readCall(false, asyncParams, continuationName!))
-                    .arg(readCall(true, syncParams, continuationName!))
+                    .arg(readCall(false, [resourceIdParam, {name: 'value', type: expectType(ctx, callback.returnType, 'capi')}], continuationName!))
+                    .arg(readCall(true, [vmContextParam, resourceIdParam, {name: 'value', type: expectType(ctx, callback.returnType, 'capi')}], continuationName!))
                     .$().$().$()
                   : Builders.none().$()
               ])

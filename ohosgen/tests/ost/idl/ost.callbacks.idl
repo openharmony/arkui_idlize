@@ -3,3 +3,7 @@ package ost.callbacks;
 [Synthetic]
 callback Callback_I32_I32 = i32 (i32 x);
 Callback_I32_I32 getCallbackIntInt();
+
+[Synthetic]
+callback Callback_Boolean_I32_String = String (boolean b, i32 v);
+Callback_Boolean_I32_String getCallbackBooleanIntString();

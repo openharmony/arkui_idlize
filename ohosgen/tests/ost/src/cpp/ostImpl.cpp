@@ -16,6 +16,11 @@
 #include "unit_ost.h"
 
 #include <stdio.h>
+#include <string.h>
+
+InteropInt32 string_len(const char* str) {
+    return static_cast<InteropInt32>(strlen(str));
+}
 
 // Enum
 
@@ -87,3 +92,25 @@ OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntIntImpl()
     };
 }
 
+OH_UNIT_OST_Callback_Boolean_I32_String ost_callbacks_getCallbackBooleanIntStringImpl()
+{
+
+    return {
+        .resource=CALLBACKs_RESOURCE_IMPL,
+        .call=[](const OH_Int32 resourceId, const OH_Boolean b, const OH_Int32 v, const OH_UNIT_OST_Callback_String_Void continuation)
+        {
+
+            char value[11];
+            sprintf(value,"%d", b ? v * 5 : v + 5);
+            OH_String result = {.chars = value, .length = string_len(value)};
+            continuation.call(continuation.resource.resourceId, result);
+        },
+        .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean b, const OH_Int32 v, const OH_UNIT_OST_Callback_String_Void continuation)
+        {
+            char value[11];
+            sprintf(value,"%d", b ? v * 5 : v + 5);
+            OH_String result = {.chars = value, .length = string_len(value)};
+            continuation.callSync(vmContext, continuation.resource.resourceId, result);
+        }
+    };
+}
