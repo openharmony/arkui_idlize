@@ -18,6 +18,8 @@ import external.lib.ExternalType as ExternalType;
 import external.lib.hookns as hookns;
 import external.lib.ExternalClass as ExternalClass;
 import external.lib.ExternalModuleDataInterface as ExternalModuleDataInterface;
+import external.lib.ExternalStringEnum as ExternalStringEnum;
+
 interface InternalType {
     attribute number index;
 };
@@ -29,4 +31,5 @@ interface DTSCheckExternalLib {
     void checkExternalClass(ExternalClass externalClass);
     void checkNSExternalType(hookns.NSExternalType externalType);
     void checkSubNSExternalType(hookns.subhookns.SubNSExternalType externalType);
+    ExternalStringEnum checkExternalStringEnum(ExternalStringEnum externalEnum);
 };

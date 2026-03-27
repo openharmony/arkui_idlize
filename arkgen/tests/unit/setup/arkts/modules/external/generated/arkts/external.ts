@@ -34,3 +34,14 @@ export class ExternalExternalInterfaceSerializerImpl {
         return value
     }
 }
+export enum ExternalEnumString {
+    E1 = "e1",
+    E2 = "e2"
+}
+export function ExternalExternalEnumStringToOrdinal(value: ExternalEnumString): int32 {
+    switch (value) {
+        case ExternalEnumString.E1: return 0
+        case ExternalEnumString.E2: return 1
+    }
+    throw new Error(`Unexpected value ${value} for enum ExternalEnumString`)
+}

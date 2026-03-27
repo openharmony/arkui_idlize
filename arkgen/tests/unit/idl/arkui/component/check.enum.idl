@@ -15,6 +15,8 @@
 
 package arkui.component.check.enum;
 
+import external.ExternalStringEnum as ExternalStringEnum;
+
 enum EnumUByte {
     number E0 = 0;
     number E1 = 1;
@@ -37,11 +39,22 @@ enum EnumLong {
     number EFFFFFFFFA = 0xFFFFFFFFA;
 };
 
+enum EnumString {
+    [OriginalEnumMemberName=e1]
+    String E1 = "e11";
+    [OriginalEnumMemberName=e2]
+    String E2 = "e22";
+    String E_MIDDLE = "eMiddle";
+    [OriginalEnumMemberName=e3]
+    String E3 = "e33";
+};
+
 [Component]
 interface CheckEnumAttribute: Root {
-
     attribute EnumUByte enumUByte;
     attribute EnumByte enumByte;
     attribute EnumInt enumInt;
     attribute EnumLong enumLong;
+    attribute EnumString enumString;
+    attribute ExternalEnumString externalEnumString;
 };

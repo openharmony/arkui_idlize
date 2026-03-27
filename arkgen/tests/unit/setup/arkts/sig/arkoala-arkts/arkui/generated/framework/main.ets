@@ -23,6 +23,7 @@ import {
     EnumByte,
     EnumInt,
     EnumLong,
+    EnumString,
     ArkCheckEnumPeer,
     ArkCheckEnumComponent,
     ArkCheckHooksPeer,
@@ -102,6 +103,7 @@ function checkEnums() {
     checkNativeLog("Enum Byte -127", () => comp.enumByte(EnumByte.EN127), `setEnumByte(Ark_EnumByte(-127))`)
     checkNativeLog("Enum Int 512", () => comp.enumInt(EnumInt.E512), `setEnumInt(Ark_EnumInt(512))`)
     checkNativeLog("Enum Long 0xFFFFFFFFA", () => comp.enumLong(EnumLong.EFFFFFFFFA), `setEnumLong(Ark_EnumLong(68719476730))`)
+    checkNativeLog("Enum String e2", () => comp.enumString(EnumString.e2), `setEnumString(Ark_EnumString(1))`)
 }
 
 function checkHooks() {

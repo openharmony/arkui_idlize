@@ -49,3 +49,10 @@ public open class ExternalExternalInterfaceSerializerImpl {
         }
     }
 }
+class ExternalEnumString private constructor(public val ordinal: Int, public val value: String) {
+    companion object {
+        val E1: ExternalEnumString = ExternalEnumString(0, "e1")
+        val E2: ExternalEnumString = ExternalEnumString(1, "e2")
+        val values: Map<Int, ExternalEnumString> = mapOf(0 to E1, 1 to E2)
+    }
+}

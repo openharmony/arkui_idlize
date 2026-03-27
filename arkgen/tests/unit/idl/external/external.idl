@@ -18,3 +18,8 @@ package external;
 interface ExternalInterface {
     attribute String name;
 };
+
+enum ExternalEnumString {
+    String E1 = "e1";
+    String E2 = "e2";
+};

@@ -438,6 +438,16 @@ typedef struct Opt_EnumLong {
     Ark_Tag tag;
     Ark_EnumLong value;
 } Opt_EnumLong;
+typedef enum Ark_EnumString: InteropUInt8 {
+    ARK_ENUM_STRING_E1,
+    ARK_ENUM_STRING_E2,
+    ARK_ENUM_STRING_E_MIDDLE,
+    ARK_ENUM_STRING_E3,
+} Ark_EnumString;
+typedef struct Opt_EnumString {
+    Ark_Tag tag;
+    Ark_EnumString value;
+} Opt_EnumString;
 typedef enum Ark_EnumUByte: InteropUInt8 {
     ARK_ENUM_UBYTE_E0 = 0,
     ARK_ENUM_UBYTE_E1 = 1,
@@ -447,6 +457,14 @@ typedef struct Opt_EnumUByte {
     Ark_Tag tag;
     Ark_EnumUByte value;
 } Opt_EnumUByte;
+typedef enum Ark_ExternalEnumString: InteropUInt8 {
+    ARK_EXTERNAL_ENUM_STRING_E1,
+    ARK_EXTERNAL_ENUM_STRING_E2,
+} Ark_ExternalEnumString;
+typedef struct Opt_ExternalEnumString {
+    Ark_Tag tag;
+    Ark_ExternalEnumString value;
+} Opt_ExternalEnumString;
 typedef enum Ark_LayoutDirection: InteropUInt8 {
     ARK_LAYOUT_DIRECTION_LTR = 0,
     ARK_LAYOUT_DIRECTION_RTL = 1,
@@ -991,6 +1009,10 @@ typedef struct GENERATED_ArkUICheckEnumModifier {
                        Ark_EnumInt value);
     void (*setEnumLong)(Ark_NativePointer node,
                         Ark_EnumLong value);
+    void (*setEnumString)(Ark_NativePointer node,
+                          Ark_EnumString value);
+    void (*setExternalEnumString)(Ark_NativePointer node,
+                                  Ark_ExternalEnumString value);
 } GENERATED_ArkUICheckEnumModifier;
 
 typedef struct GENERATED_ArkUICheckExceptionModifier {

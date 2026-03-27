@@ -50,6 +50,10 @@ export function getSerializerName(_library: LibraryInterface, _language: Languag
     return idl.entryToFunctionName(_language, declaration, "", "SerializerImpl")
 }
 
+export function getEnumToOrdinalName(_language: Language, declaration: idl.IDLEnum) {
+    return idl.entryToFunctionName(_language, declaration, "", "ToOrdinal")
+}
+
 export function makeETSDiscriminatorFromFields(self: LanguageWriter, convertor: { targetType: (writer: LanguageWriter) => string }, value: string, accessors: string[], duplicates: Set<string>): LanguageExpression {
     if (convertor instanceof AggregateConvertor
         || convertor instanceof InterfaceConvertor

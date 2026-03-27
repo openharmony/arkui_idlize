@@ -30,6 +30,7 @@ import { TSCastExpression, TSLanguageWriter } from "./TsLanguageWriter.js"
 import { IDLType, isPrimitiveType } from '../../idl/index.js'
 import {
     ArgConvertor,
+    getEnumToOrdinalName,
     makeETSDiscriminatorFromFields,
 } from "../ArgConvertors.js"
 import * as idl from '../../idl/index.js'
@@ -202,7 +203,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         if (idl.isStringEnum(enumEntry)) {
-            let extractorStatement = this.makeMethodCall(value.asString(), 'getOrdinal', [])
+            let extractorStatement = this.makeFunctionCall(getEnumToOrdinalName(this.language, enumEntry), [value])
             if (enumEntry.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
                 extractorStatement = this.makeNaryOp('%', [
                     extractorStatement,

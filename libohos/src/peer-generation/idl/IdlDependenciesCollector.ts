@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { IdlNameConvertor, NodeConvertor, convertNode, convertType, flattenUnionType, getSyntheticTypesFileName, maybeRestoreGenerics } from "@idlizer/core"
+import { IdlNameConvertor, NodeConvertor, convertNode, convertType, flattenUnionType, getEnumToOrdinalName, getSyntheticTypesFileName, isInExternalModule, maybeRestoreGenerics } from "@idlizer/core"
 import { LibraryInterface, PeerLibrary } from '@idlizer/core'
 import { Language } from '@idlizer/core'
 
@@ -145,8 +145,32 @@ class TSDependenciesCollector extends DependenciesCollector {
             }
             return result
         }
+        if (this.library.language === Language.ARKTS &&
+            resolved && idl.isEnum(resolved) && idl.isStringEnum(resolved)
+        ) {
+            const result = super.convertTypeReference(type)
+            const library = this.library as PeerLibrary
+            const func = createEnumToOrdinalFunction(resolved, this.library.language, library.name !== "arkoala")
+            result.push(func)
+            return result
+        }
         return super.convertTypeReference(type)
     }
+}
+
+export function createEnumToOrdinalFunction(enumDecl: idl.IDLEnum, language: Language, useCommonInternalPackage: boolean): idl.IDLEntry {
+    const func = idl.createMethod(getEnumToOrdinalName(language, enumDecl), [], idl.createPrimitiveType("i32"))
+    if (isInExternalModule(enumDecl)) {
+        const packageName = useCommonInternalPackage ?
+            "idlize.internal" :
+            `idlize.internal.${idl.getPackageNameSafe(enumDecl)}`
+        const file = idl.createFile([func], packageName, [packageName])
+        idl.linkParentBack(file)
+    }
+    else {
+        func.parent = enumDecl.parent
+    }
+    return func
 }
 
 export class ArkTSInterfaceDependenciesCollector extends DependenciesCollector {

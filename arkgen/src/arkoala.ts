@@ -51,7 +51,8 @@ import {
     createSerializerPrinter,
     makeCSerializers,
     createDeserializeAndCallPrinter,
-    copyFile
+    copyFile,
+    printEnumSupportFunctions
 } from "@idlizer/libohos"
 import { createPeersPrinter } from "./printers/PeersPrinter.js"
 import { ArkoalaInstall, createArkoalaInstall, LibaceInstall } from "./ArkoalaInstall.js"
@@ -183,7 +184,8 @@ export function generateArkoalaFromIdl(config: {
             createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
             ...spreadIfNotLang([Language.ARKTS],
                 createGeneratedNativeModulePrinter(NativeModule.Generated),
-            )
+            ),
+            ...spreadIfLang([Language.ARKTS], printEnumSupportFunctions),
         ]
     )
 

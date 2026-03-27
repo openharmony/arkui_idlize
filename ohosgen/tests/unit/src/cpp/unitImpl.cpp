@@ -1615,6 +1615,14 @@ void DTSCheckExternalLib_checkSubNSExternalTypeImpl(
     printf("[native] checkSubNSExternalTypeImpl: %p\n", externalType);
 }
 
+OH_UNIT_ExternalStringEnum DTSCheckExternalLib_checkExternalStringEnumImpl(
+    OH_NativePointer thisPtr,
+    OH_UNIT_ExternalStringEnum externalEnum)
+{
+    printf("[native] checkExternalStringEnumImpl: %d\n", externalEnum);
+    return externalEnum;
+}
+
 static const char* ERROR_MSG = "(Test passed) Promise was rejected";
 void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, const OH_Number* ms,
     const UNIT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
