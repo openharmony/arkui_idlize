@@ -16,16 +16,18 @@
 #ifndef OH_TEST_MODULES_SIMPLE_OH_COMMON_H_
 #define OH_TEST_MODULES_SIMPLE_OH_COMMON_H_
 
-#include "test_modules_simple.h"
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 
+#include "test_modules_simple.h"
+
 struct DumpPointer {
     const void* pointer;
-    explicit DumpPointer(const void* p): pointer(p) {}
+    explicit DumpPointer(const void* p) : pointer(p) {}
 
-    friend std::ostream& operator << (std::ostream& out, DumpPointer dp) {
+    friend std::ostream& operator<<(std::ostream& out, DumpPointer dp)
+    {
         std::ios::fmtflags flags = out.flags();
         out << "0x" << std::hex << std::setw(16) << std::setfill('0') << reinterpret_cast<uintptr_t>(dp.pointer);
         out.flags(flags); // Restores IO flags
@@ -35,9 +37,10 @@ struct DumpPointer {
 
 struct DumpOHNumber {
     OH_Number value;
-    DumpOHNumber(OH_Number v): value(v) {}
+    explicit DumpOHNumber(OH_Number v) : value(v) {}
 
-    friend std::ostream& operator << (std::ostream& out, DumpOHNumber dn) {
+    friend std::ostream& operator<<(std::ostream& out, DumpOHNumber dn)
+    {
         if (dn.value.tag == INTEROP_TAG_INT32) {
             out << dn.value.i32 << " (int32)";
         } else if (dn.value.tag == INTEROP_TAG_FLOAT32) {
@@ -49,7 +52,8 @@ struct DumpOHNumber {
     }
 };
 
-inline OH_Number addOHNumber(OH_Number x, OH_Number y) {
+inline OH_Number addOHNumber(OH_Number x, OH_Number y)
+{
     OH_Number res;
     res.tag = x.tag;
     if (res.tag == INTEROP_TAG_INT32) {

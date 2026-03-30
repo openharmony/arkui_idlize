@@ -17,25 +17,14 @@
 
 #include <cassert>
 
-#ifdef ASSERT_VERBOSE
-#define ASSERT0(expression, msg) (void)((!!(expression)) || \
-                                        (ARKOALA_LOG0(msg), assert(expression), 0))
-#define ASSERT(expression, msg, ...) (void)((!!(expression)) || \
-                                            (ARKOALA_LOG(msg, __VA_ARGS__), assert(expression), 0))
-#else
-#define ASSERT(expression) assert(expression)
-#endif
-
 #ifdef KOALA_OHOS
 #include <hilog/log.h>
-#define ARKOALA_LOG0(msg) OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "Arkoala", msg)
 #define ARKOALA_LOG(msg, ...) OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "Arkoala", msg, __VA_ARGS__)
 // Also do
 //  hdc shell hilog -p off
 //  hdc shell hilog -Q pidoff
 // to see the output.
 #else
-#include <stdio.h>
-#define ARKOALA_LOG0(msg) fprintf(stderr, "Arkoala: %s", msg)
+#include <cstdio>
 #define ARKOALA_LOG(msg, ...) fprintf(stderr, "Arkoala: " msg, __VA_ARGS__)
 #endif

@@ -21,7 +21,7 @@ goldenSetup('.', '.')
 
 unmemoizedSuffix = process.env.UNMEMOIZED_SUFFIX
 if (unmemoizedSuffix === undefined) {
-    unmemoizedSuffix = ''
+    unmemoizedSuffix = '';
 }
 
 tsNode.register({

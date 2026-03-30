@@ -70,7 +70,7 @@ static void parseOption(ani_env *env, ani_object obj) {
     for(ani_size i = 0; i < size ; i++){
         ani_ref string_ref;
         auto status = env->Array_Get_Ref(static_cast<ani_array_ref>(arrayNative), i, &string_ref);
-        if(status != ANI_OK){
+        if(status != ANI_OK) {
             std::cerr << "Array_Get_Ref FAILED index: " << i << std::endl;
             return;
         }

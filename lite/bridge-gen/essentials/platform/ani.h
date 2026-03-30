@@ -98,8 +98,9 @@ struct BridgeConvertor<String> {
     using PlatformType = ani_string;
     static String toBridgeType(ani_env* env, ani_string val)
     {
-        if (val == nullptr)
+        if (val == nullptr) {
             return "";
+        }
         ani_size length_utf_8 = 0;
         env->String_GetUTF8Size(val, &length_utf_8);
         ani_size count = 0;

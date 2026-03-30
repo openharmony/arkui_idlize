@@ -20,7 +20,7 @@ function main() {
         }
     })
 
-    console.error("_________ REPEATS _________")
+    console.error('_________ REPEATS _________')
     for (const [decl, files] of index) {
         if (files.length > 1) {
             console.error(decl, files)
@@ -43,12 +43,12 @@ function main() {
         }
     })
 
-    console.error("_________ MATERIALIZED _________")
+    console.error('_________ MATERIALIZED _________')
     materialized.forEach(record => {
         console.log(`"${record[2]}",`)
     })
 
-    console.error("_________ STRUCTURES _________")
+    console.error('_________ STRUCTURES _________')
     structures.forEach(record => {
         console.log(`"${record[2]}",`)
     })

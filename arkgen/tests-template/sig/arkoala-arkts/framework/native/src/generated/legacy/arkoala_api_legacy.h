@@ -35,7 +35,7 @@ extern "C" {
 #define ARKUI_EXTENDED_API_VERSION 8
 #define ARKUI_NODE_GRAPHICS_API_VERSION 5
 #define ARKUI_NODE_MODIFIERS_API_VERSION 8
-#define ARKUI_AUTO_GENERATE_NODE_ID -2
+#define ARKUI_AUTO_GENERATE_NODE_ID (-2)
 #define ARKUI_MAX_ANCHOR_ID_SIZE 50
 enum ArkUIAPIVariantKind {
     BASIC = 1,
@@ -770,9 +770,7 @@ enum ArkUISwipeGestureDirection {
     ARKUI_SWIPE_GESTURE_DIRECTION_ALL = 3,
 };
 
-enum ArkUIAPICustomOp { MEASURE = 1,
-    LAYOUT = 2,
-    DRAW = 3 };
+enum ArkUIAPICustomOp { MEASURE = 1, LAYOUT = 2, DRAW = 3 };
 
 enum ArkUIVMKind {
     VM_JS = 1,

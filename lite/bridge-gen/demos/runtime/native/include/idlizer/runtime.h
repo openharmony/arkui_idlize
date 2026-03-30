@@ -36,11 +36,11 @@ NativePointer IdlizeRuntimeDeserializerBaseReadPointer(void*);
 void* IdlizeRuntimeDeserializerBaseSwap(void*);
 void* IdlizeRuntimeDeserializerBaseUse(void*);
 
-typedef struct _idlizer_runtime_native_Event {
+typedef struct IdlizerRuntimeNativeEvent {
     Int32 eventKind;
     Int32 resourceId;
     NativePointer memory;
-} _idlizer_runtime_native_Event;
+} IdlizerRuntimeNativeEvent;
 
 typedef struct idlize_runtime_api {
     NativePointer (*RawMemoryAllocate)();
@@ -58,7 +58,7 @@ typedef struct idlize_runtime_api {
     NativePointer (*DeserializerBaseReadPointer)(NativePointer);
     NativePointer (*DeserializerBaseSwap)(NativePointer);
     NativePointer (*DeserializerBaseUse)(NativePointer);
-    _idlizer_runtime_native_Event (*Poll)();
+    IdlizerRuntimeNativeEvent (*Poll)();
 } idlize_runtime_api;
 
 idlize_runtime_api* getAPI();
@@ -75,8 +75,9 @@ public:
     Int32 getLength();
     NativePointer getPointer();
     void free();
+
 private:
-    RawMemory(NativePointer idx): _idx(idx) {}
+    RawMemory(NativePointer idx) : _idx(idx) {}
     NativePointer _idx;
     bool taken = false;
 
@@ -92,8 +93,9 @@ public:
     String readString();
     NativePointer readPointer();
     SerializerBase swap();
+
 private:
-    DeserializerBase(NativePointer idx): _idx(idx) {}
+    DeserializerBase(NativePointer idx) : _idx(idx) {}
     NativePointer _idx;
 
     friend class RawMemory;
@@ -111,7 +113,7 @@ public:
     DeserializerBase swap();
 
 private:
-    SerializerBase(NativePointer idx): _idx(idx) {}
+    SerializerBase(NativePointer idx) : _idx(idx) {}
     NativePointer _idx;
 
     friend class RawMemory;

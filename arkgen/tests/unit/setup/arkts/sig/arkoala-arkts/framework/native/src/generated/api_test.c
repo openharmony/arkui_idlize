@@ -14,6 +14,7 @@
  */
 #include "arkoala_api_generated.h"
 
-int main(int argc, const char** argv) {
+int main(int argc, const char** argv)
+{
     return 0;
 }
