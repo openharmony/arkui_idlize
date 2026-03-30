@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { isMaterialized } from "@idlizer/core"
+import { generatorConfiguration, hashCodeFromString, isMaterialized } from "@idlizer/core"
 import { Builders, E, Hs, LWExpression, LWStatement, LWType, lw, Op, std, T, Ts } from "@idlizer/ost"
 import { cApiName, expectExpr, expectType, typeNameExpr } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
@@ -509,18 +509,32 @@ class OptionalConvertor extends StructConvertor<idl.IDLOptionalType> {
             : Builders.access(name).receiver('RuntimeType').$()
     }
 }
-
-class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
+class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
     constructor(ctx: OhosProducerContext, type: idl.IDLReferenceType, private decl: idl.IDLCallback) {
         super(ctx, type);
     }
     interopType(native: boolean): lw.LWType {
-        return this.convertType(this.type, native)
+        return Ts.prim.interopReturnBuffer
     }
     isPointer(): boolean {
         return true
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        if (native)
+            return [
+                Builders.stmt().call('writeCallbackResource')
+                    .receiver(serializerName)
+                    .arg().access('resource').receiver(accessor)
+                    .$().$().$().$(),
+                Builders.stmt().call('writePointer')
+                    .receiver(serializerName)
+                    .arg().cast(Ts.prim.pointer).value().access('call').receiver(accessor)
+                    .$().$().$().$().$().$(),
+                Builders.stmt().call('writePointer')
+                    .receiver(serializerName)
+                    .arg().cast(Ts.prim.pointer).value().access('callSync').receiver(accessor)
+                    .$().$().$().$().$().$(),
+            ]
         return [
             Builders.stmt().call('holdAndWriteCallback')
                 .receiver(serializerName)
@@ -528,23 +542,82 @@ class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
-        const kindName = E.v('CALLBACK_KIND_' + callbackName.toUpperCase())
-        const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
-        const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
-        const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
-        return [[
-            Builders.decl(name, expectType(this.ctx, this.type, 'capi')).value()
-                .ctor().asStruct()
-                    .arg().call('readCallbackResource').receiver(serializerName).$().$()
-                    .arg().cast(T.fn(asyncParams, Ts.prim.void)).value()
-                        .call('readPointerOrDefault').receiver(serializerName)
-                            .arg().call('getManagedCallbackCaller')
-                                .arg(kindName).$().$().$().$().$().$()
-                    .arg().cast(T.fn(syncParams, Ts.prim.void)).value()
-                        .call('readPointerOrDefault').receiver(serializerName)
-                            .arg().call('getManagedCallbackCallerSync')
-                                .arg(kindName).$().$().$().$().$().$().$().$().$()
-        ], E.v(name)]
+        if (native) {
+            const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
+            const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
+            const kindName = E.v('CALLBACK_KIND_' + callbackName.toUpperCase())
+            const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
+            const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
+            return [[
+                Builders.decl(name, expectType(this.ctx, this.type, 'capi')).value()
+                    .ctor().asStruct()
+                        .arg().call('readCallbackResource').receiver(serializerName).$().$()
+                        .arg().cast(T.fn(asyncParams, Ts.prim.void)).value()
+                            .call('readPointerOrDefault').receiver(serializerName)
+                                .arg().call('getManagedCallbackCaller')
+                                    .arg(kindName).$().$().$().$().$().$()
+                        .arg().cast(T.fn(syncParams, Ts.prim.void)).value()
+                            .call('readPointerOrDefault').receiver(serializerName)
+                                .arg().call('getManagedCallbackCallerSync')
+                                    .arg(kindName).$().$().$().$().$().$().$().$().$()
+            ], E.v(name)]
+        }
+        return [
+            deserializeAndCallCallback(name, serializerName, this.ctx, this.decl),
+            E.v(`${name}Closure`)
+        ]
     }
+}
+
+export function deserializeAndCallCallback(name: string, serializerName: lw.LWExpression, ctx: OhosProducerContext, decl: idl.IDLCallback): lw.LWStatement[] {
+        const returnCallbackSerializer = `continuationSerializer`
+        const callbackParams: [string, LWType][] = decl.parameters.map(p => [p.name, expectType(ctx, p.type, 'managed')])
+        const paramWrites = decl.parameters.flatMap(param => argConvertor(ctx, param.type, param.isOptional)
+            .write(E.v(param.name), E.v(returnCallbackSerializer), false))
+        const returnCallbackType = expectType(ctx, decl.returnType, 'managed')
+        const returnCallback = Builders.stmt()
+            .decl(`${name}Closure`).funcType()
+                .parameters(callbackParams)
+                .returns(returnCallbackType).$()
+            .value()
+            .lambda()
+                .parameters(callbackParams.map(([name, type]) => { return { name, type } }))
+            .body().block()
+                .statements([
+                    Builders.decl(returnCallbackSerializer, T.c('SerializerBase')).value().call('hold').receiver('SerializerBase').$().$().$(),
+                    Builders.stmt().call('writeInt32').receiver(returnCallbackSerializer)
+                        .arg().access('resourceId').receiver(`${name}Resource`).$().$().$().$(),
+                    Builders.stmt().call('writePointer').receiver(returnCallbackSerializer).arg(`${name}Call`).$().$(),
+                    Builders.stmt().call('writePointer').receiver(returnCallbackSerializer).arg(`${name}CallSync`).$().$(),
+                    ...paramWrites,
+                    Builders.decl(`${name}Result`, Ts.optional(returnCallbackType)).mutable().$(),
+                    Builders.decl(`${name}Continuation`)
+                        .funcType()
+                            .param(`value`).type(returnCallbackType).$()
+                            .returns(Ts.prim.void).$()
+                        .value().lambda()
+                        .param(`value`).type(returnCallbackType).$()
+                        .body().block()
+                            .binary(`=`)
+                            .left(`${name}Result`)
+                            .right(`value`).$().$().$().$().$().$(),
+                    Builders.stmt().call('holdAndWriteCallback').receiver(returnCallbackSerializer).arg(`${name}Continuation`).$().$(),
+                    Builders.stmt().call('_CallCallbackSync').receiver(`InteropNativeModule`)
+                        .arg(generatorConfiguration().ApiKind)
+                        // TBD: Use CallbackKind
+                        .arg(hashCodeFromString(decl.name.toUpperCase()) + ` /* CallbackKind.${decl.name} */`)
+                        .arg(Builders.call('asBuffer').receiver(returnCallbackSerializer).$())
+                        .arg(Builders.call('length').receiver(returnCallbackSerializer).$())
+                        .$().$(),
+                    Builders.stmt().call('release').receiver(returnCallbackSerializer).$().$(),
+                    Builders.return(returnCallbackType).value(`${name}Result!`).$(),
+                ])
+            .$().$().$().$().$().$()
+    return [
+        Builders.decl(`${name}Resource`).value().call('readCallbackResource').receiver(serializerName).$().$().$(),
+        Builders.decl(`${name}Call`).type(Ts.prim.pointer).value().call('readPointer').receiver(serializerName).$().$().$(),
+        Builders.decl(`${name}CallSync`).type(Ts.prim.pointer).value().call('readPointer').receiver(serializerName).$().$().$(),
+        returnCallback,
+        Builders.stmt().call('resourceFinalizerRegister').arg(`${name}Closure`).arg(`${name}Resource`).$().$()
+    ]
 }

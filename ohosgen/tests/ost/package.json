@@ -25,7 +25,7 @@
         "clean:native": "rm -rf generated/native",
 
         "prepare" : "mkdir -p generated/idl && cp ./idl/*.idl ./generated/idl",
-        "debug": "node ../.. --idl2peer --feature ost --input-dir ./idl --output-dir . --language=arkts --options-file ./conf/config.json",
+        "debug": "node ../.. --idl2peer --feature ost  --input-dir ./idl --output-dir . --language=arkts --options-file ./conf/config.json",
         "gen": "npm run prepare && npm run compile:all -C ../.. && node ../.. --idl2peer --feature ost --input-dir ./idl --output-dir . --language=$TARGET --options-file ./conf/config.json",
         "gen:ts": "TARGET=ts npm run gen",
         "gen:arkts": "TARGET=arkts npm run gen",

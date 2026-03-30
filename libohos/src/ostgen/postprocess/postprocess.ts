@@ -36,6 +36,8 @@ export function monoName(type: lw.LWType, prefix: string = C_API_PREFIX): string
             return monoName(type.args[0])
         case std.names.types.array:
             return [prefix + 'Array', monoName(type.args[0])].join('_')
+        case std.names.types.promise:
+            return [prefix + 'Promise', monoName(type.args[0])].join('_')
         case std.names.types.map:
             return [prefix + 'Map', ...type.args.map(ty => monoName(ty))].join('_')
         case std.names.types.optional:

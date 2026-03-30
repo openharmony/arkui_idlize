@@ -421,6 +421,12 @@ class ConstructorBuilder<P> {
      */
     array() { this._hints.push(Hs.arrayInstance()); return this }
     /**
+     * Add promise hint to indicate the instance should be constructed as a promise.
+     *
+     * @returns This builder for chaining
+     */
+    promise() { this._hints.push(Hs.promise()); return this }
+    /**
      * Add stackInstance hint to indicate the instance should be allocated on the stack.
      *
      * @returns This builder for chaining
@@ -741,6 +747,18 @@ class DeclarationBuilder<P> {
      */
     static() { this._static = true; return this }
     type(type: LWType) { this._type = type; return this }
+    /**
+     * Define a functional type.
+     * Returns a FunctionTypeBuilder for defining the function signature.
+     *
+     * @returns FunctionTypeBuilder for defining the function signature
+     */
+    funcType(): FunctionTypeBuilder<this> {
+        return new FunctionTypeBuilder(type => {
+            this._type = type
+            return this
+        })
+    }
     /**
      * Set the initial value for the variable.
      * If called with an argument, sets the value directly and returns this builder.
@@ -1700,7 +1718,7 @@ class FunctionBuilder<P> {
      * @param args - Macro arguments (strings or types)
      * @returns This builder for chaining
      */
-    macro(name: string, ...args: (string | LWType)[]) {
+    macro(name: string, ...args: (string | LWExpression | LWType)[]) {
         const annotation: MacroInvocation = {
             kind: DecoratorKind.MacroInvocation,
             name,

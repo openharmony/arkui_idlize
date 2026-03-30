@@ -112,6 +112,7 @@ function defaultImports(): ImportsCollector {
         'Finalizable', 'toPeerPtr',
         'RuntimeType', 'ResourceHolder',
         'loadNativeModuleLibrary', 'registerApiEventHandler',
+        'InteropNativeModule', 'resourceFinalizerRegister',
     ], '@koalaui/interop')
     return imports
 }

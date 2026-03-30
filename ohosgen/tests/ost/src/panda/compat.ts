@@ -5,11 +5,13 @@ import {
 
 import {
     registerUnitOstApiHandler,
+    UNIT_OSTNativeModule,
  } from '../../generated/arkts'
 
 export {
     OSTIntEnum,
     checkOSTIntEnum,
+    getCallbackBooleanIntString,
 } from '../../generated/arkts'
 
 export {
@@ -18,11 +20,10 @@ export {
     getOSTSequenceInt,
 } from '../../generated/arkts'
 
-/*
 export {
-    getOSTPromise,
+    // getOSTPromise,
+    getCallbackIntInt,
 } from '../../generated/arkts'
-*/
 
 export type OHBuffer = ArrayBuffer
 

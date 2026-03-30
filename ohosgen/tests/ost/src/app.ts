@@ -15,11 +15,11 @@ import {
     getOSTSequenceInt,
 } from "#compat"
 
-/*
 import {
-    getOSTPromise,
+    // getOSTPromise,
+    getCallbackIntInt,
+    getCallbackBooleanIntString,
 } from "#compat"
-*/
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
     checkEQ(value1, value2, comment)
@@ -47,10 +47,20 @@ function checkSequence() {
     assertEQ(7, seqInt[2])
 }
 
+function checkCallback() {
+    const cb = getCallbackIntInt()
+    assertEQ(9, cb(3))
+    assertEQ(15, cb(5))
+
+    const cb2 = getCallbackBooleanIntString()
+    assertEQ('8', cb2(false, 3))
+    assertEQ('20', cb2(true, 4))
+}
+
 /*
 function checkPromise() {
     getOSTPromise()
-        .then((value: number) => {
+        .then((value: int) => {
             assertEQ(7, value)
         })
 }
@@ -61,6 +71,7 @@ export function run() {
     const suite = new UnitTestsuite("idlize ut")
     suite.addTest("checkEnum", checkEnum)
     suite.addTest("checkSequence", checkSequence)
-    // suite.addTest("checkOSTAsync", checkPromise)
+    suite.addTest("checkCallback", checkCallback)
+    // suite.addTest("checkPromise", checkPromise)
     return suite.run()
 }
