@@ -61,6 +61,19 @@ ohosgen unit tests:
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
     - npm run all:kt
 
+ohosgen OST tests:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  needs:
+    - build idlize
+  before_script:
+    - !reference [.npm, script]
+  script:
+    - cd $CI_PROJECT_DIR/ohosgen/tests/ost
+    - npm run all:arkts
+
 ohosgen demos:
   stage: test
   tags:
