@@ -151,7 +151,7 @@ function createImpl(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrNa
     [peerType]
   )
   return Builders.func(name + 'Impl')
-    .param('style').type(Ts.optional(T.fn([['attributes', T.c(attrName)]], Ts.prim.void))).$()
+    .param('style').type(Ts.optional(T.fn([{ name: 'attributes', type: T.c(attrName)}], Ts.prim.void))).$()
     .param('content_').type(Ts.optional(T.fn([], Ts.prim.void))).$()
     .returns(Ts.prim.void)
     .annotation('memo')
