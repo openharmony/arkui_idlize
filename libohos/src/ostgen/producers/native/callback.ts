@@ -44,7 +44,7 @@ export const callbackProducer = createProducer(
     const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), true))
     const readCall: (sync: boolean, params: { name: string, type: lw.LWType}[], callbackName: string) => lw.LWExpression
       = (sync, params, callbackName) => {
-      return Builders.cast(T.fn(params.map(({ name, type }) => [name, type]), Ts.prim.void))
+      return Builders.cast(T.fn(params, Ts.prim.void))
         .value().call('readPointerOrDefault')
           .arg().call(`getManagedCallbackCaller${sync ? 'Sync' : ''}`)
             .arg(`CALLBACK_KIND_${callbackName.toUpperCase()}`).$().$()
@@ -57,10 +57,10 @@ export const callbackProducer = createProducer(
         Builders.struct(generatedDeclName)
           .field('resource').type(T.c(cApiName('CallbackResource'))).$()
           .field('call').funcType()
-              .parameters(asyncParams.map(({name, type}) => [name, type]))
+              .parameters(asyncParams)
               .returns(Ts.prim.void).$().$()
           .field('callSync').funcType()
-              .parameters(syncParams.map(({name, type}) => [name, type]))
+              .parameters(syncParams)
               .returns(Ts.prim.void).$().$().$(),
         Builders.func(bridgeName(`CallManaged${callback.name}`))
           .parameters(asyncParams)

@@ -582,9 +582,9 @@ export const T = {
    * const voidFuncType = T.fn([], T.c('void'));
    * ```
    */
-  fn: (params: [name: string, type: lw.LWType][], returnType: lw.LWType): lw.FunctionalType => ({
+  fn: (params: {name: string, type: lw.LWType}[], returnType: lw.LWType): lw.FunctionalType => ({
     kind: lw.LWKind.FunctionalType,
-    params: params.map(([name, type]) => ({ name, type })),
+    params: params,
     returnType
   }),
   /**
