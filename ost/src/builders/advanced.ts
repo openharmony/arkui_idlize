@@ -1553,7 +1553,7 @@ class FunctionTypeBuilder<P> {
      * @param _cont - Continuation function that receives the built functional type
      */
     constructor(private _cont: (type: FunctionalType) => P) {}
-    private _parameters: [name: string, type: LWType][] = []
+    private _parameters: {name: string, type: LWType}[] = []
     private _returnType?: LWType
     /**
      * Set the return type for the functional type.
@@ -1568,7 +1568,7 @@ class FunctionTypeBuilder<P> {
      * @param params - Array of parameter name-type pairs
      * @returns This builder for chaining
      */
-    parameters(params: [name: string, type: LWType][]) { this._parameters.push(...params); return this }
+    parameters(params: {name: string, type: LWType}[]) { this._parameters.push(...params); return this }
     /**
      * Add a single parameter to the functional type using a parameter builder.
      * Returns a ParamBuilder for specifying the parameter type.
@@ -1578,7 +1578,7 @@ class FunctionTypeBuilder<P> {
      */
     param(name: string): ParamBuilder<FunctionTypeBuilder<P>> {
         return new ParamBuilder((name, type) => {
-            this._parameters.push([name, type])
+            this._parameters.push({name, type})
             return this
         }, name)
     }

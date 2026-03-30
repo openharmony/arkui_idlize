@@ -543,11 +543,11 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         if (native) {
-            const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
+            const callbackParams = this.decl.parameters.map(p => ({ name: p.name, type: this.convertType(p.type, native) }))
             const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
             const kindName = E.v('CALLBACK_KIND_' + callbackName.toUpperCase())
-            const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
-            const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
+            const asyncParams = [{ name: 'resourceId', type: Ts.prim.i32 }, ...callbackParams]
+            const syncParams = [{ name: 'vmContext', type: T.c(cApiName('VMContext')) }, ...asyncParams]
             return [[
                 Builders.decl(name, expectType(this.ctx, this.type, 'capi')).value()
                     .ctor().asStruct()
@@ -571,7 +571,7 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
 
 export function deserializeAndCallCallback(name: string, serializerName: lw.LWExpression, ctx: OhosProducerContext, decl: idl.IDLCallback): lw.LWStatement[] {
         const returnCallbackSerializer = `continuationSerializer`
-        const callbackParams: [string, LWType][] = decl.parameters.map(p => [p.name, expectType(ctx, p.type, 'managed')])
+        const callbackParams = decl.parameters.map(p => ({ name: p.name, type: expectType(ctx, p.type, 'managed') }))
         const paramWrites = decl.parameters.flatMap(param => argConvertor(ctx, param.type, param.isOptional)
             .write(E.v(param.name), E.v(returnCallbackSerializer), false))
         const returnCallbackType = expectType(ctx, decl.returnType, 'managed')
@@ -581,7 +581,7 @@ export function deserializeAndCallCallback(name: string, serializerName: lw.LWEx
                 .returns(returnCallbackType).$()
             .value()
             .lambda()
-                .parameters(callbackParams.map(([name, type]) => { return { name, type } }))
+                .parameters(callbackParams)
             .body().block()
                 .statements([
                     Builders.decl(returnCallbackSerializer, T.c('SerializerBase')).value().call('hold').receiver('SerializerBase').$().$().$(),

@@ -28,9 +28,9 @@ export const functionProducer = createProducer(
     const returnType = idl.isPrimitiveType(method.returnType) && method.returnType.name === 'this'
       ? Ts.prim.void
       : expectType(ctx, method.returnType, 'capi')
-    const params: [string, LWType][] = method.parameters.map(it => [it.name, wrapPtr(it.type, ctx)])
+    const params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
     if (!method.isFree && !method.isStatic)
-      params.unshift(['thisPtr', Ts.prim.pointer])
+      params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
     return {
       continuation: apiAccessor(method, funcName, ctx),
       declarations: [
@@ -49,7 +49,7 @@ export const constructorProducer = createProducer(
   { is: idl.isConstructor, role: 'capi' },
   (ctor, ctx) => {
     const funcName = '_construct'
-    const params: [string, LWType][] = ctor.parameters.map(it => [it.name, wrapPtr(it.type, ctx)])
+    const params = ctor.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
     return {
       continuation: apiAccessor(ctor, funcName, ctx),
       declarations: [

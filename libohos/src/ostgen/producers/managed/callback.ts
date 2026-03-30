@@ -34,7 +34,7 @@ export const callbackProducer = createProducer(
       continuation: T.c(generatedDeclName),
       declarations: [
         Builders.type(generatedDeclName).funcType()
-          .parameters(callback.parameters.map(it => [it.name, expectType(ctx, it.type, 'managed')]))
+          .parameters(callback.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed')})))
           .returns(expectType(ctx, callback.returnType, 'managed')).$().$(),
         Builders.func(managedName('engine.deserializeAndCall' + callback.name))
           .param('deserializer').type('DeserializerBase').$()

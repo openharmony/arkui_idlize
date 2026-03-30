@@ -393,14 +393,14 @@ class LWParser {
   parseType(): LWType {
     // Try function type first: (params) -> returnType
     if (this.match(TokenType.LEFT_PAREN)) {
-      const params: [string, LWType][] = [];
+      const params: {name: string, type: LWType}[] = [];
 
       if (!this.match(TokenType.RIGHT_PAREN)) {
         do {
           const name = this.consume(TokenType.IDENTIFIER, "Expected parameter name").lexeme;
           this.expect(TokenType.COLON, "Expected ':' after parameter name");
           const type = this.parseType();
-          params.push([name, type]);
+          params.push({name, type});
         } while (this.match(TokenType.COMMA));
 
         this.expect(TokenType.RIGHT_PAREN, "Expected ')' after parameters");
