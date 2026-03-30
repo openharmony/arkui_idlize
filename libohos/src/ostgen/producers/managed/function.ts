@@ -43,7 +43,7 @@ export const functionProducer = createProducer(
         ? S.e(nativeModuleCall)
         : Builders.decl('retval').value(nativeModuleCall).$(),
       Builders.stmt().call('release').receiver(serializerName).$().$(),
-      ...argConvertor(ctx, method.returnType).returnFromInterop('retval', false)
+      ...argConvertor(ctx, method.returnType).returnFromInterop('retval')
     ]
     const funcDecl = Builders.func(declName)
       .parameters(method.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') })))

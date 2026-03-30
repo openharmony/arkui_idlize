@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration, hashCodeFromString, isMaterialized } from "@idlizer/core"
 import { Builders, E, LWExpression, LWStatement, lw, Op, std, T, Ts } from "@idlizer/ost"
-import { cApiName, expectExpr, expectType, typeNameExpr } from "../common.js"
+import { cApiName, expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
@@ -64,7 +64,7 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     isPointer(): boolean {
         return false
     }
-    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+    returnFromInterop(resultVarName: string): LWStatement[] {
         return [Builders.return().value(resultVarName).$()]
     }
     protected getSerializer(node: idl.IDLInterface, native: boolean) {
@@ -132,7 +132,7 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
     isPointer(): boolean {
         return ['buffer', 'number', 'String'].includes(this.type.name)
     }
-    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+    returnFromInterop(resultVarName: string): LWStatement[] {
         switch (this.type.name) {
             case 'buffer':
                 return [Builders.return().call('readBuffer')
@@ -141,9 +141,9 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
                         .arg().access('length').receiver(resultVarName).$().$().$().$()
                     .$().$()];
             case 'void':
-                return [];
+                return []
             default:
-                return super.returnFromInterop(resultVarName, native);
+                return super.returnFromInterop(resultVarName)
         }
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
@@ -194,7 +194,7 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
     interopType(native: boolean): lw.LWType {
         return this.type.name === 'i64' ? Ts.prim.i64 : Ts.prim.i32
     }
-    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+    returnFromInterop(resultVarName: string): LWStatement[] {
         return [Builders.return().value(this.valueToEnum(E.v(resultVarName))).$()]
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
@@ -228,8 +228,8 @@ class MaterializedConvertor extends ArgConvertor<idl.IDLReferenceType> {
     interopType(native: boolean): lw.LWType {
         return Ts.prim.pointer
     }
-    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
-        return [Builders.return().value(this.fromPtr(E.v(resultVarName), native)).$()]
+    returnFromInterop(resultVarName: string): LWStatement[] {
+        return [Builders.return().value(this.fromPtr(E.v(resultVarName), false)).$()]
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         const peerPtr = native
@@ -251,7 +251,7 @@ class MaterializedConvertor extends ArgConvertor<idl.IDLReferenceType> {
         return native
             ? peerPtr
             : Builders.call('fromPtr')
-                .receiver(typeNameExpr(this.type.name + 'Internal'))
+                .receiver(E.type(T.c(managedName(this.type.name + 'Internal'))))
                 .arg(peerPtr).$()
 
     }
@@ -264,7 +264,7 @@ abstract class StructConvertor<T extends idl.IDLType> extends ArgConvertor<T> {
     isPointer(): boolean {
         return true
     }
-    returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
+    returnFromInterop(resultVarName: string): LWStatement[] {
         const [reads, readValue] = this.read(`${resultVarName}Deserialized`, E.v('returnDeserializer'), false)
         return [
             Builders.decl('returnDeserializer', T.c('DeserializerBase')).value().ctor('DeserializerBase')
@@ -285,11 +285,11 @@ class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
             return this.decl.properties.flatMap((prop, index) =>
                 argConvertor(this.ctx, prop.type, prop.isOptional).write(E.get(accessor, E.c(index)), serializerName, false))
         }
-        return [Builders.expr().call().function()
+        return [Builders.stmt().call().function()
             .access('write')
                 .receiver(this.getSerializer(this.decl, native))
                 .static().$().$()
-            .arg(serializerName).arg(accessor).$().$stmt()
+            .arg(serializerName).arg(accessor).$().$()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {

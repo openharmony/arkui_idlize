@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration } from "@idlizer/core"
-import { E, Hs, LWExpression, LWType, Ts, lw } from "@idlizer/ost"
+import { E, Hs, LWExpression, LWType, T, Ts, lw } from "@idlizer/ost"
 import { MakeSelector, moduleName, OhosProducerContext, OhosSeed, Role } from "../engine/index.js"
 import { producers } from "./index.js"
 
@@ -48,10 +48,6 @@ export function isCApi(name:string) {
 }
 export function isBridge(name:string) {
     return is(BRIDGE_PREFIX, name)
-}
-
-export function typeNameExpr(typeName: string): lw.LWExpression {
-    return E.v(managedName(typeName), [Hs.isType()])
 }
 
 export function isDirectInteropType(type: lw.LWType) {
