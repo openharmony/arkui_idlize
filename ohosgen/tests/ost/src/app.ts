@@ -78,11 +78,11 @@ function checkCallback() {
     assertEQ(9, cbIntInt(3))
     assertEQ(15, cbIntInt(5))
 
-    // checkCallbackBooleanIntString((flag: boolean, x: int): string => {
-    //     assertEQ(true, flag)
-    //     assertEQ(12, x)
-    //     return "abc"
-    // })
+    checkCallbackBooleanIntString((flag: boolean, x: int): string => {
+        assertEQ(true, flag)
+        assertEQ(12, x)
+        return "abc"
+    })
 
     const cbBooleanIntString = getCallbackBooleanIntString()
     assertEQ('8', cbBooleanIntString(false, 3))

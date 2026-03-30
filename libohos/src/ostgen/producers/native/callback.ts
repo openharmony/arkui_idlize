@@ -72,6 +72,20 @@ export const callbackProducer = createProducer(
             .call('writeInt32').receiver('argsSerializer').arg(`CALLBACK_KIND_${callback.name.toUpperCase()}`).$()
             .call('writeInt32').receiver('argsSerializer').arg('resourceId').$()
             .statements(callbackParamWrites)
+            .statements(continuation ? [
+              Builders.stmt().call('writeCallbackResource')
+                .receiver(E.c('argsSerializer'))
+                .arg().access('resource').receiver(E.c('continuation'))
+                .$().$().$().$(),
+              Builders.stmt().call('writePointer')
+                .receiver(E.c('argsSerializer'))
+                .arg().cast(Ts.prim.pointer).value().access('call').receiver(E.c('continuation'))
+                .$().$().$().$().$().$(),
+              Builders.stmt().call('writePointer')
+                .receiver(E.c('argsSerializer'))
+                .arg().cast(Ts.prim.pointer).value().access('callSync').receiver(E.c('continuation'))
+                .$().$().$().$().$().$(),
+            ] : [])
             .call('enqueueCallback').arg('0').arg().unary(Op.ref).value('callbackBuffer').$().$().$().$().$(),
         Builders.func(bridgeName(`SyncCallManaged${callback.name}`))
           .parameters(syncParams)
