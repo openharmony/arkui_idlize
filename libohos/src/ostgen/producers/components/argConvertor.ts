@@ -575,6 +575,7 @@ export function deserializeAndCallCallback(name: string, serializerName: lw.LWEx
         const paramWrites = decl.parameters.flatMap(param => argConvertor(ctx, param.type, param.isOptional)
             .write(E.v(param.name), E.v(returnCallbackSerializer), false))
         const returnCallbackType = expectType(ctx, decl.returnType, 'managed')
+        const withContinuation = !idl.isVoidType(decl.returnType)
         const returnCallback = Builders.stmt()
             .decl(`${name}Closure`).funcType()
                 .parameters(callbackParams)
@@ -590,18 +591,18 @@ export function deserializeAndCallCallback(name: string, serializerName: lw.LWEx
                     Builders.stmt().call('writePointer').receiver(returnCallbackSerializer).arg(`${name}Call`).$().$(),
                     Builders.stmt().call('writePointer').receiver(returnCallbackSerializer).arg(`${name}CallSync`).$().$(),
                     ...paramWrites,
-                    Builders.decl(`${name}Result`, Ts.optional(returnCallbackType)).mutable().$(),
-                    Builders.decl(`${name}Continuation`)
-                        .funcType()
-                            .param(`value`).type(returnCallbackType).$()
-                            .returns(Ts.prim.void).$()
-                        .value().lambda()
-                        .param(`value`).type(returnCallbackType).$()
-                        .body().block()
-                            .binary(`=`)
-                            .left(`${name}Result`)
-                            .right(`value`).$().$().$().$().$().$(),
-                    Builders.stmt().call('holdAndWriteCallback').receiver(returnCallbackSerializer).arg(`${name}Continuation`).$().$(),
+                    ...(withContinuation ? [
+                        Builders.decl(`${name}Result`, Ts.optional(returnCallbackType)).mutable().$(),
+                        Builders.decl(`${name}Continuation`)
+                            .funcType()
+                                .param(`value`).type(returnCallbackType).$()
+                                .returns(Ts.prim.void).$()
+                            .value().lambda()
+                                .param(`value`).type(returnCallbackType).$()
+                            .body().block()
+                                .binary(`=`).left(`${name}Result`).right(`value`).$().$().$().$().$().$(),
+                        Builders.stmt().call('holdAndWriteCallback').receiver(returnCallbackSerializer).arg(`${name}Continuation`).$().$(),
+                    ] : []),
                     Builders.stmt().call('_CallCallbackSync').receiver(`InteropNativeModule`)
                         .arg(generatorConfiguration().ApiKind)
                         // TBD: Use CallbackKind
@@ -610,7 +611,7 @@ export function deserializeAndCallCallback(name: string, serializerName: lw.LWEx
                         .arg(Builders.call('length').receiver(returnCallbackSerializer).$())
                         .$().$(),
                     Builders.stmt().call('release').receiver(returnCallbackSerializer).$().$(),
-                    Builders.return(returnCallbackType).value(`${name}Result!`).$(),
+                    withContinuation ? Builders.return(returnCallbackType).value(`${name}Result!`).$(): Builders.none().$(),
                 ])
             .$().$().$().$().$().$()
     return [

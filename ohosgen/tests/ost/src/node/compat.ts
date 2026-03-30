@@ -13,6 +13,7 @@ export {
 
 export {
     //getOSTPromise,
+    getCallbackIntVoid,
     getCallbackIntInt,
     getCallbackBooleanIntString,
 } from '../../generated/ts'

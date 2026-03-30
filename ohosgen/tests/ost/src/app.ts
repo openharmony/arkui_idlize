@@ -32,6 +32,7 @@ import {
 
 import {
     // getOSTPromise,
+    getCallbackIntVoid,
     getCallbackIntInt,
     getCallbackBooleanIntString,
 } from "#compat"
@@ -63,13 +64,16 @@ function checkSequence() {
 }
 
 function checkCallback() {
-    const cb = getCallbackIntInt()
-    assertEQ(9, cb(3))
-    assertEQ(15, cb(5))
+    const cbIntVoid = getCallbackIntVoid()
+    cbIntVoid(2)
 
-    const cb2 = getCallbackBooleanIntString()
-    assertEQ('8', cb2(false, 3))
-    assertEQ('20', cb2(true, 4))
+    const cbIntInt = getCallbackIntInt()
+    assertEQ(9, cbIntInt(3))
+    assertEQ(15, cbIntInt(5))
+
+    const cbBooleanIntString = getCallbackBooleanIntString()
+    assertEQ('8', cbBooleanIntString(false, 3))
+    assertEQ('20', cbBooleanIntString(true, 4))
 }
 
 /*

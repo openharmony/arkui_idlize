@@ -82,6 +82,25 @@ static OH_UNIT_OST_CallbackResource CALLBACK_RESOURCE = {
     .release = [](const OH_Int32 resourceId) -> void {}
 };
 
+OH_UNIT_OST_Callback_I32_Void ost_callbacks_getCallbackIntVoidImpl()
+{
+    return {
+        .resource=CALLBACK_RESOURCE,
+        .call=[](const OH_Int32 resourceId, const OH_Int32 x)
+        {
+            printf("Call from getCallbackIntVoid callback x: %d\n", x);
+            if (x != 2)
+                INTEROP_FATAL("x %d does not equal : %d", x, 2);
+
+        },
+        .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_Int32 x)
+        {
+            if (x != 2)
+                INTEROP_FATAL("x %d does not equal : %d", x, 2);
+        }
+    };
+}
+
 OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntIntImpl()
 {
     return {

@@ -37,6 +37,7 @@ export {
 
 export {
     // getOSTPromise,
+    getCallbackIntVoid,
     getCallbackIntInt,
 } from '../../generated/arkts'
 
