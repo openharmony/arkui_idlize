@@ -14,12 +14,11 @@
  */
 
 #include <cstdio>
-
-#include <cstdio>
 #include <cstring>
 #include "unit_ost.h"
 
-InteropInt32 string_len(const char* str) {
+InteropInt32 string_len(const char* str)
+{
     return static_cast<InteropInt32>(strlen(str));
 }
 
@@ -27,11 +26,13 @@ InteropInt32 string_len(const char* str) {
 
 OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enumValue, OH_Int32 value)
 {
-    if (OH_UNIT_OST_OSTINT_ENUM_E1 != 1)
+    if (OH_UNIT_OST_OSTINT_ENUM_E1 != 1) {
         INTEROP_FATAL("Enum OSTINT_ENUM_E1 %d does not equal to: %d", OH_UNIT_OST_OSTINT_ENUM_E1, -1);
+    }
 
-    if (enumValue != OH_UNIT_OST_OSTINT_ENUM_E1)
+    if (enumValue != OH_UNIT_OST_OSTINT_ENUM_E1) {
         INTEROP_FATAL("Enum param value1 %d does not equal OSTINT_ENUM_E1: %d", enumValue, OH_UNIT_OST_OSTINT_ENUM_E1);
+    }
 
     return OH_UNIT_OST_OSTINT_ENUM_E3;
 }
@@ -41,16 +42,19 @@ OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enum
 OH_Int32 ost_sequences_checkOSTSequenceImpl(const OH_UNIT_OST_Array_Int32* value)
 {
     OH_Int32 length = value->length;
-    if (length == 0)
+    if (length == 0) {
         return 0;
+    }
 
     OH_Int32* array = value->array;
     OH_Int32 firstValue = array[0];
     OH_Int32 lastValue = array[length - 1];
-    if (firstValue != 3)
+    if (firstValue != 3) {
         INTEROP_FATAL("The first sequence value %d does not equal to 3", firstValue);
-    if (lastValue != -7)
+    }
+    if (lastValue != -7) {
         INTEROP_FATAL("The last sequence value %d does not equal to -7", firstValue);
+    }
     return length;
 }
 

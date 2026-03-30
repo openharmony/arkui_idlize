@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 declare enum CalendarAlign {
     START = 0,
     CENTER = 1,

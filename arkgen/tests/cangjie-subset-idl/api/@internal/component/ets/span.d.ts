@@ -13,6 +13,5 @@
  * limitations under the License.
  */
 
-
 declare class BaseSpan<T> extends CommonMethod<T> {
 }

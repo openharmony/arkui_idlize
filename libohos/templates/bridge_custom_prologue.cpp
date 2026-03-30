@@ -90,8 +90,9 @@ public:
     void PrintAvgs(std::stringstream& result)
     {
         for (const auto& [name, perfs] : perfs_) {
-            if (name == "perf_counter_self_cost")
+            if (name == "perf_counter_self_cost") {
                 continue;
+            }
             float totalCost = 0;
             for (const auto& perf : perfs) {
                 totalCost += perf.cost / NS_TO_US - selfCost_;

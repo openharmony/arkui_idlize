@@ -67,16 +67,19 @@ public:
     {
         switch (type) {
             case DrawBehind:
-                if (_drawBehindCallback)
+                if (_drawBehindCallback) {
                     _drawBehindCallback(context);
+                }
                 break;
             case DrawContent:
-                if (_drawContentCallback)
+                if (_drawContentCallback) {
                     _drawContentCallback(context);
+                }
                 break;
             case DrawFront:
-                if (_drawFrontCallback)
+                if (_drawFrontCallback) {
                     _drawFrontCallback(context);
+                }
                 break;
             default:
                 break;
@@ -208,8 +211,9 @@ public:
 
     void dispose()
     {
-        if (_drawModifier)
+        if (_drawModifier) {
             DrawModifiersQueue.erase(_drawModifier);
+        }
         delete this;
     }
 
@@ -313,20 +317,23 @@ public:
         fprintf(stderr, "needMoreElements %p %d\n", mark, direction);
         void* pointerMarker = reinterpret_cast<void*>(0x1);
         constexpr int maxChildrenThreshold = 5;
-        if (_children.size() == 0)
+        if (_children.size() == 0) {
             return pointerMarker;
-        if (_children.size() > maxChildrenThreshold)
+        }
+        if (_children.size() > maxChildrenThreshold) {
             return nullptr;
+        }
         return direction == 0 ? _children.front() : _children.back();
     }
 
     const string& getAttribute(const std::string& key) const
     {
         auto it = _attributes.find(key);
-        if (it != _attributes.end())
+        if (it != _attributes.end()) {
             return it->second;
-        else
+        } else {
             return _noAttribute;
+        }
     }
 
     void setAttribute(const string& key, const string& value)
@@ -452,18 +459,21 @@ LAB rgbToLAB(Color& c)
     constexpr float xyzMult = 7.787;
     constexpr float numenator = 16.0;
     constexpr float denominator = 116.0;
-    if (x > xyzThreshold)
+    if (x > xyzThreshold) {
         x = powf(x, xyzPower);
-    else
+    } else {
         x = (xyzMult * x) + (numenator / denominator);
-    if (y > xyzThreshold)
+    }
+    if (y > xyzThreshold) {
         y = powf(y, xyzPower);
-    else
+    } else {
         y = (xyzMult * y) + (numenator / denominator);
-    if (z > xyzThreshold)
+    }
+    if (z > xyzThreshold) {
         z = powf(z, xyzPower);
-    else
+    } else {
         z = (xyzMult * z) + (numenator / denominator);
+    }
 
     constexpr float yMult = 116;
     constexpr float ySub = 16;
