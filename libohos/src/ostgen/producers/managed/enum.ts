@@ -26,12 +26,16 @@ export const enumProducer = createProducer(
     const initializer: (it: number | string | undefined) => number | string | undefined =
       role === 'managed' ? id
         : it => typeof it === 'number' ? it : undefined
+    const elementName: (elem: idl.IDLEnumMember) => string =
+      role === 'managed'
+        ? e => idl.getExtAttribute(e, idl.IDLExtendedAttributes.OriginalEnumMemberName) ?? e.name
+        : e => e.name
     return {
       continuation: T.c(declName),
       declarations: [
         Builders.enum(declName)
           .members(node.elements.map(element => ({
-            name: element.name,
+            name: elementName(element),
             value: initializer(element.initializer)
           }))).$()
       ]
