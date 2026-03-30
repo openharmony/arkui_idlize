@@ -611,7 +611,7 @@ export function deserializeAndCallCallback(name: string, serializerName: lw.LWEx
                         .arg(Builders.call('length').receiver(returnCallbackSerializer).$())
                         .$().$(),
                     Builders.stmt().call('release').receiver(returnCallbackSerializer).$().$(),
-                    withContinuation ? Builders.return(returnCallbackType).value(`${name}Result!`).$(): Builders.none().$(),
+                    withContinuation ? Builders.return(returnCallbackType).value(E.c(`${name}Result`, [Hs.excl()])).$(): Builders.none().$(),
                 ])
             .$().$().$().$().$().$()
     return [
