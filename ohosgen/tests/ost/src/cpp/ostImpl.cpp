@@ -120,6 +120,23 @@ OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntIntImpl()
     };
 }
 
+void ost_callbacks_checkCallbackBooleanIntStringImpl(const OH_UNIT_OST_Callback_Boolean_I32_String* callback) {
+     OH_UNIT_OST_Callback_String_Void continuation = {
+        .resource=CALLBACK_RESOURCE,
+        .call=[](const OH_Int32 resourceId, const OH_String value)
+        {
+            if (strcmp("abc", value.chars) != 0)
+                INTEROP_FATAL("String %s does not equal : %s", value.chars, "abc");
+        },
+        .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_String value)
+        {
+            if (strcmp("abc", value.chars) != 0)
+                INTEROP_FATAL("String %s does not equal : %s", value.chars, "abc");
+        }
+    };
+    callback->call(callback->resource.resourceId, true, 12, continuation);
+}
+
 OH_UNIT_OST_Callback_Boolean_I32_String ost_callbacks_getCallbackBooleanIntStringImpl()
 {
     return {

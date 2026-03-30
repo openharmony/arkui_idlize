@@ -16,6 +16,7 @@ export {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,
+    checkCallbackBooleanIntString,
     getCallbackBooleanIntString,
 } from '../../generated/ts'
 

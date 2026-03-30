@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, lw, Op, T, Ts } from "@idlizer/ost";
 import { bridgeName, cApiName, expectType } from "../common.js";
-import { argConvertor } from "../components/argConvertor.js";
+import { argConvertor, readCallbackCall, readCallbackStruct } from "../components/argConvertor.js";
 import { createProducer } from "../../engine/index.js";
 
 export const callbackProducer = createProducer(
@@ -42,15 +42,6 @@ export const callbackProducer = createProducer(
     }
     const syncParams = [vmContextParam, ...asyncParams]
     const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), true))
-    const readCall: (sync: boolean, params: { name: string, type: lw.LWType}[], callbackName: string) => lw.LWExpression
-      = (sync, params, callbackName) => {
-      return Builders.cast(T.fn(params, Ts.prim.void))
-        .value().call('readPointerOrDefault')
-          .arg().call(`getManagedCallbackCaller${sync ? 'Sync' : ''}`)
-            .arg(`CALLBACK_KIND_${callbackName.toUpperCase()}`).$().$()
-        .receiver(`deserializer`)
-        .$().$().$()
-    }
     return {
       continuation: T.c(generatedDeclName),
       declarations: [
@@ -108,17 +99,12 @@ export const callbackProducer = createProducer(
                 .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
               .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
               .statements(sync ? [Builders.stmt().call('readPointer').receiver('deserializer').$().$()] : [])
-              .decl(`call${sync}`).value(readCall(false, sync ? syncParams : asyncParams, callback.name)).$()
+              .decl(`call${sync}`).value(readCallbackCall(false, sync ? syncParams : asyncParams, callback.name)).$()
               .statements(sync ? [] : [Builders.stmt().call('readPointer').receiver('deserializer').$().$()])
               .statements(reads.flatMap(it => it[0]))
               .statements([
                 continuation
-                  ? Builders.decl('continuationResult').type(continuation)
-                    .value().ctor().asStruct()
-                    .arg().call('readCallbackResource').receiver('deserializer').$().$()
-                    .arg(readCall(false, continuationReturnParams, continuationName!))
-                    .arg(readCall(true, [vmContextParam, ...continuationReturnParams], continuationName!))
-                    .$().$().$()
+                  ? readCallbackStruct('continuationResult', continuation, continuationName!, continuationReturnParams)
                   : Builders.none().$()
               ])
               .call(`call${sync}`)

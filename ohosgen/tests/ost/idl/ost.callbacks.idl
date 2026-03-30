@@ -11,4 +11,5 @@ Callback_I32_I32 getCallbackIntInt();
 
 [Synthetic]
 callback Callback_Boolean_I32_String = String (boolean b, i32 v);
+void checkCallbackBooleanIntString(Callback_Boolean_I32_String callback);
 Callback_Boolean_I32_String getCallbackBooleanIntString();
