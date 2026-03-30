@@ -13,6 +13,7 @@ export {
 
 export {
     //getOSTPromise,
+    checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,
     getCallbackBooleanIntString,

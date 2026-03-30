@@ -32,6 +32,7 @@ import {
 
 import {
     // getOSTPromise,
+    checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,
     getCallbackBooleanIntString,
@@ -64,6 +65,11 @@ function checkSequence() {
 }
 
 function checkCallback() {
+
+    checkCallbackIntVoid((value: int) => {
+        assertEQ(9, value)
+    })
+
     const cbIntVoid = getCallbackIntVoid()
     cbIntVoid(2)
 

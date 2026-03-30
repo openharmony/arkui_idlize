@@ -82,6 +82,10 @@ static OH_UNIT_OST_CallbackResource CALLBACK_RESOURCE = {
     .release = [](const OH_Int32 resourceId) -> void {}
 };
 
+void ost_callbacks_checkCallbackIntVoidImpl(const OH_UNIT_OST_Callback_I32_Void* callback) {
+    callback->call(callback->resource.resourceId, 9);
+}
+
 OH_UNIT_OST_Callback_I32_Void ost_callbacks_getCallbackIntVoidImpl()
 {
     return {

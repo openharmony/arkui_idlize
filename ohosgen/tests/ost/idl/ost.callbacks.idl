@@ -3,6 +3,7 @@ package ost.callbacks;
 [Synthetic]
 callback Callback_I32_Void = void (i32 x);
 Callback_I32_Void getCallbackIntVoid();
+void checkCallbackIntVoid(Callback_I32_Void callback);
 
 [Synthetic]
 callback Callback_I32_I32 = i32 (i32 x);
