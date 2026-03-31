@@ -13,6 +13,9 @@
             "#arktheme": [
                 "./ArkThemeScopeManager"
             ],
+            "internal": [
+                "../../../../../generated/modules/internal/generated/arkts"
+            ],
             "external": [
                 "../../../../../generated/modules/external/generated/arkts"
             ],

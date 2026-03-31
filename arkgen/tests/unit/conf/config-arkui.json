@@ -12,7 +12,12 @@
     "modules": {
         "external": {
             "name": "external",
-            "packages": ["external"]
+            "packages": ["external"],
+            "external": true
+        },
+        "internal": {
+            "name": "internal",
+            "packages": ["internal"]
         },
         "arkui": {
             "name": "arkui",
@@ -48,7 +53,13 @@
     "libraryNameMapping": {
         "external": {
             "TS": "external",
-            "ArkTS": "external"
+            "ArkTS": "external",
+            "Kotlin": "external"
+        },
+        "internal": {
+            "TS": "internal",
+            "ArkTS": "internal",
+            "Kotlin": "internal"
         }
     },
     "rootComponents": [

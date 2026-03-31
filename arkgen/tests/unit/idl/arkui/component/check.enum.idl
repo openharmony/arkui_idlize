@@ -15,7 +15,8 @@
 
 package arkui.component.check.enum;
 
-import external.ExternalStringEnum as ExternalStringEnum;
+import external.ExternalEnumString as ExternalEnumString;
+import internal.InternalEnumString as InternalEnumString;
 
 enum EnumUByte {
     number E0 = 0;
@@ -56,5 +57,6 @@ interface CheckEnumAttribute: Root {
     attribute EnumInt enumInt;
     attribute EnumLong enumLong;
     attribute EnumString enumString;
+    attribute InternalEnumString internalEnumString;
     attribute ExternalEnumString externalEnumString;
 };

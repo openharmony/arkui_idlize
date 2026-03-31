@@ -1,0 +1,8 @@
+{
+    "name": "@koalaui/tests-unit-modules-internal",
+    "arkts": {
+        "exports": {
+            "internal": "."
+        }
+    }
+}

@@ -59,6 +59,7 @@ node_cmd("check:arkts:generate") {
         rebase_path("./idl/arkui"),
         rebase_path("./idl/arkui/component"),
         rebase_path("./idl/external"),
+        rebase_path("./idl/internal"),
     ]
 
     _input_dir_str = ""

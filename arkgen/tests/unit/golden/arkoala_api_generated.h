@@ -365,6 +365,12 @@ typedef struct Ark_AggregatedReferences2Different Ark_AggregatedReferences2Diffe
 typedef struct Opt_AggregatedReferences2Different Opt_AggregatedReferences2Different;
 typedef struct Ark_DatebookOptions Ark_DatebookOptions;
 typedef struct Opt_DatebookOptions Opt_DatebookOptions;
+typedef struct Ark_ExternalInterface Ark_ExternalInterface;
+typedef struct Opt_ExternalInterface Opt_ExternalInterface;
+typedef struct Ark_InternalInterface Ark_InternalInterface;
+typedef struct Opt_InternalInterface Opt_InternalInterface;
+typedef struct Ark_Length Ark_Length;
+typedef struct Opt_Length Opt_Length;
 typedef struct Ark_NoConflicts Ark_NoConflicts;
 typedef struct Opt_NoConflicts Opt_NoConflicts;
 typedef struct Ark_PageTransitionOptions Ark_PageTransitionOptions;
@@ -465,6 +471,14 @@ typedef struct Opt_ExternalEnumString {
     Ark_Tag tag;
     Ark_ExternalEnumString value;
 } Opt_ExternalEnumString;
+typedef enum Ark_InternalEnumString: InteropUInt8 {
+    ARK_INTERNAL_ENUM_STRING_E1,
+    ARK_INTERNAL_ENUM_STRING_E2,
+} Ark_InternalEnumString;
+typedef struct Opt_InternalEnumString {
+    Ark_Tag tag;
+    Ark_InternalEnumString value;
+} Opt_InternalEnumString;
 typedef enum Ark_LayoutDirection: InteropUInt8 {
     ARK_LAYOUT_DIRECTION_LTR = 0,
     ARK_LAYOUT_DIRECTION_RTL = 1,
@@ -821,6 +835,36 @@ typedef struct Opt_DatebookOptions {
     Ark_Tag tag;
     Ark_DatebookOptions value;
 } Opt_DatebookOptions;
+typedef struct Ark_ExternalInterface {
+    /* kind: Interface */
+    Ark_String name;
+} Ark_ExternalInterface;
+typedef struct Opt_ExternalInterface {
+    Ark_Tag tag;
+    Ark_ExternalInterface value;
+} Opt_ExternalInterface;
+typedef struct Ark_InternalInterface {
+    /* kind: Interface */
+    Ark_String name;
+} Ark_InternalInterface;
+typedef struct Opt_InternalInterface {
+    Ark_Tag tag;
+    Ark_InternalInterface value;
+} Opt_InternalInterface;
+typedef struct Ark_Length {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_String value0;
+        Ark_Number value1;
+        Ark_ExternalInterface value2;
+        Ark_InternalInterface value3;
+    };
+} Ark_Length;
+typedef struct Opt_Length {
+    Ark_Tag tag;
+    Ark_Length value;
+} Opt_Length;
 typedef struct Ark_NoConflicts {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -1011,6 +1055,8 @@ typedef struct GENERATED_ArkUICheckEnumModifier {
                         Ark_EnumLong value);
     void (*setEnumString)(Ark_NativePointer node,
                           Ark_EnumString value);
+    void (*setInternalEnumString)(Ark_NativePointer node,
+                                  Ark_InternalEnumString value);
     void (*setExternalEnumString)(Ark_NativePointer node,
                                   Ark_ExternalEnumString value);
 } GENERATED_ArkUICheckEnumModifier;
@@ -1091,6 +1137,17 @@ typedef struct GENERATED_ArkUICheckTrivialModifierModifier {
     void (*setProp)(Ark_NativePointer node,
                     const Ark_Number* value);
 } GENERATED_ArkUICheckTrivialModifierModifier;
+
+typedef struct GENERATED_ArkUICheckUnitsModifier {
+    Ark_NativePointer (*construct)(Ark_Int32 id,
+                                   Ark_Int32 flags);
+    void (*setInternalInterface)(Ark_NativePointer node,
+                                 const Ark_InternalInterface* value);
+    void (*setExternalInterface)(Ark_NativePointer node,
+                                 const Ark_ExternalInterface* value);
+    void (*setLength)(Ark_NativePointer node,
+                      const Ark_Length* value);
+} GENERATED_ArkUICheckUnitsModifier;
 
 typedef struct GENERATED_ArkUIDatebookModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
@@ -1184,6 +1241,7 @@ typedef struct GENERATED_ArkUINodeModifiers {
     const GENERATED_ArkUICheckParentModifier* (*getCheckParentModifier)();
     const GENERATED_ArkUICheckTransformModifier* (*getCheckTransformModifier)();
     const GENERATED_ArkUICheckTrivialModifierModifier* (*getCheckTrivialModifierModifier)();
+    const GENERATED_ArkUICheckUnitsModifier* (*getCheckUnitsModifier)();
     const GENERATED_ArkUIDatebookModifier* (*getDatebookModifier)();
     const GENERATED_ArkUIRootModifier* (*getRootModifier)();
 } GENERATED_ArkUINodeModifiers;
@@ -1214,6 +1272,7 @@ typedef enum GENERATED_Ark_NodeType {
     GENERATED_ARKUI_CHECK_PARENT,
     GENERATED_ARKUI_CHECK_TRANSFORM,
     GENERATED_ARKUI_CHECK_TRIVIAL_MODIFIER,
+    GENERATED_ARKUI_CHECK_UNITS,
     GENERATED_ARKUI_DATEBOOK,
     GENERATED_ARKUI_ROOT
 } GENERATED_Ark_NodeType;

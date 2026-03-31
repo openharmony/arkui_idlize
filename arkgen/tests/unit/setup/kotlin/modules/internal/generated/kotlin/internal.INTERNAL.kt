@@ -16,7 +16,7 @@
 
 // WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
 
-package external.INTERNAL
+package internal.INTERNAL
 
 import koalaui.interop.KBoolean
 import koalaui.interop.KByte
@@ -52,7 +52,7 @@ public open class CallbackKind {
         this.value = arg0
     }
 }
-public open class EXTERNALNativeModule {
+public open class INTERNALNativeModule {
     companion object {
     }
 }
@@ -62,6 +62,6 @@ public fun deserializeAndCallCallback(thisDeserializer: DeserializerBase): Unit 
         else -> error("Unknown callback kind")
     }
 }
-public fun registerExternalApiHandler(): Unit {
+public fun registerInternalApiHandler(): Unit {
     registerApiEventHandler(0, ::deserializeAndCallCallback)
 }
