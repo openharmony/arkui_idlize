@@ -23,10 +23,10 @@ export const callbackProducer = createProducer(
   { is: idl.isCallback, role: 'managed' },
   (callback, ctx) => {
     ctx.updateEffect(e => e.callbacks.push(callback.name))
-    let continuation: idl.IDLEntry | undefined
+    let continuation: idl.IDLCallback | undefined
     if (!idl.isVoidType(callback.returnType)) {
       const ref = ctx.library.createContinuationCallbackReference(callback.returnType)!
-      continuation = ctx.library.resolveTypeReference(ref)!
+      continuation = ctx.library.resolveTypeReference(ref)! as idl.IDLCallback
     }
     const generatedDeclName = managedName(idl.getFQName(callback))
     const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), false))
@@ -44,7 +44,7 @@ export const callbackProducer = createProducer(
               .receiver().call('instance').receiver('ResourceHolder').$().$()
               .arg('resourceId').$().$().$().$().$()
             .statements(reads.flatMap(it => it[0]))
-            .statements(continuation ? deserializeAndCallCallback('continuation', E.v('deserializer'), ctx, continuation! as idl.IDLCallback) : [])
+            .statements(continuation ? deserializeAndCallCallback('continuation', E.v('deserializer'), ctx, continuation!) : [])
             .statements(continuation
               ? [Builders.stmt().call('continuationClosure').arg().call('call').args(reads.map(it => it[1])).$().$().$().$()]
               : [Builders.stmt().call('call').args(reads.map(it => it[1])).$().$()]
