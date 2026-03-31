@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, hashCodeFromString, isMaterialized } from "@idlizer/core"
+import { generatorConfiguration, hashCodeFromString, isDefined, isMaterialized } from "@idlizer/core"
 import { Builders, E, LWExpression, LWStatement, lw, Op, std, T, Ts } from "@idlizer/ost"
 import { cApiName, expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
@@ -427,14 +427,66 @@ class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
 }
 
 class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
+    /**
+     * Most specific checks should come first.
+     * `interface Child extends Parent` => first check if `value instanceof Child`, then if `value instanceof Parent`
+     * @returns array of indices sorted in proper check order
+     */
+    private orderIndices(): number[] {
+        const resolveInterface = (type: idl.IDLType): idl.IDLInterface | undefined => {
+            if (!idl.isReferenceType(type))
+                return undefined
+            const decl = this.ctx.library.resolveTypeReference(type)
+            return decl && idl.isInterface(decl) ? decl : undefined
+        }
+        const resolveParents = (decl: idl.IDLInterface): idl.IDLInterface[] => {
+            return decl.inheritance
+                .map(resolveInterface)
+                .filter(isDefined)
+                .flatMap(it => [it, ...resolveParents(it)])
+        }
+        const queue = this.type.types.map<{
+            type: idl.IDLType,
+            index: number,
+            needs?: idl.IDLType[],
+        }>((type, index) => ({ type, index }))
+        queue.forEach((it, _, sortItems) => {
+            const decl = resolveInterface(it.type)
+            const parents = decl ? resolveParents(decl) : undefined
+            if (parents) {
+                for (const other of sortItems) {
+                    const otherDecl = resolveInterface(other.type)
+                    if (otherDecl && parents.includes(otherDecl)) {
+                        other.needs ??= []
+                        other.needs.push(it.type)
+                    }
+                }
+            }
+        })
+        const sorted: [idl.IDLType, number][] = []
+        while (queue.length) {
+            for (let i = 0; i < queue.length;) {
+                const {type, index, needs} = queue[i]
+                if (!needs || needs?.every(dep => sorted.find(it => it[0] === dep))) {
+                    queue.splice(i, 1)
+                    sorted.push([type, index])
+                } else {
+                    i++
+                }
+            }
+        }
+        return sorted.map(it => it[1])
+    }
+
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         return [
-            this.type.types.map((ty, i) => {
+            this.orderIndices().map(i => {
+                const type = this.type.types[i]
                 const cond = native
                     ? Builders.binary(Op.eq)
                         .left().access('selector').receiver(accessor).$().$()
                         .right(i).$()
-                    : Builders.instanceof(expectType(this.ctx, ty, 'managed')).value(accessor).$()
+                    : Builders.instanceof(expectType(this.ctx, type, 'managed')).value(accessor).$()
                 const value = native
                     ? Builders.access('value' + i).receiver(accessor).$()
                     : accessor /// cast to `ty`
@@ -442,7 +494,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     .condition(cond)
                     .then().block()
                         .call('writeInt8').receiver(serializerName).arg(i).$()
-                        .statements(argConvertor(this.ctx, ty).write(value, serializerName, native)).$().$().$()
+                        .statements(argConvertor(this.ctx, type).write(value, serializerName, native)).$().$().$()
             })
             .reduceRight((acc, cur) => {cur.elseBody = acc; return cur})
         ]
