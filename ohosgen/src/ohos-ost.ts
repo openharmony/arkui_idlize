@@ -108,7 +108,7 @@ function defaultImports(): ImportsCollector {
     ], '@koalaui/compat')
     imports.addFeatures([
         'KInt', 'KPointer', 'KInteropReturnBuffer', 'KSerializerBuffer',
-        'SerializerBase', 'DeserializerBase', 'MaterializedBase',
+        'SerializerBase', 'DeserializerBase', 'MaterializedBase', 'MaterializedBaseTag',
         'Finalizable', 'toPeerPtr',
         'RuntimeType', 'ResourceHolder',
         'loadNativeModuleLibrary', 'registerApiEventHandler',

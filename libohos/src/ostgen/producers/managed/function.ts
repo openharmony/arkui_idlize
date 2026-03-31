@@ -81,7 +81,7 @@ export const constructorProducer = createProducer(
         .value().call('hold').receiver('SerializerBase').$().$().$(),
       ...ctor.parameters.flatMap(param =>
         argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
-      Builders.decl('retval').value(nativeModuleCall).$(),
+      Builders.decl('peerPtr').value(nativeModuleCall).$(),
       Builders.stmt().call('release').receiver(serializerName).$().$(),
     ]
     return {
@@ -91,7 +91,9 @@ export const constructorProducer = createProducer(
           .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') })))
           .block()
             .statements(body)
-            .call('setPeer').receiver('this').arg('retval').$().$().$().$()
+            .call('this')
+              .arg().access('NOP').receiver('MaterializedBaseTag').$().$()
+              .arg('peerPtr').$().$().$().$()
       ]
     }
   }
