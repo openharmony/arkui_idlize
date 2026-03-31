@@ -44,8 +44,11 @@ export const callbackProducer = createProducer(
               .receiver().call('instance').receiver('ResourceHolder').$().$()
               .arg('resourceId').$().$().$().$().$()
             .statements(reads.flatMap(it => it[0]))
-            .statements(continuation ? deserializeAndCallCallback('continuation', E.v('deserializer'), ctx, callback) : [])
-            .call('call').args(reads.map(it => it[1])).$().$().$(),
+            .statements(continuation ? deserializeAndCallCallback('continuation', E.v('deserializer'), ctx, continuation! as idl.IDLCallback) : [])
+            .statements(continuation
+              ? [Builders.stmt().call('continuationClosure').arg().call('call').args(reads.map(it => it[1])).$().$().$().$()]
+              : [Builders.stmt().call('call').args(reads.map(it => it[1])).$().$()]
+            ).$().$(),
             // TBD: workaround to include the continuation to the declaration processing
             // Fix it in more appropriate way
             ...(continuation
