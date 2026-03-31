@@ -223,7 +223,7 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     let resultAssigneer: (expr: LanguageExpression) => LanguageStatement = (expr) => {
         const valueVarName = 'resultValueTmpVar'
         return writer.makeBlock([
-            writer.makeAssign(valueVarName, undefined, expr, false, false),
+            writer.makeAssign(valueVarName, undefined, expr, true, false),
             writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
             writer.makeReturn(writer.makeString(valueVarName))
         ])
