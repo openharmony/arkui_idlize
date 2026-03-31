@@ -220,7 +220,14 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     )
 
     const returnConvertor = library.typeConvertor(returnValName, returnType)
-    let resultAssigneer: (expr: LanguageExpression) => LanguageStatement = (expr) => writer.makeReturn(expr)
+    let resultAssigneer: (expr: LanguageExpression) => LanguageStatement = (expr) => {
+        const valueVarName = 'resultValueTmpVar'
+        return writer.makeBlock([
+            writer.makeAssign(valueVarName, undefined, expr, false, false),
+            writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
+            writer.makeReturn(writer.makeString(valueVarName))
+        ])
+    }
     if (isThrows(returnType, library)) {
         const restoredThrow = maybeRestoreThrows(returnType, library)!
         const needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
@@ -228,8 +235,16 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
             return writer.makeBlock([
                 writer.makeAssign(`exceptionBuffer`, undefined, expr, true),
                 writer.makeCondition(writer.makeString(`exceptionBuffer.hasException`),
-                    writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.exception`))),
-                    needReturn ? writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.value`))) : undefined
+                    writer.makeBlock([
+                        writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
+                        writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.exception`)))
+                    ]),
+                    needReturn
+                        ? writer.makeBlock([
+                            writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
+                            writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.value`)))
+                        ])
+                        : undefined
                 )
             ], false)
         }
