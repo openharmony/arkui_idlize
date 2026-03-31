@@ -251,7 +251,7 @@ class MaterializedConvertor extends ArgConvertor<idl.IDLReferenceType> {
         return native
             ? peerPtr
             : Builders.call('fromPtr')
-                .receiver(E.type(T.c(managedName(this.type.name + 'Internal'))))
+                .receiver().type(managedName(this.type.name + 'Internal')).$()
                 .arg(peerPtr).$()
 
     }
