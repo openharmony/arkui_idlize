@@ -220,17 +220,14 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     )
 
     const returnConvertor = library.typeConvertor(returnValName, returnType)
+    const valueVarName = 'resultValueTmpVar'
     let resultAssigneer: (expr: LanguageExpression) => LanguageStatement = (expr) => {
-        const valueVarName = 'resultValueTmpVar'
-        return writer.makeBlock([
-            writer.makeAssign(valueVarName, undefined, expr, true, false),
-            writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
-            writer.makeReturn(writer.makeString(valueVarName))
-        ])
+        return writer.makeAssign(valueVarName, undefined, expr, false, false)
     }
+    let needReturn = true
     if (isThrows(returnType, library)) {
         const restoredThrow = maybeRestoreThrows(returnType, library)!
-        const needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
+        needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
         resultAssigneer = (expr) => {
             return writer.makeBlock([
                 writer.makeAssign(`exceptionBuffer`, undefined, expr, true),
@@ -240,23 +237,26 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
                         writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.exception`)))
                     ]),
                     needReturn
-                        ? writer.makeBlock([
-                            writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
-                            writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.value`)))
-                        ])
+                        ? writer.makeAssign(valueVarName, undefined, writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.value`)), false, false)
                         : undefined
                 )
             ], false)
         }
     }
-    return [
+    const resultStmts =  [
+        writer.makeAssign(valueVarName, idl.createOptionalType(returnType), writer.makeUndefined(), true, false),
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
             resultAssigneer,
             writer
         ),
+        writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
     ]
+    if (needReturn) {
+        resultStmts.push(writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(valueVarName))))
+    }
+    return resultStmts
 }
 
 function makeDeserializerInstance(returnValName: string, language: Language) {
