@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, lw, Op, T, Ts } from "@idlizer/ost";
 import { bridgeName, cApiName, expectType } from "../common.js";
-import { argConvertor } from "../components/argConvertor.js";
+import { argConvertor, readCallbackCall, readCallbackStruct } from "../components/argConvertor.js";
 import { createProducer } from "../../engine/index.js";
 
 export const callbackProducer = createProducer(
@@ -42,15 +42,6 @@ export const callbackProducer = createProducer(
     }
     const syncParams = [vmContextParam, ...asyncParams]
     const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), true))
-    const readCall: (sync: boolean, params: { name: string, type: lw.LWType}[], callbackName: string) => lw.LWExpression
-      = (sync, params, callbackName) => {
-      return Builders.cast(T.fn(params, Ts.prim.void))
-        .value().call('readPointerOrDefault')
-          .arg().call(`getManagedCallbackCaller${sync ? 'Sync' : ''}`)
-            .arg(`CALLBACK_KIND_${callbackName.toUpperCase()}`).$().$()
-        .receiver(`deserializer`)
-        .$().$().$()
-    }
     return {
       continuation: T.c(generatedDeclName),
       declarations: [
@@ -62,41 +53,61 @@ export const callbackProducer = createProducer(
           .field('callSync').funcType()
               .parameters(syncParams)
               .returns(Ts.prim.void).$().$().$(),
-        Builders.func(bridgeName(`CallManaged${callback.name}`))
-          .parameters(asyncParams)
+         ...['', 'Sync'].map(sync =>
+        Builders.func(bridgeName(`${sync}CallManaged${callback.name}`))
+          .parameters(sync ? syncParams : asyncParams)
           .block()
-            .decl('callbackBuffer', T.c('CallbackBuffer')).mutable().value()
-              .ctor().asStruct().arg('{}').arg('{}').$().$().$()
-            .decl('callbackResourceSelf', T.c(cApiName('CallbackResource'))).value()
-              .ctor().asStruct().arg('resourceId').arg('holdManagedCallbackResource').arg('releaseManagedCallbackResource').$().$().$()
-            .call('holdCallbackResource')
-              .receiver().access('resourceHolder').receiver('callbackBuffer').$().$()
-              .arg().unary(Op.ref).value('callbackResourceSelf').$().$().$()
-            .decl('argsSerializer', T.c('SerializerBase')).mutable().value()
-              .ctor().stack()
-                .arg().cast(T.c('KSerializerBuffer')).value()
-                  .unary(Op.ref).value().access('buffer').receiver('callbackBuffer').$().$().$().$().$().$()
-                .arg().call('sizeof').arg().access('buffer').receiver('callbackBuffer').$().$().$().$()
-                .arg().unary(Op.ref).value().access('resourceHolder').receiver('callbackBuffer').$().$().$().$().$().$().$()
+          .statements(sync
+            ? [
+              Builders.decl('argsSerializer', T.c('SerializerBase')).mutable()
+                .value().ctor().stack().arg('nullptr').$().$().$(),
+              Builders.stmt().call('writeInt32').receiver('argsSerializer').arg('0').$().$()]
+            : [
+              Builders
+              .decl('callbackBuffer', T.c('CallbackBuffer')).mutable().value()
+                .ctor().asStruct().arg('{}').arg('{}').$().$().$(),
+              Builders.decl('callbackResourceSelf', T.c(cApiName('CallbackResource'))).value()
+                .ctor().asStruct().arg('resourceId').arg('holdManagedCallbackResource').arg('releaseManagedCallbackResource').$().$().$(),
+              Builders.stmt().call('holdCallbackResource')
+                .receiver().access('resourceHolder').receiver('callbackBuffer').$().$()
+                .arg().unary(Op.ref).value('callbackResourceSelf').$().$().$().$(),
+              Builders.decl('argsSerializer', T.c('SerializerBase')).mutable().value()
+                .ctor().stack()
+                  .arg().cast(T.c('KSerializerBuffer')).value()
+                    .unary(Op.ref).value().access('buffer').receiver('callbackBuffer').$().$().$().$().$().$()
+                  .arg().call('sizeof').arg().access('buffer').receiver('callbackBuffer').$().$().$().$()
+                  .arg().unary(Op.ref).value().access('resourceHolder').receiver('callbackBuffer').$().$().$().$().$().$().$()
+                ])
             .call('writeInt32').receiver('argsSerializer').arg(`CALLBACK_KIND_${callback.name.toUpperCase()}`).$()
             .call('writeInt32').receiver('argsSerializer').arg('resourceId').$()
             .statements(callbackParamWrites)
-            .call('enqueueCallback').arg('0').arg().unary(Op.ref).value('callbackBuffer').$().$().$().$().$(),
-        Builders.func(bridgeName(`SyncCallManaged${callback.name}`))
-          .parameters(syncParams)
-          .block()
-            .decl('argsSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().arg('nullptr').$().$().$()
-            .call('writeInt32').receiver('argsSerializer').arg('0').$()
-            .call('writeInt32').receiver('argsSerializer').arg(`CALLBACK_KIND_${callback.name.toUpperCase()}`).$()
-            .call('writeInt32').receiver('argsSerializer').arg('resourceId').$()
-            .statements(callbackParamWrites)
-            .decl('callData', T.c('KInteropReturnBuffer')).value().call('toReturnBuffer').receiver('argsSerializer').$().$().$()
-            .call('KOALA_INTEROP_CALL_VOID').arg('vmContext').arg('1')
+            .statements(continuation ? [
+              Builders.stmt().call('writeCallbackResource')
+                .receiver(E.c('argsSerializer'))
+                .arg().access('resource').receiver(E.c('continuation'))
+                .$().$().$().$(),
+              Builders.stmt().call('writePointer')
+                .receiver(E.c('argsSerializer'))
+                .arg().cast(Ts.prim.pointer).value().access('call').receiver(E.c('continuation'))
+                .$().$().$().$().$().$(),
+              Builders.stmt().call('writePointer')
+                .receiver(E.c('argsSerializer'))
+                .arg().cast(Ts.prim.pointer).value().access('callSync').receiver(E.c('continuation'))
+                .$().$().$().$().$().$(),
+            ] : [])
+          .statements(sync
+            ? [
+            Builders.decl('callData', T.c('KInteropReturnBuffer')).value().call('toReturnBuffer').receiver('argsSerializer').$().$().$(),
+            Builders.stmt().call('KOALA_INTEROP_CALL_VOID').arg('vmContext').arg('1')
               .arg().access('length').receiver('callData').$().$()
-              .arg().access('data').receiver('callData').$().$().$()
-            .call('dispose').receiver('callData')
+              .arg().access('data').receiver('callData').$().$().$().$(),
+            Builders.stmt().call('dispose').receiver('callData')
               .arg().access('data').receiver('callData').$().$()
-              .arg().access('length').receiver('callData').$().$().$().$().$(),
+              .arg().access('length').receiver('callData').$().$().$().$()
+            ]
+            :[
+              Builders.stmt().call('enqueueCallback').arg('0').arg().unary(Op.ref).value('callbackBuffer').$().$().$().$()
+            ]).$().$()),
         ...['', 'Sync'].map(sync =>
           Builders.func(bridgeName(`deserializeAndCall${sync}${callback.name}`))
             .parameters(sync ? [vmContextParam] : [])
@@ -108,17 +119,12 @@ export const callbackProducer = createProducer(
                 .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
               .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
               .statements(sync ? [Builders.stmt().call('readPointer').receiver('deserializer').$().$()] : [])
-              .decl(`call${sync}`).value(readCall(false, sync ? syncParams : asyncParams, callback.name)).$()
+              .decl(`call${sync}`).value(readCallbackCall(false, sync ? syncParams : asyncParams, callback.name)).$()
               .statements(sync ? [] : [Builders.stmt().call('readPointer').receiver('deserializer').$().$()])
               .statements(reads.flatMap(it => it[0]))
               .statements([
                 continuation
-                  ? Builders.decl('continuationResult').type(continuation)
-                    .value().ctor().asStruct()
-                    .arg().call('readCallbackResource').receiver('deserializer').$().$()
-                    .arg(readCall(false, continuationReturnParams, continuationName!))
-                    .arg(readCall(true, [vmContextParam, ...continuationReturnParams], continuationName!))
-                    .$().$().$()
+                  ? readCallbackStruct('continuationResult', continuation, continuationName!, continuationReturnParams)
                   : Builders.none().$()
               ])
               .call(`call${sync}`)

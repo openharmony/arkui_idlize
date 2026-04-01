@@ -82,6 +82,29 @@ static OH_UNIT_OST_CallbackResource CALLBACK_RESOURCE = {
     .release = [](const OH_Int32 resourceId) -> void {}
 };
 
+void ost_callbacks_checkCallbackIntVoidImpl(const OH_UNIT_OST_Callback_I32_Void* callback) {
+    callback->call(callback->resource.resourceId, 9);
+}
+
+OH_UNIT_OST_Callback_I32_Void ost_callbacks_getCallbackIntVoidImpl()
+{
+    return {
+        .resource=CALLBACK_RESOURCE,
+        .call=[](const OH_Int32 resourceId, const OH_Int32 x)
+        {
+            printf("Call from getCallbackIntVoid callback x: %d\n", x);
+            if (x != 2)
+                INTEROP_FATAL("x %d does not equal : %d", x, 2);
+
+        },
+        .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_Int32 x)
+        {
+            if (x != 2)
+                INTEROP_FATAL("x %d does not equal : %d", x, 2);
+        }
+    };
+}
+
 OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntIntImpl()
 {
     return {
@@ -95,6 +118,23 @@ OH_UNIT_OST_Callback_I32_I32 ost_callbacks_getCallbackIntIntImpl()
             continuation.callSync(vmContext, continuation.resource.resourceId, 3 * x);
         }
     };
+}
+
+void ost_callbacks_checkCallbackBooleanIntStringImpl(const OH_UNIT_OST_Callback_Boolean_I32_String* callback) {
+     OH_UNIT_OST_Callback_String_Void continuation = {
+        .resource=CALLBACK_RESOURCE,
+        .call=[](const OH_Int32 resourceId, const OH_String value)
+        {
+            if (strcmp("abc", value.chars) != 0)
+                INTEROP_FATAL("String %s does not equal : %s", value.chars, "abc");
+        },
+        .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_String value)
+        {
+            if (strcmp("abc", value.chars) != 0)
+                INTEROP_FATAL("String %s does not equal : %s", value.chars, "abc");
+        }
+    };
+    callback->call(callback->resource.resourceId, true, 12, continuation);
 }
 
 OH_UNIT_OST_Callback_Boolean_I32_String ost_callbacks_getCallbackBooleanIntStringImpl()

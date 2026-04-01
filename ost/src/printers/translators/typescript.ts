@@ -195,6 +195,9 @@ export class TSPrinter {
     switch (expression.kind) {
       case lw.LWKind.ConstantExpression: {
         this.p.put(expression.value)
+        if (utils.hasHint(expression, std.names.hints.excl)) {
+          this.p.put('!')
+        }
         break
       }
       case lw.LWKind.VariableExpression: {

@@ -545,21 +545,15 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
         if (native) {
             const callbackParams = this.decl.parameters.map(p => ({ name: p.name, type: this.convertType(p.type, native) }))
             const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
-            const kindName = E.v('CALLBACK_KIND_' + callbackName.toUpperCase())
             const asyncParams = [{ name: 'resourceId', type: Ts.prim.i32 }, ...callbackParams]
-            const syncParams = [{ name: 'vmContext', type: T.c(cApiName('VMContext')) }, ...asyncParams]
+            if (!idl.isVoidType(this.decl.returnType)) {
+                const ref = this.ctx.library.createContinuationCallbackReference(this.decl.returnType)!
+                let callbackContinuation = this.ctx.library.resolveTypeReference(ref)
+                let continuation = expectType(this.ctx, callbackContinuation!, `capi`)
+                asyncParams.push({ name: 'continuation', type: Ts.const(continuation) })
+            }
             return [[
-                Builders.decl(name, expectType(this.ctx, this.type, 'capi')).value()
-                    .ctor().asStruct()
-                        .arg().call('readCallbackResource').receiver(serializerName).$().$()
-                        .arg().cast(T.fn(asyncParams, Ts.prim.void)).value()
-                            .call('readPointerOrDefault').receiver(serializerName)
-                                .arg().call('getManagedCallbackCaller')
-                                    .arg(kindName).$().$().$().$().$().$()
-                        .arg().cast(T.fn(syncParams, Ts.prim.void)).value()
-                            .call('readPointerOrDefault').receiver(serializerName)
-                                .arg().call('getManagedCallbackCallerSync')
-                                    .arg(kindName).$().$().$().$().$().$().$().$().$()
+                readCallbackStruct(name, expectType(this.ctx, this.type, 'capi'), callbackName, asyncParams)
             ], E.v(name)]
         }
         return [
@@ -569,12 +563,35 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
     }
 }
 
+export function readCallbackCall(sync: boolean, params: { name: string, type: lw.LWType}[], callbackName: string): lw.LWExpression {
+      return Builders.cast(T.fn(params, Ts.prim.void))
+        .value().call('readPointerOrDefault')
+          .arg().call(`getManagedCallbackCaller${sync ? 'Sync' : ''}`)
+            .arg(`CALLBACK_KIND_${callbackName.toUpperCase()}`).$().$()
+        .receiver(`deserializer`)
+        .$().$().$()
+}
+
+export function readCallbackStruct(
+    name: string,
+    type: lw.LWType,
+    continuationName: string,
+    params: { name: string, type: lw.LWType }[]): lw.LWStatement {
+    return Builders.decl(name).type(type)
+        .value().ctor().asStruct()
+        .arg().call('readCallbackResource').receiver('deserializer').$().$()
+        .arg(readCallbackCall(false, params, continuationName!))
+        .arg(readCallbackCall(true, [{name: 'vmContext', type: T.c(cApiName('VMContext'))}, ...params], continuationName!))
+        .$().$().$()
+}
+
 export function deserializeAndCallCallback(name: string, serializerName: lw.LWExpression, ctx: OhosProducerContext, decl: idl.IDLCallback): lw.LWStatement[] {
         const returnCallbackSerializer = `continuationSerializer`
         const callbackParams = decl.parameters.map(p => ({ name: p.name, type: expectType(ctx, p.type, 'managed') }))
         const paramWrites = decl.parameters.flatMap(param => argConvertor(ctx, param.type, param.isOptional)
             .write(E.v(param.name), E.v(returnCallbackSerializer), false))
         const returnCallbackType = expectType(ctx, decl.returnType, 'managed')
+        const withContinuation = !idl.isVoidType(decl.returnType)
         const returnCallback = Builders.stmt()
             .decl(`${name}Closure`).funcType()
                 .parameters(callbackParams)
@@ -590,18 +607,18 @@ export function deserializeAndCallCallback(name: string, serializerName: lw.LWEx
                     Builders.stmt().call('writePointer').receiver(returnCallbackSerializer).arg(`${name}Call`).$().$(),
                     Builders.stmt().call('writePointer').receiver(returnCallbackSerializer).arg(`${name}CallSync`).$().$(),
                     ...paramWrites,
-                    Builders.decl(`${name}Result`, Ts.optional(returnCallbackType)).mutable().$(),
-                    Builders.decl(`${name}Continuation`)
-                        .funcType()
-                            .param(`value`).type(returnCallbackType).$()
-                            .returns(Ts.prim.void).$()
-                        .value().lambda()
-                        .param(`value`).type(returnCallbackType).$()
-                        .body().block()
-                            .binary(`=`)
-                            .left(`${name}Result`)
-                            .right(`value`).$().$().$().$().$().$(),
-                    Builders.stmt().call('holdAndWriteCallback').receiver(returnCallbackSerializer).arg(`${name}Continuation`).$().$(),
+                    ...(withContinuation ? [
+                        Builders.decl(`${name}Result`, Ts.optional(returnCallbackType)).mutable().$(),
+                        Builders.decl(`${name}Continuation`)
+                            .funcType()
+                                .param(`value`).type(returnCallbackType).$()
+                                .returns(Ts.prim.void).$()
+                            .value().lambda()
+                                .param(`value`).type(returnCallbackType).$()
+                            .body().block()
+                                .binary(`=`).left(`${name}Result`).right(`value`).$().$().$().$().$().$(),
+                        Builders.stmt().call('holdAndWriteCallback').receiver(returnCallbackSerializer).arg(`${name}Continuation`).$().$(),
+                    ] : []),
                     Builders.stmt().call('_CallCallbackSync').receiver(`InteropNativeModule`)
                         .arg(generatorConfiguration().ApiKind)
                         // TBD: Use CallbackKind
@@ -610,7 +627,7 @@ export function deserializeAndCallCallback(name: string, serializerName: lw.LWEx
                         .arg(Builders.call('length').receiver(returnCallbackSerializer).$())
                         .$().$(),
                     Builders.stmt().call('release').receiver(returnCallbackSerializer).$().$(),
-                    Builders.return(returnCallbackType).value(`${name}Result!`).$(),
+                    withContinuation ? Builders.return(returnCallbackType).value(E.c(`${name}Result`, [Hs.excl()])).$(): Builders.none().$(),
                 ])
             .$().$().$().$().$().$()
     return [
