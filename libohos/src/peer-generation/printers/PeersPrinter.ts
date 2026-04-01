@@ -225,12 +225,12 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
         return writer.makeAssign(valueVarName, undefined, expr, false, false)
     }
     let needReturn = true
-    let needReturnType: IDLType = idl.createOptionalType(returnType)
+    let needReturnType: IDLType = returnType
     if (isThrows(returnType, library)) {
         const restoredThrow = maybeRestoreThrows(returnType, library)!
         needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
         if (needReturn) {
-            needReturnType = idl.createOptionalType(restoredThrow)
+            needReturnType = restoredThrow
         }
         resultAssigneer = (expr) => {
             const throwStatements = [
@@ -253,7 +253,7 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
         }
     }
     const resultStmts =  [
-        writer.makeAssign(valueVarName, needReturnType, writer.makeUndefined(), true, false),
+        writer.makeAssign(valueVarName, idl.createOptionalType(needReturnType), writer.makeUndefined(), true, false),
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
@@ -265,7 +265,10 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
         resultStmts.push(writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),)
     }
     if (needReturn) {
-        resultStmts.push(writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(valueVarName))))
+        const maybeUnwrap = (expr:LanguageExpression): LanguageExpression => idl.isOptionalType(needReturnType)
+            ? expr
+            : writer.makeUnwrapOptional(expr)
+        resultStmts.push(writer.makeReturn(maybeUnwrap(writer.makeString(valueVarName))))
     }
     return resultStmts
 }
