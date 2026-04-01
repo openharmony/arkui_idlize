@@ -220,21 +220,41 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     )
 
     const returnConvertor = library.typeConvertor(returnValName, returnType)
-    let resultAssigneer: (expr: LanguageExpression) => LanguageStatement = (expr) => writer.makeReturn(expr)
+    const valueVarName = 'resultValueTmpVar'
+    let resultAssigneer: (expr: LanguageExpression) => LanguageStatement = (expr) => {
+        return writer.makeAssign(valueVarName, undefined, expr, false, false)
+    }
+    let needReturn = true
+    let needReturnType: IDLType = returnType
     if (isThrows(returnType, library)) {
         const restoredThrow = maybeRestoreThrows(returnType, library)!
-        const needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
+        needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
+        if (needReturn) {
+            needReturnType = restoredThrow
+        }
         resultAssigneer = (expr) => {
+            const throwStatements = [
+                writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.exception`)))
+            ]
+            if (library.language === Language.ARKTS) {
+                throwStatements.unshift(
+                    writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
+                )
+            }
             return writer.makeBlock([
                 writer.makeAssign(`exceptionBuffer`, undefined, expr, true),
                 writer.makeCondition(writer.makeString(`exceptionBuffer.hasException`),
-                    writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.exception`))),
-                    needReturn ? writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.value`))) : undefined
+                    writer.makeBlock(throwStatements),
+                    needReturn
+                        ? writer.makeAssign(valueVarName, undefined, writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.value`)), false, false)
+                        : undefined
                 )
             ], false)
         }
     }
-    return [
+    const optionalNeedReturnType = idl.createOptionalType(needReturnType)
+    const resultStmts =  [
+        writer.makeAssign(valueVarName, optionalNeedReturnType, writer.makeNull(optionalNeedReturnType), true, false),
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
@@ -242,6 +262,21 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
             writer
         ),
     ]
+    if (library.language === Language.ARKTS) {
+        resultStmts.push(writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),)
+    }
+    if (needReturn) {
+        if (library.language === Language.ARKTS) {
+            resultStmts.push(writer.makeReturn(writer.makeCast(writer.makeString(valueVarName), needReturnType)))
+        } else {
+            if (idl.isOptionalType(needReturnType)) {
+                resultStmts.push(writer.makeReturn(writer.makeString(valueVarName)))
+            } else {
+                resultStmts.push(writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(valueVarName))))
+            }
+        }
+    }
+    return resultStmts
 }
 
 function makeDeserializerInstance(returnValName: string, language: Language) {
