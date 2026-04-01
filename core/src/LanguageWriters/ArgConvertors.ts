@@ -32,7 +32,7 @@ import {
 import { NativeModuleType, RuntimeType } from "./common.js";
 import { generatorConfiguration, generatorTypePrefix } from "../config.js"
 import { getTransformer, LibraryInterface } from "../LibraryInterface.js";
-import { capitalize, hashCodeFromString, isDefined, throwException, warn } from "../util.js";
+import { capitalize, hashCodeFromString, isDefined, warn } from "../util.js";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors.js";
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType.js";
 import { PeerLibrary } from "../peer-generation/PeerLibrary.js";
@@ -44,7 +44,6 @@ import { convertType, TypeConvertor, withInsideInstanceof } from "./nameConverto
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js";
 import { collapseTypes } from "../peer-generation/idl/common.js";
 import { ETSLanguageWriter } from "./writers/ETSLanguageWriter.js";
-import { buffer } from "stream/consumers";
 
 export function getSerializerName(_library: LibraryInterface, _language: Language, declaration: idl.IDLEntry) {
     return idl.entryToFunctionName(_language, declaration, "", "SerializerImpl")
@@ -247,9 +246,17 @@ export class EnumConvertor extends BaseArgConvertor {
             false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
+        if (writer.language === Language.ARKTS && idl.isStringEnum(this.enumEntry)) {
+            const accessor = getEnumToOrdinalName(writer.language, this.enumEntry)
+            writer.addFeature(accessor, this.library.layout.resolve({ node: this.enumEntry, role: LayoutNodeRole.SERIALIZER }))
+        }
         return writer.i32FromEnum(writer.makeString(writer.escapeKeyword(param)), this.enumEntry).asString()
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
+        if (writer.language === Language.ARKTS && idl.isStringEnum(this.enumEntry)) {
+            const accessor = getEnumToOrdinalName(writer.language, this.enumEntry)
+            writer.addFeature(accessor, this.library.layout.resolve({ node: this.enumEntry, role: LayoutNodeRole.SERIALIZER }))
+        }
         return writer.makeStatement(
             writer.makeMethodCall(`${param}Serializer`, `write${this.enumSerializeInteropType()}`,
                 [this.toEnumSerializeType(writer.i32FromEnum(writer.makeString(value), this.enumEntry), writer)]

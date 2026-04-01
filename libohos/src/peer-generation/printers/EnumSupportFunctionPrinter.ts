@@ -19,7 +19,6 @@ import { NamedMethodSignature, PeerLibrary } from "@idlizer/core"
 import * as idl from '@idlizer/core'
 import { PrinterResult } from "../LayoutManager.js"
 import { collectDeclarationTargets } from "../DeclarationTargetCollector.js"
-import { createEnumToOrdinalFunction } from "../idl/IdlDependenciesCollector.js"
 
 export function printEnumSupportFunctions(library: PeerLibrary): PrinterResult[] {
     return collectDeclarationTargets(library)
@@ -27,7 +26,6 @@ export function printEnumSupportFunctions(library: PeerLibrary): PrinterResult[]
         .filter(it => idl.isInCurrentModule(it) || idl.isInExternalModule(it))
         .map(it => {
             const enumDecl = it as idl.IDLEnum
-            const func = createEnumToOrdinalFunction(enumDecl, library.language, library.name !== "arkoala")
             return {
                 generate: () => {
                     const content = library.createLanguageWriter()
@@ -41,7 +39,7 @@ export function printEnumSupportFunctions(library: PeerLibrary): PrinterResult[]
                     return { content, imports }
                 },
                 over: {
-                    node: func,
+                    node: enumDecl,
                     role: idl.LayoutNodeRole.SERIALIZER
                 },
                 ignoreNamespace: true,
