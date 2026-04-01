@@ -230,7 +230,7 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
         const restoredThrow = maybeRestoreThrows(returnType, library)!
         needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
         if (needReturn) {
-            needReturnType = restoredThrow
+            needReturnType = idl.createOptionalType(restoredThrow)
         }
         resultAssigneer = (expr) => {
             const throwStatements = [
