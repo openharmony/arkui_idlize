@@ -225,17 +225,26 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
         return writer.makeAssign(valueVarName, undefined, expr, false, false)
     }
     let needReturn = true
+    let needReturnType: IDLType = idl.createOptionalType(returnType)
     if (isThrows(returnType, library)) {
         const restoredThrow = maybeRestoreThrows(returnType, library)!
         needReturn = !isPrimitiveType(restoredThrow, 'void') && !isPrimitiveType(restoredThrow, 'this')
+        if (needReturn) {
+            needReturnType = restoredThrow
+        }
         resultAssigneer = (expr) => {
+            const throwStatements = [
+                writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.exception`)))
+            ]
+            if (library.language === Language.ARKTS) {
+                throwStatements.unshift(
+                    writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
+                )
+            }
             return writer.makeBlock([
                 writer.makeAssign(`exceptionBuffer`, undefined, expr, true),
                 writer.makeCondition(writer.makeString(`exceptionBuffer.hasException`),
-                    writer.makeBlock([
-                        writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
-                        writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.exception`)))
-                    ]),
+                    writer.makeBlock(throwStatements),
                     needReturn
                         ? writer.makeAssign(valueVarName, undefined, writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.value`)), false, false)
                         : undefined
@@ -244,15 +253,17 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
         }
     }
     const resultStmts =  [
-        writer.makeAssign(valueVarName, idl.createOptionalType(returnType), writer.makeUndefined(), true, false),
+        writer.makeAssign(valueVarName, needReturnType, writer.makeUndefined(), true, false),
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
             resultAssigneer,
             writer
         ),
-        writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),
     ]
+    if (library.language === Language.ARKTS) {
+        resultStmts.push(writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),)
+    }
     if (needReturn) {
         resultStmts.push(writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(valueVarName))))
     }
