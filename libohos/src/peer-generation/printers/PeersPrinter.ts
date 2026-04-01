@@ -265,10 +265,15 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
         resultStmts.push(writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),)
     }
     if (needReturn) {
-        const maybeUnwrap = (expr:LanguageExpression): LanguageExpression => idl.isOptionalType(needReturnType)
-            ? expr
-            : writer.makeUnwrapOptional(expr)
-        resultStmts.push(writer.makeReturn(maybeUnwrap(writer.makeString(valueVarName))))
+        if (library.language === Language.ARKTS) {
+            resultStmts.push(writer.makeReturn(writer.makeCast(writer.makeString(valueVarName), needReturnType)))
+        } else {
+            if (idl.isOptionalType(needReturnType)) {
+                resultStmts.push(writer.makeReturn(writer.makeString(valueVarName)))
+            } else {
+                resultStmts.push(writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(valueVarName))))
+            }
+        }
     }
     return resultStmts
 }
