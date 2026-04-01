@@ -65,6 +65,7 @@ fun checkEnums() {
     checkResult("Enum Byte -127", { comp.enumByte(EnumByte.EN127) }, "setEnumByte(Ark_EnumByte(-127))")
     checkResult("Enum Int 512", { comp.enumInt(EnumInt.E512) }, "setEnumInt(Ark_EnumInt(512))")
     checkResult("Enum Long 0xFFFFFFFFA", { comp.enumLong(EnumLong.EFFFFFFFFA) }, "setEnumLong(Ark_EnumLong(68719476730))")
+    checkResult("Enum String e2", { comp.enumString(EnumString.e2) }, "setEnumString(Ark_EnumString(1))")
 }
 
 fun checkHooks() {

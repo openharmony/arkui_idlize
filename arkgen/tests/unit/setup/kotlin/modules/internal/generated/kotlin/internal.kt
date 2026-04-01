@@ -16,7 +16,7 @@
 
 // WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
 
-package external
+package internal
 
 import koalaui.interop.SerializerBase
 import koalaui.interop.DeserializerBase
@@ -31,13 +31,28 @@ import koalaui.interop.KPointer
 import koalaui.interop.KNativePointer
 import koalaui.interop.NativeBuffer
 import koalaui.interop.KUint8ArrayPtr
-public interface ExternalInterface {
+public interface InternalInterface {
     public var name: String
 }
-class ExternalEnumString private constructor(public val ordinal: Int, public val value: String) {
+public open class InternalInternalInterfaceSerializerImpl {
     companion object {
-        val E1: ExternalEnumString = ExternalEnumString(0, "e1")
-        val E2: ExternalEnumString = ExternalEnumString(1, "e2")
-        val values: Map<Int, ExternalEnumString> = mapOf(0 to E1, 1 to E2)
+        public fun write(buffer: SerializerBase, value: InternalInterface): Unit {
+            var valueSerializer: SerializerBase = buffer
+            val valueHolderForName = value.name
+            valueSerializer.writeString(valueHolderForName)
+        }
+        public fun read(buffer: DeserializerBase): InternalInterface {
+            var valueDeserializer: DeserializerBase = buffer
+            val nameTmpResult: String = valueDeserializer.readString() as String
+            var value: InternalInterface = object: InternalInterface { override var name = nameTmpResult}
+            return value
+        }
+    }
+}
+class InternalEnumString private constructor(public val ordinal: Int, public val value: String) {
+    companion object {
+        val E1: InternalEnumString = InternalEnumString(0, "e1")
+        val E2: InternalEnumString = InternalEnumString(1, "e2")
+        val values: Map<Int, InternalEnumString> = mapOf(0 to E1, 1 to E2)
     }
 }

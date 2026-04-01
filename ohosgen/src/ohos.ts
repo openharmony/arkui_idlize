@@ -28,6 +28,7 @@ import {
 import {
     createMaterializedPrinter,
     printGlobal,
+    printEnumSupportFunctions,
     NativeModule,
     PeerGeneratorConfiguration,
     createSerializerPrinter,
@@ -59,6 +60,17 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, feature: 
     let managedFiles: Map<string, OutputFile>
     let nativeFiles: Map<TargetFile, string> | undefined
 
+    const spreadIfLang = <T>(langs: Language[], ...data: T[]): T[] => {
+        if (langs.includes(peerLibrary.language))
+            return data
+        return []
+    }
+    const spreadIfNotLang = <T>(langs: Language[], ...data: T[]): T[] => {
+        if (!langs.includes(peerLibrary.language))
+            return data
+        return []
+    }
+
     if (feature) {
         [managedFiles, nativeFiles] = printOstFiles(peerLibrary, feature)
     } else {
@@ -75,6 +87,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, feature: 
             createSerializerPrinter(peerLibrary.language, ""),
             createGeneratedNativeModulePrinter(NativeModule.Generated),
             createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
+            ...spreadIfLang([Language.ARKTS], printEnumSupportFunctions),
         ])
 
         // NATIVE

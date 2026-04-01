@@ -41,6 +41,9 @@ arkgen ArkTS unit:
     - npm run -C arkgen/tests/unit all:arkts
   needs:
     - build idlize
+  artifacts:
+    paths:
+      - arkgen/tests/unit/koala_build.log
 
 arkgen Kotlin unit:
   stage: test

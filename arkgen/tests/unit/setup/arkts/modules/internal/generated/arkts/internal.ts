@@ -18,10 +18,30 @@
 
 import { int32, int64, float32, unsafeCast } from '@koalaui/common'
 import { KInt, KPointer, KBoolean, NativeBuffer, KStringPtr, SerializerBase, DeserializerBase, CallbackResource, InteropNativeModule, MaterializedBase, Tags, RuntimeType, toPeerPtr, nullptr, KSerializerBuffer, KUint8ArrayPtr } from '@koalaui/interop'
-export interface ExternalInterface {
+export interface InternalInterface {
     name: string;
 }
-export enum ExternalEnumString {
+export class InternalInternalInterfaceSerializerImpl {
+    public static write(buffer: SerializerBase, value: InternalInterface): void {
+        let valueSerializer: SerializerBase = buffer
+        const valueHolderForName = value.name
+        valueSerializer.writeString(valueHolderForName)
+    }
+    public static read(buffer: DeserializerBase): InternalInterface {
+        let valueDeserializer: DeserializerBase = buffer
+        const nameTmpResult: string = (valueDeserializer.readString() as string)
+        let value: InternalInterface = ({name: nameTmpResult} as InternalInterface)
+        return value
+    }
+}
+export enum InternalEnumString {
     E1 = "e1",
     E2 = "e2"
+}
+export function InternalInternalEnumStringToOrdinal(value: InternalEnumString): int32 {
+    switch (value) {
+        case InternalEnumString.E1: return 0
+        case InternalEnumString.E2: return 1
+    }
+    throw new Error(`Unexpected value ${value} for enum InternalEnumString`)
 }

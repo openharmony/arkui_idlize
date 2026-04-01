@@ -13,18 +13,5 @@
  * limitations under the License.
  */
 
-package arkui.component.units;
-
-import external.ExternalInterface as _ExternalInterface;
-import internal.InternalInterface as _InternalInterface;
-
-typedef ExternalInterface = _ExternalInterface;
-typedef InternalInterface = _InternalInterface;
-typedef Length = (String or number or ExternalInterface or InternalInterface);
-
-[Component]
-interface CheckUnitsAttribute: Root {
-    attribute InternalInterface internalInterface;
-    attribute ExternalInterface externalInterface;
-    attribute Length length;
-};
+export * from "./internal"
+export * from "./internal.INTERNAL"

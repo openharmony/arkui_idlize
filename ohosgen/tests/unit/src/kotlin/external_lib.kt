@@ -15,6 +15,14 @@
 
 package external.lib
 
+class ExternalStringEnum private constructor(public val ordinal: Int, public val value: String) {
+    companion object {
+        val E1: ExternalStringEnum = ExternalStringEnum(0, "e1")
+        val E2: ExternalStringEnum = ExternalStringEnum(1, "e2")
+        val values: Map<Int, ExternalStringEnum> = mapOf(0 to E1, 1 to E2)
+    }
+}
+
 interface ExternalModuleDataInterface {
     var count: Double
 }

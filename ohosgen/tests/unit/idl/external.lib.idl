@@ -1,5 +1,10 @@
 package external.lib;
 
+enum ExternalStringEnum {
+    String E1 = "e1";
+    String E2 = "e2";
+};
+
 interface ExternalModuleDataInterface {
     attribute number count;
 };
