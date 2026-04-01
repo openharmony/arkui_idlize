@@ -253,7 +253,7 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
         }
     }
     const resultStmts =  [
-        writer.makeAssign(valueVarName, idl.createOptionalType(needReturnType), writer.makeUndefined(), true, false),
+        writer.makeAssign(valueVarName, idl.createOptionalType(needReturnType), idl.hasExtAttribute(needReturnType, idl.IDLExtendedAttributes.UnionOnlyNull) ? writer.makeNull() : writer.makeUndefined(), true, false),
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
