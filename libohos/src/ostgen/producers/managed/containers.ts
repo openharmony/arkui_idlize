@@ -25,9 +25,13 @@ export const containerProducer = createProducer(
       : idl.IDLContainerUtils.isRecord(type) ? Ts.map(elemTypes[0], elemTypes[1])
       : idl.IDLContainerUtils.isPromise(type) ? Ts.promise(elemTypes[0])
       : throwError(`Unknown container type "${idl.DebugUtils.debugPrintTrace(type)}"`)
+    const trigger = idl.IDLContainerUtils.isPromise(type)
+      ? [new OhosSeed(ctx.library.resolveTypeReference(ctx.library.createContinuationCallbackReference(type))!, role)]
+      : []
     return {
       continuation,
-      declarations: []
+      declarations: [],
+      trigger: trigger
     }
   }
 )
