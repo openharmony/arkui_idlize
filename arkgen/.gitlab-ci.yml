@@ -22,6 +22,11 @@
     - ls -l external/koala_projects/arkoala-arkts/arkui/build/arkui.abc
     - ls -l external/koala_projects/arkoala-arkts/framework/native/build-node-host-vmloader/ArkoalaLoader.node
     - ls -l external/koala_projects/arkoala-arkts/framework/native/build-panda-host/libArkoalaNative_linux_x64_ani.so
+  artifacts:
+    paths:
+      - external/koala_projects/arkoala-arkts/arkui/prepared
+      - external/koala_projects/arkoala-arkts/arkui/generated
+    expire_in: 1 hour
 
 
 arkgen ArkTS unit:
