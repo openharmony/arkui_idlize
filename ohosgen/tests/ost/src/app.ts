@@ -39,7 +39,8 @@ import {
 } from "#compat"
 
 import {
-    getOSTPromise,
+    getOSTPromiseInt,
+    getOSTPromiseBooleanIntString,
 } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
@@ -93,15 +94,21 @@ function checkCallback() {
 }
 
 function checkPromise() {
-    getOSTPromise()
+    getOSTPromiseInt()
         .then((value: int) => {
+            console.log(`[App] getOSTPromiseInt value: ${value}`)
             assertEQ(7, value)
+        })
+    getOSTPromiseBooleanIntString(true, 9)
+        .then((value: string) => {
+            console.log(`[App] getOSTPromiseBooleanIntString value: ${value}`)
+            assertEQ("hello", value)
         })
 }
 
 export function run() {
 
-    const suite = new UnitTestsuite("idlize ut")
+    const suite = new UnitTestsuite("idlize ost tests")
     suite.addTest("checkEnum", checkEnum)
     suite.addTest("checkSequence", checkSequence)
     suite.addTest("checkCallback", checkCallback)
