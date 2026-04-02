@@ -21,7 +21,7 @@ import { KInt, KPointer, KBoolean, NativeBuffer, KStringPtr, SerializerBase, Des
 export interface InternalInterface {
     name: string;
 }
-export class InternalInternalInterfaceSerializerImpl {
+export class internal_InternalInterface_serializer {
     public static write(buffer: SerializerBase, value: InternalInterface): void {
         let valueSerializer: SerializerBase = buffer
         const valueHolderForName = value.name

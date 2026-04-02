@@ -21,7 +21,7 @@ import koalaui.interop.DeserializerBase
 interface RenamedModuleDataInterface {
     var count: Double
 }
-class RenamedLibRenamedModuleDataInterfaceSerializerImpl {
+class RenamedModuleDataInterface_serializer {
     companion object {
         public fun write(buffer: SerializerBase, value: RenamedModuleDataInterface): Unit {
             val valueSerializer: SerializerBase = buffer

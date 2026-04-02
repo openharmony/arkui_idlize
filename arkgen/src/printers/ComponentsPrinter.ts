@@ -210,7 +210,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                 })
                 if (this.options.attributeModifierHooks) {
                     writer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
-                        imports.addFeature(`ModifierStateManager`, `./CommonModifier`)
+                        imports.addFeature(`ModifierStateManager`, HandwrittenModule(this.library.language))
                         writer.print('ModifierStateManager.INSTANCE.scope(() => {')
                         writer.pushIndent()
                         writer.print(`hook${component.name}AttributeModifier(this, value);`)

@@ -33,5 +33,6 @@
     "ForceCallback": {
         "EditMenuOptions.onCreateMenu": "",
         "EditMenuOptions.onCreateMenuExtraMethod": "ExtraMethod"
-    }
+    },
+    "SupportThrows": true
 }

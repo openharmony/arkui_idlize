@@ -24,7 +24,7 @@ public interface DataView_ {
 private class DataView_Impl : DataView_ {
 }
 
-public class LanglibDataView_SerializerImpl {
+public class DataView__serializer {
 
     companion object {
 

@@ -290,16 +290,10 @@ typedef struct Opt_Int32 Opt_Int32;
 typedef struct AttributeModifierPeer AttributeModifierPeer;
 typedef struct AttributeModifierPeer* Ark_AttributeModifier;
 typedef struct Opt_AttributeModifier Opt_AttributeModifier;
-typedef struct AttributeUpdaterPeer AttributeUpdaterPeer;
-typedef struct AttributeUpdaterPeer* Ark_AttributeUpdater;
-typedef struct Opt_AttributeUpdater Opt_AttributeUpdater;
 typedef struct BaseEventPeer BaseEventPeer;
 typedef struct BaseEventPeer* Ark_BaseEvent;
 typedef struct Opt_BaseEvent Opt_BaseEvent;
 typedef struct Opt_Boolean Opt_Boolean;
-typedef struct CheckCustomModifierModifierPeer CheckCustomModifierModifierPeer;
-typedef struct CheckCustomModifierModifierPeer* Ark_CheckCustomModifierModifier;
-typedef struct Opt_CheckCustomModifierModifier Opt_CheckCustomModifierModifier;
 typedef struct ClickEventPeer ClickEventPeer;
 typedef struct ClickEventPeer* Ark_ClickEvent;
 typedef struct Opt_ClickEvent Opt_ClickEvent;
@@ -513,10 +507,6 @@ typedef struct Opt_AttributeModifier {
     Ark_Tag tag;
     Ark_AttributeModifier value;
 } Opt_AttributeModifier;
-typedef struct Opt_AttributeUpdater {
-    Ark_Tag tag;
-    Ark_AttributeUpdater value;
-} Opt_AttributeUpdater;
 typedef struct Opt_BaseEvent {
     Ark_Tag tag;
     Ark_BaseEvent value;
@@ -525,10 +515,6 @@ typedef struct Opt_Boolean {
     Ark_Tag tag;
     Ark_Boolean value;
 } Opt_Boolean;
-typedef struct Opt_CheckCustomModifierModifier {
-    Ark_Tag tag;
-    Ark_CheckCustomModifierModifier value;
-} Opt_CheckCustomModifierModifier;
 typedef struct Opt_ClickEvent {
     Ark_Tag tag;
     Ark_ClickEvent value;

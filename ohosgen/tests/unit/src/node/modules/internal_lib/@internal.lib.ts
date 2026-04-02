@@ -19,7 +19,7 @@ export interface InternalModuleDataInterface {
     count: number;
 }
 
-export class InternalLibInternalModuleDataInterfaceSerializerImpl {
+export class InternalModuleDataInterface_serializer {
     public static write(buffer: SerializerBase, value: InternalModuleDataInterface): void {
         let valueSerializer: SerializerBase = buffer
         const value_count = value.count

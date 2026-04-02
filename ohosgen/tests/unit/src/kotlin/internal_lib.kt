@@ -21,7 +21,7 @@ import koalaui.interop.DeserializerBase
 interface InternalModuleDataInterface {
     var count: Double
 }
-class InternalLibInternalModuleDataInterfaceSerializerImpl {
+class InternalModuleDataInterface_serializer {
     companion object {
         public fun write(buffer: SerializerBase, value: InternalModuleDataInterface): Unit {
             val valueSerializer: SerializerBase = buffer

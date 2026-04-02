@@ -35,6 +35,7 @@ export const ETSConfigScheme = D.object({
     ForceCallback: D.map(D.string(), D.string()),
     StubbedDeclarations: T.stringArray(),
     ForceDefaultExport: D.default(D.map(D.string(), D.string()), new Map()),
+    SupportThrows: D.default(D.boolean(), false)
 })
 export type ETSVisitorConfig = ConfigTypeInfer<typeof ETSConfigScheme>
 

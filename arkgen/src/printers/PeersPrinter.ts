@@ -19,7 +19,6 @@ import {
     Language,
     InheritanceRole,
     determineParentRole,
-    isHeir,
     LayoutNodeRole,
     ArgumentModifier,
     capitalize,
@@ -43,8 +42,10 @@ import {
     TargetFile,
     collectDeclDependencies,
     collectDeclItself,
+    collectModifiers,
     findComponentByName,
     findComponentByType,
+    ModifierInfo,
     NativeModule,
     PrinterFunction,
     PrinterResult,
@@ -87,6 +88,18 @@ export function isPropertyBasedMethodOverridden(decl: idl.IDLInterface, property
         return isPropertyBasedMethodOverridden(ancestor, property, library)
     }
     return false
+}
+
+function getModifierForPeer(peer: PeerClass, library: PeerLibrary): ModifierInfo | undefined {
+    const modifiers = collectModifiers(library)
+    for (const modifierInfos of modifiers.values()) {
+        for (const modifierInfo of modifierInfos) {
+            if (modifierInfo.peer === peer) {
+                return modifierInfo
+            }
+        }
+    }
+    return undefined
 }
 
 // For TS and ArkTS
@@ -161,6 +174,15 @@ class PeerFileVisitor {
         else {
             imports.addFeatures(["MaterializedBase", "toPeerPtr"], "koalaui.interop")
         }
+        const modifierInfo = getModifierForPeer(peer, this.library)
+        if (modifierInfo !== undefined && this.library.language !== Language.KOTLIN) {
+            const modifierName = `${peer.componentName}Modifier`
+            if (modifierInfo.isTrivial) {
+                imports.addFeature(modifierName, `./${modifierName}`)
+            } else {
+                imports.addFeature(modifierName, HandwrittenModule(this.library.language))
+            }
+        }
     }
 
     protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
@@ -227,7 +249,9 @@ class PeerFileVisitor {
 
     protected printPeer(peer: PeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
-            writer.print(`${toCamelCase(peer.componentName)}AttributeSet?: ${peer.componentName}Modifier;`)
+            if (getModifierForPeer(peer, this.library) !== undefined && this.library.language !== Language.KOTLIN) {
+                writer.print(`${toCamelCase(peer.componentName)}AttributeSet?: ${peer.componentName}Modifier;`)
+            }
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])

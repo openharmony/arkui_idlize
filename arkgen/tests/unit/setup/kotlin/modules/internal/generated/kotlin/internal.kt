@@ -34,7 +34,7 @@ import koalaui.interop.KUint8ArrayPtr
 public interface InternalInterface {
     public var name: String
 }
-public open class InternalInternalInterfaceSerializerImpl {
+public open class internal_InternalInterface_serializer {
     companion object {
         public fun write(buffer: SerializerBase, value: InternalInterface): Unit {
             var valueSerializer: SerializerBase = buffer

@@ -17,7 +17,7 @@ import { SerializerBase, DeserializerBase, } from "@koalaui/interop"
 
 export interface DataView_ {}
 
-export class LanglibDataView_SerializerImpl {
+export class DataView__serializer {
     public static write(buffer: SerializerBase, value: DataView_): void {
         // Improve: serialize DataView
         throw new Error("Not implemented")
