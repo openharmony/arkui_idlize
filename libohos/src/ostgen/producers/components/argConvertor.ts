@@ -639,6 +639,9 @@ class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
         this.callback = ctx.library.resolveTypeReference(ref)! as idl.IDLCallback
         this.callbackConvertor = new CallbackConvertor(ctx, ref, this.callback)
     }
+    interopType(native: boolean): lw.LWType {
+        return Ts.prim.void
+    }
     returnFromInterop(resultVarName: string): LWStatement[] {
         const [reads, readValue] = this.read(`${resultVarName}Deserialized`, E.v('returnDeserializer'), false)
         return [

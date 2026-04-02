@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
-import { bridgeName, expectExpr, expectType, isDirectInteropType } from "../common.js"
+import { bridgeName, cApiName, expectExpr, expectType, isDirectInteropType } from "../common.js"
 import { createProducer, fqName, OhosProducerContext } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js"
 
@@ -115,15 +115,22 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
     { name: 'thisArray', type: Ts.prim.serializerBuffer },
     { name: 'thisLength', type: Ts.prim.i32 },
   ]
-  const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
+
+const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
+
+const argReads: [LWStatement[], LWExpression][] = [
+  ...(isPromise ? [idl.createParameter('out', method.returnType)] : []),
+  ...method.parameters]
+  .map(it => {
     const conv = argConvertor(ctx, it.type, it.isOptional)
     const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
     return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
   })
+
+  const returnConv = argConvertor(ctx, method.returnType)
   const apiCallArgs = argReads.map(([_, expr]) => expr)
   const macroName = ['KOALA_INTEROP_']
   const macroArgs: (string | LWType)[] = [name]
-  const returnConv = argConvertor(ctx, method.returnType)
   const interopReturnType = returnConv.interopType(true)
   if (isDirectInteropType(interopReturnType))
     macroName.push('DIRECT_')
@@ -137,6 +144,12 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
     macroArgs.push(Ts.prim.pointer)
   }
   macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
+
+  if (isPromise) {
+    params.unshift({ name: 'vmContext', type: T.c(cApiName('VMContext')) })
+    apiCallArgs.unshift(Builders.call('GetAsyncWorker').$())
+    apiCallArgs.unshift(E.c('vmContext'))
+  }
 
   // rewrite `getFinalizer` to call `destruct`
   let capiMethod = method

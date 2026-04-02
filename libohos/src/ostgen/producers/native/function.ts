@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Builders, LWExpression, LWType, Ts } from "@idlizer/ost"
+import { Builders, LWExpression, LWType, T, Ts } from "@idlizer/ost"
 import { cApiName, implName } from "../common.js";
 import { createProducer, fqName, mapPush, moduleName } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js";
@@ -25,12 +25,15 @@ export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'capi' },
   (method, ctx) => {
     const funcName = method.isFree ? fqName(method) : method.name
-    const returnType = idl.isPrimitiveType(method.returnType) && method.returnType.name === 'this'
+    const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
+    // TBD: expect type void for the Promise
+    const returnType = isPromise || (idl.isPrimitiveType(method.returnType) && method.returnType.name === 'this')
       ? Ts.prim.void
       : expectType(ctx, method.returnType, 'capi')
-    const params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
+    let params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
     if (!method.isFree && !method.isStatic)
       params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
+    params = isPromise ? promiseParams(ctx, method.returnType, params) : params
     return {
       continuation: apiAccessor(method, funcName, ctx),
       declarations: [
@@ -87,10 +90,27 @@ function apiAccessor(method: idl.IDLMethod | idl.IDLConstructor, name: string, c
 }
 
 function generateImpl(ctx: OhosProducerContext, method: idl.IDLMethod | idl.IDLConstructor, returnType: LWType) {
-  const params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
+  let params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
   if (!idl.isConstructor(method) && !method.isFree && !method.isStatic)
     params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
+  const isPromise = idl.isMethod(method) && idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
+  params = isPromise ? promiseParams(ctx, method.returnType, params) : params
   return Builders.func(implName(fqName(method) + 'Impl'))
     .returns(returnType)
     .parameters(params).$()
+}
+
+function promiseParams(
+  ctx: OhosProducerContext,
+  promise: idl.IDLType,
+  params: { name: string, type: LWType }[]
+): { name: string, type: LWType }[] {
+  const ref = ctx.library.createContinuationCallbackReference(promise)
+  const callback = ctx.library.resolveTypeReference(ref)!
+  return [
+    { name: 'vmContext', type: T.c(cApiName('VMContext')) },
+    { name: 'asyncWorker', type: T.c(cApiName('AsyncWorkerPtr')) },
+    ...params,
+    { name: 'out', type: expectType(ctx, callback, `capi`) }
+  ]
 }
