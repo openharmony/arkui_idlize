@@ -132,7 +132,9 @@ const argReads: [LWStatement[], LWExpression][] = [
   const macroName = ['KOALA_INTEROP_']
   const macroArgs: (string | LWType)[] = [name]
   const interopReturnType = returnConv.interopType(true)
-  if (isDirectInteropType(interopReturnType))
+  if (isPromise)
+    macroName.push('CTX_')
+  else if (isDirectInteropType(interopReturnType))
     macroName.push('DIRECT_')
   if (interopReturnType === Ts.prim.void)
     macroName.push('V')

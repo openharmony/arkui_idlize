@@ -111,6 +111,6 @@ function promiseParams(
     { name: 'vmContext', type: T.c(cApiName('VMContext')) },
     { name: 'asyncWorker', type: T.c(cApiName('AsyncWorkerPtr')) },
     ...params,
-    { name: 'out', type: expectType(ctx, callback, `capi`) }
+    { name: 'out', type: Ts.const(Ts.ptr(expectType(ctx, callback, `capi`))) }
   ]
 }
