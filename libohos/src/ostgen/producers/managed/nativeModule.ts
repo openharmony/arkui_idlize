@@ -116,12 +116,11 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
     { name: 'thisArray', type: Ts.prim.serializerBuffer },
     { name: 'thisLength', type: Ts.prim.i32 },
   ]
-
-const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
-
-const argReads: [LWStatement[], LWExpression][] = [
-  ...(isPromise ? [idl.createParameter('out', method.returnType)] : []),
-  ...method.parameters]
+  const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
+  const argReads: [LWStatement[], LWExpression][] = [
+    ...method.parameters,
+    ...(isPromise ? [idl.createParameter('out', method.returnType)] : []),
+  ]
   .map(it => {
     const conv = argConvertor(ctx, it.type, it.isOptional)
     const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
