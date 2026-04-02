@@ -609,14 +609,18 @@ class ExpressionBuilder<P> {
      * @param value - Constant value
      * @returns This builder for chaining
      */
-    const(value: string | number ): ExpressionBuilder<P> { this._expr = E.c(value); return this }
+    const(value: string | number ): this { this._expr = E.c(value); return this }
     /**
      * Create a variable reference expression.
      *
      * @param name - Variable name
      * @returns This builder for chaining
      */
-    var(name: string): ExpressionBuilder<P> { this._expr = E.v(name); return this }
+    var(name: string): this { this._expr = E.v(name); return this }
+    type(type: LWType | string): this {
+        this._expr = E.type(typeof type === 'string' ? T.c(type) : type)
+        return this
+    }
     /**
      * Create an accessor expression (property/member access).
      * Returns an AccessorBuilder for specifying receiver and accessor.

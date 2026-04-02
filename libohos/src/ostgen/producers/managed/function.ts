@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlizer/core/idl";
-import { Builders, E, Md, S, T, lw } from "@idlizer/ost";
-import { expectExpr, expectType, managedName } from "../common.js";
-import { argConvertor } from "../components/argConvertor.js";
-import { createProducer } from "../../engine/index.js";
+import * as idl from "@idlizer/core/idl"
+import { Builders, E, LWStatement, Md, S, T, lw } from "@idlizer/ost"
+import { expectExpr, expectType, managedName } from "../common.js"
+import { argConvertor } from "../components/argConvertor.js"
+import { createProducer } from "../../engine/index.js"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'managed' },
@@ -43,7 +43,7 @@ export const functionProducer = createProducer(
         ? S.e(nativeModuleCall)
         : Builders.decl('retval').value(nativeModuleCall).$(),
       Builders.stmt().call('release').receiver(serializerName).$().$(),
-      ...argConvertor(ctx, method.returnType).returnFromInterop('retval', false)
+      ...argConvertor(ctx, method.returnType).returnFromInterop('retval')
     ]
     const funcDecl = Builders.func(declName)
       .parameters(method.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') })))
@@ -72,15 +72,28 @@ export const constructorProducer = createProducer(
   { is: idl.isConstructor, role: 'managed' },
   (ctor, ctx) => {
     const className = managedName(idl.getFQName(ctor.parent!))
+    const serializerName = 'serializer'
+    const nativeModuleCall = Builders.call(expectExpr(ctx, ctor, 'native-module'))
+      .arg().call('asBuffer').receiver(serializerName).$().$()
+      .arg().call('length').receiver(serializerName).$().$().$()
+    const body: LWStatement[] = [
+      Builders.decl(serializerName, T.c('SerializerBase'))
+        .value().call('hold').receiver('SerializerBase').$().$().$(),
+      ...ctor.parameters.flatMap(param =>
+        argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
+      Builders.decl('peerPtr').value(nativeModuleCall).$(),
+      Builders.stmt().call('release').receiver(serializerName).$().$(),
+    ]
     return {
       continuation: E.v(className),
       declarations: [
         Builders.class(className).ctor()
           .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') })))
           .block()
-            .call('setPeer').receiver('this')
-              .arg().call(expectExpr(ctx, ctor, 'native-module'))
-                .args(ctor.parameters.map(it => E.v(it.name))).$().$().$().$().$().$()
+            .statements(body)
+            .call('this')
+              .arg().access('NOP').receiver('MaterializedBaseTag').$().$()
+              .arg('peerPtr').$().$().$().$()
       ]
     }
   }

@@ -14,20 +14,17 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { warn } from "@idlizer/core"
 import { createProducer } from "../../engine/index.js"
 import { expectType } from "../common.js"
 
 export const referenceProducer = createProducer(
   { is: idl.isReferenceType },
   (type, ctx, role) => {
-    let decl = ctx.library.toDeclaration(type)
-    if (!decl) {
-      warn("Unresolved reference " + type.name)
-      decl = idl.createPrimitiveType('Object')
-    }
+    let decl = ctx.library.resolveTypeReference(type)
+    if (!decl)
+      throw new Error("Unresolved reference " + type.name)
     return {
-      continuation: expectType(ctx, decl, role!),
+      continuation: expectType(ctx, decl, role),
       declarations: []
     }
   }

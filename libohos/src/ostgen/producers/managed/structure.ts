@@ -14,12 +14,12 @@
  */
 
 import * as idl from "@idlizer/core/idl"
+import { capitalize, getInitializerDefaultValue, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized } from "@idlizer/core"
 import { Builders, E, Hs, Md, T, Ts } from "@idlizer/ost"
+import { ProducerResult } from "@idlizer/kit"
 import { expectType, managedName } from "../common.js"
 import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
-import { capitalize, getSuperType, isDefined, isInExternalModule, isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine/index.js"
-import { ProducerResult } from "@idlizer/kit"
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
 
 export const structureProducer = createProducer(
@@ -51,16 +51,19 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
     continuation: T.c(name),
     declarations: [
       Builders.class(name)
+        .kind(idl.isClassSubkind(node) ? 'class' : 'interface')
+        .extends(superType ? expectType(ctx, superType, 'managed') : undefined)
         .fields(node.properties.map(prop => {
           const modifiers = [
             ...prop.isOptional ? [Md.optional()] : [],
             ...prop.isReadonly ? [Md.readonly()] : [],
             ...prop.isStatic ? [Md.static()] : [],
           ]
-          return Builders.field(prop.name).type(expectType(ctx, prop.type, 'managed')).modifiers(modifiers).$()
-        }))
-        .kind(idl.isClassSubkind(node) ? 'class' : 'interface')
-        .extends(superType ? expectType(ctx, superType, 'managed') : undefined).$()
+          const field = Builders.field(prop.name).type(expectType(ctx, prop.type, 'managed')).modifiers(modifiers)
+          if (idl.isClassSubkind(node))
+            field.value(getInitializerDefaultValue(prop, ctx.library.language))
+          return field.$()
+        })).$()
     ]
   }
 }
@@ -68,12 +71,17 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
 function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
   const peerType = Ts.union([T.c('Finalizable'), T.c('undefined')])
   const thisType = expectType(ctx, node, 'managed')
+  const superType = getSuperType(node, ctx.library)
+  const superNode = getSuper(node, ctx.library)
+  const superIsMaterialized = superNode ? isMaterialized(superNode, ctx.library) : false
   const intClass = Builders.class(name + 'Internal')
     .method('fromPtr').static()
       .returns(thisType)
       .param('ptr').type(Ts.prim.pointer).$().block()
-        .return(thisType).ctor(name).arg('ptr').$().$().$().$().$()
-  const matClass = Builders.class(name).implements(T.c('MaterializedBase'))
+        .return(thisType).ctor(name).arg().access('NOP').receiver('MaterializedBaseTag').$().$().arg('ptr').$().$().$().$().$()
+  const matClass = Builders.class(name)
+    .extends(superType ? expectType(ctx, superType, 'managed') : undefined)
+    .implements(T.c('MaterializedBase'))
     // peer
     .field('peer').type(peerType).$()
     .method('getPeer').returns(peerType).block()
@@ -85,8 +93,11 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
           .arg('peerPtr')
           .arg().call('getFinalizer').receiver(E.v(name, [Hs.isType()])).$().$().$().$().$().$().$()
     // default constructor
-    .ctor().param('ptr').type(Ts.prim.pointer).$().block()
-      .call('setPeer').receiver('this').arg('ptr').$().$().$().$()
+    .ctor().param('tag').type(T.c('MaterializedBaseTag')).$().param('ptr').type(Ts.prim.pointer).$()
+      .block().statements([superIsMaterialized
+        ? Builders.stmt().call('super').arg('tag').arg('ptr').$().$()
+        : Builders.stmt().call('setPeer').receiver('this').arg('ptr').$().$()
+      ]).$().$().$()
   const syntheticMethods = [
     // client constructors
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],

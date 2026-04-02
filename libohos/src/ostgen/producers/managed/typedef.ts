@@ -15,17 +15,17 @@
 
 import { D, T } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
-import { expectType, managedName } from "../common.js";
+import { cApiName, expectType, managedName } from "../common.js";
 import { createProducer } from "../../engine/index.js";
 
 export const typedefProducer = createProducer(
-  { is: idl.isTypedef, role: 'managed' },
-  (typedef, ctx) => {
-    const generatedDeclName = managedName(idl.getFQName(typedef))
+  { is: idl.isTypedef },
+  (typedef, ctx, role) => {
+    const generatedDeclName = (role === 'managed' ? managedName : cApiName)(idl.getFQName(typedef))
     return {
       continuation: T.c(generatedDeclName),
       declarations: [
-        D.type(generatedDeclName, expectType(ctx, typedef.type, 'managed'))
+        D.type(generatedDeclName, expectType(ctx, typedef.type, role))
       ]
     }
   }

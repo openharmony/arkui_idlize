@@ -1,0 +1,8 @@
+package test_optional;
+
+interface TestOptional {
+    attribute number value;
+    optional attribute number optValue;
+};
+
+number sumOptionalAttributes(TestOptional arg);

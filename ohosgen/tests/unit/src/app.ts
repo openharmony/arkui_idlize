@@ -37,6 +37,7 @@ import {
 } from '#compat'
 
 import { test_buffer } from '#compat'
+import { sumOptionalAttributes } from '#compat'
 
 import {
   OrdinaryEnum,
@@ -479,6 +480,20 @@ function checkNativeBuffer() {
   _checkReversedBuffer(buffer, reversedBuffer)
 }
 
+function checkOptionalAttributes() {
+  // With both attributes provided
+  let result = sumOptionalAttributes({ value: 10, optValue: 20 })
+  assertEQ(true, compareNumbers(result, 30))
+
+  // With only required attribute (optional missing → treated as 0)
+  result = sumOptionalAttributes({ value: 10 })
+  assertEQ(true, compareNumbers(result, 10))
+
+  // With optional attribute set to zero explicitly
+  result = sumOptionalAttributes({ value: 7, optValue: 0 })
+  assertEQ(true, compareNumbers(result, 7))
+}
+
 // function checkHandwritten() {
 //   const dtsHW: HandwrittenComponent = { id: "hw", total: 0 }
 //   const idlHW: IdlHandwrittenComponent = { name: "idl" + dtsHW.id, count: dtsHW.total + 1 }
@@ -911,6 +926,7 @@ export function run() {
   suite.addTest("checkAny", checkAny)
   suite.addTest("checkReturnTypes", checkReturnTypes)
   suite.addTest("checkNativeBuffer", checkNativeBuffer)
+  suite.addTest("checkOptionalAttributes", checkOptionalAttributes)
   suite.addAsyncTest("checkThrowException", checkThrowException)
   // suite.addTest("checkHandwritten", checkHandwritten)
   suite.addTest("checkHooks", checkHooks)

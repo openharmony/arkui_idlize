@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 
-import { D, Md, T, Ts } from "@idlizer/ost"
+import { Builders, D, Md, T, Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
 import { cApiName } from "../common.js"
 import { isMaterialized } from "@idlizer/core"
 import { createProducer } from "../../engine/index.js"
 import { expectType } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
+import { collectProperties } from "../../../peer-generation/propertyCollectors.js"
 
 export const structureProducer = createProducer(
   { is: idl.isInterface, role: 'capi' },
@@ -35,18 +36,21 @@ export const structureProducer = createProducer(
 )
 
 function makeInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext) {
-  return [D.struct(name, node.properties.map(prop => {
-    const modifiers = [
-      ...prop.isOptional ? [Md.optional()] : [],
-      ...prop.isReadonly ? [Md.readonly()] : [],
-      ...prop.isStatic ? [Md.static()] : [],
-    ]
-    return {
-      name: prop.name,
-      type: expectType(ctx, prop.type, 'capi'),
-      modifiers,
-    }
-  }))]
+  return [
+    Builders.struct(name)
+      .fields(collectProperties(node, ctx.library).map(prop => {
+        const modifiers = [
+          ...prop.isOptional ? [Md.optional()] : [],
+          ...prop.isReadonly ? [Md.readonly()] : [],
+          ...prop.isStatic ? [Md.static()] : [],
+        ]
+        return {
+          name: prop.name,
+          type: expectType(ctx, prop.type, 'capi'),
+          modifiers,
+        }
+      })).$()
+  ]
 }
 
 function makeMaterialized(node: idl.IDLInterface, name: string) {

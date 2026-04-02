@@ -1636,6 +1636,24 @@ void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr 
         vmContext, outputArgumentForReturningPromise->resource.resourceId, { INTEROP_TAG_OBJECT, { errors, 2 } });
 }
 
+// Optional attributes test
+OH_Number GlobalScope_sumOptionalAttributesImpl(const OH_UNIT_TestOptional* arg)
+{
+    int32_t optVal = 0;
+    if (arg->optValue.tag != INTEROP_TAG_UNDEFINED) {
+        if (arg->optValue.value.tag == INTEROP_TAG_INT32)
+            optVal = arg->optValue.value.i32;
+        else
+            optVal = (int32_t)arg->optValue.value.f32;
+    }
+    OH_Number result = arg->value;
+    if (result.tag == INTEROP_TAG_INT32)
+        result.i32 += optVal;
+    else
+        result.f32 += optVal;
+    return result;
+}
+
 OH_UNIT_IDLCheckPropsHandle IDLCheckProps_constructImpl()
 {
     return {};

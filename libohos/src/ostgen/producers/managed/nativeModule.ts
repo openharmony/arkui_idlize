@@ -64,10 +64,10 @@ export const nativeModuleConstructorProducer = createProducer(
   (ctor, ctx) => {
     const funcName = fqName(ctor)
     const nativeModuleClassName = ctx.getEffect().nativeModuleName
-    const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
-    const callArgs = ctor.parameters.map(it =>
-      Builders.cast(Ts.ptr(expectType(ctx, it.type, 'capi'))).value()
-        .unary(Op.ref).value(it.name).$().$().$());
+    const params = [
+      { name: 'buffer', type: Ts.prim.serializerBuffer },
+      { name: 'length', type: Ts.prim.i32 }
+    ]
     return {
       continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), '_' + funcName),
       declarations: [
@@ -76,21 +76,39 @@ export const nativeModuleConstructorProducer = createProducer(
           .method('_' + funcName)
             .native().static().annotation('ani.unsafe.Direct')
             .returns(Ts.prim.pointer)
-            .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') }))).$().$(),
+            .parameters(params).$().$(),
         // bridge
-        Builders.func(bridgeName('impl_' + funcName))
-          .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
-          .returns(Ts.prim.pointer)
-          .block()
-            .return(Ts.prim.pointer)
-              .call(expectExpr(ctx, ctor, 'capi'))
-              .args(callArgs).$().$().$()
-          .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
-          .$()
+        makeConstructorBridge(funcName, ctor, ctx)
       ]
     }
   }
 )
+
+function makeConstructorBridge(name: string, ctor: idl.IDLConstructor, ctx: OhosProducerContext): FunctionDeclaration {
+  const params = [
+    { name: 'thisArray', type: Ts.prim.serializerBuffer },
+    { name: 'thisLength', type: Ts.prim.i32 },
+  ]
+  const argReads: [LWStatement[], LWExpression][] = ctor.parameters.map(it => {
+    const conv = argConvertor(ctx, it.type, it.isOptional)
+    const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
+    return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
+  })
+  const apiCallArgs = argReads.map(([_, expr]) => expr)
+  const apiCall = Builders.call(expectExpr(ctx, ctor, 'capi')).args(apiCallArgs).$()
+
+  const body = Builders.block()
+    .decl('deserializer', T.c('DeserializerBase')).mutable().value()
+      .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
+    .statements(argReads.flatMap(([stmts, _]) => stmts))
+    .return(Ts.prim.pointer).value(apiCall).$()
+
+  return Builders.func(bridgeName('impl_' + name))
+    .parameters(params)
+    .returns(Ts.prim.pointer)
+    .body(body.$())
+    .macro('KOALA_INTEROP_DIRECT_2', name, Ts.prim.pointer, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+}
 
 function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContext): FunctionDeclaration {
   const params = [

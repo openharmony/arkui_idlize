@@ -17,6 +17,7 @@ import { Builders, E, Hs, LWType, T, Ts } from "@idlizer/ost"
 import { expectType, managedName, bridgeName } from "../common.js"
 import { OhosProducerContext, OhosProducer, Role } from "../../engine/index.js"
 import { argConvertor } from "./argConvertor.js"
+import { collectProperties } from "../../../peer-generation/propertyCollectors.js"
 
 export function produceSerializer(native: boolean): OhosProducer<idl.IDLInterface, Role<idl.IDLInterface>> {
   return (node: idl.IDLInterface, ctx: OhosProducerContext) => {
@@ -64,14 +65,14 @@ function makeSerializerWrite(ctx: OhosProducerContext, node: idl.IDLInterface, t
     .param('serializer').type(Ts.ref(T.c('SerializerBase'))).$()
     .param('value').type(type).$()
     .block()
-      .statements(node.properties.flatMap(prop => [
+      .statements(collectProperties(node, ctx.library).flatMap(prop => [
         Builders.decl(`${prop.name}Value`).value().access(prop.name).receiver('value').$().$().$(),
         ...argConvertor(ctx, prop.type, prop.isOptional).write(E.v(`${prop.name}Value`), E.v('serializer'), native)
       ])).$().$()
 }
 
 function makeSerializerRead(ctx: OhosProducerContext, node: idl.IDLInterface, type: LWType, native: boolean, serializerName: string) {
-  const reads = node.properties.map(prop =>
+  const reads = collectProperties(node, ctx.library).map(prop =>
     argConvertor(ctx, prop.type, prop.isOptional)
       .read(prop.name, E.v('deserializer'), native))
   return Builders.func(serializerName + '::read')
