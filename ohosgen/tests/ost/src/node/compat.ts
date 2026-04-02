@@ -12,12 +12,15 @@ export {
 } from '../../generated/ts'
 
 export {
-    //getOSTPromise,
     checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,
     checkCallbackBooleanIntString,
     getCallbackBooleanIntString,
+} from '../../generated/ts'
+
+export {
+    getOSTPromise,
 } from '../../generated/ts'
 
 export type OHBuffer = ArrayBuffer

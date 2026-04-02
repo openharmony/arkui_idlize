@@ -31,12 +31,15 @@ import {
 } from "#compat"
 
 import {
-    // getOSTPromise,
     checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,
     checkCallbackBooleanIntString,
     getCallbackBooleanIntString,
+} from "#compat"
+
+import {
+    getOSTPromise,
 } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
@@ -89,14 +92,12 @@ function checkCallback() {
     assertEQ('20', cbBooleanIntString(true, 4))
 }
 
-/*
 function checkPromise() {
     getOSTPromise()
         .then((value: int) => {
             assertEQ(7, value)
         })
 }
-*/
 
 export function run() {
 
@@ -104,6 +105,6 @@ export function run() {
     suite.addTest("checkEnum", checkEnum)
     suite.addTest("checkSequence", checkSequence)
     suite.addTest("checkCallback", checkCallback)
-    // suite.addTest("checkPromise", checkPromise)
+    suite.addTest("checkPromise", checkPromise)
     return suite.run()
 }

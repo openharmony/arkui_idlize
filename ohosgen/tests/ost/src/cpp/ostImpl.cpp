@@ -157,3 +157,42 @@ OH_UNIT_OST_Callback_Boolean_I32_String ost_callbacks_getCallbackBooleanIntStrin
         }
     };
 }
+
+// Promise
+
+class GetPromiseHandler {
+private:
+    OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void callback;
+    int result = 0;
+public:
+    GetPromiseHandler(OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void callback): callback(callback) {
+        callback.resource.hold(callback.resource.resourceId);
+    }
+
+    void Execute() {
+        result = 7;
+    }
+
+    void Complete() {
+        callback.call(callback.resource.resourceId,
+            { .tag = INTEROP_TAG_INT32, .value = result },
+            { .tag = INTEROP_TAG_UNDEFINED }
+        );
+        callback.resource.release(callback.resource.resourceId);
+        delete this;
+    }
+};
+static void DoGetPromiseExecute(void* handler) {
+    ((GetPromiseHandler*)handler)->Execute();
+}
+static void DoGetPromiseComplete(void* handler) {
+    ((GetPromiseHandler*)handler)->Complete();
+}
+
+void ost_promises_getOSTPromiseImpl(
+    OH_UNIT_OST_VMContext vmContext,
+    OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
+    const OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void* out) {
+    auto work = asyncWorker->createWork(vmContext, new GetPromiseHandler(*out), DoGetPromiseExecute, DoGetPromiseComplete);
+    work.queue(work.workId);
+}
