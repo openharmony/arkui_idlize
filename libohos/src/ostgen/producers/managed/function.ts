@@ -14,10 +14,10 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, E, LWStatement, Md, S, T, lw } from "@idlizer/ost"
+import { Builders, DeclarationStatement, E, LWStatement, Md, S, T, lw } from "@idlizer/ost"
 import { expectExpr, expectType, managedName } from "../common.js"
 import { argConvertor } from "../components/argConvertor.js"
-import { createProducer } from "../../engine/index.js"
+import { createProducer, OhosProducerContext } from "../../engine/index.js"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'managed' },
@@ -34,12 +34,15 @@ export const functionProducer = createProducer(
       nativeModuleCall.args.unshift(
         Builders.access('ptr').receiver().access('peer').receiver('this').excl().$().$().$())
     }
+    const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
+    const isVoid = idl.isPrimitiveType(method.returnType, 'void') || isPromise
     const body = [
       Builders.decl(serializerName, T.c('SerializerBase'))
         .value().call('hold').receiver('SerializerBase').$().$().$(),
+      isPromise ? holdPromise(ctx, serializerName, method.returnType as idl.IDLContainerType) : Builders.none().$(),
       ...method.parameters.flatMap(param =>
         argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
-      idl.isPrimitiveType(method.returnType, 'void')
+      isVoid
         ? S.e(nativeModuleCall)
         : Builders.decl('retval').value(nativeModuleCall).$(),
       Builders.stmt().call('release').receiver(serializerName).$().$(),
@@ -98,4 +101,12 @@ export const constructorProducer = createProducer(
     }
   }
 )
- 
+
+function holdPromise(ctx: OhosProducerContext, serializerName: string, promise: idl.IDLContainerType): DeclarationStatement {
+  return Builders.decl('retval').value()
+    .access().index(0).receiver(
+      Builders.call('holdAndWriteCallbackForPromise')
+        .typeArgs([expectType(ctx, promise.elementType[0], 'managed')])
+        .receiver(serializerName).$()
+    ).$().$().$()
+}

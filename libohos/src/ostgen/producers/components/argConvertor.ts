@@ -414,18 +414,6 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
     }
 }
 
-class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
-    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
-        return [
-            Builders.decl('promise').value('/// argConvertor.PromiseConvertor: not implemented').$()
-        ]
-    }
-
-    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        return [[], E.c('/// argConvertor.PromiseConvertor: not implemented')]
-    }
-}
-
 class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
     /**
      * Most specific checks should come first.
@@ -639,6 +627,41 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
         ]
     }
 }
+
+class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
+
+    private callback: idl.IDLCallback
+    private callbackConvertor: CallbackConvertor
+
+    constructor(ctx: OhosProducerContext, type: idl.IDLContainerType) {
+        super(ctx, type);
+        const ref = ctx.library.createContinuationCallbackReference(type)
+        this.callback = ctx.library.resolveTypeReference(ref)! as idl.IDLCallback
+        this.callbackConvertor = new CallbackConvertor(ctx, ref, this.callback)
+    }
+    returnFromInterop(resultVarName: string): LWStatement[] {
+        const [reads, readValue] = this.read(`${resultVarName}Deserialized`, E.v('returnDeserializer'), false)
+        return [
+            ...reads,
+            Builders.return().value(readValue).$()
+        ]
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        if (native)
+            return this.callbackConvertor.write(accessor, serializerName, native)
+        return [
+            Builders.decl('promise').value('/// argConvertor.PromiseConvertor: not implemented').$()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        if (native)
+            return this.callbackConvertor.read(name, serializerName, native)
+        return [
+            [],
+            E.v(`retval`)]
+    }
+}
+
 
 export function readCallbackCall(sync: boolean, params: { name: string, type: lw.LWType}[], callbackName: string): lw.LWExpression {
       return Builders.cast(T.fn(params, Ts.prim.void))
