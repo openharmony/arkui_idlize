@@ -26,8 +26,7 @@ export const functionProducer = createProducer(
   (method, ctx) => {
     const funcName = method.isFree ? fqName(method) : method.name
     const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
-    // TBD: expect type void for the Promise
-    const returnType = isPromise || (idl.isPrimitiveType(method.returnType) && method.returnType.name === 'this')
+    const returnType = idl.isPrimitiveType(method.returnType) && method.returnType.name === 'this'
       ? Ts.prim.void
       : expectType(ctx, method.returnType, 'capi')
     let params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))

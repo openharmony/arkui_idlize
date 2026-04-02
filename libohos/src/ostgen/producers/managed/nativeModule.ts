@@ -43,6 +43,7 @@ export const nativeModuleFunctionProducer = createProducer(
       { name: 'buffer', type: Ts.prim.serializerBuffer },
       { name: 'length', type: Ts.prim.i32 }
     ]
+    const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
     return {
       continuation: E.get(E.v(className, [Hs.isType()]), '_' + funcName),
       declarations: [
@@ -50,7 +51,7 @@ export const nativeModuleFunctionProducer = createProducer(
           .method('_' + funcName)
             .native().static()
             ///no annotation for vmContext methods, see MethodUtils
-            .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
+            .annotation(!isPromise && isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
             .parameters(params)
             .returns(returnType).$().$(),
         makeBridge(funcName, method, ctx)
