@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { Builders, E, T } from "@idlizer/ost";
 import { expectType, managedName } from "../common.js";
 import { argConvertor, deserializeAndCallCallback } from "../components/argConvertor.js";
-import { createProducer } from "../../engine/index.js";
+import { createProducer, OhosSeed } from "../../engine/index.js";
 
 export const callbackProducer = createProducer(
   { is: idl.isCallback, role: 'managed' },
@@ -49,11 +49,8 @@ export const callbackProducer = createProducer(
               ? [Builders.stmt().call('continuationClosure').arg().call('call').args(reads.map(it => it[1])).$().$().$().$()]
               : [Builders.stmt().call('call').args(reads.map(it => it[1])).$().$()]
             ).$().$(),
-            // TBD: workaround to include the continuation to the declaration processing
-            // Fix it in more appropriate way
-            ...(continuation
-              ? [Builders.struct(`Dummy_${continuation.name}`).field(`cb`).type(expectType(ctx, continuation, `managed`)).$().$()] : []),
-      ]
+      ],
+      trigger: continuation ? [new OhosSeed(continuation, 'managed')] : []
     }
   }
 )
