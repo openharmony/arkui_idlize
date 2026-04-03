@@ -24,6 +24,7 @@ export {
 } from '../../generated/ts'
 
 export {
+    getOSTAsyncInt,
     getOSTPromiseVoid,
     getOSTPromiseInt,
     getOSTPromiseBooleanIntString,

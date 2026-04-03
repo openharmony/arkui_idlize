@@ -43,6 +43,7 @@ import {
 } from "#compat"
 
 import {
+    getOSTAsyncInt,
     getOSTPromiseVoid,
     getOSTPromiseInt,
     getOSTPromiseBooleanIntString,
@@ -104,6 +105,11 @@ function checkCallback() {
 }
 
 function checkPromise() {
+    getOSTAsyncInt()
+        .then((value: int) => {
+            console.log(`[App] getOSTAsyncInt value: ${value}`)
+            assertEQ(7, value)
+        })
     getOSTPromiseVoid()
         .then(() => {
             console.log(`[App] getOSTPromiseVoid`)

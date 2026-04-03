@@ -238,7 +238,8 @@ public:
     }
 };
 
-void ost_promises_getOSTPromiseIntImpl(
+
+void ost_promises_getOSTAsyncIntImpl(
     OH_UNIT_OST_VMContext vmContext,
     OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
     const OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void* out) {
@@ -248,6 +249,13 @@ void ost_promises_getOSTPromiseIntImpl(
         [](void* handler) { ((AbstractHandler*)handler)->Execute(); },
         [](void* handler) { ((AbstractHandler*)handler)->Complete(); });
     work.queue(work.workId);
+}
+
+void ost_promises_getOSTPromiseIntImpl(
+    OH_UNIT_OST_VMContext vmContext,
+    OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
+    const OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void* out) {
+    ost_promises_getOSTAsyncIntImpl(vmContext, asyncWorker, out);
 }
 
 class GetPromiseBooleanIntStringHandler: AbstractPromiseHandler<OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void> {

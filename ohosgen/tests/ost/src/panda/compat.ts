@@ -47,6 +47,7 @@ export {
 } from '../../generated/arkts'
 
 export {
+    getOSTAsyncInt,
     getOSTPromiseVoid,
     getOSTPromiseInt,
     getOSTPromiseBooleanIntString,
