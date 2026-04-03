@@ -12,6 +12,10 @@ export {
 } from '../../generated/ts'
 
 export {
+    getOSTFunctionBooleanIntString
+} from '../../generated/ts'
+
+export {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,

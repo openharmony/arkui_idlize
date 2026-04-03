@@ -13,18 +13,6 @@
  * limitations under the License.
  */
 
-package ost.callbacks;
+package ost.functions;
 
-[Synthetic]
-callback Callback_I32_Void = void (i32 x);
-Callback_I32_Void getCallbackIntVoid();
-void checkCallbackIntVoid(Callback_I32_Void callback);
-
-[Synthetic]
-callback Callback_I32_I32 = i32 (i32 x);
-Callback_I32_I32 getCallbackIntInt();
-
-[Synthetic]
-callback Callback_Boolean_I32_String = String (boolean b, i32 v);
-void checkCallbackBooleanIntString(Callback_Boolean_I32_String callback);
-Callback_Boolean_I32_String getCallbackBooleanIntString();
+String getOSTFunctionBooleanIntString(boolean flag, i32 value);

@@ -36,6 +36,10 @@ export {
 } from '../../generated/arkts'
 
 export {
+    getOSTFunctionBooleanIntString
+} from '../../generated/arkts'
+
+export {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     checkCallbackBooleanIntString,

@@ -22,6 +22,13 @@ InteropInt32 string_len(const char* str)
     return static_cast<InteropInt32>(strlen(str));
 }
 
+OH_String int_to_string(OH_Int32 x)
+{
+    char result[10];
+    sprintf(result, "%d", x);
+    return { .chars = result, .length = string_len(result) };
+}
+
 // Enum
 
 OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enumValue, OH_Int32 value)
@@ -72,6 +79,13 @@ OH_UNIT_OST_Array_Int32 ost_sequences_getOSTSequenceIntImpl()
     sequence.length = 3;
     sequence.array = new OH_Int32[3] { 3, 5, 7 };
     return sequence;
+}
+
+// Function
+
+OH_String ost_functions_getOSTFunctionBooleanIntStringImpl(OH_Boolean flag, OH_Int32 v)
+{
+    return int_to_string(flag ? v * 5 : v + 5);
 }
 
 // Callback

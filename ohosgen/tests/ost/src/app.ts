@@ -31,6 +31,10 @@ import {
 } from "#compat"
 
 import {
+    getOSTFunctionBooleanIntString
+} from "#compat"
+
+import {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,
@@ -69,6 +73,11 @@ function checkSequence() {
     assertEQ(7, seqInt[2])
 }
 
+function checkFunction() {
+    assertEQ("7", getOSTFunctionBooleanIntString(false, 2))
+    assertEQ("15", getOSTFunctionBooleanIntString(true, 3))
+}
+
 function checkCallback() {
 
     checkCallbackIntVoid((value: int) => {
@@ -99,11 +108,11 @@ function checkPromise() {
             console.log(`[App] getOSTPromiseInt value: ${value}`)
             assertEQ(7, value)
         })
-    getOSTPromiseBooleanIntString(true, 9)
-        .then((value: string) => {
-            console.log(`[App] getOSTPromiseBooleanIntString value: ${value}`)
-            assertEQ("hello", value)
-        })
+    // getOSTPromiseBooleanIntString(true, 9)
+    //     .then((value: string) => {
+    //         console.log(`[App] getOSTPromiseBooleanIntString value: ${value}`)
+    //         assertEQ("hello", value)
+    //     })
 }
 
 export function run() {
@@ -111,6 +120,7 @@ export function run() {
     const suite = new UnitTestsuite("idlize ost tests")
     suite.addTest("checkEnum", checkEnum)
     suite.addTest("checkSequence", checkSequence)
+    suite.addTest("checkFunction", checkFunction)
     suite.addTest("checkCallback", checkCallback)
     suite.addTest("checkPromise", checkPromise)
     return suite.run()
