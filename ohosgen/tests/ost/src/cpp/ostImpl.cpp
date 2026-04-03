@@ -15,6 +15,8 @@
 
 #include <cstdio>
 #include <cstring>
+#include <stdlib.h>
+
 #include "unit_ost.h"
 
 InteropInt32 string_len(const char* str)
@@ -24,7 +26,7 @@ InteropInt32 string_len(const char* str)
 
 OH_String int_to_string(OH_Int32 x)
 {
-    char result[10];
+    char* result = reinterpret_cast<char*>(calloc(10, sizeof(char)));
     sprintf(result, "%d", x);
     return { .chars = result, .length = string_len(result) };
 }
@@ -157,16 +159,12 @@ OH_UNIT_OST_Callback_Boolean_I32_String ost_callbacks_getCallbackBooleanIntStrin
         .resource=CALLBACK_RESOURCE,
         .call=[](const OH_Int32 resourceId, const OH_Boolean b, const OH_Int32 v, const OH_UNIT_OST_Callback_String_Void continuation)
         {
-            char value[11];
-            sprintf(value,"%d", b ? v * 5 : v + 5);
-            OH_String result = {.chars = value, .length = string_len(value)};
+            OH_String result = int_to_string(b ? v * 5 : v + 5);
             continuation.call(continuation.resource.resourceId, result);
         },
         .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean b, const OH_Int32 v, const OH_UNIT_OST_Callback_String_Void continuation)
         {
-            char value[11];
-            sprintf(value,"%d", b ? v * 5 : v + 5);
-            OH_String result = {.chars = value, .length = string_len(value)};
+            OH_String result = int_to_string(b ? v * 5 : v + 5);
             continuation.callSync(vmContext, continuation.resource.resourceId, result);
         }
     };
