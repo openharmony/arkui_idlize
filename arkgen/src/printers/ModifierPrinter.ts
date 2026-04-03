@@ -281,6 +281,7 @@ class ModifiersFileVisitor {
         const needCollect = this.needCollectParentMethods(peer)
         let currentPeer: PeerClass | undefined = peer;
         let collectDepth = 0;
+        const childMethodNames = new Set<string>()
         while (currentPeer) {
             collectDepth++;
             const attributeFilter = (name: string) => {
@@ -301,10 +302,13 @@ class ModifiersFileVisitor {
                 })
                 const functionName = method.method.name
                 let v = 0
-                if (overloadCounter.has(functionName) && collectDepth > 1) return;
+                if (collectDepth === 1) {
+                    childMethodNames.add(functionName)
+                }
+                if (collectDepth > 1 && childMethodNames.has(functionName)) return;
                 if (overloadCounter.has(functionName)) v = overloadCounter.get(functionName)! + 1;
                 overloadCounter.set(functionName, v)
-                attributeTypes.push({ peer: currentPeer!, method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
+                attributeTypes.push({ peer: peer, method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
             })
             if (!needCollect) {
                 break;
