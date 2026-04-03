@@ -108,11 +108,11 @@ function checkPromise() {
             console.log(`[App] getOSTPromiseInt value: ${value}`)
             assertEQ(7, value)
         })
-    // getOSTPromiseBooleanIntString(true, 9)
-    //     .then((value: string) => {
-    //         console.log(`[App] getOSTPromiseBooleanIntString value: ${value}`)
-    //         assertEQ("hello", value)
-    //     })
+    getOSTPromiseBooleanIntString(true, 9)
+        .then((value: string) => {
+            console.log(`[App] getOSTPromiseBooleanIntString value: ${value}`)
+            assertEQ("hello", value)
+        })
 }
 
 export function run() {

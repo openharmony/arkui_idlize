@@ -653,7 +653,12 @@ class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
         if (native)
             return this.callbackConvertor.write(accessor, serializerName, native)
         return [
-            Builders.decl('promise').value('/// argConvertor.PromiseConvertor: not implemented').$()
+            Builders.decl('retval').value()
+                .access().index(0).receiver(
+                    Builders.call('holdAndWriteCallbackForPromise')
+                        .typeArgs([expectType(this.ctx, this.type.elementType[0], 'managed')])
+                        .receiver(serializerName).$()
+                ).$().$().$()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
@@ -664,7 +669,6 @@ class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
             E.v(`retval`)]
     }
 }
-
 
 export function readCallbackCall(sync: boolean, params: { name: string, type: lw.LWType}[], callbackName: string): lw.LWExpression {
       return Builders.cast(T.fn(params, Ts.prim.void))
