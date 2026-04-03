@@ -24,7 +24,9 @@ export {
 } from '../../generated/ts'
 
 export {
-    getOSTPromise,
+    getOSTPromiseVoid,
+    getOSTPromiseInt,
+    getOSTPromiseBooleanIntString,
 } from '../../generated/ts'
 
 export type OHBuffer = ArrayBuffer

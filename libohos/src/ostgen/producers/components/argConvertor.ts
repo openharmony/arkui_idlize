@@ -652,13 +652,17 @@ class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         if (native)
             return this.callbackConvertor.write(accessor, serializerName, native)
+        const isVoid = idl.isVoidType(this.type.elementType[0])
         return [
             Builders.decl('retval').value()
                 .access().index(0).receiver(
-                    Builders.call('holdAndWriteCallbackForPromise')
-                        .typeArgs([expectType(this.ctx, this.type.elementType[0], 'managed')])
-                        .receiver(serializerName).$()
-                ).$().$().$()
+                    isVoid
+                        ? Builders.call('holdAndWriteCallbackForPromiseVoid')
+                            .receiver(serializerName).$()
+                        : Builders.call('holdAndWriteCallbackForPromise')
+                            .typeArgs([expectType(this.ctx, this.type.elementType[0], 'managed')])
+                            .receiver(serializerName).$()
+                        ).$().$().$()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {

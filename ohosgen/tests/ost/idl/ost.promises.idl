@@ -15,5 +15,6 @@
 
 package ost.promises;
 
+Promise<void> getOSTPromiseVoid();
 Promise<i32> getOSTPromiseInt();
 Promise<String> getOSTPromiseBooleanIntString(boolean flag, i32 value);

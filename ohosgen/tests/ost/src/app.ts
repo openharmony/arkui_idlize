@@ -43,6 +43,7 @@ import {
 } from "#compat"
 
 import {
+    getOSTPromiseVoid,
     getOSTPromiseInt,
     getOSTPromiseBooleanIntString,
 } from "#compat"
@@ -103,6 +104,10 @@ function checkCallback() {
 }
 
 function checkPromise() {
+    getOSTPromiseVoid()
+        .then(() => {
+            console.log(`[App] getOSTPromiseVoid`)
+        })
     getOSTPromiseInt()
         .then((value: int) => {
             console.log(`[App] getOSTPromiseInt value: ${value}`)

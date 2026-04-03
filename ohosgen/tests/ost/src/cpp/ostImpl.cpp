@@ -174,19 +174,60 @@ OH_UNIT_OST_Callback_Boolean_I32_String ost_callbacks_getCallbackBooleanIntStrin
 
 // Promise
 
-class GetPromiseHandler {
-private:
-    OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void callback;
-    int result = 0;
+class AbstractHandler {
 public:
-    GetPromiseHandler(OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void callback): callback(callback) {
+    virtual void Execute() = 0;
+    virtual void Complete() = 0;
+    virtual ~AbstractHandler() = default;
+};
+
+template<typename CallbackType>
+class AbstractPromiseHandler: AbstractHandler {
+protected:
+    CallbackType callback;
+public:
+    AbstractPromiseHandler(CallbackType callback): callback(callback) {
         callback.resource.hold(callback.resource.resourceId);
     }
+};
+class GetPromiseVoidHandler: AbstractPromiseHandler<OH_UNIT_OST_Callback_Opt_Array_String_Void> {
+public:
+    GetPromiseVoidHandler(OH_UNIT_OST_Callback_Opt_Array_String_Void callback): AbstractPromiseHandler(callback) {
+    }
+    void Execute() {
+        printf("[Native App] GetPromiseVoidHandler execute()\n");
+    }
+    void Complete() {
+        printf("[Native App] GetPromiseVoidHandler complete()\n");
+        callback.call(callback.resource.resourceId,
+            { .tag = INTEROP_TAG_UNDEFINED }
+        );
+        callback.resource.release(callback.resource.resourceId);
+        delete this;
+    }
+};
 
+void ost_promises_getOSTPromiseVoidImpl(
+    OH_UNIT_OST_VMContext vmContext,
+    OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
+    const OH_UNIT_OST_Callback_Opt_Array_String_Void* out) {
+    auto work = asyncWorker->createWork(
+        vmContext,
+        new GetPromiseVoidHandler(*out),
+        [](void* handler) { ((AbstractHandler*)handler)->Execute(); },
+        [](void* handler) { ((AbstractHandler*)handler)->Complete(); });
+    work.queue(work.workId);
+}
+
+class GetPromiseIntHandler: AbstractPromiseHandler<OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void> {
+private:
+    int result = 0;
+public:
+    GetPromiseIntHandler(OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void callback): AbstractPromiseHandler(callback) {
+    }
     void Execute() {
         result = 7;
     }
-
     void Complete() {
         callback.call(callback.resource.resourceId,
             { .tag = INTEROP_TAG_INT32, .value = result },
@@ -196,32 +237,25 @@ public:
         delete this;
     }
 };
-static void DoGetPromiseExecute(void* handler) {
-    ((GetPromiseHandler*)handler)->Execute();
-}
-static void DoGetPromiseComplete(void* handler) {
-    ((GetPromiseHandler*)handler)->Complete();
-}
 
 void ost_promises_getOSTPromiseIntImpl(
     OH_UNIT_OST_VMContext vmContext,
     OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
     const OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void* out) {
-    auto work = asyncWorker->createWork(vmContext, new GetPromiseHandler(*out), DoGetPromiseExecute, DoGetPromiseComplete);
+    auto work = asyncWorker->createWork(
+        vmContext,
+        new GetPromiseIntHandler(*out),
+        [](void* handler) { ((AbstractHandler*)handler)->Execute(); },
+        [](void* handler) { ((AbstractHandler*)handler)->Complete(); });
     work.queue(work.workId);
 }
 
-class GetPromiseBooleanIntStringHandler {
-private:
-    OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void callback;
+class GetPromiseBooleanIntStringHandler: AbstractPromiseHandler<OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void> {
 public:
-    GetPromiseBooleanIntStringHandler(OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void callback): callback(callback) {
-        callback.resource.hold(callback.resource.resourceId);
+    GetPromiseBooleanIntStringHandler(OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void callback): AbstractPromiseHandler(callback) {
     }
-
     void Execute() {
     }
-
     void Complete() {
         callback.call(callback.resource.resourceId,
             { .tag = INTEROP_TAG_STRING, .value = { .chars = "hello", .length = string_len("hello") } },
@@ -238,15 +272,11 @@ void ost_promises_getOSTPromiseBooleanIntStringImpl(
     OH_Int32 value,
     const OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void* out)
 {
-    printf("--- --- ---\n");
-    printf("[Native] GlobalScope_getOSTPromiseBooleanIntStringImpl\n");
-    printf("  flag: %d, value: %d\n", flag, value);
-
     auto work = asyncWorker->createWork(
         vmContext,
         new GetPromiseBooleanIntStringHandler(*out),
-        [](void* handler) { ((GetPromiseBooleanIntStringHandler*)handler)->Execute(); },
-        [](void* handler) { ((GetPromiseBooleanIntStringHandler*)handler)->Complete(); });
+        [](void* handler) { ((AbstractHandler*)handler)->Execute(); },
+        [](void* handler) { ((AbstractHandler*)handler)->Complete(); });
 
     work.queue(work.workId);
 }
