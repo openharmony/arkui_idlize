@@ -89,7 +89,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                         w.pushIndent();
                         w.print('if (this.__is_CustomComponent__Internal()) {');
                         w.pushIndent();
-                        w.writeStatement(w.makeThrowError(`Common method '${nonPublic.name}' can only be set when creating a custom component.`))
+                        w.writeStatement(w.makeThrowError(`Common method ${nonPublic.name} can only be set when creating a custom component.`))
                         w.popIndent();
                         w.print('}');
                         w.popIndent();
