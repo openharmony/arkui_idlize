@@ -94,7 +94,9 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
             case 'record':
                 return new MapConvertor(ctx, type)
             case 'Promise':
-                return new PromiseConvertor(ctx, type)
+                const ref = ctx.library.createContinuationCallbackReference(type)
+                const continuation = ctx.library.resolveTypeReference(ref)! as idl.IDLCallback
+                return new PromiseConvertor(ctx, ref, continuation, type)
         }
     }
     if (idl.isUnionType(type))
@@ -628,16 +630,13 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
     }
 }
 
-class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
-
-    private callback: idl.IDLCallback
-    private callbackConvertor: CallbackConvertor
-
-    constructor(ctx: OhosProducerContext, type: idl.IDLContainerType) {
-        super(ctx, type);
-        const ref = ctx.library.createContinuationCallbackReference(type)
-        this.callback = ctx.library.resolveTypeReference(ref)! as idl.IDLCallback
-        this.callbackConvertor = new CallbackConvertor(ctx, ref, this.callback)
+class PromiseConvertor extends CallbackConvertor {
+    constructor(
+        ctx: OhosProducerContext,
+        continuationRef: idl.IDLReferenceType,
+        continuation: idl.IDLCallback,
+        private promise: idl.IDLContainerType) {
+        super(ctx, continuationRef, continuation);
     }
     interopType(native: boolean): lw.LWType {
         return Ts.prim.void
@@ -651,8 +650,8 @@ class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         if (native)
-            return this.callbackConvertor.write(accessor, serializerName, native)
-        const isVoid = idl.isVoidType(this.type.elementType[0])
+            return super.write(accessor, serializerName, native)
+        const isVoid = idl.isVoidType(this.promise.elementType[0])
         return [
             Builders.decl('retval').value()
                 .access().index(0).receiver(
@@ -660,14 +659,14 @@ class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
                         ? Builders.call('holdAndWriteCallbackForPromiseVoid')
                             .receiver(serializerName).$()
                         : Builders.call('holdAndWriteCallbackForPromise')
-                            .typeArgs([expectType(this.ctx, this.type.elementType[0], 'managed')])
+                            .typeArgs([expectType(this.ctx, this.promise.elementType[0], 'managed')])
                             .receiver(serializerName).$()
                         ).$().$().$()
         ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         if (native)
-            return this.callbackConvertor.read(name, serializerName, native)
+            return super.read(name, serializerName, native)
         return [
             [],
             E.v(`retval`)]
