@@ -94,7 +94,9 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
             case 'record':
                 return new MapConvertor(ctx, type)
             case 'Promise':
-                return new PromiseConvertor(ctx, type)
+                const ref = ctx.library.createContinuationCallbackReference(type)
+                const continuation = ctx.library.resolveTypeReference(ref)! as idl.IDLCallback
+                return new PromiseConvertor(ctx, ref, continuation, type)
         }
     }
     if (idl.isUnionType(type))
@@ -414,18 +416,6 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
     }
 }
 
-class PromiseConvertor extends StructConvertor<idl.IDLContainerType> {
-    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
-        return [
-            Builders.decl('promise').value('/// argConvertor.PromiseConvertor: not implemented').$()
-        ]
-    }
-
-    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        return [[], E.c('/// argConvertor.PromiseConvertor: not implemented')]
-    }
-}
-
 class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
     /**
      * Most specific checks should come first.
@@ -637,6 +627,49 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
             deserializeAndCallCallback(name, serializerName, this.ctx, this.decl),
             E.v(`${name}Closure`)
         ]
+    }
+}
+
+class PromiseConvertor extends CallbackConvertor {
+    constructor(
+        ctx: OhosProducerContext,
+        continuationRef: idl.IDLReferenceType,
+        continuation: idl.IDLCallback,
+        private promise: idl.IDLContainerType) {
+        super(ctx, continuationRef, continuation);
+    }
+    interopType(native: boolean): lw.LWType {
+        return Ts.prim.void
+    }
+    returnFromInterop(resultVarName: string): LWStatement[] {
+        const [reads, readValue] = this.read(`${resultVarName}Deserialized`, E.v('returnDeserializer'), false)
+        return [
+            ...reads,
+            Builders.return().value(readValue).$()
+        ]
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        if (native)
+            return super.write(accessor, serializerName, native)
+        const isVoid = idl.isVoidType(this.promise.elementType[0])
+        return [
+            Builders.decl('retval').value()
+                .access().index(0).receiver(
+                    isVoid
+                        ? Builders.call('holdAndWriteCallbackForPromiseVoid')
+                            .receiver(serializerName).$()
+                        : Builders.call('holdAndWriteCallbackForPromise')
+                            .typeArgs([expectType(this.ctx, this.promise.elementType[0], 'managed')])
+                            .receiver(serializerName).$()
+                        ).$().$().$()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        if (native)
+            return super.read(name, serializerName, native)
+        return [
+            [],
+            E.v(`retval`)]
     }
 }
 

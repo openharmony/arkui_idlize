@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
-import { bridgeName, expectExpr, expectType, isDirectInteropType } from "../common.js"
+import { bridgeName, cApiName, expectExpr, expectType, isDirectInteropType } from "../common.js"
 import { createProducer, fqName, OhosProducerContext } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js"
 
@@ -43,6 +43,7 @@ export const nativeModuleFunctionProducer = createProducer(
       { name: 'buffer', type: Ts.prim.serializerBuffer },
       { name: 'length', type: Ts.prim.i32 }
     ]
+    const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
     return {
       continuation: E.get(E.v(className, [Hs.isType()]), '_' + funcName),
       declarations: [
@@ -50,7 +51,7 @@ export const nativeModuleFunctionProducer = createProducer(
           .method('_' + funcName)
             .native().static()
             ///no annotation for vmContext methods, see MethodUtils
-            .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
+            .annotation(!isPromise && isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
             .parameters(params)
             .returns(returnType).$().$(),
         makeBridge(funcName, method, ctx)
@@ -115,17 +116,25 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
     { name: 'thisArray', type: Ts.prim.serializerBuffer },
     { name: 'thisLength', type: Ts.prim.i32 },
   ]
-  const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
+  const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
+  const argReads: [LWStatement[], LWExpression][] = [
+    ...method.parameters,
+    ...(isPromise ? [idl.createParameter('out', method.returnType)] : []),
+  ]
+  .map(it => {
     const conv = argConvertor(ctx, it.type, it.isOptional)
     const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
     return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
   })
+
+  const returnConv = argConvertor(ctx, method.returnType)
   const apiCallArgs = argReads.map(([_, expr]) => expr)
   const macroName = ['KOALA_INTEROP_']
   const macroArgs: (string | LWType)[] = [name]
-  const returnConv = argConvertor(ctx, method.returnType)
   const interopReturnType = returnConv.interopType(true)
-  if (isDirectInteropType(interopReturnType))
+  if (isPromise)
+    macroName.push('CTX_')
+  else if (isDirectInteropType(interopReturnType))
     macroName.push('DIRECT_')
   if (interopReturnType === Ts.prim.void)
     macroName.push('V')
@@ -137,6 +146,12 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
     macroArgs.push(Ts.prim.pointer)
   }
   macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
+
+  if (isPromise) {
+    params.unshift({ name: 'vmContext', type: T.c(cApiName('VMContext')) })
+    apiCallArgs.unshift(Builders.call('GetAsyncWorker').$())
+    apiCallArgs.unshift(E.c('vmContext'))
+  }
 
   // rewrite `getFinalizer` to call `destruct`
   let capiMethod = method

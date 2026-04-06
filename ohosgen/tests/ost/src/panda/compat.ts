@@ -36,12 +36,23 @@ export {
 } from '../../generated/arkts'
 
 export {
-    // getOSTPromise,
+    getOSTFunctionBooleanIntString
+} from '../../generated/arkts'
+
+export {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     checkCallbackBooleanIntString,
     getCallbackIntInt,
 } from '../../generated/arkts'
+
+export {
+    getOSTAsyncInt,
+    getOSTPromiseVoid,
+    getOSTPromiseInt,
+    getOSTPromiseBooleanIntString,
+} from '../../generated/arkts'
+
 
 export type OHBuffer = ArrayBuffer
 

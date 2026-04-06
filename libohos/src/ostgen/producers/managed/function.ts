@@ -34,12 +34,16 @@ export const functionProducer = createProducer(
       nativeModuleCall.args.unshift(
         Builders.access('ptr').receiver().access('peer').receiver('this').excl().$().$().$())
     }
+    const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
+    const isVoid = idl.isPrimitiveType(method.returnType, 'void') || isPromise
+    const promiseParam = isPromise ? [idl.createParameter('out', method.returnType)] : []
     const body = [
       Builders.decl(serializerName, T.c('SerializerBase'))
         .value().call('hold').receiver('SerializerBase').$().$().$(),
-      ...method.parameters.flatMap(param =>
+      ...[...method.parameters, ...promiseParam]
+      .flatMap(param =>
         argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
-      idl.isPrimitiveType(method.returnType, 'void')
+      isVoid
         ? S.e(nativeModuleCall)
         : Builders.decl('retval').value(nativeModuleCall).$(),
       Builders.stmt().call('release').receiver(serializerName).$().$(),
@@ -98,4 +102,3 @@ export const constructorProducer = createProducer(
     }
   }
 )
- 

@@ -15,11 +15,20 @@
 
 #include <cstdio>
 #include <cstring>
+#include <stdlib.h>
+
 #include "unit_ost.h"
 
 InteropInt32 string_len(const char* str)
 {
     return static_cast<InteropInt32>(strlen(str));
+}
+
+OH_String int_to_string(OH_Int32 x)
+{
+    char* result = reinterpret_cast<char*>(calloc(10, sizeof(char)));
+    sprintf(result, "%d", x);
+    return { .chars = result, .length = string_len(result) };
 }
 
 // Enum
@@ -72,6 +81,13 @@ OH_UNIT_OST_Array_Int32 ost_sequences_getOSTSequenceIntImpl()
     sequence.length = 3;
     sequence.array = new OH_Int32[3] { 3, 5, 7 };
     return sequence;
+}
+
+// Function
+
+OH_String ost_functions_getOSTFunctionBooleanIntStringImpl(OH_Boolean flag, OH_Int32 v)
+{
+    return int_to_string(flag ? v * 5 : v + 5);
 }
 
 // Callback
@@ -143,17 +159,130 @@ OH_UNIT_OST_Callback_Boolean_I32_String ost_callbacks_getCallbackBooleanIntStrin
         .resource=CALLBACK_RESOURCE,
         .call=[](const OH_Int32 resourceId, const OH_Boolean b, const OH_Int32 v, const OH_UNIT_OST_Callback_String_Void continuation)
         {
-            char value[11];
-            sprintf(value,"%d", b ? v * 5 : v + 5);
-            OH_String result = {.chars = value, .length = string_len(value)};
+            OH_String result = int_to_string(b ? v * 5 : v + 5);
             continuation.call(continuation.resource.resourceId, result);
         },
         .callSync=[](OH_UNIT_OST_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean b, const OH_Int32 v, const OH_UNIT_OST_Callback_String_Void continuation)
         {
-            char value[11];
-            sprintf(value,"%d", b ? v * 5 : v + 5);
-            OH_String result = {.chars = value, .length = string_len(value)};
+            OH_String result = int_to_string(b ? v * 5 : v + 5);
             continuation.callSync(vmContext, continuation.resource.resourceId, result);
         }
     };
+}
+
+// Promise
+
+class AbstractHandler {
+public:
+    virtual void Execute() = 0;
+    virtual void Complete() = 0;
+    virtual ~AbstractHandler() = default;
+};
+
+template<typename CallbackType>
+class AbstractPromiseHandler: AbstractHandler {
+protected:
+    CallbackType callback;
+public:
+    AbstractPromiseHandler(CallbackType callback): callback(callback) {
+        callback.resource.hold(callback.resource.resourceId);
+    }
+};
+class GetPromiseVoidHandler: AbstractPromiseHandler<OH_UNIT_OST_Callback_Opt_Array_String_Void> {
+public:
+    GetPromiseVoidHandler(OH_UNIT_OST_Callback_Opt_Array_String_Void callback): AbstractPromiseHandler(callback) {
+    }
+    void Execute() {
+        printf("[Native App] GetPromiseVoidHandler execute()\n");
+    }
+    void Complete() {
+        printf("[Native App] GetPromiseVoidHandler complete()\n");
+        callback.call(callback.resource.resourceId,
+            { .tag = INTEROP_TAG_UNDEFINED }
+        );
+        callback.resource.release(callback.resource.resourceId);
+        delete this;
+    }
+};
+
+void ost_promises_getOSTPromiseVoidImpl(
+    OH_UNIT_OST_VMContext vmContext,
+    OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
+    const OH_UNIT_OST_Callback_Opt_Array_String_Void* out) {
+    auto work = asyncWorker->createWork(
+        vmContext,
+        new GetPromiseVoidHandler(*out),
+        [](void* handler) { ((AbstractHandler*)handler)->Execute(); },
+        [](void* handler) { ((AbstractHandler*)handler)->Complete(); });
+    work.queue(work.workId);
+}
+
+class GetPromiseIntHandler: AbstractPromiseHandler<OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void> {
+private:
+    int result = 0;
+public:
+    GetPromiseIntHandler(OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void callback): AbstractPromiseHandler(callback) {
+    }
+    void Execute() {
+        result = 7;
+    }
+    void Complete() {
+        callback.call(callback.resource.resourceId,
+            { .tag = INTEROP_TAG_INT32, .value = result },
+            { .tag = INTEROP_TAG_UNDEFINED }
+        );
+        callback.resource.release(callback.resource.resourceId);
+        delete this;
+    }
+};
+
+
+void ost_promises_getOSTAsyncIntImpl(
+    OH_UNIT_OST_VMContext vmContext,
+    OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
+    const OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void* out) {
+    auto work = asyncWorker->createWork(
+        vmContext,
+        new GetPromiseIntHandler(*out),
+        [](void* handler) { ((AbstractHandler*)handler)->Execute(); },
+        [](void* handler) { ((AbstractHandler*)handler)->Complete(); });
+    work.queue(work.workId);
+}
+
+void ost_promises_getOSTPromiseIntImpl(
+    OH_UNIT_OST_VMContext vmContext,
+    OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
+    const OH_UNIT_OST_Callback_Opt_I32_Opt_Array_String_Void* out) {
+    ost_promises_getOSTAsyncIntImpl(vmContext, asyncWorker, out);
+}
+
+class GetPromiseBooleanIntStringHandler: AbstractPromiseHandler<OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void> {
+public:
+    GetPromiseBooleanIntStringHandler(OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void callback): AbstractPromiseHandler(callback) {
+    }
+    void Execute() {
+    }
+    void Complete() {
+        callback.call(callback.resource.resourceId,
+            { .tag = INTEROP_TAG_STRING, .value = { .chars = "hello", .length = string_len("hello") } },
+            { .tag = INTEROP_TAG_UNDEFINED });
+        callback.resource.release(callback.resource.resourceId);
+        delete this;
+    }
+};
+
+void ost_promises_getOSTPromiseBooleanIntStringImpl(
+    OH_UNIT_OST_VMContext vmContext,
+    OH_UNIT_OST_AsyncWorkerPtr asyncWorker,
+    OH_Boolean flag,
+    OH_Int32 value,
+    const OH_UNIT_OST_Callback_Opt_String_Opt_Array_String_Void* out)
+{
+    auto work = asyncWorker->createWork(
+        vmContext,
+        new GetPromiseBooleanIntStringHandler(*out),
+        [](void* handler) { ((AbstractHandler*)handler)->Execute(); },
+        [](void* handler) { ((AbstractHandler*)handler)->Complete(); });
+
+    work.queue(work.workId);
 }
