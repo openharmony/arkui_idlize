@@ -70,9 +70,23 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
 
 function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
   const peerType = Ts.union([T.c('Finalizable'), T.c('undefined')])
+  const thisType = expectType(ctx, node, 'managed')
   const superType = getSuperType(node, ctx.library)
   const superNode = getSuper(node, ctx.library)
   const superIsMaterialized = superNode ? isMaterialized(superNode, ctx.library) : false
+  const fqName = idl.getFQName(node)
+  const fromPtrExpr = peerGeneratorConfiguration().handwrittenDeserializers.includes(fqName)
+    ? Builders.call(`deserialize_${fqName.replaceAll('.', '_')}`)
+      .receiver(managedName('#handwritten.extractors'))
+      .arg('ptr').$()
+    : Builders.ctor(name)
+      .arg().access('NOP').receiver('MaterializedBaseTag').$().$()
+      .arg('ptr').$()
+  const intClass = Builders.class(name + 'Internal')
+    .method('fromPtr').static()
+      .returns(thisType)
+      .param('ptr').type(Ts.prim.pointer).$().block()
+        .return(thisType).value(fromPtrExpr).$().$().$().$()
   const matClass = Builders.class(name)
     .extends(superType ? expectType(ctx, superType, 'managed') : undefined)
     .implements(T.c('MaterializedBase'))
@@ -120,33 +134,11 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
   syntheticMethods.forEach(it => it.parent = node)
   return {
     continuation: T.c(name),
-    declarations: [
-      internalMaterializedClass(node, name, ctx),
-      matClass
-    ],
+    declarations: [ intClass, matClass ],
     trigger: [
       ...node.constructors,
       ...node.methods,
       ...syntheticMethods
     ].map(it => new OhosSeed(it, 'managed'))
   }
-}
-
-function internalMaterializedClass(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ClassDeclaration {
-  const fqName = idl.getFQName(node)
-  const thisType = expectType(ctx, node, 'managed')
-  const fromPtrExpr = peerGeneratorConfiguration().handwrittenDeserializers.includes(fqName)
-    ? Builders.return(thisType)
-      .call(`deserialize_${fqName.replaceAll('.', '_')}`)
-        .receiver(managedName('#handwritten.extractors'))
-        .arg('ptr').$().$()
-    : Builders.return(thisType)
-      .ctor(name)
-        .arg().access('NOP').receiver('MaterializedBaseTag').$().$()
-        .arg('ptr').$().$()
-  return Builders.class(name + 'Internal')
-    .method('fromPtr').static()
-      .returns(thisType)
-      .param('ptr').type(Ts.prim.pointer).$()
-      .block().statements([fromPtrExpr]).$().$().$()
 }
