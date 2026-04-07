@@ -18,16 +18,18 @@ import { capitalize, getInitializerDefaultValue, getSuper, getSuperType, isDefin
 import { Builders, Md, T, Ts } from "@idlizer/ost"
 import { ProducerResult } from "@idlizer/kit"
 import { expectType, managedName } from "../common.js"
-import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
+import { OhosProducerContext, OhosSeed } from "../../engine/index.js"
 import { createProducer } from "../../engine/index.js"
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
 
 export const structureProducer = createProducer(
   { is: idl.isInterface, role: 'managed' },
-  (node, ctx) => {
+  (node, ctx, role, typeArgs) => {
     const declName = managedName(idl.getFQName(node))
     return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx)
       : skip(node) ? { continuation: T.c(declName), declarations: [] }
+      : isMonomorphized(node) ? unmonomorphize(node, ctx)
+      : isGeneric(node) ? dataInterface(node, declName, ctx, typeArgs)
       : isStaticMaterialized(node, ctx.library) ? staticMaterializedInterface(node, declName, ctx)
       : isMaterialized(node, ctx.library) ? materializedInterface(node, declName, ctx)
       : dataInterface(node, declName, ctx)
@@ -39,20 +41,51 @@ function skip(node: idl.IDLInterface): boolean {
     peerGeneratorConfiguration().isHandWritten(node.name)
 }
 
-const tuple: OhosProducer<idl.IDLInterface, Role<idl.IDLInterface>> = (node, ctx) => {
+function isGeneric(node: idl.IDLInterface): boolean {
+  return isDefined(node.typeParameters) && node.typeParameters.length > 0
+}
+
+function isMonomorphized(node: idl.IDLInterface): boolean {
+  return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.OriginalGenericName)
+}
+
+function unmonomorphize(node: idl.IDLInterface, ctx: OhosProducerContext): ProducerResult {
+  const attr = node.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.OriginalGenericName)!
+  return {
+    continuation: T.c(managedName(attr.value!), ...attr.typesValue?.map(ty => expectType(ctx, ty, 'managed')) ?? []),
+    declarations: []
+  }
+}
+
+function tuple(node: idl.IDLInterface, ctx: OhosProducerContext): ProducerResult {
   return {
     continuation: Ts.intersection(node.properties.map(prop => expectType(ctx, prop.type, 'managed'))),
     declarations: []
   }
 }
 
-function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
+/*
+ * This is called via two different paths:
+ * 1. type reference -> seed(resolved declaration, type args from reference)
+ * 2. interface -> seed(interface declaration, no type args)
+ * We don't want to produce interface declaration each time this is called via path 1 with different type args.
+ * When type args are present, we just generate type reference that bears the type args, and expect the declaration
+ * to be generated when this is called via path 2.
+ */
+function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext, typeArgs?: idl.IDLType[]): ProducerResult {
   const superType = getSuperType(node, ctx.library)
+  if (typeArgs) {
+    return {
+      continuation: T.c(name, ...typeArgs.map(ty => expectType(ctx, ty, 'managed'))),
+      declarations: []
+    }
+  }
   return {
     continuation: T.c(name),
     declarations: [
       Builders.class(name)
         .kind(idl.isClassSubkind(node) ? 'class' : 'interface')
+        .typeParameters(node.typeParameters)
         .extends(superType ? expectType(ctx, superType, 'managed') : undefined)
         .fields(node.properties.map(prop => {
           const modifiers = [
@@ -64,7 +97,13 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
           if (idl.isClassSubkind(node))
             field.value(getInitializerDefaultValue(prop, ctx.library.language))
           return field.$()
-        })).$()
+        }))
+        .methods(node.methods.map(method =>
+          Builders.func(method.name)
+          .returns(expectType(ctx, method.returnType, 'managed'))
+          .parameters(method.parameters.map(param => ({ name: param.name, type: expectType(ctx, param.type, 'managed')}))).$()
+        ))
+        .$()
     ]
   }
 }

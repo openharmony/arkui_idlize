@@ -68,8 +68,8 @@ export function expectExpr<R = Role<idl.IDLNode>>(ctx: OhosProducerContext, node
     return ctx.expectExpr(new OhosSeed(node, role))
 }
 
-export function expectType<R = Role<idl.IDLNode>>(ctx: OhosProducerContext, node: idl.IDLNode, role: R): LWType {
-    return ctx.expectType(new OhosSeed(node, role))
+export function expectType<R = Role<idl.IDLNode>>(ctx: OhosProducerContext, node: idl.IDLNode, role: R, typeArgs: idl.IDLType[] = []): LWType {
+    return ctx.expectType(new OhosSeed(node, role, typeArgs))
 }
 
 export function registerDefaultProducers<R extends Role<idl.IDLNode>>(selector: MakeSelector<R>) {

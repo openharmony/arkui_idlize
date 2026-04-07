@@ -141,7 +141,7 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
         createEffect: createOhosEffect,
         library,
         roots: { seeds }},
-        onlyFor(OhosSeed<ArkUIRole<idl.IDLNode>>, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role)))
+        onlyFor(OhosSeed<ArkUIRole<idl.IDLNode>>, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role, seed.typeArgs)))
 
     console.log(`=== ${declarations.length} declarations {`)
     declarations

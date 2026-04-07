@@ -21,8 +21,7 @@ import {
     IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier,
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
-    EnumDeclaration, SwitchStatement, ConstantExpression,
-    ThrowStatement,
+    EnumDeclaration, SwitchStatement, ConstantExpression, GenericDescriptor, ThrowStatement,
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -1961,6 +1960,7 @@ class StructBuilder extends StructLikeBuilder {
  * ```
  */
 class ClassBuilder extends StructLikeBuilder {
+    private _generics: GenericDescriptor[] = []
     private _methods: FunctionDeclaration[] = []
     private _oop: ClassDeclaration['oop'] = {
         kind: 'class',
@@ -2017,6 +2017,7 @@ class ClassBuilder extends StructLikeBuilder {
      * ```
      */
     kind(kind: 'class' | 'interface') { this._oop!.kind = kind; return this }
+    typeParameters(params?: string[]) { this._generics.push(...params?.map(p => ({name: p})) ?? []); return this }
     /**
      * Add a method to the class/interface.
      * Returns a FunctionBuilder for defining the method's signature and body.
@@ -2082,7 +2083,7 @@ class ClassBuilder extends StructLikeBuilder {
      */
     $(): ClassDeclaration {
         check("Class", this._name)
-        return D.class(this._name!, this._fields, this._methods, this._oop)
+        return DD({generics: this._generics}).class(this._name!, this._fields, this._methods, this._oop)
     }
 }
 

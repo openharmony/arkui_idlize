@@ -73,7 +73,7 @@ export interface OhosEffect {
 }
 
 export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>
-export type OhosProducer<T extends idl.IDLNode, R> = (type: T, ctx: OhosProducerContext, role?: R) => ProducerResult
+export type OhosProducer<T extends idl.IDLNode, R> = (type: T, ctx: OhosProducerContext, role?: R, typeArgs?: idl.IDLType[]) => ProducerResult
 
 type CommonRole = 'managed' | 'capi'
 type SpecificRole<N extends idl.IDLNode> =
@@ -86,6 +86,7 @@ export class OhosSeed<R = Role<idl.IDLNode>> extends Seed {
   constructor(
     public node: idl.IDLNode,
     public role?: R,
+    public typeArgs?: idl.IDLType[]
   ) {
     super()
   }
@@ -93,6 +94,7 @@ export class OhosSeed<R = Role<idl.IDLNode>> extends Seed {
     const repr = idl.isType(this.node)
         ? 'type:' + idl.printType(this.node)
         : 'node:' + idl.getFQName(this.node)
-    return `${repr}:${this.role ?? ''}`
+    const typeArgs = this.typeArgs?.map(ty => idl.printType(ty)).join(',') ?? ''
+    return `${repr}:${typeArgs}:${this.role ?? ''}`
   }
 }
