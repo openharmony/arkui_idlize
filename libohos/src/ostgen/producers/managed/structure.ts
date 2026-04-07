@@ -14,8 +14,8 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { capitalize, getInitializerDefaultValue, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized } from "@idlizer/core"
-import { Builders, ClassDeclaration, Md, T, Ts } from "@idlizer/ost"
+import { capitalize, getInitializerDefaultValue, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized, isStaticMaterialized } from "@idlizer/core"
+import { Builders, Md, T, Ts } from "@idlizer/ost"
 import { ProducerResult } from "@idlizer/kit"
 import { expectType, managedName } from "../common.js"
 import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
@@ -28,6 +28,7 @@ export const structureProducer = createProducer(
     const declName = managedName(idl.getFQName(node))
     return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx)
       : skip(node) ? { continuation: T.c(declName), declarations: [] }
+      : isStaticMaterialized(node, ctx.library) ? staticMaterializedInterface(node, declName, ctx)
       : isMaterialized(node, ctx.library) ? materializedInterface(node, declName, ctx)
       : dataInterface(node, declName, ctx)
   }
@@ -65,6 +66,20 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
           return field.$()
         })).$()
     ]
+  }
+}
+
+function staticMaterializedInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
+  const superType = getSuperType(node, ctx.library)
+  return {
+    continuation: T.c(name),
+    declarations: [
+      Builders.class(name)
+        .extends(superType ? expectType(ctx, superType, 'managed') : undefined).$()
+    ],
+    trigger: [
+      ...node.methods,
+    ].map(it => new OhosSeed(it, 'managed'))
   }
 }
 
