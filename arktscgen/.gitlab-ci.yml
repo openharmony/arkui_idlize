@@ -10,7 +10,6 @@ test arktscgen:
   script:
     - !reference [.npm, script]
     - npm i -C external/koala_projects --prefer-offline --no-audit --no-fund
-    - npm run panda:sdk:install --prefix ./external/koala_projects/incremental/tools/panda
     - npm run -C external/koala_projects sdk:all
     - npm run compile --prefix external/koala_projects/common
     - npm run compile --prefix external/koala_projects/compat
