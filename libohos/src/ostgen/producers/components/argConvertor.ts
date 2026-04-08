@@ -564,7 +564,7 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                 const type = this.type.types[i]
                 let cond: lw.LWExpression
                 let value: lw.LWExpression
-                const extraStatements: lw.LWStatement[] = []
+                const maybeCast: lw.LWStatement[] = []
                 if (native) {
                     cond = Builders.binary(Op.eq)
                         .left().access('selector').receiver(accessor).$().$()
@@ -572,27 +572,20 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     value = Builders.access('value' + i).receiver(accessor).$()
                 } else {
                     cond = Builders.call(expectExpr(this.ctx, type, 'typecheck')).arg(accessor).$()
-                    // For array types, cast the value for serialization
-                    if (idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type)) {
-                        const castedName = accessor.kind === lw.LWKind.VariableExpression
-                            ? (accessor as lw.VariableExpression).name + 'Casted'
-                            : 'valueCasted'
-                        const managedType = expectType(this.ctx, type, 'managed')
-                        extraStatements.push(
-                            Builders.decl(castedName).value()
-                                .cast(managedType).value(accessor).$().$().$())
-                        value = E.v(castedName)
-                    } else {
-                        value = accessor
-                    }
+                    const castedName = accessor.kind === lw.LWKind.VariableExpression
+                        ? accessor.name + 'Casted'
+                        : 'valueCasted'
+                    maybeCast.push(
+                        Builders.decl(castedName).value()
+                            .cast(expectType(this.ctx, type, 'managed')).value(accessor).$().$().$())
+                    value = E.v(castedName)
                 }
-                const ifStmt = Builders.if()
+                return Builders.if()
                     .condition(cond)
                     .then().block()
-                        .statements(extraStatements)
+                        .statements(maybeCast)
                         .call('writeInt8').receiver(serializerName).arg(i).$()
                         .statements(argConvertor(this.ctx, type).write(value, serializerName, native)).$().$().$()
-                return ifStmt
             })
             .reduceRight((acc, cur) => {cur.elseBody = acc; return cur})
         ]

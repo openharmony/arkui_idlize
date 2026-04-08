@@ -29,7 +29,7 @@ import { typeParameterProducer } from "./typeParameter.js";
 import { typecheckProducer } from "./typecheck.js";
 
 export const producers = {
-    typecheckProducer,
+    typecheckProducer,///fragile: should come before referenceProducer since the latter fulfills all roles
     enumProducer,
     functionProducer,
     constructorProducer,

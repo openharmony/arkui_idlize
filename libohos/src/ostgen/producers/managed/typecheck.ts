@@ -15,8 +15,8 @@
 
 import * as idl from "@idlizer/core/idl"
 import { isMaterialized } from "@idlizer/core"
-import { Builders, E, LWExpression, LWStatement, T, Ts, lw } from "@idlizer/ost"
-import { expectExpr, expectType, managedName } from "../common.js"
+import { Builders, E, Hs, LWExpression, LWStatement, T, Ts, lw } from "@idlizer/ost"
+import { expectType, managedName } from "../common.js"
 import { createProducer, OhosProducerContext } from "../../engine/index.js"
 
 const TYPE_CHECKER_CLASS = managedName('engine.TypeChecker')
@@ -37,85 +37,15 @@ const TYPE_CHECKER_CLASS = managedName('engine.TypeChecker')
  * invokes with the value to check: Builders.call(expectExpr(ctx, type, 'typecheck')).arg(accessor).$()
  */
 export const typecheckProducer = createProducer(
-    { is: isTypecheckable, role: 'typecheck' as any },
-    (node, ctx) => {
-        const [methodExpr, declarations] = produceTypeCheckForNode(node, ctx)
+    { is: idl.isType, role: 'typecheck' },
+    (type, ctx) => {
+        const [methodExpr, declarations] = produceTypeCheckMethod(type, ctx)
         return {
             continuation: methodExpr,
             declarations,
         }
     }
 )
-
-/** Type guard: any IDL node that can appear in a union type check */
-function isTypecheckable(node: idl.IDLNode): node is idl.IDLNode {
-    return idl.isPrimitiveType(node)
-        || idl.isReferenceType(node)
-        || idl.isContainerType(node)
-        || idl.isUnionType(node)
-        || idl.isInterface(node)
-        || idl.isEnum(node)
-}
-
-/**
- * Entry point for the producer: handles both IDL types and IDL declarations.
- * For reference types, resolves the reference internally (since this producer
- * is registered before the generic referenceProducer to intercept 'typecheck' role).
- * For declarations (IDLInterface, IDLEnum), generates simple instanceof checks.
- */
-function produceTypeCheckForNode(
-    node: idl.IDLNode,
-    ctx: OhosProducerContext
-): [LWExpression, lw.LWDeclaration[]] {
-    // Handle reference types: resolve and delegate
-    if (idl.isReferenceType(node)) {
-        const decl = ctx.library.resolveTypeReference(node)
-        if (decl && idl.isType(decl)) {
-            // Typedef: recurse on the underlying type
-            return produceTypeCheckMethod(decl as idl.IDLType, ctx)
-        }
-        // For reference types with OriginalGenericName or arrays, use produceTypeCheckMethod
-        return produceTypeCheckMethod(node, ctx)
-    }
-    if (idl.isInterface(node) || idl.isEnum(node)) {
-        return produceSimpleTypeCheckForDecl(node, ctx)
-    }
-    return produceTypeCheckMethod(node as idl.IDLType, ctx)
-}
-
-/**
- * Simple instanceof check for a declaration node (interface or enum).
- */
-function produceSimpleTypeCheckForDecl(
-    decl: idl.IDLInterface | idl.IDLEnum,
-    ctx: OhosProducerContext
-): [LWExpression, lw.LWDeclaration[]] {
-    const shortName = decl.name.split('.').pop()!
-    const methodName = 'is' + shortName
-    const managedType = expectType(ctx, decl, 'managed')
-
-    // For generic interfaces (with OriginalGenericName), this shouldn't happen
-    // since the reference producer passes through. But handle it gracefully.
-    let instanceofType: lw.LWType = managedType
-    if (idl.isInterface(decl) && idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity) === idl.IDLEntity.Tuple) {
-        instanceofType = T.c('Array')
-    }
-
-    const body: LWStatement[] = [
-        Builders.return().value(
-            Builders.instanceof(instanceofType).value('value').$()
-        ).$()
-    ]
-
-    const classDecl = Builders.class(TYPE_CHECKER_CLASS)
-        .method(methodName).static()
-            .param('value').type(T.c('object')).$()
-            .returns(Ts.prim.boolean)
-            .block().statements(body).$().$().$()
-
-    const methodExpr = Builders.access(methodName).receiver('TypeChecker').$()
-    return [methodExpr, [classDecl]]
-}
 
 /**
  * Produce a TypeChecker method for the given type.
@@ -275,7 +205,7 @@ function produceSimpleTypeCheck(
             .returns(Ts.prim.boolean)
             .block().statements(body).$().$().$()
 
-    const methodExpr = Builders.access(methodName).receiver('TypeChecker').$()
+    const methodExpr = Builders.access(methodName).receiver(TYPE_CHECKER_CLASS).$()
     return [methodExpr, [classDecl]]
 }
 
@@ -323,7 +253,7 @@ function produceArrayTypeCheck(
             .returns(Ts.prim.boolean)
             .block().statements(body).$().$().$()
 
-    const methodExpr = Builders.access(methodName).receiver('TypeChecker').$()
+    const methodExpr = Builders.access(methodName).receiver(TYPE_CHECKER_CLASS).$()
     return [methodExpr, [classDecl, ...innerDecls]]
 }
 
@@ -357,7 +287,7 @@ function produceGenericTypeCheck(
     } else {
         // Data interfaces are plain objects; use instanceof with the interface type
         const originalType = originalDecl
-            ? T.c(managedName(originalDecl.name))
+            ? T.c(managedName(idl.getFQName(originalDecl)))
             : T.c(managedName(originalName))
         checkExpr = Builders.instanceof(originalType).value('value').$()
     }
@@ -393,6 +323,6 @@ function produceGenericTypeCheck(
             .returns(Ts.prim.boolean)
             .block().statements(body).$().$().$()
 
-    const methodExpr = Builders.access(methodName).receiver('TypeChecker').$()
+    const methodExpr = Builders.access(methodName).receiver(TYPE_CHECKER_CLASS).$()
     return [methodExpr, [classDecl, ...allDecls]]
 }
