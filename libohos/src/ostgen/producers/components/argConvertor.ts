@@ -375,15 +375,29 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
         return [
             Builders.stmt().call('writeInt32').receiver(serializerName)
                 .arg().access('size').receiver(accessor).$().$().$().$(),
-            Builders.decl('entries').value().call('from').receiver('Array').arg().call('entries').receiver(accessor).$().$().$().$().$(),
+            native
+                ? Builders.none().$()
+                : Builders.decl('entries').value().call('from').receiver('Array')
+                    .arg().call('entries').receiver(accessor).$().$().$().$().$(),
             Builders.loop()
                 .init().decl('i').mutable().value('0').$().$()
-                .cond().binary(Op.lt).left('i').right().access('length').receiver('entries').$().$().$().$()
-                .step().binary('=').left('i').right().binary(Op.add).left('i').right(1).$().$().$().$()
+                .cond().binary(Op.lt).left('i').right( native
+                    ? Builders.access('size').receiver(accessor).$()
+                    : Builders.access('length').receiver('entries').$()
+                ).$().$()
+                .step().unary(Op.postinc).value('i').$().$()
                 .body().block()
-                    .decl('entry').value().access().receiver('entries').index('i').$().$().$()
-                    .decl('key').value().access().receiver('entry').index(0).$().$().$()
-                    .decl('value').value().access().receiver('entry').index(1).$().$().$()
+                    .statements(native
+                        ? [
+                            Builders.decl('key').value().access().receiver(
+                                Builders.access().receiver(accessor).member('keys').$()).index('i').$().$().$(),
+                            Builders.decl('value').value().access().receiver(
+                                Builders.access().receiver(accessor).member('values').$()).index('i').$().$().$(),
+                        ] : [
+                            Builders.decl('entry').value().access().receiver('entries').index('i').$().$().$(),
+                            Builders.decl('key').value().access().receiver('entry').index(0).$().$().$(),
+                            Builders.decl('value').value().access().receiver('entry').index(1).$().$().$(),
+                        ])
                     .statements(
                         argConvertor(this.ctx, this.type.elementType[0])
                             .write(E.v('key'), serializerName, native))

@@ -117,6 +117,20 @@ OH_UNIT_OST_Array_Int32 ost_sequences_getOSTSequenceIntImpl()
 
 // Map
 
+OH_UNIT_OST_Map_Int32_String ost_maps_getOSTMapIntStringImpl()
+{
+    int size = 2;
+    OH_UNIT_OST_Map_Int32_String map = {};
+    map.size = size;
+    map.keys = reinterpret_cast<OH_Int32*>(malloc(size * sizeof(OH_Int32)));
+    map.values = reinterpret_cast<OH_String*>(malloc(size * sizeof(OH_String)));
+    map.keys[0] = 1;
+    map.keys[1] = 5;
+    map.values[0] = int_to_string(11);
+    map.values[1] = int_to_string(55);
+    return map;
+}
+
 void ost_maps_checkOSTMapIntIntImpl(const OH_UNIT_OST_Map_Int32_Int32* map)
 {
     AssertEqInt(2, map->size, "map size does not equal to 2");
