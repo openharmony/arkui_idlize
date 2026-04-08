@@ -939,6 +939,5 @@ export function run() {
   suite.addTest("checkHierarchy", checkHierarchy)
   suite.addTest("checkSequences", checkSequences)
 
-
-  return suite.run()
+  suite.runTests()
 }

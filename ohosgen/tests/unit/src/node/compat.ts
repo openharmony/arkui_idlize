@@ -209,7 +209,7 @@ export class UnitTestsuite {
         this.tests.push(new Test(testName, test))
     }
 
-    async run() {
+    async runTests(): number {
         const failedTests: string[] = []
         for (const t of this.tests) {
             try {
@@ -231,6 +231,7 @@ export class UnitTestsuite {
             }
             throw new Error("Tests failed!")
         }
+        return failedTests.length
     }
 }
 

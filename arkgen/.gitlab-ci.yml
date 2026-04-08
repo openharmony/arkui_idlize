@@ -9,7 +9,6 @@
   before_script:
     - !reference [.npm, script]
     - npm i -C external/koala_projects --prefer-offline --no-audit --no-fund
-    - npm run panda:sdk:install --prefix ./external/koala_projects/incremental/tools/panda
     - npm run sdk:all -C external/koala_projects
     - npm run build:all -C external/koala_projects/ui2abc
   script:

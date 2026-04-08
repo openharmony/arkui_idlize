@@ -1169,11 +1169,13 @@ export class UnionConvertor extends BaseArgConvertor {
     makeArrayBranch(param: string, value: string, array: string, printer: LanguageWriter, arrayConvertorItems: ConvertorItem[]): BranchStatement[] {
         if (arrayConvertorItems.length == 0) return []
 
+        const isArkts = printer.language === Language.ARKTS
         const arrayConvertorItem = arrayConvertorItems[0]
-        const elemName = `${value}Elem`
-        const elemAccess = printer.makeString(`${value}[0]`)
+        const valueCasted = isArkts ? `${value}Casted` : value
+        const elemName = `${valueCasted}Elem`
+        const elemAccess = printer.makeString(`${valueCasted}[0]`)
         const checkZeroArray = printer.makeCondition(
-            printer.makeString(`${value}.length == 0`),
+            printer.makeString(`${valueCasted}.length == 0`),
             new BlockStatement([
                 this.makeStoreSelector(param, arrayConvertorItem.index, printer),
                 printer.makeStatement(
@@ -1185,9 +1187,14 @@ export class UnionConvertor extends BaseArgConvertor {
                     new ConvertorItem(it.convertor, it.index, (it.type as idl.IDLContainerType).elementType[0])))
             ], true, false)
         )
+        const allStatements = isArkts ? new BlockStatement(
+            [
+                printer.makeAssign(valueCasted, undefined, printer.makeString(`${value} as Array<Any>`), true, true),
+                checkZeroArray,
+            ], false, true) : checkZeroArray
         const arrayMultiBranch: BranchStatement = {
             expr: this.unionChecker.makeDiscriminator(value, arrayConvertorItem.index, printer, this.library, arrayConvertorItem.type),
-            stmt: checkZeroArray
+            stmt: allStatements
         }
         return [arrayMultiBranch]
     }
@@ -1907,6 +1914,14 @@ function withGenericDiscriminator(
     writer.addFeature("typechecks", library.layout.handwrittenPackage())
     const decl = writer.resolver.resolveTypeReference(type)!
     const checkGenericFunc = idl.entryToFunctionName(writer.language, decl, "isGeneric_", "")
+    if (writer.language === Language.ARKTS) {
+        const genericClause: string = mayBeGeneric.typeArguments!.map(it => "Any").join(", ")
+        return writer.makeAnd(
+            discriminator,
+            writer.makeFunctionCall(`typechecks.${checkGenericFunc}`,
+                [writer.makeString(`${value} as ${withInsideInstanceof(true, () => writer.getNodeName(type))}<${genericClause}>`)])
+        )
+    }
     return writer.makeAnd(
         discriminator,
         writer.makeFunctionCall(`typechecks.${checkGenericFunc}`, [writer.makeString(value)])

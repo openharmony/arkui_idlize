@@ -60,7 +60,7 @@ export function checkResult<R>(name: string, actual: R, expected: R) {
 export function getNativeLog(): string {
     let ptr = InteropNativeModule._GetGroupedLog(1)
     let length = InteropNativeModule._StringLength(ptr)
-    let data = new FixedArray<byte>(length)
+    let data = new ValueArray<byte>(length)
     InteropNativeModule._StringData(ptr, data, length)
     InteropNativeModule._InvokeFinalizer(ptr, InteropNativeModule._GetStringFinalizer())
     // Improve: better string decoding.

@@ -38,7 +38,7 @@ export class NativeLog {
     getNativeLog(group: int32): string {
         let ptr = InteropNativeModule._GetGroupedLog(group)
         let length = InteropNativeModule._StringLength(ptr)
-        let data = new FixedArray<int8>(length)
+        let data = new ValueArray<int8>(length)
 
         // @ts-ignore
         InteropNativeModule._StringData(ptr, data, length)

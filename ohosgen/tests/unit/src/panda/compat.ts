@@ -165,6 +165,13 @@ export class UnitTestsuite extends arktest.ArkTestsuite {
     constructor(name: string) {
         super(name)
     }
+    runTests(): int {
+        const failedTestsCount = super.run()
+        if (failedTestsCount > 0) {
+            throw new Error("Tests failed!")
+        }
+        return failedTestsCount
+    }
 }
 
 export function isInstanceofChildI(value: Object) {
