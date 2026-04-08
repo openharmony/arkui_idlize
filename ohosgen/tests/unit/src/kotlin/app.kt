@@ -230,7 +230,7 @@ fun checkDataInterfaces() {
 typealias Union01 = Union_Number_Test_union_UnionSampleEnum
 typealias Union02 = Union_Boolean_Number_String_Test_union_UnionSampleEnum_Array_Boolean_Array_Test_union_UnionSampleEnum
 typealias Union03 = Union_Number_Array_Number
-typealias Union04 = Union_Number_String_Synthetic_UnionSampleTupleNumberString_Array_Synthetic_UnionSampleTupleNumberString
+typealias Union04 = Union_Number_String_Synthetic_UnionSampleTupleNumber_Synthetic_UnionSampleTupleNumberString_Array_Synthetic_UnionSampleTupleNumberString
 typealias Union05 = Union_Number_String_Test_union_SingleGenericType_Number_Test_union_SingleGenericType_String_Test_union_DoubleGenericType_Boolean_Number_Test_union_DoubleGenericType_Number_String
 
 fun checkUnions() {
@@ -286,12 +286,15 @@ fun checkUnions() {
         override var prop = Union04.create0(5.0) }).prop.getValue0())
     checkEQ("five", checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
         override var prop = Union04.create1("five") }).prop.getValue1())
-    val tuple = UnionSampleTupleNumberString(7.0, "seven")
-    checkEQ(tuple, checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
-        override var prop = Union04.create2(tuple) }).prop.getValue2())
+    val tupleNumber = UnionSampleTupleNumber(5.0)
+    checkEQ(tupleNumber, checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
+        override var prop = Union04.create2(tupleNumber) }).prop.getValue2())
+    val tupleNumberString = UnionSampleTupleNumberString(7.0, "seven")
+    checkEQ(tupleNumberString, checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
+        override var prop = Union04.create3(tupleNumberString) }).prop.getValue3())
     val tuples = arrayOf(UnionSampleTupleNumberString(8.0, "eight"), UnionSampleTupleNumberString(9.0, "nine"))
     checkEQ(tuples, checkUnionTupleArraySample(object: UnionSampleTupleArrayInterface {
-        override var prop = Union04.create3(tuples) }).prop.getValue3())
+        override var prop = Union04.create4(tuples) }).prop.getValue4())
 
     // GenericType union
     checkEQ(7.0, checkUnionGenericTypeSample(object: UnionSampleGenericTypeInterface {
