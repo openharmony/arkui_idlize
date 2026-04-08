@@ -1905,7 +1905,7 @@ function withDiscriminatorCondition(
     if (idl.isReferenceType(type)) {
         const resolved = library.resolveTypeReference(type)!
         const isTuple = idl.isInterface(resolved) && idl.getExtAttribute(resolved, idl.IDLExtendedAttributes.Entity) === idl.IDLEntity.Tuple
-        if (isTuple && (writer.language == Language.TS || writer.language == Language.ARKTS)) {
+        if (isTuple && writer.language == Language.ARKTS) {
             return writer.makeAnd(
                 discriminator,
                 writer.makeEquals(

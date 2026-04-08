@@ -23,6 +23,11 @@ enum UnionSampleEnum {
 };
 
 [Entity=Tuple, Synthetic]
+interface UnionSampleTupleNumber {
+    attribute number value0;
+};
+
+[Entity=Tuple, Synthetic]
 interface UnionSampleTupleNumberString {
     attribute number value0;
     attribute String value1;
@@ -58,7 +63,7 @@ interface UnionSampleNumberArrayInterface {
 [Entity=Interface]
 interface UnionSampleTupleArrayInterface {
 
-    attribute (number or String or UnionSampleTupleNumberString or sequence<UnionSampleTupleNumberString>) prop;
+    attribute (number or String or UnionSampleTupleNumber or UnionSampleTupleNumberString or sequence<UnionSampleTupleNumberString>) prop;
 };
 
 [Entity=Interface]
