@@ -388,16 +388,14 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
                 .step().unary(Op.postinc).value('i').$().$()
                 .body().block()
                     .statements(native
-                        ? [
-                            Builders.decl('key').value().access().receiver(
-                                Builders.access().receiver(accessor).member('keys').$()).index('i').$().$().$(),
-                            Builders.decl('value').value().access().receiver(
-                                Builders.access().receiver(accessor).member('values').$()).index('i').$().$().$(),
-                        ] : [
-                            Builders.decl('entry').value().access().receiver('entries').index('i').$().$().$(),
-                            Builders.decl('key').value().access().receiver('entry').index(0).$().$().$(),
-                            Builders.decl('value').value().access().receiver('entry').index(1).$().$().$(),
-                        ])
+                        ? []
+                        : [Builders.decl('entry').value().access().receiver('entries').index('i').$().$().$()])
+                    .statements(['key', 'value'].map((prop, index) =>
+                        Builders.decl(prop).value(native
+                            ? Builders.access().receiver(Builders.access().receiver(accessor).member(`${prop}s`).$()).index('i').$()
+                            : Builders.access().receiver('entry').index(index).$()
+                        ).$(),
+                    ))
                     .statements(
                         argConvertor(this.ctx, this.type.elementType[0])
                             .write(E.v('key'), serializerName, native))
