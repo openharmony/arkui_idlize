@@ -31,6 +31,10 @@ import {
 } from "#compat"
 
 import {
+    checkOSTMapIntInt,
+} from "#compat"
+
+import {
     getOSTFunctionBooleanIntString
 } from "#compat"
 
@@ -73,6 +77,13 @@ function checkSequence() {
     assertEQ(3, seqInt[0])
     assertEQ(5, seqInt[1])
     assertEQ(7, seqInt[2])
+}
+
+function checkMap() {
+    const map = new Map<int, int>()
+    map.set(3, 33)
+    map.set(7, 77)
+    checkOSTMapIntInt(map)
 }
 
 function checkFunction() {
@@ -131,6 +142,7 @@ export function run() {
     const suite = new UnitTestsuite("idlize ost tests")
     suite.addTest("checkEnum", checkEnum)
     suite.addTest("checkSequence", checkSequence)
+    suite.addTest("checkMap", checkMap)
     suite.addTest("checkFunction", checkFunction)
     suite.addTest("checkCallback", checkCallback)
     suite.addTest("checkPromise", checkPromise)

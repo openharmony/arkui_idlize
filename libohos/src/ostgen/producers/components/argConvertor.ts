@@ -341,9 +341,9 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
         const lengthDecl = Builders.decl(`${name}Length`).value()
             .call('readInt32').receiver(serializerName).$().$().$()
         const elemType = this.convertType(this.type.elementType[0], native);
-        const arrayType = expectType(this.ctx, this.type, 'capi')
+        const nativeArrayType = expectType(this.ctx, this.type, 'capi')
         const bufferDecl = native
-            ? Builders.decl(name).type(arrayType).mutable()
+            ? Builders.decl(name).type(nativeArrayType).mutable()
                 .value().ctor().asStruct().$().$().$()
             : Builders.decl(name).value()
                 .ctor(std.names.types.array).typeArgs([elemType]).arg(name + 'Length').$().$().$()
@@ -353,7 +353,7 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
             ? Builders.access().receiver(name).member(`array`).$()
             : name
         const resizeArray = native
-            ? Builders.stmt().call("resizeArray").typeArgs([arrayType, elemType]).receiver(serializerName)
+            ? Builders.stmt().call("resizeArray").typeArgs([nativeArrayType, elemType]).receiver(serializerName)
                 .arg(Builders.expr().unary(Op.ref).value(name).$().$())
                 .arg(`${name}Length`).$().$()
             : Builders.none().$()
@@ -381,8 +381,9 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
                 .cond().binary(Op.lt).left('i').right().access('length').receiver('entries').$().$().$().$()
                 .step().binary('=').left('i').right().binary(Op.add).left('i').right(1).$().$().$().$()
                 .body().block()
-                    .decl('key').value().access().receiver('entries').index('i').index(0).$().$().$()
-                    .decl('value').value().access().receiver('entries').index('i').index(1).$().$().$()
+                    .decl('entry').value().access().receiver('entries').index('i').$().$().$()
+                    .decl('key').value().access().receiver('entry').index(0).$().$().$()
+                    .decl('value').value().access().receiver('entry').index(1).$().$().$()
                     .statements(
                         argConvertor(this.ctx, this.type.elementType[0])
                             .write(E.v('key'), serializerName, native))
@@ -397,8 +398,17 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
             .call('readInt32').receiver(serializerName).$().$().$()
         const keyType = this.convertType(this.type.elementType[0], native);
         const valueType = this.convertType(this.type.elementType[1], native);
-        const mapDecl = Builders.decl(name).value()
-            .ctor(std.names.types.map).typeArgs([keyType, valueType]).$().$().$()
+        const nativeMapType = expectType(this.ctx, this.type, 'capi')
+        const mapDecl = native
+            ? Builders.decl(name).type(nativeMapType).mutable()
+                .value().ctor().asStruct().$().$().$()
+            : Builders.decl(name).value()
+                .ctor(std.names.types.map).typeArgs([keyType, valueType]).$().$().$()
+        const resizeMap = native
+            ? Builders.stmt().call("resizeMap").typeArgs([nativeMapType, keyType, valueType]).receiver(serializerName)
+                .arg(Builders.expr().unary(Op.ref).value(name).$().$())
+                .arg(`${name}Length`).$().$()
+            : Builders.none().$()
         const [keyReads, keyReadValue] = argConvertor(this.ctx, this.type.elementType[0])
             .read('key', serializerName, native);
         const [valueReads, valueReadValue] = argConvertor(this.ctx, this.type.elementType[1])
@@ -410,9 +420,15 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
             .body().block()
                 .statements(keyReads)
                 .statements(valueReads)
-                .call('set').receiver(name).arg(keyReadValue).arg(valueReadValue).$().$()
-                .$().$()
-        return [[lengthDecl, mapDecl, loop], E.v(name)]
+            .statements(native
+                ? [{ prop: 'keys', value: keyReadValue }, { prop: 'values', value: valueReadValue }].map(it =>
+                    Builders.stmt()
+                        .binary('=')
+                        .left().access().receiver(Builders.access().receiver(name).member(it.prop).$()).index('i').$().$()
+                        .right(it.value).$().$(),)
+                : [Builders.stmt().call('set').receiver(name).arg(keyReadValue).arg(valueReadValue).$().$()])
+            .$().$().$()
+        return [[lengthDecl, mapDecl, resizeMap, loop], E.v(name)]
     }
 }
 

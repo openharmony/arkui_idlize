@@ -83,6 +83,24 @@ OH_UNIT_OST_Array_Int32 ost_sequences_getOSTSequenceIntImpl()
     return sequence;
 }
 
+// Map
+
+void ost_maps_checkOSTMapIntIntImpl(const OH_UNIT_OST_Map_Int32_Int32* map)
+{
+    if (map->size != 2)
+        INTEROP_FATAL("The map size %d does not equal to 2", map->size);
+
+    if (map->keys[0] != 3)
+        INTEROP_FATAL("The map key[0] %d does not equal to 3", map->keys[0]);
+    if (map->values[0] != 33)
+        INTEROP_FATAL("The map value[0] %d does not equal to 33", map->values[0]);
+
+    if (map->keys[1] != 7)
+        INTEROP_FATAL("The map key[0] %d does not equal to 3", map->keys[1]);
+    if (map->values[1] != 77)
+        INTEROP_FATAL("The map value[0] %d does not equal to 33", map->values[77]);
+}
+
 // Function
 
 OH_String ost_functions_getOSTFunctionBooleanIntStringImpl(OH_Boolean flag, OH_Int32 v)
