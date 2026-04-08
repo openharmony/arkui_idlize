@@ -54,7 +54,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
     decls.push(callbackKindEnum, caller, register)
     return decls
 }
-    
+
 function introduceTypeChecker(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     ///arkts only
     const typecheckDecls = collectTypecheckDeclarations()

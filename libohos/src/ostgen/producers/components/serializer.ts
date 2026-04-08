@@ -15,11 +15,11 @@
 import * as idl from "@idlizer/core/idl"
 import { Builders, E, Hs, LWType, T, Ts } from "@idlizer/ost"
 import { expectType, managedName, bridgeName } from "../common.js"
-import { OhosProducerContext, OhosProducer, Role } from "../../engine/index.js"
+import { OhosProducerContext, OhosProducer, OhosRole } from "../../engine/index.js"
 import { argConvertor } from "./argConvertor.js"
 import { collectProperties } from "../../../peer-generation/propertyCollectors.js"
 
-export function produceSerializer(native: boolean): OhosProducer<idl.IDLInterface, Role<idl.IDLInterface>> {
+export function produceSerializer(native: boolean): OhosProducer<idl.IDLInterface, OhosRole<idl.IDLInterface>> {
   return (node: idl.IDLInterface, ctx: OhosProducerContext) => {
     const serializerName = (native ? bridgeName : managedName)(idl.getFQName(node) + 'Serializer')
     return {

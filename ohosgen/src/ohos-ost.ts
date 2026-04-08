@@ -41,22 +41,22 @@ import {
     OhosEffect,
     createOhosEffect,
     LWKind,
-    Role,
+    OhosRole,
 } from "@idlizer/libohos"
 import { continueWith, moduleLike, onlyFor } from '@idlizer/kit'
 import { ArkUIRole, registerArkUIProducers } from "./arkui/index.js"
 
 type Feature<R> = {
     name: string
-    init: () => MakeSelector<R>
-    seeds: (files: idl.IDLFile[]) => OhosSeed[]
+    init: () => MakeSelector
+    seeds: (files: idl.IDLFile[]) => OhosSeed<idl.IDLNode>[]
     importHook?: moduleLike.OnUnknownImport
 }
 
-const OSTFeature: Feature<Role<idl.IDLNode>> = {
+const OSTFeature: Feature<OhosRole<idl.IDLNode>> = {
     name: 'ost',
     init: () => {
-        const selector = new MakeSelector<Role<idl.IDLNode>>()
+        const selector = new MakeSelector()
         registerDefaultProducers(selector)
         return selector
     },
@@ -82,7 +82,7 @@ const OSTFeature: Feature<Role<idl.IDLNode>> = {
 const ArkUIFeature: Feature<ArkUIRole<idl.IDLNode>> = {
     name: 'arkui',
     init: () => {
-        const selector = new MakeSelector<ArkUIRole<idl.IDLNode>>()
+        const selector = new MakeSelector()
         registerArkUIProducers(selector)
         registerDefaultProducers(selector)
         return selector
@@ -137,11 +137,11 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
     const seeds = feature.seeds(files)
-    const {effect, declarations } = continueWith<OhosSeed, PeerLibrary, OhosEffect>({
+    const {effect, declarations } = continueWith<OhosSeed<idl.IDLNode, ArkUIRole<idl.IDLNode>>, PeerLibrary, OhosEffect>({
         createEffect: createOhosEffect,
         library,
         roots: { seeds }},
-        onlyFor(OhosSeed<ArkUIRole<idl.IDLNode>>, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role, seed.typeArgs)))
+        onlyFor(OhosSeed<idl.IDLNode, ArkUIRole<idl.IDLNode>>, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role, seed.data)))
 
     console.log(`=== ${declarations.length} declarations {`)
     declarations

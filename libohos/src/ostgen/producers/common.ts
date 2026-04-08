@@ -15,8 +15,8 @@
 
 import * as idl from "@idlizer/core/idl"
 import { generatorConfiguration } from "@idlizer/core"
-import { E, Hs, LWExpression, LWType, T, Ts, lw } from "@idlizer/ost"
-import { MakeSelector, moduleName, OhosProducerContext, OhosSeed, Role } from "../engine/index.js"
+import { LWExpression, LWType, Ts, lw } from "@idlizer/ost"
+import { MakeSelector, moduleName, OhosProducerContext, OhosSeed, OhosRole, OhosSeedData } from "../engine/index.js"
 import { producers } from "./index.js"
 
 export const MANAGED_PREFIX = 'managed'
@@ -64,15 +64,19 @@ export function createOhosEffect() {
     }
 }
 
-export function expectExpr<R = Role<idl.IDLNode>>(ctx: OhosProducerContext, node: idl.IDLNode, role: R): LWExpression {
+export function expectExpr<N extends idl.IDLNode, R=OhosRole<N>>(
+    ctx: OhosProducerContext, node: N, role: R
+): LWExpression {
     return ctx.expectExpr(new OhosSeed(node, role))
 }
 
-export function expectType<R = Role<idl.IDLNode>>(ctx: OhosProducerContext, node: idl.IDLNode, role: R, typeArgs: idl.IDLType[] = []): LWType {
-    return ctx.expectType(new OhosSeed(node, role, typeArgs))
+export function expectType<N extends idl.IDLNode, R=OhosRole<N>>(
+    ctx: OhosProducerContext, node: N, role: R, data?: OhosSeedData<N, R>
+): LWType {
+    return ctx.expectType(new OhosSeed(node, role, data))
 }
 
-export function registerDefaultProducers<R extends Role<idl.IDLNode>>(selector: MakeSelector<R>) {
+export function registerDefaultProducers(selector: MakeSelector) {
     for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
         selector.register(p as any)
 }

@@ -18,18 +18,18 @@ import { capitalize, getInitializerDefaultValue, getSuper, getSuperType, isDefin
 import { Builders, Md, T, Ts } from "@idlizer/ost"
 import { ProducerResult } from "@idlizer/kit"
 import { expectType, managedName } from "../common.js"
-import { OhosProducerContext, OhosSeed } from "../../engine/index.js"
+import { OhosProducerContext, OhosRole, OhosSeed } from "../../engine/index.js"
 import { createProducer } from "../../engine/index.js"
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
 
-export const structureProducer = createProducer(
+export const structureProducer = createProducer<idl.IDLInterface, OhosRole<idl.IDLInterface>>(
   { is: idl.isInterface, role: 'managed' },
-  (node, ctx, role, typeArgs) => {
+  (node, ctx, role, data) => {
     const declName = managedName(idl.getFQName(node))
     return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx)
       : skip(node) ? { continuation: T.c(declName), declarations: [] }
       : isMonomorphized(node) ? unmonomorphize(node, ctx)
-      : isGeneric(node) ? dataInterface(node, declName, ctx, typeArgs)
+      : isGeneric(node) ? dataInterface(node, declName, ctx, data?.typeArgs)
       : isStaticMaterialized(node, ctx.library) ? staticMaterializedInterface(node, declName, ctx)
       : isMaterialized(node, ctx.library) ? materializedInterface(node, declName, ctx)
       : dataInterface(node, declName, ctx)
