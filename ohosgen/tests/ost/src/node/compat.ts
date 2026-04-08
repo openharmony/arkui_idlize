@@ -13,6 +13,7 @@ export {
 
 export {
     checkOSTMapIntInt,
+    checkOSTMapBooleanString,
 } from '../../generated/ts'
 
 export {

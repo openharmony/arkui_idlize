@@ -32,6 +32,7 @@ import {
 
 import {
     checkOSTMapIntInt,
+    checkOSTMapBooleanString,
 } from "#compat"
 
 import {
@@ -80,10 +81,15 @@ function checkSequence() {
 }
 
 function checkMap() {
-    const map = new Map<int, int>()
-    map.set(3, 33)
-    map.set(7, 77)
-    checkOSTMapIntInt(map)
+    const mapIntInt = new Map<int, int>()
+    mapIntInt.set(3, 33)
+    mapIntInt.set(7, 77)
+    checkOSTMapIntInt(mapIntInt)
+
+    const mapBooleanString = new Map<boolean, string>()
+    mapBooleanString.set(true, "true")
+    mapBooleanString.set(false, "false")
+    checkOSTMapBooleanString(mapBooleanString)
 }
 
 function checkFunction() {

@@ -31,6 +31,38 @@ OH_String int_to_string(OH_Int32 x)
     return { .chars = result, .length = string_len(result) };
 }
 
+void AssertEqBool(bool golden, OH_Boolean b, const char* comment)
+{
+    if (b == golden) {
+        return;
+    }
+    INTEROP_FATAL("%s, golden: %d, curr: %d", comment, golden, b);
+}
+
+void AssertEqInt(int golden, OH_Int32 i, const char* comment)
+{
+    if (i == golden) {
+        return;
+    }
+    INTEROP_FATAL("%s, golden: %d, curr: %d", comment, golden, i);
+}
+
+void AssertEqNumber(int golden, OH_Number num, const char* comment)
+{
+    if (num.tag == INTEROP_TAG_INT32 && num.i32 == golden) {
+        return;
+    }
+    INTEROP_FATAL("%s, golden: %d, curr: [tag: %d, i32: %d]", comment, golden, num.tag, num.i32);
+}
+
+void AssertEqStr(const char* golden, OH_String str, const char* comment)
+{
+    if (str.length == string_len(golden) && strcmp(golden, str.chars) == 0) {
+        return;
+    }
+    INTEROP_FATAL("%s, golden: '%s', curr: [length: %d, chars: '%s']", comment, golden, str.length, str.chars);
+}
+
 // Enum
 
 OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enumValue, OH_Int32 value)
@@ -87,18 +119,20 @@ OH_UNIT_OST_Array_Int32 ost_sequences_getOSTSequenceIntImpl()
 
 void ost_maps_checkOSTMapIntIntImpl(const OH_UNIT_OST_Map_Int32_Int32* map)
 {
-    if (map->size != 2)
-        INTEROP_FATAL("The map size %d does not equal to 2", map->size);
+    AssertEqInt(2, map->size, "map size does not equal to 2");
+    AssertEqInt(3, map->keys[0], "map key[0] does not equal to 3");
+    AssertEqInt(7, map->keys[1], "map key[1] does not equal to 7");
+    AssertEqInt(33, map->values[0], "map value[0] does not equal to 33");
+    AssertEqInt(77, map->values[1], "map value[1] does not equal to 77");
+}
 
-    if (map->keys[0] != 3)
-        INTEROP_FATAL("The map key[0] %d does not equal to 3", map->keys[0]);
-    if (map->values[0] != 33)
-        INTEROP_FATAL("The map value[0] %d does not equal to 33", map->values[0]);
-
-    if (map->keys[1] != 7)
-        INTEROP_FATAL("The map key[0] %d does not equal to 3", map->keys[1]);
-    if (map->values[1] != 77)
-        INTEROP_FATAL("The map value[0] %d does not equal to 33", map->values[77]);
+void ost_maps_checkOSTMapBooleanStringImpl(const OH_UNIT_OST_Map_Boolean_String* map)
+{
+    AssertEqInt(2, map->size, "map size does not equal to 2");
+    AssertEqBool(true, map->keys[0], "map key[0] does not equal to true");
+    AssertEqBool(false, map->keys[1], "map key[1] does not equal to false");
+    AssertEqStr("true", map->values[0], "map value[0] does not equal to 'true'");
+    AssertEqStr("false", map->values[1], "map value[1] does not equal to 'false'");
 }
 
 // Function

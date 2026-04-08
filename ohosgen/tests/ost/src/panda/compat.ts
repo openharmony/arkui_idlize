@@ -37,6 +37,7 @@ export {
 
 export {
     checkOSTMapIntInt,
+    checkOSTMapBooleanString,
 } from '../../generated/arkts'
 
 export {
