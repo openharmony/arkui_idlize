@@ -18,7 +18,6 @@ import { generatorConfiguration, hashCodeFromString, isDefined, isMaterialized, 
 import { Builders, E, LWExpression, LWStatement, lw, Op, std, T, Ts, Hs } from "@idlizer/ost"
 import { cApiName, expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
-import { needsTypeCheck, produceTypeCheck, collectTypecheckDeclarations } from "../managed/typecheck.js"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
@@ -559,13 +558,6 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
         return sorted.map(it => it[1])
     }
 
-    /** Declarations produced by typecheck generation (TypeChecker methods) */
-    private typecheckDeclarations: lw.LWDeclaration[] = []
-
-    getTypecheckDeclarations(): lw.LWDeclaration[] {
-        return this.typecheckDeclarations
-    }
-
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         return [
             this.orderIndices().map(i => {
@@ -578,11 +570,9 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                         .left().access('selector').receiver(accessor).$().$()
                         .right(i).$()
                     value = Builders.access('value' + i).receiver(accessor).$()
-                } else if (!native && needsTypeCheck(type, this.ctx)) {
-                    const [checkExpr, decls] = produceTypeCheck(type, accessor, this.ctx)
-                    this.typecheckDeclarations.push(...decls)
-                    cond = checkExpr
-                    // For array types that need typecheck, we need to cast the value
+                } else {
+                    cond = Builders.call(expectExpr(this.ctx, type, 'typecheck')).arg(accessor).$()
+                    // For array types, cast the value for serialization
                     if (idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type)) {
                         const castedName = accessor.kind === lw.LWKind.VariableExpression
                             ? (accessor as lw.VariableExpression).name + 'Casted'
@@ -595,9 +585,6 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     } else {
                         value = accessor
                     }
-                } else {
-                    cond = Builders.instanceof(expectType(this.ctx, type, 'managed')).value(accessor).$()
-                    value = accessor
                 }
                 const ifStmt = Builders.if()
                     .condition(cond)

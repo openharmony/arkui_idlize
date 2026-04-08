@@ -20,12 +20,9 @@ import { managedName } from "../producers/common.js";
 import { callbackKindDeclaration } from "./postprocess.js";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
 import { moduleLike } from "@idlizer/kit";
-import { collectTypecheckDeclarations } from "../producers/managed/typecheck.js";
-
 export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string, callbacks: string[]): lw.LWDeclaration[] {
     decls = moduleLike.postprocess(decls)
     decls = introduceCallbackCaller(decls, callbacks)
-    decls = introduceTypeChecker(decls)
     decls = loadNativeModule(decls, nativeModuleName)
     return decls
 }
@@ -53,28 +50,6 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                 .arg('deserializeAndCallCallback').$().$().$()
     decls.push(callbackKindEnum, caller, register)
     return decls
-}
-
-function introduceTypeChecker(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    ///arkts only
-    const typecheckDecls = collectTypecheckDeclarations()
-    // Merge all TypeChecker class declarations into a single class
-    const typeCheckerName = managedName('engine.TypeChecker')
-    const allMethods: lw.FunctionDeclaration[] = []
-    const seenMethods = new Set<string>()
-    for (const decl of typecheckDecls) {
-        if (decl.kind === lw.LWKind.ClassDeclaration && decl.name === typeCheckerName) {
-            for (const method of (decl as lw.ClassDeclaration).methods) {
-                if (!seenMethods.has(method.name)) {
-                    seenMethods.add(method.name)
-                    allMethods.push(method)
-                }
-            }
-        }
-    }
-    const typeCheckerClass = Builders.class(typeCheckerName)
-        .methods(allMethods).$()
-    return decls.concat(typeCheckerClass)
 }
 
 function loadNativeModule(decls: lw.LWDeclaration[], nativeModuleName: string): lw.LWDeclaration[] {
