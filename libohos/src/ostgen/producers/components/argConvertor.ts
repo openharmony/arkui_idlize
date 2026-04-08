@@ -18,6 +18,7 @@ import { generatorConfiguration, hashCodeFromString, isDefined, isMaterialized, 
 import { Builders, E, LWExpression, LWStatement, lw, Op, std, T, Ts, Hs } from "@idlizer/ost"
 import { cApiName, expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
+import { needsTypeCheck, produceTypeCheck, collectTypecheckDeclarations } from "../managed/typecheck.js"
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
@@ -558,23 +559,53 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
         return sorted.map(it => it[1])
     }
 
+    /** Declarations produced by typecheck generation (TypeChecker methods) */
+    private typecheckDeclarations: lw.LWDeclaration[] = []
+
+    getTypecheckDeclarations(): lw.LWDeclaration[] {
+        return this.typecheckDeclarations
+    }
+
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         return [
             this.orderIndices().map(i => {
                 const type = this.type.types[i]
-                const cond = native
-                    ? Builders.binary(Op.eq)
+                let cond: lw.LWExpression
+                let value: lw.LWExpression
+                const extraStatements: lw.LWStatement[] = []
+                if (native) {
+                    cond = Builders.binary(Op.eq)
                         .left().access('selector').receiver(accessor).$().$()
                         .right(i).$()
-                    : Builders.instanceof(expectType(this.ctx, type, 'managed')).value(accessor).$()
-                const value = native
-                    ? Builders.access('value' + i).receiver(accessor).$()
-                    : accessor /// cast to `ty`
-                return Builders.if()
+                    value = Builders.access('value' + i).receiver(accessor).$()
+                } else if (!native && needsTypeCheck(type, this.ctx)) {
+                    const [checkExpr, decls] = produceTypeCheck(type, accessor, this.ctx)
+                    this.typecheckDeclarations.push(...decls)
+                    cond = checkExpr
+                    // For array types that need typecheck, we need to cast the value
+                    if (idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type)) {
+                        const castedName = accessor.kind === lw.LWKind.VariableExpression
+                            ? (accessor as lw.VariableExpression).name + 'Casted'
+                            : 'valueCasted'
+                        const managedType = expectType(this.ctx, type, 'managed')
+                        extraStatements.push(
+                            Builders.decl(castedName).value()
+                                .cast(managedType).value(accessor).$().$().$())
+                        value = E.v(castedName)
+                    } else {
+                        value = accessor
+                    }
+                } else {
+                    cond = Builders.instanceof(expectType(this.ctx, type, 'managed')).value(accessor).$()
+                    value = accessor
+                }
+                const ifStmt = Builders.if()
                     .condition(cond)
                     .then().block()
+                        .statements(extraStatements)
                         .call('writeInt8').receiver(serializerName).arg(i).$()
                         .statements(argConvertor(this.ctx, type).write(value, serializerName, native)).$().$().$()
+                return ifStmt
             })
             .reduceRight((acc, cur) => {cur.elseBody = acc; return cur})
         ]
