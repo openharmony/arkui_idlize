@@ -93,6 +93,7 @@ export function isStaticMaterialized(declaration: idl.IDLInterface, resolver: Re
     if (isMaterialized(declaration, resolver)) {
         if (declaration.properties.length || declaration.constructors.length) return false
         if (!declaration.methods.every(it => it.isStatic && !isSelfReturnMethod(it, declaration, resolver))) return false
+        if (!declaration.methods.some(it => it.isStatic && !isSelfReturnMethod(it, declaration, resolver))) return false
         const superClass = getSuper(declaration, resolver)
         if (superClass) {
             const superType = superClass

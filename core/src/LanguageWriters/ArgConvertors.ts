@@ -44,9 +44,12 @@ import { convertType, TypeConvertor, withInsideInstanceof } from "./nameConverto
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver.js";
 import { collapseTypes } from "../peer-generation/idl/common.js";
 import { ETSLanguageWriter } from "./writers/ETSLanguageWriter.js";
+import { isTopLevelConflicted } from "../peer-generation/ConflictingDeclarations.js";
 
-export function getSerializerName(_library: LibraryInterface, _language: Language, declaration: idl.IDLEntry) {
-    return idl.entryToFunctionName(_language, declaration, "", "SerializerImpl")
+export function getSerializerName(library: LibraryInterface, language: Language, declaration:idl.IDLEntry) {
+    const qualifier = isTopLevelConflicted(library, language, declaration)
+        ? "package.namespace.name" : "namespace.name"
+    return `${idl.getQualifiedName(declaration, qualifier).split('.').join('_')}_serializer`;
 }
 
 export function getEnumToOrdinalName(_language: Language, declaration: idl.IDLEnum) {
@@ -620,8 +623,8 @@ export class TupleConvertor extends AggregateConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const stmts: LanguageStatement[] = this.memberConvertors.flatMap((it, index) => {
             return [
-                printer.makeAssign(`${value}N${index}`, undefined, printer.makeTupleAccess(value, index), true),
-                it.convertorSerialize(param, `${value}N${index}`, printer)
+                printer.makeAssign(`${value}_${index}`, undefined, printer.makeTupleAccess(value, index), true),
+                it.convertorSerialize(param, `${value}_${index}`, printer)
             ]
         })
         return printer.makeBlock(stmts, false)
@@ -1065,7 +1068,7 @@ export class OptionConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        const runtimeBufferName = `${bufferName}RuntimeType`
+        const runtimeBufferName = `${bufferName}_runtimeType`
         const statements: LanguageStatement[] = []
         statements.push(writer.makeAssign(runtimeBufferName, undefined,
             writer.makeCast(writer.makeString(`${deserializerName}.readInt8()`), writer.getRuntimeType()), true))

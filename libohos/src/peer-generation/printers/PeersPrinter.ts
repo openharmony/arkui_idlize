@@ -31,6 +31,7 @@ import {
     maybeRestoreThrows,
     isThrows,
     MethodModifier,
+    PrimitiveTypesInstance,
 } from '@idlizer/core'
 import { getHookMethod } from '../../DefaultConfiguration.js'
 import {
@@ -170,11 +171,22 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                     // result = makeDeserializedReturn(library, printer, returnType)
                 } else if (!isPrimitiveType(returnType)) {
                     const returnTypeConvertor = new InteropReturnTypeConvertor(library)
+                    const primitiveTypes = [
+                        PrimitiveTypesInstance.String.getText(),
+                        PrimitiveTypesInstance.Number.getText(),
+                        PrimitiveTypesInstance.Int32.getText(),
+                        PrimitiveTypesInstance.Int64.getText(),
+                        PrimitiveTypesInstance.Boolean.getText(),
+                    ]
+                    // That hack allows to process typedefs pointing to string/number/other primitive.
+                    const isPrimitiveReturnType = primitiveTypes.some(it => it === returnTypeConvertor.convert(returnType))
                     if ((idl.IDLContainerUtils.isSequence(returnType) || idl.IDLContainerUtils.isRecord(returnType))) {
                         result = makeDeserializedReturn(library, printer, returnType)
                     } else if (returnTypeConvertor.isReturnInteropBuffer(returnType)
                         && !(library.typeConvertor(returnValName, returnType) instanceof CustomTypeConvertor)) {
                         result = makeDeserializedReturn(library, printer, returnType)
+                    } else if (isPrimitiveReturnType) {
+                        // primitive can be returned as is.
                     } else {
                         // todo: implement deserialization for types other than enum
                         result = [writer.makeThrowError("Object deserialization is not implemented.")]

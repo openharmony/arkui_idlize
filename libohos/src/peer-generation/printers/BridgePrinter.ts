@@ -270,6 +270,12 @@ export class BridgeVisitor {
         if (isPrimitiveType(type, 'number')) {
             return "KInteropNumber"
         }
+        if (idl.isReferenceType(type)) {
+            const resolved = this.library.resolveTypeReference(type)
+            if (resolved && idl.isTypedef(resolved)) {
+                return this.mapToKTypes(resolved.type)
+            }
+        }
         return undefined
     }
 

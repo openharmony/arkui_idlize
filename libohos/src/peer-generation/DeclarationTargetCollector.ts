@@ -18,6 +18,7 @@ import { isComponentDeclaration } from "./ComponentsCollector.js";
 import { UnionFlatteningMode, DependencySorter } from "./idl/DependencySorter.js";
 import { IdlNameConvertor } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration.js";
+import { isModifier } from "./ModifiersCollector.js";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
 const collectDeclarationTargets_cache_flatten = new Map<LibraryInterface, idl.IDLNode[]>()
@@ -44,6 +45,9 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
                 )
                 continue
             if (idl.isInterface(entry)) {
+                if (isModifier(entry, library)) {
+                    continue
+                }
                 if (isComponentDeclaration(library, entry) || isMaterialized(entry, library)) {
                     if (isMaterialized(entry, library) && !isStaticMaterialized(entry, library))
                         orderer.addDep(entry)

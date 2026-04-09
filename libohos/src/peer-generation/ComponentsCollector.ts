@@ -38,7 +38,8 @@ export function collectComponents(library: LibraryInterface): IdlComponentDeclar
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (!idl.isInterface(entry) ||
                 !idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component) ||
-                idl.isHandwritten(entry))
+                idl.isHandwritten(entry) ||
+                peerGeneratorConfiguration().isHandWritten(entry.name))
                 continue
             const componentName = entry.name.replace("Attribute", "")
             if (peerGeneratorConfiguration().components.ignoreComponents.includes(componentName))

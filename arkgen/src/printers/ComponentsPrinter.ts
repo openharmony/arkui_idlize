@@ -208,11 +208,17 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                 attributeModifierSignature.args.forEach(it => {
                     collectDeclDependencies(this.library, it, imports)
                 })
-                writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
-                    if (this.options.attributeModifierHooks)
-                        writer.writeExpressionStatement(writer.makeFunctionCall(`hook${component.name}AttributeModifier`, [writer.makeThis(), writer.makeString(`value`)]))
-                    writer.writeStatement(writer.makeReturn(writer.makeThis()))
-                })
+                if (this.options.attributeModifierHooks) {
+                    writer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
+                        imports.addFeature(`ModifierStateManager`, HandwrittenModule(this.library.language))
+                        writer.print('ModifierStateManager.INSTANCE.scope(() => {')
+                        writer.pushIndent()
+                        writer.print(`hook${component.name}AttributeModifier(this, value);`)
+                        writer.popIndent()
+                        writer.print('})')
+                        writer.writeStatement(writer.makeReturn(writer.makeThis()))
+                    })
+                }
 
                 const attributesFinishSignature = new MethodSignature(idl.createPrimitiveType('void'), [])
                 const applyAttributesFinish = 'applyAttributesFinish'

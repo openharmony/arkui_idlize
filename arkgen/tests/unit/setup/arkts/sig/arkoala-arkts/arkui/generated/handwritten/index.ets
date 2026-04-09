@@ -21,6 +21,15 @@ import {
     TransformSrcCallbackI,
     TransformDstCallbackI,
 } from '../framework'
+import {
+    ArkCheckChildComponent, ArkCheckCustomModifierComponent, ArkCheckDuplicateChildComponent,
+    ArkCheckDuplicateParentComponent, ArkCheckEnumComponent, ArkCheckExceptionComponent, ArkCheckNoModifiersComponent,
+    ArkCheckOptionalComponent, ArkCheckParentComponent, ArkCheckTransformComponent, ArkCheckTrivialModifierComponent,
+    ArkCheckUnitsComponent, ArkDatebookComponent, ArkRootComponent, CheckChildAttribute, CheckCustomModifierAttribute,
+    CheckDuplicateChildAttribute, CheckDuplicateParentAttribute, CheckEnumAttribute, CheckExceptionAttribute,
+    CheckHooksAttribute, CheckNoModifiersAttribute, CheckOptionalAttribute, CheckParentAttribute,
+    CheckTransformAttribute, CheckTrivialModifierAttribute, CheckUnitsAttribute, DatebookAttribute, Root
+} from '../framework'
 
 export interface AttributeModifier<T> {
     isUpdater: () => boolean
@@ -42,10 +51,8 @@ export class AttributeUpdater<T> implements AttributeModifier<T> {
     onComponentChanged(component: T): void {}
 }
 export class ModifierState {
-    addRef(): void {
-    }
-    fireChange(): void {
-    }
+    addRef(): void {}
+    fireChange(): void {}
 }
 
 export function _animateTo(param: AnimateParam, event: (() => void)): void {}
@@ -114,3 +121,74 @@ export class CheckCustomModifierModifier extends CheckCustomModifierModifierBase
         return this._a + param.length
     }
 }
+
+export class ModifierStateManager {
+    static INSTANCE: ModifierStateManager = new ModifierStateManager();
+
+    constructor() { }
+
+    scope(callback: () => void): void {}
+}
+
+export function hookCheckDuplicateParentAttributeModifier(
+    attr: ArkCheckDuplicateParentComponent,
+    value: AttributeModifier<CheckDuplicateParentAttribute> | AttributeModifier<Root> | undefined
+) {}
+export function hookCheckDuplicateChildAttributeModifier(
+    attr: ArkCheckDuplicateChildComponent,
+    value: AttributeModifier<CheckDuplicateChildAttribute> | AttributeModifier<CheckDuplicateParentAttribute>
+        | AttributeModifier<Root> | undefined
+) {}
+export function hookCheckEnumAttributeModifier(
+    attr: ArkCheckEnumComponent,
+    value: AttributeModifier<CheckEnumAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckExceptionAttributeModifier(
+    attr: ArkCheckExceptionComponent,
+    value: AttributeModifier<CheckExceptionAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckParentAttributeModifier(
+    attr: ArkCheckParentComponent,
+    value: AttributeModifier<CheckParentAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckChildAttributeModifier(
+    attr: ArkCheckChildComponent,
+    value: AttributeModifier<CheckChildAttribute> | AttributeModifier<CheckParentAttribute>
+        | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckHooksAttributeModifier(
+    attr: ArkCheckHooksComponent,
+    value: AttributeModifier<CheckHooksAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckCustomModifierAttributeModifier(
+    attr: ArkCheckCustomModifierComponent,
+    value: AttributeModifier<CheckCustomModifierAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckTrivialModifierAttributeModifier(
+    attr: ArkCheckTrivialModifierComponent,
+    value: AttributeModifier<CheckTrivialModifierAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckNoModifiersAttributeModifier(
+    attr: ArkCheckNoModifiersComponent,
+    value: AttributeModifier<CheckNoModifiersAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckOptionalAttributeModifier(
+    attr: ArkCheckOptionalComponent,
+    value: AttributeModifier<CheckOptionalAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckTransformAttributeModifier(
+    attr: ArkCheckTransformComponent,
+    value: AttributeModifier<CheckTransformAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookDatebookAttributeModifier(
+    attr: ArkDatebookComponent,
+    value: AttributeModifier<DatebookAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookRootAttributeModifier(
+    attr: ArkRootComponent,
+    value: AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckUnitsAttributeModifier(
+    attr: ArkCheckUnitsComponent,
+    value: AttributeModifier<CheckUnitsAttribute> | AttributeModifier<Root> | undefined
+): void {}

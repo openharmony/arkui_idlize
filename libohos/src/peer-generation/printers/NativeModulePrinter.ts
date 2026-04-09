@@ -29,6 +29,7 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule.js";
 import { ArkTSSourceFile, KotlinSourceFile, SourceFile, TsSourceFile } from "./SourceFile.js";
+import { isComponentDeclaration } from "../ComponentsCollector.js"
 import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils.js";
 import { PrinterFunction } from "../LayoutManager.js";
 import { ImportsCollector } from "../ImportsCollector.js";
@@ -778,7 +779,15 @@ function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLi
 
     if (idl.isReferenceType(returnType)) {
         const resolvedType = library.resolveTypeReference(returnType)!
-        if (idl.isEnum(resolvedType)) return idl.enumBinaryRepresentation(resolvedType)
+        if (idl.isEnum(resolvedType)) {
+            return idl.enumBinaryRepresentation(resolvedType)
+        }
+        if (isComponentDeclaration(library, resolvedType)) {
+            return idl.createPrimitiveType('void')
+        }
+        if (idl.isTypedef(resolvedType)) {
+            return toNativeReturnType(resolvedType.type, library)
+        }
     }
 
     if (idl.isPrimitiveType(returnType)

@@ -138,6 +138,9 @@ export class InteropReturnTypeConvertor extends InteropArgConvertor {
             if (idl.isEnum(decl)) {
                 return this.convertPrimitiveType(idl.enumBinaryRepresentation(decl))
             }
+            if (idl.isTypedef(decl)) {
+                return this.convert(decl.type)
+            }
         }
         return "void"
     }

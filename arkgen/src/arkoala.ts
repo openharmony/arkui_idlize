@@ -137,6 +137,7 @@ export function generateArkoalaFromIdl(config: {
     callLog: boolean,
     verbose: boolean,
     attributeModifierHooks: boolean,
+    generateDummyImpl: boolean,
 },
     peerLibrary: PeerLibrary) {
     const arkoala = config.arkoalaDestination ?
@@ -198,25 +199,6 @@ export function generateArkoalaFromIdl(config: {
             ],
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }
         )
-        if (peerLibrary.useMemoM3) {
-            peerLibrary.withFileLayout(new ArkTsLayout(peerLibrary, 'Ark', true), () => {
-                const installed = install(
-                    arkoala.managedSdkDir,
-                    peerLibrary,
-                    [
-                        createInterfacePrinter(true),
-                        printComponentsDeclarations,
-                    ],
-                    {
-                        isDeclared: true,
-                    }
-                )
-                writeFile(
-                    path.join(arkoala.managedSdkDir, 'framework', 'index' + peerLibrary.language.extension),
-                    makeArkuiModule(installed, path.join(arkoala.managedSdkDir, 'framework'))
-                )
-            })
-        }
     }
 
 
@@ -366,17 +348,19 @@ export function generateArkoalaFromIdl(config: {
     writeFile(path.join(arkoala.nativeDir, 'Serializers.h'), serializers)
     writeFile(path.join(arkoala.nativeDir, 'arkoala_api_generated.h'), api)
 
-    const modifiers = printRealAndDummyModifiers(peerLibrary, true)
-    const accessors = printRealAndDummyAccessors(peerLibrary)
-    const apiGenFile = "arkoala_api_generated"
-    writeFile(
-        path.join(arkoala.nativeDir, 'dummy_impl.cpp'),
-        dummyImplementations(peerLibrary, modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
-    )
-    writeFile(
-        path.join(arkoala.nativeDir, 'real_impl.cpp'),
-        dummyImplementations(peerLibrary, modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
-    )
+    if (config.generateDummyImpl) {
+        const modifiers = printRealAndDummyModifiers(peerLibrary, true)
+        const accessors = printRealAndDummyAccessors(peerLibrary)
+        const apiGenFile = "arkoala_api_generated"
+        writeFile(
+            path.join(arkoala.nativeDir, 'dummy_impl.cpp'),
+            dummyImplementations(peerLibrary, modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
+        )
+        writeFile(
+            path.join(arkoala.nativeDir, 'real_impl.cpp'),
+            dummyImplementations(peerLibrary, modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
+        )
+    }
     writeFile(path.join(arkoala.nativeDir, 'library.cpp'), libraryDeclaration())
 
     writeFile(path.join(arkoala.nativeDir, 'callback_kind.h'), makeCallbacksKinds(peerLibrary, Language.CPP))
