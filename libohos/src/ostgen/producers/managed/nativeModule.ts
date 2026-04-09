@@ -45,7 +45,7 @@ export const nativeModuleFunctionProducer = createProducer(
     ]
     const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
     return {
-      continuation: E.get(E.v(className, [Hs.isType()]), '_' + funcName),
+      continuation: E.get(E.v(className), '_' + funcName),
       declarations: [
         Builders.class(className)
           .method('_' + funcName)
@@ -70,7 +70,7 @@ export const nativeModuleConstructorProducer = createProducer(
       { name: 'length', type: Ts.prim.i32 }
     ]
     return {
-      continuation: E.get(E.v(nativeModuleClassName, [Hs.isType()]), '_' + funcName),
+      continuation: E.get(E.v(nativeModuleClassName), '_' + funcName),
       declarations: [
         // native module
         Builders.class(nativeModuleClassName)

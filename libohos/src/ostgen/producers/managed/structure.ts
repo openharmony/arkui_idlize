@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { capitalize, getInitializerDefaultValue, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized } from "@idlizer/core"
-import { Builders, ClassDeclaration, E, Hs, Md, T, Ts } from "@idlizer/ost"
+import { Builders, ClassDeclaration, Md, T, Ts } from "@idlizer/ost"
 import { ProducerResult } from "@idlizer/kit"
 import { expectType, managedName } from "../common.js"
 import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
@@ -85,7 +85,7 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
         .left().access('peer').receiver('this').$().$()
         .right().ctor('Finalizable')
           .arg('peerPtr')
-          .arg().call('getFinalizer').receiver(E.v(name, [Hs.isType()])).$().$().$().$().$().$().$()
+          .arg().call('getFinalizer').receiver(name).$().$().$().$().$().$().$()
     // default constructor
     .ctor().param('tag').type(T.c('MaterializedBaseTag')).$().param('ptr').type(Ts.prim.pointer).$()
       .block().statements([superIsMaterialized
