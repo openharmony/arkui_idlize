@@ -1162,9 +1162,9 @@ export class UnionConvertor extends BaseArgConvertor {
             statements.push(convertor.convertorSerialize(param, varName, printer))
         }
 
-        const genericDiscriminator = withGenericDiscriminator(this.library, this.memberConvertors, array, discriminator, type, printer)
+        const dicriminatorCondition = withDiscriminatorCondition(this.library, this.memberConvertors, array, discriminator, type, printer)
         const stmt = new BlockStatement(statements, false)
-        return { expr: genericDiscriminator, stmt }
+        return { expr: dicriminatorCondition, stmt }
     }
     makeArrayBranch(param: string, value: string, array: string, printer: LanguageWriter, arrayConvertorItems: ConvertorItem[]): BranchStatement[] {
         if (arrayConvertorItems.length == 0) return []
@@ -1890,7 +1890,7 @@ export function createOutArgConvertor(library: PeerLibrary, type: idl.IDLType | 
     return undefined
 }
 
-function withGenericDiscriminator(
+function withDiscriminatorCondition(
     library: LibraryInterface,
     convertors: ArgConvertor[],
     value: string,
@@ -1901,6 +1901,19 @@ function withGenericDiscriminator(
 
     if ([Language.CPP, Language.KOTLIN].includes(writer.language)) return discriminator
     if (!idl.isReferenceType(type)) return discriminator
+
+    if (idl.isReferenceType(type)) {
+        const resolved = library.resolveTypeReference(type)!
+        const isTuple = idl.isInterface(resolved) && idl.getExtAttribute(resolved, idl.IDLExtendedAttributes.Entity) === idl.IDLEntity.Tuple
+        if (isTuple && writer.language == Language.ARKTS) {
+            return writer.makeAnd(
+                discriminator,
+                writer.makeEquals(
+                    [writer.makeArrayLength(value), writer.makeString(`${resolved.properties.length}`)]
+                )
+            )
+        }
+    }
 
     const mayBeGeneric = maybeRestoreGenerics(type, writer.resolver)
     if (mayBeGeneric == undefined) return discriminator
