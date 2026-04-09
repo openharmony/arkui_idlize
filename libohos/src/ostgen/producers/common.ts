@@ -65,9 +65,9 @@ export function createOhosEffect() {
 }
 
 export function expectExpr<N extends idl.IDLNode, R=OhosRole<N>>(
-    ctx: OhosProducerContext, node: N, role: R
+    ctx: OhosProducerContext, node: N, role: R, data?: OhosSeedData<N, R>
 ): LWExpression {
-    return ctx.expectExpr(new OhosSeed(node, role))
+    return ctx.expectExpr(new OhosSeed(node, role, data))
 }
 
 export function expectType<N extends idl.IDLNode, R=OhosRole<N>>(
@@ -77,6 +77,15 @@ export function expectType<N extends idl.IDLNode, R=OhosRole<N>>(
 }
 
 export function registerDefaultProducers(selector: MakeSelector) {
-    for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
-        selector.register(p as any)
+    [...Object.values(producers.managed), ...Object.values(producers.native)]
+        .sort((p, q) => {
+            if (p.pattern.predicate && p.pattern.role) return -1
+            if (p.pattern.predicate && !q.pattern.role) return -1
+            if (p.pattern.role && !q.pattern.role) return -1
+            if (!p.pattern.role && q.pattern.role) return 1
+            if (!p.pattern.predicate && q.pattern.role) return 1
+            if (!p.pattern.predicate && !p.pattern.role) return 1
+            return 0
+        })
+        .forEach(p => selector.register(p as any))
 }

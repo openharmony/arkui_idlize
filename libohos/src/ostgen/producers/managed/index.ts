@@ -27,9 +27,9 @@ import { constructorProducer, functionProducer } from "./function.js";
 import { optionalProducer } from "./optional.js";
 import { typeParameterProducer } from "./typeParameter.js";
 import { typecheckProducer } from "./typecheck.js";
+import { initializerProducer } from "./intializer.js";
 
 export const producers = {
-    typecheckProducer,///fragile: should come before referenceProducer since the latter fulfills all roles
     enumProducer,
     functionProducer,
     constructorProducer,
@@ -46,4 +46,6 @@ export const producers = {
     nativeModuleConstructorProducer,
     nativeModuleMaterializedProducer,
     serializerProducer,
+    typecheckProducer,
+    initializerProducer,
 }

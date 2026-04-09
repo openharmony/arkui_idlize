@@ -14,10 +14,10 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { capitalize, getInitializerDefaultValue, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized, isStaticMaterialized } from "@idlizer/core"
+import { capitalize, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized, isStaticMaterialized } from "@idlizer/core"
 import { Builders, Md, T, Ts } from "@idlizer/ost"
 import { ProducerResult } from "@idlizer/kit"
-import { expectType, managedName } from "../common.js"
+import { expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext, OhosRole, OhosSeed } from "../../engine/index.js"
 import { createProducer } from "../../engine/index.js"
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
@@ -95,7 +95,7 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
           ]
           const field = Builders.field(prop.name).type(expectType(ctx, prop.type, 'managed')).modifiers(modifiers)
           if (idl.isClassSubkind(node))
-            field.value(getInitializerDefaultValue(prop, ctx.library.language))
+            field.value(expectExpr(ctx, prop.type, 'initializer'))
           return field.$()
         }))
         .methods(node.methods.map(method =>

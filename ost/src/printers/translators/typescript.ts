@@ -301,7 +301,7 @@ export class TSPrinter {
             }
             const fieldName = utils.getHint(arg, std.names.hints.named)
             if (!fieldName) {
-              throw new Error("!!!")
+              throw new Error("Field has no name in ConstructorExpression with `asStruct` hint")
             }
             this.p.put(fieldName, ':')
             this.printExpression(arg)

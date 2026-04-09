@@ -81,13 +81,16 @@ type CommonRole = 'managed' | 'capi'
 type SpecificRole<N extends idl.IDLNode> =
   N extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' :
   N extends idl.IDLInterface ? 'native-module' | 'managed-serde' | 'native-serde' :
-  N extends idl.IDLType ? 'typecheck' :
+  N extends idl.IDLType ? 'typecheck' | 'initializer' :
   never
 export type OhosRole<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
 export type OhosSeedData<N extends idl.IDLNode, R=OhosRole<N>> =
     N extends idl.IDLEntry ?
         R extends 'managed' ? { typeArgs?: idl.IDLType[] } :
+        never :
+    N extends idl.IDLType ?
+        R extends 'initializer' ? { name?: string } :
         never :
     never
 
@@ -103,9 +106,11 @@ export class OhosSeed<N extends idl.IDLNode, R=OhosRole<N>> extends Seed {
     const repr = idl.isType(this.node)
         ? 'type:' + idl.printType(this.node)
         : 'node:' + idl.getFQName(this.node)
-    const suffix = this.data?.typeArgs
-        ? this.data.typeArgs!.map(ty => idl.printType(ty)).join(',')
-        : ''
+    const suffix =
+        !this.data ? '' :
+        'typeArgs' in this.data && this.data.typeArgs ? this.data.typeArgs.map(ty => idl.printType(ty)).join(',') :
+        'name' in this.data && this.data.name ? this.data.name :
+        ''
     return `${repr}:${this.role}:${suffix}`
   }
 }
