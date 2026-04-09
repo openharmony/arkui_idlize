@@ -36,6 +36,12 @@ export {
 } from '../../generated/arkts'
 
 export {
+    getOSTMapIntString,
+    checkOSTMapIntInt,
+    checkOSTMapBooleanString,
+} from '../../generated/arkts'
+
+export {
     getOSTFunctionBooleanIntString
 } from '../../generated/arkts'
 
