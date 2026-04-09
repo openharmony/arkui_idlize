@@ -66,7 +66,17 @@ const OSTFeature: Feature<Role<idl.IDLNode>> = {
             !idl.isNamespace(e) &&
             !idl.isConstant(e) &&
             !idl.isCallback(e))
-        .map(e => new OhosSeed(e, 'managed'))
+        .map(e => new OhosSeed(e, 'managed')),
+    importHook: name => {
+        const parts = name.split('.')
+        if (parts.length > 2 && parts[0] === 'managed' && parts[1].startsWith('#')) {
+            return {
+                result: parts.slice(2).join('.'),
+                name: parts[2],
+                source: parts[1]
+            }
+        }
+    }
 }
 
 const ArkUIFeature: Feature<ArkUIRole<idl.IDLNode>> = {
@@ -85,12 +95,12 @@ const ArkUIFeature: Feature<ArkUIRole<idl.IDLNode>> = {
     importHook: (name: string) => {
         switch (name) {
             case 'PeerNode':
-            case 'ComponentBase': return {name, source: '@arkui.base'}
+            case 'ComponentBase': return {result: name, name, source: '@arkui.base'}
             case 'memo':
             case 'memo_stable':
-            case 'memo_skip': return {name, source: 'arkui.incremental.annotation'}
-            case 'remember': return {name, source: 'arkui.incremental.runtime.memo.remember'}
-            case 'NodeAttach': return {name, source: 'arkui.incremental.runtime.memo.node'}
+            case 'memo_skip': return {result: name, name, source: 'arkui.incremental.annotation'}
+            case 'remember': return {result: name, name, source: 'arkui.incremental.runtime.memo.remember'}
+            case 'NodeAttach': return {result: name, name, source: 'arkui.incremental.runtime.memo.node'}
         }
         return undefined
     }

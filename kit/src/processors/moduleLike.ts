@@ -59,7 +59,14 @@ interface ResultFile {
 }
 
 export type InitImports = () => ImportsCollector
-export type OnUnknownImport = (name:string) => { name: string, source: string } | undefined
+
+/**
+ * Hook that is invoked when an unknown name is encountered.
+ * Returns:
+ *   `result` is what should replace `name` in generated code.
+ *   `name`, `source`, and `alias` form an import statement: `import { name as alias } from 'source'`
+ */
+export type OnUnknownImport = (name: string) => { result: string, name: string, source: string, alias?: string } | undefined
 
 class RefSearcher extends IdentityTransformer {
     private seenNames: Map<string, string[]>
@@ -141,7 +148,7 @@ class RefSearcher extends IdentityTransformer {
             const mapped = this.onUnknownImport?.(name)
             if (mapped) {
                 this.imports.addFeature(mapped.name, mapped.source)
-                return this.trimNs(mapped.name)
+                return this.trimNs(mapped.result)
             }
         }
         return this.trimNs(name)
