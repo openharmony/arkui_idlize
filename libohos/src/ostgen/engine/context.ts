@@ -81,6 +81,7 @@ type CommonRole = 'managed' | 'capi'
 type SpecificRole<N extends idl.IDLNode> =
   N extends idl.IDLMethod | idl.IDLConstructor ? 'native-module' :
   N extends idl.IDLInterface ? 'native-module' | 'managed-serde' | 'native-serde' :
+  N extends idl.IDLTypedef ? 'managed-serde' | 'native-serde' :
   N extends idl.IDLType ? 'typecheck' | 'initializer' :
   never
 export type OhosRole<T extends idl.IDLNode> = CommonRole | SpecificRole<T>

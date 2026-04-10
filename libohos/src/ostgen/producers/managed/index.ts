@@ -18,7 +18,7 @@ import { enumProducer } from "./enum.js";
 import { nativeModuleConstructorProducer, nativeModuleFunctionProducer, nativeModuleMaterializedProducer } from "./nativeModule.js";
 import { primitiveProducer } from "./primitives.js";
 import { referenceProducer } from "./references.js";
-import { serializerProducer } from "./serializer.js";
+import { serializerProducer, typedefSerializerProducer } from "./serializer.js";
 import { structureProducer } from "./structure.js";
 import { unionProducer } from "./union.js";
 import { callbackProducer } from "./callback.js";
@@ -48,6 +48,7 @@ export const producers = {
     nativeModuleConstructorProducer,
     nativeModuleMaterializedProducer,
     serializerProducer,
+    typedefSerializerProducer,
     typecheckProducer,
     initializerProducer,
 }
