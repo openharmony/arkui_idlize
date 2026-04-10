@@ -52,6 +52,8 @@ export enum LWKind {
   SwitchStatement,
   /** Break statement (used in switch cases and loops) */
   BreakStatement,
+  /** Throw statement (used to throw an error) */
+  ThrowStatement,
   /** Empty/no-op statement */
   NoneStatement,
 
@@ -671,6 +673,20 @@ export interface BreakStatement {
   kind: LWKind.BreakStatement
 }
 /**
+ * ThrowStatement statement AST node.
+ * Represents a throw statement which is used to throw an error.
+ *
+ * @example
+ * ```typescript
+ * // throw Error("Message")
+ * ```
+ */
+export interface ThrowStatement {
+  kind: LWKind.ThrowStatement
+  /** Error expression (the value to be thrown) */
+  error: LWExpression
+}
+/**
  * Empty/no-op statement AST node.
  * Represents a statement that does nothing (e.g., a single semicolon).
  *
@@ -698,6 +714,7 @@ export type LWStatement =
   | IfStatement
   | SwitchStatement
   | BreakStatement
+  | ThrowStatement
   | NoneStatement
 
 /**

@@ -21,7 +21,8 @@ import {
     IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier,
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
-    EnumDeclaration, SwitchStatement, ConstantExpression
+    EnumDeclaration, SwitchStatement, ConstantExpression,
+    ThrowStatement,
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -1083,6 +1084,37 @@ class SwitchBuilder<P> {
         cases: this._cases,
         default: this._default
     }); }
+}
+
+class ThrowBuilder<P> {
+    /**
+     * @param _cont - Continuation function that receives the built statement
+     */
+    constructor(private _cont: (stmt: ThrowStatement) => P) {}
+    private _error?: LWExpression
+
+    /**
+     * Set the selector expression using a deferred expression builder.
+     * Returns an ExpressionBuilder for specifying the selector expression.
+     *
+     * @returns ExpressionBuilder for deferred selector specification
+     */
+    error(error: LWExpression) { this._error = error; return this }
+
+    /**
+     * Finalize the builder and return the constructed throw statement.
+     *
+     * @returns The built ThrowStatement
+     * @throws Error if error is not specified
+     */
+    $(): P {
+        check("Throw", this._error)
+
+        return this._cont({
+            kind: LWKind.ThrowStatement,
+            error: this._error!
+        });
+    }
 }
 
 /**
@@ -2441,6 +2473,7 @@ export class Builders {
     static decl(name: string, type?: LWType): DeclarationBuilder<DeclarationStatement> { return new DeclarationBuilder(id, name, type) }
     static if(): IfBuilder<IfStatement> { return new IfBuilder(id) }
     static switch(): SwitchBuilder<SwitchStatement> { return new SwitchBuilder(id) }
+    static throw(): ThrowBuilder<ThrowStatement> { return new ThrowBuilder(id) }
     static loop(): LoopBuilder<LoopStatement> { return new LoopBuilder(id) }
     static return(type?: LWType): ReturnBuilder<LWStatement> { return new ReturnBuilder(id, type) }
     static none(): NoneBuilder<LWStatement> { return new NoneBuilder(id) }
