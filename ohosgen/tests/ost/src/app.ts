@@ -41,6 +41,10 @@ import {
 } from "#compat"
 
 import {
+    checkOSTErrorIntBoolean,
+} from "#compat"
+
+import {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,
@@ -102,6 +106,19 @@ function checkFunction() {
     assertEQ("15", getOSTFunctionBooleanIntString(true, 3))
 }
 
+function checkError() {
+    checkOSTErrorIntBoolean(5, false)
+
+    let isError = false
+    try {
+        checkOSTErrorIntBoolean(7, true)
+    } catch(e) {
+        isError = true
+        assertEQ("Error: Error from checkOSTErrorIntBooleanImpl", `${e}`)
+    }
+    assertEQ(true, isError)
+}
+
 function checkCallback() {
 
     checkCallbackIntVoid((value: int) => {
@@ -155,6 +172,7 @@ export function run() {
     suite.addTest("checkSequence", checkSequence)
     suite.addTest("checkMap", checkMap)
     suite.addTest("checkFunction", checkFunction)
+    suite.addTest("checkError", checkError)
     suite.addTest("checkCallback", checkCallback)
     suite.addTest("checkPromise", checkPromise)
     return suite.run()

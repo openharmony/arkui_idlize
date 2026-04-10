@@ -22,6 +22,10 @@ export {
 } from '../../generated/ts'
 
 export {
+    checkOSTErrorIntBoolean
+} from '../../generated/arkts'
+
+export {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,
