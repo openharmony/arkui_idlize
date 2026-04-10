@@ -64,7 +64,6 @@ const OSTFeature: Feature<OhosRole<idl.IDLNode>> = {
         .filter(e =>
             !idl.isImport(e) &&
             !idl.isNamespace(e) &&
-            !idl.isConstant(e) &&
             !idl.isCallback(e))
         .map(e => new OhosSeed(e, 'managed')),
     importHook: name => {

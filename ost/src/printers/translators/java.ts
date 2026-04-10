@@ -379,6 +379,10 @@ export class JavaPrinter {
         this.p.put('/* typedef: not supported declaration */')
         break
       }
+      case lw.LWKind.TopLevelExpression: {
+        this.printExpression(declaration.expression)
+        break
+      }
       case lw.LWKind.FunctionDeclaration: {
         declaration.modifiers.forEach(mod => {
           switch (mod.name) {

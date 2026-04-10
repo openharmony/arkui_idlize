@@ -609,6 +609,11 @@ export class TSPrinter {
         this.printType(declaration.type)
         break
       }
+      case lw.LWKind.TopLevelExpression: {
+        this.p.put('export', ' ', 'const', ' ', declaration.name, ' ', '=', ' ')
+        this.printExpression(declaration.expression)
+        break
+      }
       case lw.LWKind.FunctionDeclaration: {
         declaration.annotations.forEach(ann => {
           if (ann.kind === lw.DecoratorKind.SimpleAnnotation) {

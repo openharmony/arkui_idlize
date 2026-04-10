@@ -21,7 +21,8 @@ import {
     IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier,
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
-    EnumDeclaration, SwitchStatement, ConstantExpression, GenericDescriptor, ThrowStatement,
+    EnumDeclaration, SwitchStatement, ConstantExpression, GenericDescriptor, TopLevelExpression,
+    ThrowStatement,
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -2225,6 +2226,59 @@ class TypedefBuilder {
 }
 
 /**
+ * Builder for creating top-level expression declarations.
+ * Produces a named expression at the top level (like a const declaration).
+ *
+ * @example
+ * ```typescript
+ * // const MAX_SIZE = 100
+ * const topLevel = Builders.topLevel('MAX_SIZE')
+ *   .value(100)
+ *   .$();
+ *
+ * // With deferred expression construction
+ * const topLevel2 = Builders.topLevel('result')
+ *   .value().call('compute').arg(1).arg(2).$().$()
+ *   .$();
+ * ```
+ */
+class TopLevelBuilder {
+    /**
+     * @param _name - Name of the top-level expression
+     */
+    constructor(private _name: string) {}
+    private _expr?: LWExpression
+    /**
+     * Set the expression value.
+     * If called with an argument, sets the value directly and returns this builder.
+     * If called without arguments, returns an ExpressionBuilder for deferred value specification.
+     *
+     * @param value - Expression value (or undefined for deferred construction)
+     * @returns This builder or ExpressionBuilder for deferred construction
+     */
+    value(value: ExpressionLike): this
+    value(): ExpressionBuilder<this>
+    value(value?: ExpressionLike): this | ExpressionBuilder<this> {
+        return assign(this, '_expr', value)
+    }
+    /**
+     * Finalize the builder and return the constructed top-level expression declaration.
+     *
+     * @returns The built TopLevelExpression
+     * @throws Error if expression is not specified
+     */
+    $(): TopLevelExpression {
+        check("TopLevel", this._expr)
+        return {
+            kind: LWKind.TopLevelExpression,
+            name: this._name,
+            generics: [],
+            expression: this._expr!
+        }
+    }
+}
+
+/**
  * Main fluent builder factory class.
  *
  * Provides static factory methods for creating builders for all types of AST nodes.
@@ -2374,6 +2428,21 @@ export class Builders {
      * ```
      */
     static type(name: string): TypedefBuilder { return new TypedefBuilder(name) }
+    /**
+     * Create a top-level expression builder.
+     *
+     * @param name - Expression name
+     * @returns TopLevelBuilder for creating a top-level expression declaration
+     *
+     * @example
+     * ```typescript
+     * // const MAX_SIZE = 100
+     * const topLevel = Builders.topLevel('MAX_SIZE')
+     *   .value(100)
+     *   .$();
+     * ```
+     */
+    static topLevel(name: string): TopLevelBuilder { return new TopLevelBuilder(name) }
 
     /**
      * Create an accessor expression builder.

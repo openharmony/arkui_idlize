@@ -27,9 +27,11 @@ import { constructorProducer, functionProducer } from "./function.js";
 import { optionalProducer } from "./optional.js";
 import { typeParameterProducer } from "./typeParameter.js";
 import { typecheckProducer } from "./typecheck.js";
-import { initializerProducer } from "./intializer.js";
+import { initializerProducer } from "./initializer.js";
+import { constProducer } from "./const.js";
 
 export const producers = {
+    constProducer,
     enumProducer,
     functionProducer,
     constructorProducer,
