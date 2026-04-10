@@ -98,7 +98,7 @@ const saveInto = <T, V>(obj: T, prop: string) => morphInto<T, V, V>(obj, prop, i
 function apply<T>(value: ExpressionLike | undefined, f: (expr: LWExpression) => T): T | ExpressionBuilder<T> {
     if (value === undefined)
         return new ExpressionBuilder(f)
-    return f(typeof value === 'object' ? value : E.c(value))
+    return f(typeof value === 'object' ? value : typeof value === 'number' ? E.c(value) : E.v(value))
 }
 /**
  * Assign a value to an object property with support for deferred assignment.

@@ -85,7 +85,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                     .cases(callbacks.map(it => { return {
                         value: E.c(`CALLBACK_KIND_${it.toUpperCase()}`),
                         body: [
-                            Builders.return().call(E.v(`deserializeAndCall${sync}` + it, [Hs.isType()]))
+                            Builders.return().call(`deserializeAndCall${sync}${it}`)
                                 .args(sync ? [Builders.expr().const(`vmContext`).$()] : [])
                                 .arg('thisArray')
                                 .arg('thisLength').$().$()

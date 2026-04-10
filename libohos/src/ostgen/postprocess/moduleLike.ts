@@ -40,7 +40,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                 .cases(callbacks.map(it => { return {
                     value: E.c('CallbackKind.' + it.toUpperCase()),
                     body: [
-                        Builders.return().call(E.v('deserializeAndCall' + it, [Hs.isType()])).arg('deserializer').$().$()
+                        Builders.return().call(E.v('deserializeAndCall' + it)).arg('deserializer').$().$()
                     ]
                 }})).$().$().$()
             // Improve: throw new Error('Unknown callback kind')

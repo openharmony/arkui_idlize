@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { capitalize, getInitializerDefaultValue, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized } from "@idlizer/core"
-import { Builders, E, Hs, Md, T, Ts } from "@idlizer/ost"
+import { Builders, ClassDeclaration, Md, T, Ts } from "@idlizer/ost"
 import { ProducerResult } from "@idlizer/kit"
 import { expectType, managedName } from "../common.js"
 import { OhosProducer, OhosProducerContext, OhosSeed, Role } from "../../engine/index.js"
@@ -70,15 +70,9 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
 
 function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ProducerResult {
   const peerType = Ts.union([T.c('Finalizable'), T.c('undefined')])
-  const thisType = expectType(ctx, node, 'managed')
   const superType = getSuperType(node, ctx.library)
   const superNode = getSuper(node, ctx.library)
   const superIsMaterialized = superNode ? isMaterialized(superNode, ctx.library) : false
-  const intClass = Builders.class(name + 'Internal')
-    .method('fromPtr').static()
-      .returns(thisType)
-      .param('ptr').type(Ts.prim.pointer).$().block()
-        .return(thisType).ctor(name).arg().access('NOP').receiver('MaterializedBaseTag').$().$().arg('ptr').$().$().$().$().$()
   const matClass = Builders.class(name)
     .extends(superType ? expectType(ctx, superType, 'managed') : undefined)
     .implements(T.c('MaterializedBase'))
@@ -91,7 +85,7 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
         .left().access('peer').receiver('this').$().$()
         .right().ctor('Finalizable')
           .arg('peerPtr')
-          .arg().call('getFinalizer').receiver(E.v(name, [Hs.isType()])).$().$().$().$().$().$().$()
+          .arg().call('getFinalizer').receiver(name).$().$().$().$().$().$().$()
     // default constructor
     .ctor().param('tag').type(T.c('MaterializedBaseTag')).$().param('ptr').type(Ts.prim.pointer).$()
       .block().statements([superIsMaterialized
@@ -126,11 +120,33 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
   syntheticMethods.forEach(it => it.parent = node)
   return {
     continuation: T.c(name),
-    declarations: [intClass, matClass],
+    declarations: [
+      internalMaterializedClass(node, name, ctx),
+      matClass
+    ],
     trigger: [
       ...node.constructors,
       ...node.methods,
       ...syntheticMethods
     ].map(it => new OhosSeed(it, 'managed'))
   }
+}
+
+function internalMaterializedClass(node: idl.IDLInterface, name: string, ctx: OhosProducerContext): ClassDeclaration {
+  const fqName = idl.getFQName(node)
+  const thisType = expectType(ctx, node, 'managed')
+  const fromPtrExpr = peerGeneratorConfiguration().handwrittenDeserializers.includes(fqName)
+    ? Builders.return(thisType)
+      .call(`deserialize_${fqName.replaceAll('.', '_')}`)
+        .receiver(managedName('#handwritten.extractors'))
+        .arg('ptr').$().$()
+    : Builders.return(thisType)
+      .ctor(name)
+        .arg().access('NOP').receiver('MaterializedBaseTag').$().$()
+        .arg('ptr').$().$()
+  return Builders.class(name + 'Internal')
+    .method('fromPtr').static()
+      .returns(thisType)
+      .param('ptr').type(Ts.prim.pointer).$()
+      .block().statements([fromPtrExpr]).$().$().$()
 }
