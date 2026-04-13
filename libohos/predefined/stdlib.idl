@@ -16,4 +16,6 @@ typedef <T> Set = sequence<T>;
 interface <T> Partial {};
 interface <T> ThrowsWrapper {
     attribute T value;
+    attribute boolean hasException;
+    attribute Exception exception;
 };

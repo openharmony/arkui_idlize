@@ -39,6 +39,7 @@ function convertType(type: idl.IDLPrimitiveType): lw.LWType {
         case 'u32': return Ts.prim.u32
         case 'u64': return Ts.prim.u64
         case 'void': return Ts.prim.void
+        case 'Exception': return Ts.prim.exception
         default:
             throw new Error(`Can not map ${idl.DebugUtils.debugPrintTrace(type)}`)
     }
