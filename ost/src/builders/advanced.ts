@@ -1094,12 +1094,16 @@ class ThrowBuilder<P> {
     private _error?: LWExpression
 
     /**
-     * Set the selector expression using a deferred expression builder.
+     * Set the expression that is isued to throw.
      * Returns an ExpressionBuilder for specifying the selector expression.
      *
      * @returns ExpressionBuilder for deferred selector specification
      */
     error(error: LWExpression) { this._error = error; return this }
+
+    err(): ExpressionBuilder<this> {
+        return new ExpressionBuilder(saveInto(this, '_error'))
+    }
 
     /**
      * Finalize the builder and return the constructed throw statement.
