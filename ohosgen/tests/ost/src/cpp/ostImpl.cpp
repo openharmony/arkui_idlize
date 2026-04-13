@@ -353,7 +353,7 @@ void ost_promises_getOSTPromiseBooleanIntStringImpl(
     work.queue(work.workId);
 }
 
-OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanFlag(OH_Int32 value, OH_Boolean flag) {
+OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanImpl(OH_Int32 value, OH_Boolean flag) {
 
     if (!flag)
         return { .hasException = false };
@@ -367,7 +367,7 @@ OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanFlag(OH_Int32 v
                 .code=1,
                 .message={
                     .chars=message,
-                    .length=static_cast<InteropInt32>(strlen(message)),
+                    .length=strlen(message),
                 }
             }
         }
