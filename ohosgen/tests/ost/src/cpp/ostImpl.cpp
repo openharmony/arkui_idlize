@@ -24,6 +24,11 @@ InteropInt32 string_len(const char* str)
     return static_cast<InteropInt32>(strlen(str));
 }
 
+OH_String to_string(const char* msg)
+{
+    return { .chars = msg, .length = string_len(msg) };
+}
+
 OH_String int_to_string(OH_Int32 x)
 {
     char* result = reinterpret_cast<char*>(calloc(10, sizeof(char)));
@@ -363,17 +368,13 @@ OH_UNIT_OST_ThrowsWrapper_I32 ost_errors_getOSTErrorBooleanIntImpl(OH_Boolean fl
             .hasException = false
          };
 
-    const char *message = "Error from getOSTErrorBooleanInt";
     return {
         .hasException=true,
         .exception={
             .kind=EXCEPTION_INTERFACE,
             .interface= {
                 .code=1,
-                .message={
-                    .chars=message,
-                    .length=static_cast<InteropInt32>(strlen(message)),
-                }
+                .message=to_string("Error from getOSTErrorBooleanInt")
             }
         }
     };
@@ -385,17 +386,13 @@ OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanImpl(OH_Int32 v
     if (!flag)
         return { .hasException = false };
 
-    const char *message = "Error from checkOSTErrorIntBoolean";
     return {
         .hasException=true,
         .exception={
             .kind=EXCEPTION_INTERFACE,
             .interface= {
                 .code=1,
-                .message={
-                    .chars=message,
-                    .length=strlen(message),
-                }
+                .message=to_string("Error from checkOSTErrorIntBoolean")
             }
         }
     };
