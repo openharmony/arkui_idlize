@@ -285,9 +285,9 @@ abstract class StructConvertor<T extends idl.IDLType> extends ArgConvertor<T> {
 class ThrowsConvertor extends StructConvertor<idl.IDLType> {
     private convertor: ArgConvertor<idl.IDLType>
 
-    constructor(ctx: OhosProducerContext, type: idl.IDLReferenceType, restoredThrow: idl.IDLType) {
+    constructor(ctx: OhosProducerContext, type: idl.IDLReferenceType, protected restoredType: idl.IDLType) {
         super(ctx, type)
-        this.convertor = argConvertor(ctx, restoredThrow)
+        this.convertor = argConvertor(ctx, restoredType)
     }
     returnFromInterop(resultVarName: string): LWStatement[] {
         const [reads, readValue] = this.read(`${resultVarName}Deserialized`, E.v('returnDeserializer'), false)
@@ -296,29 +296,35 @@ class ThrowsConvertor extends StructConvertor<idl.IDLType> {
                 .arg(resultVarName)
                 .arg().access('length').receiver(resultVarName).$().$().$().$().$(),
             ...reads,
-            // Builders.return().value(readValue).$()
         ]
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
-        if (native)
-            return[
+        if (native) {
+            const isVoid = idl.isVoidType(this.restoredType)
+            const writes = isVoid ? [] : this.convertor.write(
+                Builders.access().member('value').receiver(accessor).$(), serializerName, native)
+            return [
                 Builders.decl('isException').type(Ts.prim.boolean).value().access().member('hasException').receiver(accessor).$().$().$(),
                 Builders.stmt().call('writeBoolean').arg(E.c('isException')).receiver(serializerName).$().$(),
                 Builders.if()
                     .cond().const('isException').$()
-                    .then().call('writeException').arg(Builders.access().member('exception').receiver(accessor).$())
-                        .receiver(serializerName).$().$().$(),
+                    .then().block()
+                        .call('writeException').arg(Builders.access().member('exception').receiver(accessor).$())
+                        .receiver(serializerName).$().$().$()
+                    .else().block()
+                        .statements(writes).$().$().$(),
             ]
-        return[
-                Builders.decl('managedWrite', Ts.prim.i32).value(2).$()
-        ]
+        }
+        return[]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        if (native) {
-            return [
-                [],
-                E.v(name)
-            ]
+        if (native)
+            return [[], E.v(name)]
+        const isVoid = idl.isVoidType(this.restoredType)
+        let readsReturnValue: lw.LWStatement[] = []
+        if (!isVoid) {
+            const [reads, readValue] = this.convertor.read(name, serializerName, native)
+            readsReturnValue = [...reads, Builders.return().value(readValue).$()]
         }
         return [
             [
@@ -326,7 +332,8 @@ class ThrowsConvertor extends StructConvertor<idl.IDLType> {
                 Builders.if().condition(E.c('isError')).then().block()
                     .statements([
                         Builders.throw().err().call('readException').receiver(serializerName).$().$().$()
-                    ]).$().$().$()
+                    ]).$().$().$(),
+                ...readsReturnValue,
             ],
             E.v(name)
         ]

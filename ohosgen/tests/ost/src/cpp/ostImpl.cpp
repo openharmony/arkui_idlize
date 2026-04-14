@@ -353,12 +353,39 @@ void ost_promises_getOSTPromiseBooleanIntStringImpl(
     work.queue(work.workId);
 }
 
+// Error
+
+OH_UNIT_OST_ThrowsWrapper_I32 ost_errors_getOSTErrorBooleanIntImpl(OH_Boolean flag) {
+
+    if (!flag)
+        return {
+            .value = 17,
+            .hasException = false
+         };
+
+    const char *message = "Error from getOSTErrorBooleanInt";
+    return {
+        .hasException=true,
+        .exception={
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message={
+                    .chars=message,
+                    .length=static_cast<InteropInt32>(strlen(message)),
+                }
+            }
+        }
+    };
+}
+
+
 OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanImpl(OH_Int32 value, OH_Boolean flag) {
 
     if (!flag)
         return { .hasException = false };
 
-    const char *message = "Error from checkOSTErrorIntBooleanImpl";
+    const char *message = "Error from checkOSTErrorIntBoolean";
     return {
         .hasException=true,
         .exception={

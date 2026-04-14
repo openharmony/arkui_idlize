@@ -46,7 +46,8 @@ export {
 } from '../../generated/arkts'
 
 export {
-    checkOSTErrorIntBoolean
+    getOSTErrorBooleanInt,
+    checkOSTErrorIntBoolean,
 } from '../../generated/arkts'
 
 export {

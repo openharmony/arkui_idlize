@@ -41,6 +41,7 @@ import {
 } from "#compat"
 
 import {
+    getOSTErrorBooleanInt,
     checkOSTErrorIntBoolean,
 } from "#compat"
 
@@ -107,14 +108,25 @@ function checkFunction() {
 }
 
 function checkError() {
-    checkOSTErrorIntBoolean(5, false)
+    assertEQ(17, getOSTErrorBooleanInt(false))
 
     let isError = false
+    try {
+        getOSTErrorBooleanInt(true)
+    } catch(e) {
+        isError = true
+        assertEQ("Error: Error from getOSTErrorBooleanInt", `${e}`)
+    }
+    assertEQ(true, isError)
+
+    checkOSTErrorIntBoolean(5, false)
+
+    isError = false
     try {
         checkOSTErrorIntBoolean(7, true)
     } catch(e) {
         isError = true
-        assertEQ("Error: Error from checkOSTErrorIntBooleanImpl", `${e}`)
+        assertEQ("Error: Error from checkOSTErrorIntBoolean", `${e}`)
     }
     assertEQ(true, isError)
 }

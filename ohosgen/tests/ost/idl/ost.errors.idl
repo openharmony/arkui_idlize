@@ -16,4 +16,6 @@
 package ost.errors;
 
 [Throws]
+i32 getOSTErrorBooleanInt(boolean flag);
+[Throws]
 void checkOSTErrorIntBoolean(i32 value, boolean flag);
