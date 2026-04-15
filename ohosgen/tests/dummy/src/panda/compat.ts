@@ -6,6 +6,13 @@ export { dtsDummy, idlDummy } from "../../generated/arkts"
 // export { DTSDummyClass } from "../../generated/arkts"
 // export { IDLDummyClass } from "../../generated/arkts"
 
+export {
+  SampleI,
+  SampleC,
+  getSampleI,
+  getSampleC,
+} from "../../generated/arkts"
+
 export type OHBuffer = NativeBuffer
 
 export function pullEvents() {
