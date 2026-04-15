@@ -477,6 +477,11 @@ export class TSPrinter {
         this.printStatement(statement.body)
         break
       }
+      case lw.LWKind.ThrowStatement: {
+        this.p.put('throw', ' ')
+        this.printExpression(statement.error)
+        break
+      }
     }
   }
 

@@ -181,6 +181,12 @@ export class IdentityTransformer {
       kind: stmt.kind,
     }
   }
+  goThrowStatement(stmt: lw.ThrowStatement): lw.ThrowStatement {
+    return {
+      kind: stmt.kind,
+      error: stmt.error
+    }
+  }
   goNoneStatement(stmt: lw.NoneStatement): lw.NoneStatement {
     return {
       kind: stmt.kind,
@@ -196,6 +202,7 @@ export class IdentityTransformer {
       case lw.LWKind.IfStatement: return this.goIfStatement(stmt)
       case lw.LWKind.SwitchStatement: return this.goSwitchStatement(stmt)
       case lw.LWKind.BreakStatement: return this.goBreakStatement(stmt)
+      case lw.LWKind.ThrowStatement: return this.goThrowStatement(stmt)
       case lw.LWKind.NoneStatement: return this.goNoneStatement(stmt)
     }
   }

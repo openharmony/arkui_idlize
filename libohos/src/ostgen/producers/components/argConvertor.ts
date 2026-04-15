@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, hashCodeFromString, isDefined, isMaterialized } from "@idlizer/core"
+import { generatorConfiguration, hashCodeFromString, isDefined, isMaterialized, maybeRestoreThrows } from "@idlizer/core"
 import { Builders, E, LWExpression, LWStatement, lw, Op, std, T, Ts, Hs } from "@idlizer/ost"
 import { cApiName, expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
@@ -107,6 +107,9 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
             if (idl.isType(resolved))
                 return argConvertor(ctx, resolved, optional)
             if (idl.isInterface(resolved)) {
+                const restoredType = maybeRestoreThrows(resolved, ctx.library)
+                if (restoredType)
+                    return new ThrowsConvertor(ctx, type, restoredType)
                 return isMaterialized(resolved, ctx.library)
                     ? new MaterializedConvertor(ctx, type)
                     : new DataConvertor(ctx, type, resolved)
@@ -274,6 +277,65 @@ abstract class StructConvertor<T extends idl.IDLType> extends ArgConvertor<T> {
                 .arg().access('length').receiver(resultVarName).$().$().$().$().$(),
             ...reads,
             Builders.return().value(readValue).$()
+        ]
+    }
+}
+
+
+class ThrowsConvertor extends StructConvertor<idl.IDLType> {
+    private convertor: ArgConvertor<idl.IDLType>
+
+    constructor(ctx: OhosProducerContext, type: idl.IDLReferenceType, protected restoredType: idl.IDLType) {
+        super(ctx, type)
+        this.convertor = argConvertor(ctx, restoredType)
+    }
+    returnFromInterop(resultVarName: string): LWStatement[] {
+        const [reads, readValue] = this.read(`${resultVarName}Deserialized`, E.v('returnDeserializer'), false)
+        return [
+            Builders.decl('returnDeserializer', T.c('DeserializerBase')).value().ctor('DeserializerBase')
+                .arg(resultVarName)
+                .arg().access('length').receiver(resultVarName).$().$().$().$().$(),
+            ...reads,
+        ]
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        if (native) {
+            const isVoid = idl.isVoidType(this.restoredType)
+            const writes = isVoid ? [] : this.convertor.write(
+                Builders.access().member('value').receiver(accessor).$(), serializerName, native)
+            return [
+                Builders.decl('isException').type(Ts.prim.boolean).value().access().member('hasException').receiver(accessor).$().$().$(),
+                Builders.stmt().call('writeBoolean').arg(E.c('isException')).receiver(serializerName).$().$(),
+                Builders.if()
+                    .cond().const('isException').$()
+                    .then().block()
+                        .call('writeException').arg(Builders.access().member('exception').receiver(accessor).$())
+                        .receiver(serializerName).$().$().$()
+                    .else().block()
+                        .statements(writes).$().$().$(),
+            ]
+        }
+        return[]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        if (native)
+            return [[], E.v(name)]
+        const isVoid = idl.isVoidType(this.restoredType)
+        let readsReturnValue: lw.LWStatement[] = []
+        if (!isVoid) {
+            const [reads, readValue] = this.convertor.read(name, serializerName, native)
+            readsReturnValue = [...reads, Builders.return().value(readValue).$()]
+        }
+        return [
+            [
+                Builders.decl('isError').type(Ts.prim.boolean).value().call('readBoolean').receiver(serializerName).$().$().$(),
+                Builders.if().condition(E.c('isError')).then().block()
+                    .statements([
+                        Builders.throw().err().call('readException').receiver(serializerName).$().$().$()
+                    ]).$().$().$(),
+                ...readsReturnValue,
+            ],
+            E.v(name)
         ]
     }
 }

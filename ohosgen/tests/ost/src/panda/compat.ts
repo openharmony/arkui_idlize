@@ -46,6 +46,11 @@ export {
 } from '../../generated/arkts'
 
 export {
+    getOSTErrorBooleanInt,
+    checkOSTErrorIntBoolean,
+} from '../../generated/arkts'
+
+export {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     checkCallbackBooleanIntString,

@@ -61,6 +61,7 @@ class TypeAliasing extends IdentityTransformer {
             case std.names.types.object: return p('Object')
             case std.names.types.serializerBuffer: return 'KSerializerBuffer'
             case std.names.types.string: return p('String')
+            case std.names.types.exception: return p('Exception')
             case std.names.types.u8: return p('UInt8')
             case std.names.types.u32: return p('UInt32')
             case std.names.types.u64: return p('UInt64')

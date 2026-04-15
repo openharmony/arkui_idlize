@@ -22,6 +22,11 @@ export {
 } from '../../generated/ts'
 
 export {
+    getOSTErrorBooleanInt,
+    checkOSTErrorIntBoolean,
+} from '../../generated/ts'
+
+export {
     checkCallbackIntVoid,
     getCallbackIntVoid,
     getCallbackIntInt,

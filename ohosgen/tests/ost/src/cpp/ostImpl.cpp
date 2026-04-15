@@ -24,6 +24,11 @@ InteropInt32 string_len(const char* str)
     return static_cast<InteropInt32>(strlen(str));
 }
 
+OH_String to_string(const char* msg)
+{
+    return { .chars = msg, .length = string_len(msg) };
+}
+
 OH_String int_to_string(OH_Int32 x)
 {
     char* result = reinterpret_cast<char*>(calloc(10, sizeof(char)));
@@ -351,4 +356,44 @@ void ost_promises_getOSTPromiseBooleanIntStringImpl(
         [](void* handler) { ((AbstractHandler*)handler)->Complete(); });
 
     work.queue(work.workId);
+}
+
+// Error
+
+OH_UNIT_OST_ThrowsWrapper_I32 ost_errors_getOSTErrorBooleanIntImpl(OH_Boolean flag) {
+
+    if (!flag)
+        return {
+            .hasException = false,
+            .value = 17,
+         };
+
+    return {
+        .hasException=true,
+        .exception={
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message=to_string("Error from getOSTErrorBooleanInt")
+            }
+        }
+    };
+}
+
+
+OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanImpl(OH_Int32 value, OH_Boolean flag) {
+
+    if (!flag)
+        return { .hasException = false };
+
+    return {
+        .hasException=true,
+        .exception={
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message=to_string("Error from checkOSTErrorIntBoolean")
+            }
+        }
+    };
 }

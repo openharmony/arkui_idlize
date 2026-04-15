@@ -14,10 +14,11 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, E, LWStatement, Md, S, T, lw } from "@idlizer/ost"
+import { Builders, E, LWStatement, Md, S, T, Ts, lw } from "@idlizer/ost"
 import { expectExpr, expectType, managedName } from "../common.js"
 import { argConvertor } from "../components/argConvertor.js"
 import { createProducer } from "../../engine/index.js"
+import { maybeRestoreThrows } from "@idlizer/core"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'managed' },
@@ -26,7 +27,8 @@ export const functionProducer = createProducer(
       ? managedName(idl.getFQName(method))
       : idl.getExtAttribute(method, idl.IDLExtendedAttributes.DtsName) ?? method.name
     const serializerName = 'serializer'
-    const returnType = expectType(ctx, method.returnType, 'managed')
+    const restoredType = maybeRestoreThrows(method.returnType, ctx.library)
+    const returnType = expectType(ctx, restoredType ?? method.returnType, 'managed')
     const nativeModuleCall = Builders.call(expectExpr(ctx, method, 'native-module'))
       .arg().call('asBuffer').receiver(serializerName).$().$()
       .arg().call('length').receiver(serializerName).$().$().$()
