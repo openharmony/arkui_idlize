@@ -593,7 +593,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (arkts.isFunctionDeclaration(node)) {
                 return this.processNode(this.visitFunctionDeclaration, node)
             }
-            if (arkts.isETSModule(node) && node.ident?.name !== 'ETSGLOBAL') {
+            if (arkts.isETSModule(node) && node.isNamespace) {
                 return this.processNode(this.visitETSModule, node)
             }
             if (arkts.isVariableDeclaration(node)) {
