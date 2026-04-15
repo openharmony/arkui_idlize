@@ -364,8 +364,8 @@ OH_UNIT_OST_ThrowsWrapper_I32 ost_errors_getOSTErrorBooleanIntImpl(OH_Boolean fl
 
     if (!flag)
         return {
+            .hasException = false,
             .value = 17,
-            .hasException = false
          };
 
     return {

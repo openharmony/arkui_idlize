@@ -16,7 +16,7 @@
 import { Builders, D, Md, T, Ts } from "@idlizer/ost"
 import * as idl from "@idlizer/core/idl"
 import { cApiName } from "../common.js"
-import { isMaterialized } from "@idlizer/core"
+import { isMaterialized, maybeRestoreThrows } from "@idlizer/core"
 import { createProducer } from "../../engine/index.js"
 import { expectType } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
@@ -26,11 +26,14 @@ export const structureProducer = createProducer(
   { is: idl.isInterface, role: 'capi' },
   (node, ctx) => {
     const name = cApiName(idl.getFQName(node))
+    const restoredType = maybeRestoreThrows(node, ctx.library)
     return {
       continuation: T.c(name),
       declarations: isMaterialized(node, ctx.library)
         ? makeMaterialized(node, name)
-        : makeInterface(node, name, ctx)
+        : restoredType
+          ? makeThrowsWrapper(restoredType, name, ctx)
+          : makeInterface(node, name, ctx)
     }
   }
 )
@@ -56,5 +59,18 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
 function makeMaterialized(node: idl.IDLInterface, name: string) {
   return [
     D.type(name, Ts.ptr(Ts.prim.void)),
+  ]
+}
+
+function makeThrowsWrapper(type: idl.IDLType, name: string, ctx: OhosProducerContext) {
+  return [
+    Builders.struct(name)
+    .field('hasException').type(Ts.prim.boolean).$()
+    .field('exception').type(Ts.prim.exception).$()
+    .fields(
+      !idl.isVoidType(type)
+        ? [Builders.field('value').type(expectType(ctx, type, 'native')).$()]
+        : [])
+    .$()
   ]
 }
