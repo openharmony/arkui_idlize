@@ -211,7 +211,7 @@ export class TSLanguageWriter extends LanguageWriter {
         isAbstract?: boolean
     ): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
-        let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
+        let implementsClause = interfaces ? ` implements ${interfaces.join(", ")}` : ''
         let genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
         let declaredClause = isDeclared ? ` declare` : ''
         let abstractClause = isAbstract ? ` abstract` : ''
