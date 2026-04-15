@@ -103,6 +103,7 @@ export class OhosTsLayout implements LayoutManagerStrategy {
             case LayoutNodeRole.PEER: return this.selectPeer(node)
             case LayoutNodeRole.GLOBAL: return this.selectGlobal(node)
             case LayoutNodeRole.COMPONENT: return ''
+            case LayoutNodeRole.MODIFIER_FUNCTIONS: return ''
         }
     }
 }
@@ -187,6 +188,7 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
             case LayoutNodeRole.PEER: return this.selectPeer(node)
             case LayoutNodeRole.GLOBAL: return this.selectGlobal(node)
             case LayoutNodeRole.COMPONENT: return ''
+            case LayoutNodeRole.MODIFIER_FUNCTIONS: return ''
         }
     }
 

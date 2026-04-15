@@ -116,6 +116,25 @@ class ModifierCollector {
     }
 }
 
+export function isModifier(entry: idl.IDLEntry, library: LibraryInterface): boolean {
+    if (!idl.isInterface(entry)) {
+        return false
+    }
+    if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier)) {
+        return true;
+    }
+    for (const ancestor of entry.inheritance) {
+        const ancestorEntry = library.resolveTypeReference(ancestor)
+        if (ancestorEntry?.name === 'AttributeModifier') {
+            return true
+        }
+        if (ancestorEntry && isModifier(ancestorEntry, library)) {
+            return true
+        }
+    }
+    return false
+}
+
 export function getComponentIfModifier(
     entry: idl.IDLEntry,
     library: LibraryInterface): IdlComponentDeclaration | undefined {
