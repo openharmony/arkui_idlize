@@ -217,7 +217,9 @@ class SerializerPrinter {
                     return `${it.name}: ${it.name}TmpResult`
                 })
                 if (writer.language === Language.ARKTS) {
-                    propsAssignees.push(...meaninglessProperties.map(it => `${it.name}: undefined`))
+                    propsAssignees.push(...meaninglessProperties
+                        .filter(it => !it.isOptional)
+                        .map(it => `${it.name}: undefined`))
                 }
                 if (writer.language == Language.CJ) {
                     let parentProperties: idl.IDLProperty[] = []
