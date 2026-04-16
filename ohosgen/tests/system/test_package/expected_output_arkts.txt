@@ -12,8 +12,10 @@ BarObject_constructImpl()
 BarObject_callHolderImpl(thisPtr)
 BarObject_getFooObjImpl(thisPtr)
 FooObject_callHolderImpl(thisPtr)
+BarObject_setFooObjImpl(thisPtr, value)
 BarObject_getFooObjImpl(thisPtr)
 FooObject_callHolderImpl(thisPtr)
+BarObject_setFooObjImpl(thisPtr, value)
 testBar(prompt="Initial")
 BarObject_echoImpl(thisPtr, str)
   str = Hello C++ from bar
@@ -21,8 +23,9 @@ BarObject_toInt32Impl(thisPtr)
 bar.toInt32() = 2
 FooObject_constructImpl()
 FooObject_callHolderImpl(thisPtr)
+BarObject_setFooObjImpl(thisPtr, value)
 testBar(prompt="After assigning bar.fooObj to new value")
 BarObject_echoImpl(thisPtr, str)
   str = Hello C++ from bar
 BarObject_toInt32Impl(thisPtr)
-bar.toInt32() = 2
+bar.toInt32() = 3

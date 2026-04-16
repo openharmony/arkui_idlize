@@ -6,16 +6,3 @@ interface IDLDummyClass {
     void dummy();
 };
 */
-
-interface SampleI {
-    attribute boolean flag;
-    boolean isSupported();
-};
-
-interface SampleC {
-    attribute boolean flag;
-    boolean isSupported();
-};
-
-SampleI getSampleI();
-SampleC getSampleC();
