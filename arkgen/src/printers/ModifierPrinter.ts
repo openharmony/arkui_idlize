@@ -707,7 +707,7 @@ class ModifiersFileVisitor {
                         writer.writeMethodDeclaration(method.name, signature, [MethodModifier.ABSTRACT])
                     }))
                 }
-            }, parentSet, modifierInfo.isParent ? undefined : extendsInterface, undefined, undefined, !modifierInfo.isParent && abstractMethods.length > 0)
+            }, parentSet, modifierInfo.isParent ? [compAttributteConverted] : extendsInterface, undefined, undefined, !modifierInfo.isParent && abstractMethods.length > 0)
 
             const collector = this.printImports(modifierInfo)
             collector.addFeatures(collectedHooks, HandwrittenModule(this.library.language))
@@ -733,9 +733,9 @@ class ModifiersFileVisitor {
                 const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
                 const compAttributteConverted = nameConvertor.convert(componentAttribute)
 
-                let extendsInterface: string[] = this.hasHeirs(peer) ?
-                    [`${compAttributteConverted}`] :
-                    [`${compAttributteConverted}`, `AttributeModifier<${compAttributteConverted}>`]
+                let extendsInterface: string[] = [
+                    `${compAttributteConverted}`, `AttributeModifier<${compAttributteConverted}>`
+                ]
                 printer.writeClass(modifierName, (writer) => {
                     if (!(modifierInfo.isTrivial ?? true)) {
                         writer.writeStaticInitBlock(writer => {

@@ -45,7 +45,6 @@ import {
     collectModifiers,
     findComponentByName,
     findComponentByType,
-    ModifierInfo,
     NativeModule,
     PrinterFunction,
     PrinterResult,

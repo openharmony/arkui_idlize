@@ -34,21 +34,21 @@ class ModifierCollector {
     ) {
         this.peers = collectPeers(library)
     }
-    private modifiers?: Map<IdlComponentDeclaration, ModifierInfo>
+    private modifiers?: Map<string, ModifierInfo>
     private peers: PeerClass[]
 
     private collectParentModifiers(
-        component: IdlComponentDeclaration,
+        componentName: string,
         modifier: ModifierInfo,
-        newModifiers: Map<IdlComponentDeclaration, ModifierInfo>) {
-        let parentComponent = getSuperComponent(this.library, component)
+        newModifiers: Map<string, ModifierInfo>) {
+        let parentComponent = getSuperComponent(this.library, componentName)
         if (parentComponent) {
-            if (this.modifiers?.has(parentComponent)) {
-                let parentModifier = this.modifiers.get(parentComponent)!
+            if (this.modifiers?.has(parentComponent.name)) {
+                let parentModifier = this.modifiers.get(parentComponent.name)!
                 modifier.parent = parentModifier
                 parentModifier.isParent = true
-            } else if (newModifiers.has(parentComponent)) {
-                let parentModifier = newModifiers.get(parentComponent)!
+            } else if (newModifiers.has(parentComponent.name)) {
+                let parentModifier = newModifiers.get(parentComponent.name)!
                 modifier.parent = parentModifier
                 parentModifier.isParent = true
             } else {
@@ -56,8 +56,8 @@ class ModifierCollector {
                 if (parentPeer) {
                     let parentModifier = new ModifierInfo(undefined, parentPeer, true)
                     modifier.parent = parentModifier
-                    newModifiers.set(parentComponent, parentModifier)
-                    this.collectParentModifiers(parentComponent, parentModifier, newModifiers)
+                    newModifiers.set(parentComponent.name, parentModifier)
+                    this.collectParentModifiers(parentComponent.name, parentModifier, newModifiers)
                 }
             }
         }
@@ -80,10 +80,10 @@ class ModifierCollector {
         return true
     }
 
-    public collectModifiers(): Map<IdlComponentDeclaration, ModifierInfo> {
+    public collectModifiers(): Map<string, ModifierInfo> {
         if (this.modifiers)
             return this.modifiers!
-        this.modifiers = new Map<IdlComponentDeclaration, ModifierInfo>()
+        this.modifiers = new Map<string, ModifierInfo>()
 
         for (const file of this.library.files) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
@@ -93,18 +93,18 @@ class ModifierCollector {
  	                peerGeneratorConfiguration().isHandWritten(entry.name)) {
                     continue
                 }
-                const componentDecl = getComponentIfModifier(entry, this.library)
-                if (componentDecl) {
-                    const peer = this.peers.find(peer => (peer.componentName === componentDecl.name))
+                const componentName = getComponentIfModifier(entry, this.library)
+                if (componentName) {
+                    const peer = this.peers.find(peer => (peer.componentName === componentName))
                     if (peer) {
-                        this.modifiers.set(componentDecl, new ModifierInfo(entry, peer))
+                        this.modifiers.set(componentName, new ModifierInfo(entry, peer))
                     }
                 }
             }
         }
-        let newModifiers = new Map<IdlComponentDeclaration, ModifierInfo>()
-        this.modifiers.forEach((modifier, comp) => {
-            this.collectParentModifiers(comp, modifier, newModifiers)
+        let newModifiers = new Map<string, ModifierInfo>()
+        this.modifiers.forEach((modifier, compName) => {
+            this.collectParentModifiers(compName, modifier, newModifiers)
         })
         for (const [newComp, newModifier] of newModifiers.entries()) {
             this.modifiers.set(newComp, newModifier)
@@ -137,7 +137,7 @@ export function isModifier(entry: idl.IDLEntry, library: LibraryInterface): bool
 
 export function getComponentIfModifier(
     entry: idl.IDLEntry,
-    library: LibraryInterface): IdlComponentDeclaration | undefined {
+    library: LibraryInterface): string | undefined {
     if (!idl.isInterface(entry)) {
         return undefined
     }
@@ -157,10 +157,7 @@ export function getComponentIfModifier(
                         }
                     }
                     if (componentEntry && idl.isInterface(componentEntry)) {
-                        const componentDeclaration = findComponentByDeclaration(library, componentEntry)
-                        if (componentDeclaration) {
-                            return componentDeclaration
-                        }
+                        return findComponentByDeclaration(library, componentEntry)?.name
                     }
                 }
             }
