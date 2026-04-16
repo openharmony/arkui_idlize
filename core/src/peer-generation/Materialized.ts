@@ -188,7 +188,15 @@ type PropertyState = {
     isReadonly: boolean
 }
 
-export function updatePropertyState(decl: idl.IDLInterface, state: PropertyState): PropertyState {
+export function updatePropertyState(
+    decl: idl.IDLInterface,
+    state: PropertyState,
+    forceAccessor: boolean): PropertyState {
+    if (forceAccessor) return {
+        isAccessor: true,
+        hasGetter: state.isAccessor ? state.hasGetter : true,
+        hasSetter: state.isAccessor ? state.hasSetter : !state.isReadonly
+    }
     if (idl.isClassSubkind(decl)) return state
     if (state.isAccessor) return state
     return {

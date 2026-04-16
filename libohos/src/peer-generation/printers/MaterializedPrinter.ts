@@ -388,7 +388,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            const state = updatePropertyState(clazz.decl, field.state)
+            // TBD: unify Kotlin with TS and ArkTS
+            const forceAccessor = this.printer.language == Language.KOTLIN
+            const state = updatePropertyState(clazz.decl, field.state, forceAccessor)
             if (!state.isAccessor) {
                 // arkts can not have property and getter at the same time
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
