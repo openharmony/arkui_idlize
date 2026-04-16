@@ -21,7 +21,7 @@ import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGeneric
     PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary, 
     copyMethod,
     isMaterializedMethodOverridden,
-    updatePropertyState,
+    stateToAccessor,
 } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter.js"
 import {
@@ -388,9 +388,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            // TBD: unify Kotlin with TS and ArkTS
-            const forceAccessor = this.printer.language == Language.KOTLIN
-            const state = updatePropertyState(clazz.decl, field.state, forceAccessor)
+            const state = stateToAccessor(field.state)
             if (!state.isAccessor) {
                 // arkts can not have property and getter at the same time
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
