@@ -4,6 +4,13 @@ export { dtsDummy, idlDummy } from "../../generated/ts"
 // export { DTSDummyClass } from "../../generated/ts"
 // export { IDLDummyClass } from "../../generated/ts"
 
+export {
+  SampleI,
+  SampleC,
+  getSampleI,
+  getSampleC,
+} from "../../generated/ts"
+
 export type OHBuffer = ArrayBuffer
 
 export function init() {
