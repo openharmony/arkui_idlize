@@ -119,6 +119,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     // print non-static readonly fields initialization
     printFieldsInitialization(clazz: MaterializedClass) {
+        // interface implementation has only getters and setters
+        if (idl.isInterfaceSubkind(clazz.decl)) return
         const writer = this.printer
         const receiver = writer.makeThis()
         for (const mField of clazz.fields) {
