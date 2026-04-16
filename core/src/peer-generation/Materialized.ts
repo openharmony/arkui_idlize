@@ -37,14 +37,7 @@ export class MaterializedField {
             throw new Error(`Unsupported modifiers combination: if setter is defined getter must be defined too for field ${field.name}`)
     }
 
-    get state(): {
-        isAccessor: true,
-        hasGetter: boolean,
-        hasSetter: boolean
-    } | {
-        isAccessor: false,
-        isReadonly: boolean
-    } {
+    get state(): PropertyState {
         const hasGetter = this.field.modifiers.includes(FieldModifier.GET)
         const hasSetter = this.field.modifiers.includes(FieldModifier.SET)
         if (hasGetter || hasSetter) {
@@ -184,4 +177,23 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
             )
         )
     )
+}
+
+type PropertyState = {
+    isAccessor: true,
+    hasGetter: boolean,
+    hasSetter: boolean
+} | {
+    isAccessor: false,
+    isReadonly: boolean
+}
+
+export function updatePropertyState(decl: idl.IDLInterface, state: PropertyState): PropertyState {
+    if (idl.isClassSubkind(decl)) return state
+    if (state.isAccessor) return state
+    return {
+        isAccessor: true,
+        hasGetter: true,
+        hasSetter: !state.isReadonly
+    }
 }

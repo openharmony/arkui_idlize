@@ -21,6 +21,7 @@ import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGeneric
     PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary, 
     copyMethod,
     isMaterializedMethodOverridden,
+    updatePropertyState,
 } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter.js"
 import {
@@ -386,14 +387,14 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            if (!field.state.isAccessor) {
+            const state = updatePropertyState(clazz.decl, field.state)
+            if (!state.isAccessor) {
                 // arkts can not have property and getter at the same time
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
                 this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
             } else {
-                const hasGetter = !field.state.isAccessor || field.state.hasGetter
-                const hasSetter = !field.state.isAccessor && !field.state.isReadonly
-                    || field.state.isAccessor && field.state.hasSetter
+                const hasGetter = state.hasGetter
+                const hasSetter = state.hasSetter
                 this.printer.writeProperty(mField.name, type, (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
                     hasGetter ? {
                         method: new Method('get', new MethodSignature(type, [])), op: () => {
