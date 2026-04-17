@@ -21,6 +21,7 @@ import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGeneric
     PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary, 
     copyMethod,
     isMaterializedMethodOverridden,
+    stateToAccessor,
 } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter.js"
 import {
@@ -123,7 +124,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         for (const mField of clazz.fields) {
             const f = mField.field
             const isStatic = f.modifiers.includes(FieldModifier.STATIC)
-            if (!mField.state.isAccessor && !isStatic) {
+            const state = stateToAccessor(clazz.decl, writer.language, mField.state)
+            if (!state.isAccessor && !isStatic) {
                 const initializer = this.printer.makeMethodCall(receiver.asString(), `get${capitalize(f.name)}`, [])
                 writer.writeStatement(
                     writer.makeAssign(f.name, f.type, initializer, false, false, { receiver: receiver.asString() })
@@ -215,12 +217,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const delegationCall = this.getSuperDelegationCall(writer, clazz, peerPtrExpr, superClassName)
 
         this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
-
-            if (hasMaterializedSuperClass) return
-
-            writer.writeStatement(
-                writer.makeAssign(unwrapPeerPtr, idl.createPrimitiveType('pointer'), peerPtrExpr, true))
-            this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, clazz.isRefCounted, writer)
+            if (!hasMaterializedSuperClass) {
+                writer.writeStatement(
+                    writer.makeAssign(unwrapPeerPtr, idl.createPrimitiveType('pointer'), peerPtrExpr, true))
+                this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, clazz.isRefCounted, writer)
+            }
+            this.printFieldsInitialization(clazz)
         }, delegationCall)
     }
 
@@ -386,14 +388,14 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            if (!field.state.isAccessor && (this.printer.language === Language.ARKTS)) {
+            const state = stateToAccessor(clazz.decl, this.printer.language, field.state)
+            if (!state.isAccessor) {
                 // arkts can not have property and getter at the same time
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
                 this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
             } else {
-                const hasGetter = !field.state.isAccessor || field.state.hasGetter
-                const hasSetter = !field.state.isAccessor && !field.state.isReadonly
-                    || field.state.isAccessor && field.state.hasSetter
+                const hasGetter = state.hasGetter
+                const hasSetter = state.hasSetter
                 this.printer.writeProperty(mField.name, type, (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
                     hasGetter ? {
                         method: new Method('get', new MethodSignature(type, [])), op: () => {

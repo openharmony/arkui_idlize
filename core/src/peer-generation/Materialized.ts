@@ -19,6 +19,7 @@ import { copyMethod, Field, FieldModifier, Method, METHOD_ACCESS_MODIFIERS, Meth
 import { getInternalClassName } from './isMaterialized.js'
 import { PeerClassBase } from './PeerClass.js'
 import { PeerMethod, PeerMethodSignature } from './PeerMethod.js'
+import { Language } from "../Language.js"
 
 export class MaterializedField {
     constructor(
@@ -37,14 +38,7 @@ export class MaterializedField {
             throw new Error(`Unsupported modifiers combination: if setter is defined getter must be defined too for field ${field.name}`)
     }
 
-    get state(): {
-        isAccessor: true,
-        hasGetter: boolean,
-        hasSetter: boolean
-    } | {
-        isAccessor: false,
-        isReadonly: boolean
-    } {
+    get state(): PropertyState {
         const hasGetter = this.field.modifiers.includes(FieldModifier.GET)
         const hasSetter = this.field.modifiers.includes(FieldModifier.SET)
         if (hasGetter || hasSetter) {
@@ -184,4 +178,30 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
             )
         )
     )
+}
+
+type PropertyState = {
+    isAccessor: true,
+    hasGetter: boolean,
+    hasSetter: boolean
+} | {
+    isAccessor: false,
+    isReadonly: boolean
+}
+
+function toAccessor(state: PropertyState): PropertyState {
+    return state.isAccessor
+        ? state
+        : {
+            isAccessor: true,
+            hasGetter: true,
+            hasSetter: !state.isReadonly
+        }
+}
+
+export function stateToAccessor(decl: idl.IDLInterface, lang: Language, state: PropertyState): PropertyState {
+    // Fix Kotlin accessors generation
+    if (lang == Language.KOTLIN) return toAccessor(state)
+    if (idl.isClassSubkind(decl)) return state
+    return toAccessor(state)
 }

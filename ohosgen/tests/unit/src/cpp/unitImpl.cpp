@@ -510,8 +510,12 @@ OH_Number IDLCheckConstructor_getCountImpl(OH_NativePointer thisPtr)
 {
     return reinterpret_cast<const IDLCheckConstructorPeer*>(thisPtr)->count;
 }
-void IDLCheckConstructor_setCountImpl(OH_NativePointer thisPtr, const OH_Number* value) {}
-void IDLCheckConstructor_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value) {}
+void IDLCheckConstructor_setCountImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+    (reinterpret_cast<IDLCheckConstructorPeer*>(thisPtr))->count = *value;
+}
+void IDLCheckConstructor_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value) {
+    (reinterpret_cast<IDLCheckConstructorPeer*>(thisPtr))->flag = value;
+}
 
 // Data object tests
 
