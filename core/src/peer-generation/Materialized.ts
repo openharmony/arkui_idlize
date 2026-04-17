@@ -19,6 +19,7 @@ import { copyMethod, Field, FieldModifier, Method, METHOD_ACCESS_MODIFIERS, Meth
 import { getInternalClassName } from './isMaterialized.js'
 import { PeerClassBase } from './PeerClass.js'
 import { PeerMethod, PeerMethodSignature } from './PeerMethod.js'
+import { Language } from "../Language.js"
 
 export class MaterializedField {
     constructor(
@@ -188,12 +189,19 @@ type PropertyState = {
     isReadonly: boolean
 }
 
-export function stateToAccessor(decl: idl.IDLInterface, state: PropertyState): PropertyState {
+function toAccessor(state: PropertyState): PropertyState {
+    return state.isAccessor
+        ? state
+        : {
+            isAccessor: true,
+            hasGetter: true,
+            hasSetter: !state.isReadonly
+        }
+}
+
+export function stateToAccessor(decl: idl.IDLInterface, lang: Language, state: PropertyState): PropertyState {
+    // Fix Kotlin accessors generation
+    if (lang == Language.KOTLIN) return toAccessor(state)
     if (idl.isClassSubkind(decl)) return state
-    if (state.isAccessor) return state
-    return {
-        isAccessor: true,
-        hasGetter: true,
-        hasSetter: !state.isReadonly
-    }
+    return toAccessor(state)
 }
