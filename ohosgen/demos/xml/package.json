@@ -8,10 +8,7 @@
     },
     "devDependencies": {
         "@koalaui/smart-arkts": "panda-next",
-        "@rollup/plugin-inject": "^5.0.5",
-        "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-typescript": "^11.1.6",
-        "rollup": "^4.24.4"
+        "esbuild": "^0.27.3"
     },
     "scripts": {
         "clean:ts": "rm -rf generated/ts",
@@ -35,7 +32,7 @@
 
         "compile:interop:native:kt": "npm run compile:native-kotlin-host --prefix ../../../external/koala_projects/interop && npm run compile:kotlin:interop --prefix ../../../external/koala_projects/interop",
 
-        "compile:ts": "rollup -c",
+        "compile:ts": "esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/*",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
         "compile:kt": "bash scripts/build-kotlin.sh",

@@ -2,11 +2,10 @@
     "name": "dummy-tests",
     "private": true,
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next",
-        "@rollup/plugin-inject": "^5.0.5",
-        "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-typescript": "^11.1.6",
-        "rollup": "^4.24.4"
+        "@koalaui/smart-arkts": "panda-next"
+    },
+    "imports": {
+        "#compat": "./build/node/src/node/compat.js"
     },
     "scripts": {
         "clean:ts": "rm -rf generated/ts",
@@ -19,7 +18,7 @@
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cj npm run gen",
 
-        "compile:ts": "rollup -c",
+        "compile:ts": "npx esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/* --tsconfig=tsconfig.json",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
 

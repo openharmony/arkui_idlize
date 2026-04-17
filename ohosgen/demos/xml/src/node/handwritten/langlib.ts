@@ -15,6 +15,7 @@
 
 import { SerializerBase, DeserializerBase, } from "@koalaui/interop"
 
+export interface DataView_ {}
 
 export class DataView__serializer {
     public static write(buffer: SerializerBase, value: DataView): void {
