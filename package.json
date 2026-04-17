@@ -34,6 +34,8 @@
     "bundle": "read -p 'Enter bundle version, e.g. 22.22.22-work-conf-999: ' BUNDLE_VERSION && read -p 'Enter bundle out directory: ' BUNDLE_OUT && node ./tools/bundle.mjs $BUNDLE_VERSION $BUNDLE_OUT",
     "tracker": "./tracker/track external/interface_sdk-js sdk-patched-arkts",
     "release": "npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && npm run -c arktscgen compile && npm run -C idlinter compile && node tools/release.mjs",
+    "bump:toolchain": "node ./tools/bump-koala-toolchain.mjs",
+    "bump:toolchain:stable": "node ./tools/bump-koala-toolchain.mjs --stable",
     "sanity": "npm run -C arkgen sanity && npm run -C linter run",
     "setup-out": "node tools/setup/setup.mjs",
     "gn:gen": "gn gen out/dir",

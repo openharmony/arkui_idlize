@@ -24,7 +24,7 @@
         "@idlizer/core": "2.2.2+devel",
         "@idlizer/kit": "2.2.2+devel",
         "@idlizer/ost": "2.2.2+devel",
-        "@koalaui/interop": "panda-next"
+        "@koalaui/interop": "1.5.0-dev.68195-8888"
     },
     "devDependencies": {
         "@types/node": "^18.19.127",

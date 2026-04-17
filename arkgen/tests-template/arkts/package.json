@@ -15,7 +15,7 @@
         "build": "smart-arkts compile --link-name ./out/all.abc --simultaneous"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next",
+        "@koalaui/smart-arkts": "1.5.0-dev.68195-8888",
         "@idlizer/rimraf": "2.2.2+devel"
     }
 }
