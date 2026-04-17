@@ -1,10 +1,21 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
+        "target": "es2017",
+        "lib": ["ESNext", "ESNext.WeakRef"],
+        "module": "commonjs",
         "moduleResolution": "node",
-        "outDir": "build/ts",
+        "composite": false,
+        "incremental": false,
+        "declarationMap": true,
         "sourceMap": true,
+        "declaration": true,
+        "noEmitOnError": false,
+        "strict": false,
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "removeComments": false,
+        "outDir": "build/node",
+        "rootDirs": ["src"],
         "baseUrl": ".",
         "paths": {
             "#compat": ["./src/node/compat.ts"],
@@ -13,7 +24,8 @@
             "@newname.lib": ["./src/node/modules/newname_lib"],
             "@external.lib": ["./src/node/handwritten/external_lib.ts"],
             "@external.lib.sdk": ["./src/node/handwritten/external_lib_sdk.ts"]
-        }
+        },
+        "allowSyntheticDefaultImports": true
     },
-    "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"],
+    "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"]
 }

@@ -7,10 +7,9 @@ export { huks } from "../../generated/ts"
 
 export type OHBuffer = NativeBuffer
 
-declare const NATIVE_LIBRARY_NAME: string
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", NATIVE_LIBRARY_NAME)
-    registerNativeModuleLibraryName("OHOS_SECURITY_HUKSNativeModule", NATIVE_LIBRARY_NAME)
+    registerNativeModuleLibraryName("InteropNativeModule", "Huks_NativeBridgeNapi")
+    registerNativeModuleLibraryName("OHOS_SECURITY_HUKSNativeModule", "Huks_NativeBridgeNapi")
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
     wrapSystemApiHandlerCallback()
