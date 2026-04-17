@@ -1,10 +1,6 @@
 {
     "name": "demo-xml",
     "private": true,
-    "arkts": {
-        "bin": "build/panda/app.abc",
-        "entryPoint": "@xml.src.panda.main.ETSGLOBAL::main"
-    },
     "dependencies": {
         "@koalaui/common": "panda-next",
         "@koalaui/compat": "panda-next",

@@ -1,10 +1,6 @@
 {
     "name": "demo-mediaquery",
     "private": true,
-    "arkts": {
-        "bin": "build/panda/app.abc",
-        "entryPoint": "@mediaquery.src.panda.main.ETSGLOBAL::main"
-    },
     "dependencies": {
         "@koalaui/compat": "panda-next",
         "@koalaui/common": "panda-next",
@@ -29,7 +25,7 @@
         "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
 
         "compile:ts": "rollup -c",
-        "compile:arkts": "smart-arkts compile --config arktsconfig.json",
+        "compile:arkts": "smart-arkts build --target main",
         "compile:cj": "",
 
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",

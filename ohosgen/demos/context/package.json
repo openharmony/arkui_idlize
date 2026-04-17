@@ -8,10 +8,6 @@
         "@rollup/plugin-typescript": "^11.1.6",
         "rollup": "^4.24.4"
     },
-    "arkts": {
-        "bin": "build/panda/app.abc",
-        "entryPoint": "@context.src.panda.main.ETSGLOBAL::main"
-    },
     "scripts": {
         "clean:ts": "rm -rf application/generated/ts bundleManager/generated/ts",
         "clean:arkts": "rm -rf application/generated/arkts bundleManager/generated/arkts",

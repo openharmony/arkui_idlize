@@ -1,7 +1,6 @@
 {
     "name": "@idlizer/ohosgen-demos-context-launcher",
     "private": true,
-    "arkts": {},
     "dependencies": {
         "@idlizer/ohosgen-demos-context-bundleManager": "file:../bundleManager",
         "@idlizer/ohosgen-demos-context-application": "file:../application",

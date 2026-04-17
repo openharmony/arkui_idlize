@@ -1,10 +1,6 @@
 {
     "name": "unit-tests",
     "private": true,
-    "arkts": {
-        "bin": "build/panda/app.abc",
-        "entryPoint": "@unit.src.panda.main.ETSGLOBAL::main"
-    },
     "dependencies": {
         "@koalaui/compat": "panda-next",
         "@koalaui/common": "panda-next",
