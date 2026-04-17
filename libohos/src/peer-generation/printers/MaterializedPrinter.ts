@@ -217,12 +217,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const delegationCall = this.getSuperDelegationCall(writer, clazz, peerPtrExpr, superClassName)
 
         this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
-
-            if (hasMaterializedSuperClass) return
-
-            writer.writeStatement(
-                writer.makeAssign(unwrapPeerPtr, idl.createPrimitiveType('pointer'), peerPtrExpr, true))
-            this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, clazz.isRefCounted, writer)
+            if (!hasMaterializedSuperClass) {
+                writer.writeStatement(
+                    writer.makeAssign(unwrapPeerPtr, idl.createPrimitiveType('pointer'), peerPtrExpr, true))
+                this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, clazz.isRefCounted, writer)
+            }
+            this.printFieldsInitialization(clazz)
         }, delegationCall)
     }
 
