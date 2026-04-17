@@ -124,8 +124,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         for (const mField of clazz.fields) {
             const f = mField.field
             const isStatic = f.modifiers.includes(FieldModifier.STATIC)
-            const state = mField.state
-            if (!state.isAccessor && !state.isReadonly && !isStatic) {
+            const state = stateToAccessor(clazz.decl, writer.language, mField.state)
+            if (!state.isAccessor && !isStatic) {
                 const initializer = this.printer.makeMethodCall(receiver.asString(), `get${capitalize(f.name)}`, [])
                 writer.writeStatement(
                     writer.makeAssign(f.name, f.type, initializer, false, false, { receiver: receiver.asString() })
