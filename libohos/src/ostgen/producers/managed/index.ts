@@ -18,21 +18,27 @@ import { enumProducer } from "./enum.js";
 import { nativeModuleConstructorProducer, nativeModuleFunctionProducer, nativeModuleMaterializedProducer } from "./nativeModule.js";
 import { primitiveProducer } from "./primitives.js";
 import { referenceProducer } from "./references.js";
-import { serializerProducer } from "./serializer.js";
+import { serializerProducer, typedefSerializerProducer } from "./serializer.js";
 import { structureProducer } from "./structure.js";
 import { unionProducer } from "./union.js";
 import { callbackProducer } from "./callback.js";
 import { typedefProducer } from "./typedef.js";
 import { constructorProducer, functionProducer } from "./function.js";
 import { optionalProducer } from "./optional.js";
+import { typeParameterProducer } from "./typeParameter.js";
+import { typecheckProducer } from "./typecheck.js";
+import { initializerProducer } from "./initializer.js";
+import { constProducer } from "./const.js";
 
 export const producers = {
+    constProducer,
     enumProducer,
     functionProducer,
     constructorProducer,
     structureProducer,
     primitiveProducer,
     referenceProducer,
+    typeParameterProducer,
     optionalProducer,
     containerProducer,
     unionProducer,
@@ -42,4 +48,7 @@ export const producers = {
     nativeModuleConstructorProducer,
     nativeModuleMaterializedProducer,
     serializerProducer,
+    typedefSerializerProducer,
+    typecheckProducer,
+    initializerProducer,
 }

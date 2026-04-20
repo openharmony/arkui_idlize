@@ -21,3 +21,8 @@ export const serializerProducer = createProducer(
   { is: idl.isInterface, role: 'managed-serde' },
   produceSerializer(false)
 )
+
+export const typedefSerializerProducer = createProducer(
+  { is: idl.isTypedef, role: 'managed-serde' },
+  produceSerializer(false)
+)

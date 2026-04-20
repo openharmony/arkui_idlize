@@ -20,11 +20,9 @@ import { managedName } from "../producers/common.js";
 import { callbackKindDeclaration } from "./postprocess.js";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
 import { moduleLike } from "@idlizer/kit";
-
 export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string, callbacks: string[]): lw.LWDeclaration[] {
     decls = moduleLike.postprocess(decls)
     decls = introduceCallbackCaller(decls, callbacks)
-    decls = introduceTypeChecker(decls)
     decls = loadNativeModule(decls, nativeModuleName)
     return decls
 }
@@ -52,11 +50,6 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
                 .arg('deserializeAndCallCallback').$().$().$()
     decls.push(callbackKindEnum, caller, register)
     return decls
-}
-
-function introduceTypeChecker(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    ///arkts only
-    return decls.concat(Builders.class(managedName('engine.TypeChecker')).$())
 }
 
 function loadNativeModule(decls: lw.LWDeclaration[], nativeModuleName: string): lw.LWDeclaration[] {

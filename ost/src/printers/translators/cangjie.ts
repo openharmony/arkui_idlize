@@ -364,6 +364,10 @@ export class CangjiePrinter {
         this.printType(declaration.type)
         break
       }
+      case lw.LWKind.TopLevelExpression: {
+        this.printExpression(declaration.expression)
+        break
+      }
       case lw.LWKind.FunctionDeclaration: {
         declaration.modifiers.forEach(mod => {
           switch (mod.name) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,16 +13,23 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlizer/core/idl";
-import { produceSerializer } from "../components/serializer.js";
+import * as idl from "@idlizer/core/idl"
+import { Builders, T } from "@idlizer/ost"
 import { createProducer } from "../../engine/index.js"
+import { expectExpr, managedName } from "../common.js"
 
-export const serializerProducer = createProducer(
-  { is: idl.isInterface, role: 'native-serde' },
-  produceSerializer(true)
-)
-
-export const typedefSerializerProducer = createProducer(
-  { is: idl.isTypedef, role: 'native-serde' },
-  produceSerializer(true)
+export const constProducer = createProducer(
+  { is: idl.isConstant, role: 'managed' },
+  (node, ctx) => {
+    const declName = managedName(idl.getFQName(node))
+    return {
+      continuation: T.c(declName),
+      declarations: [
+        Builders.topLevel(declName)
+          .value(node.value
+            ? node.value
+            : expectExpr(ctx, node.type, 'initializer')).$()
+      ]
+    }
+  }
 )
