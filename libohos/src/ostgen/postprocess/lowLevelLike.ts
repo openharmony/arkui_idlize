@@ -46,7 +46,6 @@ class MakeOptional extends IdentityTransformer {
 }
 
 function introduceOptionalTypes(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    ///needed?
     return new MakeOptional().go(decls)
 }
 

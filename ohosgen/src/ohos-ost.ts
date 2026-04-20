@@ -41,19 +41,18 @@ import {
     OhosEffect,
     createOhosEffect,
     LWKind,
-    OhosRole,
 } from "@idlizer/libohos"
 import { continueWith, moduleLike, onlyFor } from '@idlizer/kit'
 import { ArkUIRole, registerArkUIProducers } from "./arkui/index.js"
 
-type Feature<R> = {
+type Feature = {
     name: string
     init: () => MakeSelector
     seeds: (files: idl.IDLFile[]) => OhosSeed<idl.IDLNode>[]
     importHook?: moduleLike.OnUnknownImport
 }
 
-const OSTFeature: Feature<OhosRole<idl.IDLNode>> = {
+const OSTFeature: Feature = {
     name: 'ost',
     init: () => {
         const selector = new MakeSelector()
@@ -78,7 +77,7 @@ const OSTFeature: Feature<OhosRole<idl.IDLNode>> = {
     }
 }
 
-const ArkUIFeature: Feature<ArkUIRole<idl.IDLNode>> = {
+const ArkUIFeature: Feature = {
     name: 'arkui',
     init: () => {
         const selector = new MakeSelector()
