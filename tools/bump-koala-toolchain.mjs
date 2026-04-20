@@ -15,15 +15,16 @@
 
 import fs from "node:fs"
 import path from "node:path"
-import { execFileSync } from "node:child_process"
+import { execFile } from "node:child_process"
 import { fileURLToPath } from "node:url"
+import { promisify } from "node:util"
 import { Command } from "commander"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, "..")
+const execFileAsync = promisify(execFile)
 
-const EXTRA_PROJECTS = ["codecheck_fixer"]
 const DEP_SECTIONS = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]
 const SKIP_PACKAGES = new Set([])
 const MANAGED_PACKAGE_POLICY = {
@@ -37,31 +38,6 @@ function readJson(filePath) {
 
 function exists(filePath) {
     return fs.existsSync(filePath)
-}
-
-function normalizePatterns(patterns) {
-    const out = []
-    for (const pattern of patterns || []) {
-        for (const part of String(pattern).split(",")) {
-            const normalized = part.trim()
-            if (normalized.length > 0) {
-                out.push(normalized)
-            }
-        }
-    }
-    return out
-}
-
-function escapeRegExp(value) {
-    return value.replace(/[|\\{}()[\]^$+?.]/g, "\\$&")
-}
-
-function globToRegExp(pattern) {
-    const placeholder = "__DOUBLE_STAR__"
-    const escaped = escapeRegExp(pattern).replace(/\*\*/g, placeholder)
-    const withSingle = escaped.replace(/\*/g, "[^/:]*").replace(/\?/g, "[^/:]")
-    const withDouble = withSingle.replace(new RegExp(placeholder, "g"), ".*")
-    return new RegExp(`^${withDouble}$`)
 }
 
 function expandWorkspacePattern(rootDir, workspacePattern) {
@@ -110,7 +86,7 @@ function discoverProjects(rootDir) {
         discovered.push(...expandWorkspacePattern(rootDir, workspace))
     }
 
-    const relPaths = [...new Set([...discovered, ...EXTRA_PROJECTS])]
+    const relPaths = [...new Set(discovered)]
     const projects = []
 
     for (const relPath of relPaths) {
@@ -130,35 +106,6 @@ function discoverProjects(rootDir) {
     }
 
     return projects
-}
-
-function matchesProject(project, patternRegex, rawPattern) {
-    if (rawPattern.startsWith(":")) {
-        return patternRegex.test(project.gradlePath)
-    }
-
-    if (rawPattern.startsWith("@")) {
-        return patternRegex.test(project.name)
-    }
-
-    return patternRegex.test(project.relPath) || patternRegex.test(project.gradlePath) || patternRegex.test(project.name)
-}
-
-function selectProjects(projects, includePatterns, excludePatterns) {
-    const includeRegexes = includePatterns.map((p) => ({ raw: p, regex: globToRegExp(p) }))
-    const excludeRegexes = excludePatterns.map((p) => ({ raw: p, regex: globToRegExp(p) }))
-
-    const selected = projects.filter((project) => {
-        const includeOk = includeRegexes.length === 0 || includeRegexes.some((p) => matchesProject(project, p.regex, p.raw))
-        if (!includeOk) {
-            return false
-        }
-
-        const excluded = excludeRegexes.some((p) => matchesProject(project, p.regex, p.raw))
-        return !excluded
-    })
-
-    return selected
 }
 
 function isManagedPackageName(name) {
@@ -223,20 +170,24 @@ function collectDependencyRefs(project) {
     return refs
 }
 
-function npmViewVersion(packageName, selector) {
+async function npmViewVersion(packageName, selector) {
     const target = `${packageName}@${selector}`
-    const stdout = execFileSync("npm", ["view", target, "version", "--json"], {
+    const { stdout } = await execFileAsync("npm", ["view", target, "version", "--json"], {
         cwd: repoRoot,
         encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"],
+        maxBuffer: 1024 * 1024,
     })
 
     const parsed = JSON.parse(stdout)
-    if (typeof parsed !== "string" || parsed.length === 0) {
-        throw new Error(`Unexpected npm response for ${target}: ${stdout}`)
+    if (typeof parsed === "string" && parsed.length > 0) {
+        return parsed
     }
 
-    return parsed
+    if (Array.isArray(parsed) && typeof parsed[0] === "string" && parsed[0].length > 0) {
+        return parsed[0]
+    }
+
+    throw new Error(`unexpected npm response for ${target}: ${stdout.trim()}`)
 }
 
 function updateProjectFile(project, refs, resolvedVersions, dryRun, force) {
@@ -267,72 +218,39 @@ function updateProjectFile(project, refs, resolvedVersions, dryRun, force) {
     return updated
 }
 
-function main() {
+async function main() {
     const cli = new Command()
 
     cli
         .name("bump-koala-toolchain")
-        .description("Bump arkui_idlize managed koala/ui2abc versions across workspace projects")
-        .argument("[version]", "Set exact version for all managed dependencies")
-        .option("--stable", "Use `panda-latest` tag instead of default `panda-next`")
-        .option("-i, --include <pattern>", "Include projects by pattern (repeatable, supports comma-separated)", (v, acc) => {
-            acc.push(v)
-            return acc
-        }, [])
-        .option("-x, --exclude <pattern>", "Exclude projects by pattern (repeatable, supports comma-separated)", (v, acc) => {
-            acc.push(v)
-            return acc
-        }, [])
+        .description("Bump all managed koala versions across workspace projects")
+        .argument("[version]", "Set tag/version for all managed dependencies (default: panda-next)")
+        .option("-r, --resolve", "Resolve specified tag via npm and use the concrete published version")
         .option("-n, --dry-run", "Print planned changes without writing files")
         .option("-f, --force", "Force rewrite even when versions already match")
-        .option("-v, --verbose", "Print project selection and unchanged refs")
         .addHelpText(
             "after",
             [
                 "",
-                "Pattern matching:",
-                "  * matches within one segment (no '/' or ':')",
-                "  ** matches across segments",
-                "  ? matches one character",
-                "",
-                "Pattern target:",
-                "  If pattern starts with '@' => matches package name, e.g. @idlizer/*",
-                "  If pattern starts with ':' => matches Gradle-style project path, e.g. :ohosgen:tests:unit",
-                "  Otherwise => matches project rel path/name/gradle path",
-                "",
                 "Examples:",
                 "  node tools/bump-koala-toolchain.mjs",
-                "  node tools/bump-koala-toolchain.mjs --stable",
                 "  node tools/bump-koala-toolchain.mjs 1.5.0-dev.68195-8888",
-                "  node tools/bump-koala-toolchain.mjs --include ':ohosgen:**' --exclude ':ohosgen:demos:*'",
-                "  node tools/bump-koala-toolchain.mjs --include ohosgen/tests/unit,arkgen/tests/unit",
+                "  node tools/bump-koala-toolchain.mjs --dry-run --resolve",
             ].join("\n"),
         )
 
     cli.parse(process.argv)
     const options = cli.opts()
-    const explicitVersion = cli.args[0] || null
-
-    if (options.stable && explicitVersion) {
-        console.error("Error: --stable and positional <version> are mutually exclusive")
-        process.exit(2)
-    }
-
-    const includePatterns = normalizePatterns(options.include)
-    const excludePatterns = normalizePatterns(options.exclude)
-
-    const selector = explicitVersion ? null : (options.stable ? "panda-latest" : "panda-next")
+    const requestedVersion = cli.args[0] || "panda-next"
 
     const discovered = discoverProjects(repoRoot)
-    const selected = selectProjects(discovered, includePatterns, excludePatterns)
-
-    if (selected.length === 0) {
-        console.log("No projects matched include/exclude filters. Nothing to do.")
+    if (discovered.length === 0) {
+        console.log("No workspace projects discovered. Nothing to do.")
         return
     }
 
     const allRefs = []
-    for (const project of selected) {
+    for (const project of discovered) {
         const refs = collectDependencyRefs(project)
         allRefs.push({ project, refs })
     }
@@ -345,19 +263,39 @@ function main() {
 
     const resolvedVersions = new Map()
 
-    if (explicitVersion) {
+    if (!options.resolve) {
         for (const packageName of usedPackageNames) {
-            resolvedVersions.set(packageName, explicitVersion)
+            resolvedVersions.set(packageName, requestedVersion)
         }
     } else {
-        for (const packageName of usedPackageNames) {
-            try {
-                const version = npmViewVersion(packageName, selector)
-                resolvedVersions.set(packageName, version)
-            } catch (error) {
-                console.error(`Failed to resolve ${packageName}@${selector}: ${error.message}`)
-                process.exit(1)
+        const results = await Promise.allSettled(
+            usedPackageNames.map(async (packageName) => {
+                try {
+                    const version = await npmViewVersion(packageName, requestedVersion)
+                    return { packageName, version }
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error)
+                    throw new Error(`${packageName}@${requestedVersion}: ${message}`)
+                }
+            }),
+        )
+
+        const failures = []
+        for (const result of results) {
+            if (result.status === "rejected") {
+                failures.push(result.reason instanceof Error ? result.reason.message : String(result.reason))
+                continue
             }
+
+            resolvedVersions.set(result.value.packageName, result.value.version)
+        }
+
+        if (failures.length > 0) {
+            console.error(`Failed to resolve ${failures.length} package(s) for selector \"${requestedVersion}\":`)
+            for (const failure of failures.sort((a, b) => a.localeCompare(b))) {
+                console.error(`  - ${failure}`)
+            }
+            process.exit(1)
         }
     }
 
@@ -365,14 +303,9 @@ function main() {
     let scannedProjectsWithManagedDeps = 0
     let changedRefs = 0
 
-    if (options.verbose) {
-        console.log(`Discovered ${discovered.length} projects, selected ${selected.length}.`)
-        for (const project of selected) {
-            console.log(`- ${project.relPath} (${project.name}, ${project.gradlePath})`)
-        }
-    }
+    console.log(`Discovered ${discovered.length} workspace project(s).`)
 
-    console.log(`Version source: ${explicitVersion ? `explicit ${explicitVersion}` : selector}`)
+    console.log(`Version source: ${options.resolve ? `resolved from ${requestedVersion}` : `unresolved ${requestedVersion}`}`)
     console.log("Resolved package versions:")
     for (const [pkg, version] of [...resolvedVersions.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
         console.log(`  ${pkg} -> ${version}`)
@@ -380,9 +313,6 @@ function main() {
 
     for (const { project, refs } of allRefs) {
         if (refs.length === 0) {
-            if (options.verbose) {
-                console.log(`SKIP ${project.relPath}: no managed deps`)
-            }
             continue
         }
 
@@ -397,9 +327,6 @@ function main() {
 
             const isSame = next === ref.currentSpec
             if (isSame && !options.force) {
-                if (options.verbose) {
-                    console.log(`UNCHANGED ${project.relPath} ${ref.section}.${ref.name}: ${ref.currentSpec}`)
-                }
                 continue
             }
 
@@ -420,8 +347,11 @@ function main() {
     }
 
     console.log(
-        `${options.dryRun ? "Dry run complete" : "Done"}: selected ${selected.length} project(s), scanned ${scannedProjectsWithManagedDeps} with managed deps, ${changedRefs} dependency entries ${options.dryRun ? "would be updated" : "updated"} across ${changedProjects} project(s).`,
+        `${options.dryRun ? "Dry run complete" : "Done"}: scanned ${scannedProjectsWithManagedDeps} project(s) with managed deps, ${changedRefs} dependency entries ${options.dryRun ? "would be updated" : "updated"} across ${changedProjects} project(s).`,
     )
 }
 
-main()
+main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error))
+    process.exit(1)
+})
