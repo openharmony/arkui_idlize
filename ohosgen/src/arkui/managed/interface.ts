@@ -14,7 +14,8 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { T, createProducer, managedName, OhosSeed } from "@idlizer/libohos";
+import { T, createProducer, managedName, OhosSeed } from "@idlizer/libohos"
+import { ArkUIRole } from "../index.js"
 
 function isComponentInterface(node: idl.IDLInterface) {
   return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.ComponentInterface)
@@ -25,6 +26,6 @@ export const interfaceProducer = createProducer(
   node => ({
     continuation: T.c(managedName(idl.getFQName(node))),
     declarations: [],
-    trigger: node.callables.map(it => new OhosSeed(it, 'peer'))
+    trigger: node.callables.map(it => new OhosSeed<idl.IDLCallable, ArkUIRole<idl.IDLCallable>>(it, 'peer'))
   })
 )

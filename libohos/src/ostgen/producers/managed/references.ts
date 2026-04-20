@@ -24,7 +24,7 @@ export const referenceProducer = createProducer(
     if (!decl)
       throw new Error("Unresolved reference " + type.name)
     return {
-      continuation: expectType(ctx, decl, role),
+      continuation: expectType(ctx, decl, role, { typeArgs: type.typeArguments }),
       declarations: []
     }
   }

@@ -301,7 +301,7 @@ export class TSPrinter {
             }
             const fieldName = utils.getHint(arg, std.names.hints.named)
             if (!fieldName) {
-              throw new Error("!!!")
+              throw new Error("Field has no name in ConstructorExpression with `asStruct` hint")
             }
             this.p.put(fieldName, ':')
             this.printExpression(arg)
@@ -607,6 +607,11 @@ export class TSPrinter {
         this.p.put('export', ' ', 'type', ' ', declaration.name)
         this.p.put(' ', '=', ' ')
         this.printType(declaration.type)
+        break
+      }
+      case lw.LWKind.TopLevelExpression: {
+        this.p.put('export', ' ', 'const', ' ', declaration.name, ' ', '=', ' ')
+        this.printExpression(declaration.expression)
         break
       }
       case lw.LWKind.FunctionDeclaration: {
