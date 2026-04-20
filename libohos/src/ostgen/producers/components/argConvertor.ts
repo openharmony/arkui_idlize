@@ -334,7 +334,7 @@ class ThrowsConvertor extends StructConvertor<idl.IDLType> {
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         if (native) {
-            const isVoid = idl.isVoidType(this.restoredType)
+            const isVoid = idl.isVoidType(this.restoredType) || idl.isPrimitiveType(this.restoredType, 'this')
             const writes = isVoid ? [] : this.convertor.write(
                 Builders.access().member('value').receiver(accessor).$(), serializerName, native)
             return [
@@ -354,7 +354,7 @@ class ThrowsConvertor extends StructConvertor<idl.IDLType> {
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         if (native)
             return [[], E.v(name)]
-        const isVoid = idl.isVoidType(this.restoredType)
+        const isVoid = idl.isVoidType(this.restoredType) || idl.isPrimitiveType(this.restoredType, 'this')
         let readsReturnValue: lw.LWStatement[] = []
         if (!isVoid) {
             const [reads, readValue] = this.convertor.read(name, serializerName, native)

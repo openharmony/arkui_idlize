@@ -29,11 +29,10 @@ export const structureProducer = createProducer(
     const restoredType = maybeRestoreThrows(node, ctx.library)
     return {
       continuation: T.c(name),
-      declarations: isMaterialized(node, ctx.library)
-        ? makeMaterialized(node, name)
-        : restoredType
-          ? makeThrowsWrapper(restoredType, name, ctx)
-          : makeInterface(node, name, ctx)
+      declarations:
+        isMaterialized(node, ctx.library) ? makeMaterialized(node, name) :
+        restoredType ? makeThrowsWrapper(restoredType, name, ctx) :
+        makeInterface(node, name, ctx)
     }
   }
 )
@@ -68,9 +67,9 @@ function makeThrowsWrapper(type: idl.IDLType, name: string, ctx: OhosProducerCon
     .field('hasException').type(Ts.prim.boolean).$()
     .field('exception').type(Ts.prim.exception).$()
     .fields(
-      !idl.isVoidType(type)
-        ? [Builders.field('value').type(expectType(ctx, type, 'native')).$()]
-        : [])
+      idl.isVoidType(type) || idl.isPrimitiveType(type, 'this')
+        ? []
+        : [Builders.field('value').type(expectType(ctx, type, 'capi')).$()])
     .$()
   ]
 }
