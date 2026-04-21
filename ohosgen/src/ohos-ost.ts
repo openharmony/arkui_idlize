@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { ImportsCollector, Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
+import { ImportsCollector, isInExternalModule, Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
     MANAGED_PREFIX,
@@ -61,17 +61,32 @@ const OSTFeature: Feature = {
     },
     seeds: (files: idl.IDLFile[]) => linearizeNamespaceMembers(files.flatMap(f => f.entries))
         .filter(e =>
+            !isInExternalModule(e) &&
             !idl.isImport(e) &&
             !idl.isNamespace(e) &&
             !idl.isCallback(e))
         .map(e => new OhosSeed(e, 'managed')),
     importHook: name => {
         const parts = name.split('.')
-        if (parts.length > 2 && parts[0] === 'managed' && parts[1].startsWith('#')) {
-            return {
-                result: parts.slice(2).join('.'),
-                name: parts[2],
-                source: parts[1]
+        if (parts.length > 2 && parts[0] === 'managed') {
+            if (parts[1].startsWith('#')) {
+                return {
+                    result: parts.slice(2).join('.'),
+                    name: parts[2],
+                    source: parts[1]
+                }
+            } else {
+                const trimmedName = parts.slice(1).join('.')
+                for (const [module, moduleData] of peerGeneratorConfiguration().modules) {
+                    if (moduleData.external && trimmedName.startsWith(module)) {
+                        const moduleParts = module.split('.')
+                        return {
+                            result: parts.slice(moduleParts.length + 1).join('.'),
+                            name: parts[moduleParts.length + 1],
+                            source: '@' + module
+                        }
+                    }
+                }
             }
         }
     }
