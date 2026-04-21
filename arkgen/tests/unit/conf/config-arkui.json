@@ -25,6 +25,7 @@
                 "arkui.AttributeUpdater",
                 "arkui.AttributeUpdaterFlag",
                 "arkui.Graphics",
+                "arkui.PeerNode",
                 "arkui.component.check.exeception",
                 "arkui.component.check.hierarchy",
                 "arkui.component.check.hooks",
@@ -75,7 +76,8 @@
         "handWritten": [
             "AttributeModifier",
             "AttributeUpdater",
-            "ModifierState"
+            "ModifierState",
+            "PeerNode"
         ]
     },
     "forceMaterialized": [

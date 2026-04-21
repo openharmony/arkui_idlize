@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,8 @@
 
 import * as idl from '@idlizer/core/idl'
 import { getSuper, IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter,
-    LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
+    LayoutNodeRole, LayoutTargetDescription, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary,
+    PeerMethod } from "@idlizer/core";
 import { getHookMethod, collectDeclDependencies, collectDeclItself, collectPeers, componentToPeerClass,
     findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector,
     peerGeneratorConfiguration, PrinterResult, collectModifiers,
@@ -103,7 +104,7 @@ class ModifiersFileVisitor {
 
     generateAttributeSetParentName(modifier: ModifierInfo): string | undefined {
         if (modifier.parent) {
-            return this.generateAttributeSetName(modifier.parent)
+            return this.generateAuxiliaryClassName(modifier.parent)
         }
     }
 
@@ -112,7 +113,7 @@ class ModifiersFileVisitor {
     }
 
     generateAttributeSetDerivedName(modifier: ModifierInfo): string {
-        return `${modifier.peer.componentName}Modifier`
+        return modifier.modifier ? modifier.modifier.name : `${modifier.peer.componentName}Modifier`
     }
 
     generateAttributeSetName(modifier: ModifierInfo): string {
@@ -120,6 +121,12 @@ class ModifiersFileVisitor {
             return this.generateAttributeSetBaseName(modifier)
         }
         return this.generateAttributeSetDerivedName(modifier)
+    }
+
+    generateAuxiliaryClassName(modifier: ModifierInfo): string {
+        return modifier.modifier ?
+            `${modifier.modifier.name}Functions` :
+            `${modifier.peer.componentName}ModifierFunctions`
     }
 
     generateOptimizerParentName(peer: PeerClass): string | undefined {
@@ -185,6 +192,17 @@ class ModifiersFileVisitor {
         collectDeclItself(this.library, parentComponent.attributeDeclaration, importsCollector)
     }
 
+    private getLayoutTargetDescription(
+        modifier: ModifierInfo,
+        isInterface: boolean,
+        component: idl.IDLInterface): LayoutTargetDescription {
+        return {
+            node: (modifier.modifier !== undefined && modifier.isTrivial) ? modifier.modifier : component,
+            role: isInterface ? LayoutNodeRole.INTERFACE : LayoutNodeRole.MODIFIER_FUNCTIONS,
+            hint: 'component.modifier'
+        }
+    }
+
     printImports(modifier: ModifierInfo): ImportsCollector {
         const peer = modifier.peer
         const component = findComponentByName(this.library, peer.componentName)!
@@ -194,8 +212,15 @@ class ModifiersFileVisitor {
         }
         let parentModifier = modifier.parent
         while (parentModifier) {
-            const parentModifierName = this.generateAttributeSetName(parentModifier)
-            importsCollector.addFeature(parentModifierName, `./${parentModifierName}`)
+            const parentComponent = findComponentByName(this.library, parentModifier.peer.componentName)
+            if (parentComponent === undefined) {
+                continue
+            }
+            const layoutTarget = this.getLayoutTargetDescription(
+                parentModifier, false, parentComponent.attributeDeclaration)
+            const location = this.library.layout.resolve(layoutTarget)
+            const parentModifierName = this.generateAuxiliaryClassName(parentModifier)
+            importsCollector.addFeature(parentModifierName, location)
             parentModifier = parentModifier.parent
         }
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('ModifierState')), importsCollector)
@@ -245,9 +270,8 @@ class ModifiersFileVisitor {
     needCollectParentMethods(modifier: ModifierInfo): boolean {
         const peer = modifier.peer
         const component = findComponentByName(this.library, peer.componentName)!
-        const parent = this.generateAttributeSetParentName(modifier)
         let counter = 0
-        if (parent) {
+        if (modifier.parent) {
             let [parentRef] = component.attributeDeclaration.inheritance
             let parentDecl = this.library.resolveTypeReference(parentRef)
             while (parentDecl) {
@@ -328,26 +352,36 @@ class ModifiersFileVisitor {
         return !idl.isPrimitiveType(attribute.method.method.signature.returnType, 'this')
     }
 
-    printApplyModifierPatch(peer: PeerClass, writer: LanguageWriter, component: IdlComponentDeclaration, attributeTypes: Array<AttributeType>, parentSet: string | undefined, collectedHooks: string[]) {
+    printApplyModifierPatch(
+        peer: PeerClass,
+        writer: LanguageWriter,
+        component: IdlComponentDeclaration,
+        attributeTypes: Array<AttributeType>,
+        hasParent: boolean,
+        collectedHooks: string[],
+        changeName: boolean) {
         const totalCount = attributeTypes.length;
         const batchSize = 20;
         const batchCount = Math.ceil(totalCount / batchSize);
 
-        writer.writeMethodImplementation(new Method(`applyModifierPatch`,
-            new MethodSignature(idl.createPrimitiveType('void'), [idl.createReferenceType("PeerNode")], [], [], [], ['node'])),
+        const methodName = changeName ? `applyModifierPatch${peer.componentName}` : `applyModifierPatch`
+        writer.writeMethodImplementation(new Method(methodName,
+            new MethodSignature(idl.createPrimitiveType('void'), [idl.createReferenceType("arkui.PeerNode.PeerNode")], [], [], [], ['node'])),
             writer => {
-                if (parentSet) writer.print('super.applyModifierPatch(node)');
+                if (hasParent) {
+                    writer.print(`super.applyModifierPatch${peer.parentComponentName}(node)`);
+                }
                 writer.print(`this._state.addRef()`);
                 writer.print(`const peer = node as ${componentToPeerClass(component.name)};`)
                 writer.print(`const flagArray = this.${this.generateFilledFlagName(peer)};`);
                 for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
-                    writer.print(`this.applyModifierPatch${batchIndex}(peer, flagArray);`);
+                    writer.print(`this.${methodName}${batchIndex}(peer, flagArray);`);
                 }
             }
         )
 
         for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
-            writer.print(`applyModifierPatch${batchIndex}(peer: ${componentToPeerClass(component.name)}, flagArray: Uint8Array): void {`)
+            writer.print(`${methodName}${batchIndex}(peer: ${componentToPeerClass(component.name)}, flagArray: Uint8Array): void {`)
             writer.pushIndent()
             {
                 const start = batchIndex * batchSize;
@@ -421,26 +455,35 @@ class ModifiersFileVisitor {
         }
     }
 
-    printMergeModifier(peer: PeerClass, writer: LanguageWriter, modifierName: string, attributeTypes: Array<AttributeType>, parentSet: string | undefined) {
+    printMergeModifier(
+        peer: PeerClass,
+        writer: LanguageWriter,
+        modifierName: string,
+        attributeTypes: Array<AttributeType>,
+        hasParent: boolean,
+        changeName: boolean) {
         const totalCount = attributeTypes.length;
         const batchSize = 20;
         const batchCount = Math.ceil(totalCount / batchSize);
 
-        writer.print(`mergeModifier(modifier: ${modifierName}): void {`)
+        const methodName = changeName ? `mergeModifier${peer.componentName}` : `mergeModifier`
+        writer.print(`${methodName}(modifier: ${modifierName}): void {`)
         writer.pushIndent()
         {
-            if (parentSet) writer.print('super.mergeModifier(modifier)');
+            if (hasParent) {
+                writer.print(`super.mergeModifier${peer.parentComponentName}(modifier)`);
+            }
             writer.print(`this._state = modifier._state;`);
             writer.print(`const flagArray = modifier.${this.generateFilledFlagName(peer)};`);
             for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
-                writer.print(`this.mergeModifier${batchIndex}(modifier, flagArray);`);
+                writer.print(`this.${methodName}${batchIndex}(modifier, flagArray);`);
             }
         }
         writer.popIndent()
         writer.print(`}`)
 
         for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
-            writer.print(`mergeModifier${batchIndex}(modifier: ${modifierName}, flagArray: Uint8Array): void {`)
+            writer.print(`${methodName}${batchIndex}(modifier: ${modifierName}, flagArray: Uint8Array): void {`)
             writer.pushIndent()
             {
                 const start = batchIndex * batchSize;
@@ -518,12 +561,27 @@ class ModifiersFileVisitor {
     printModifiers(modifierInfo: ModifierInfo): PrinterResult[] {
         const peer = modifierInfo.peer
         const component = findComponentByName(this.library, peer.componentName)!
-        const generate: PrinterResult['generate'] = () => {
+        const isAbstract = !modifierInfo.isParent && !(modifierInfo.isTrivial ?? true)
+        const modifierName = this.generateAttributeSetName(modifierInfo)
+        const baseModifierMethods = [
+            'applyNormalAttribute',
+            'applyPressedAttribute',
+            'applyFocusedAttribute',
+            'applyDisabledAttribute',
+            'applySelectedAttribute'
+        ]
+        const componentAttribute = component.attributeDeclaration;
+        let abstractMethods = modifierInfo.modifier?.methods ?? []
+        const classWithLogicName = modifierInfo.isParent ?
+            this.generateAuxiliaryClassName(modifierInfo) :
+            modifierName
+        const generateLogic: PrinterResult['generate'] = () => {
             const printer = this.library.createLanguageWriter();
             const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
-            const componentAttribute = component.attributeDeclaration;
             const compAttributteConverted = nameConvertor.convert(componentAttribute)
-            const parentSet = this.generateAttributeSetParentName(modifierInfo)
+            let extendsInterface: string[] = this.hasHeirs(peer) ?
+                [`${compAttributteConverted}`] :
+                [`${compAttributteConverted}`, `AttributeModifier<${compAttributteConverted}>`]
 
             const attributeTypes: Array<AttributeType> = new Array
 
@@ -533,29 +591,14 @@ class ModifiersFileVisitor {
 
             this.collectAttributes(peer, attributeTypes)
 
-            let extendsInterface: string[] = []
             const collectedHooks: string[] = []
 
-            if (!this.hasHeirs(peer)) {
-                extendsInterface = [`${compAttributteConverted}`, `AttributeModifier<${compAttributteConverted}>`]
-            } else {
-                extendsInterface = [`${compAttributteConverted}`]
-            }
-            let abstractMethods = modifierInfo.modifier?.methods ?? []
-            const baseModifierMethods = [
-                'applyNormalAttribute',
-                'applyPressedAttribute',
-                'applyFocusedAttribute',
-                'applyDisabledAttribute',
-                'applySelectedAttribute'
-            ]
             abstractMethods = abstractMethods.filter(method => {
                 return (!baseModifierMethods.includes(method.name) || method.parameters.length != 1)
             })
-            const modifierName = this.generateAttributeSetName(modifierInfo)
-            const isAbstract = !(modifierInfo.isTrivial ?? true)
+            const parentSet = this.generateAttributeSetParentName(modifierInfo)
 
-            printer.writeClass(modifierName, (writer) => {
+            printer.writeClass(classWithLogicName, (writer) => {
                 if (!this.hasParent(peer)) {
                     writer.print("_instanceId: number = -1;")
                     writer.print("_state: ModifierState = new ModifierState;")
@@ -573,7 +616,7 @@ class ModifiersFileVisitor {
 
                 writer.print(`constructor() {`)
                 writer.pushIndent()
-                if (parentSet) writer.print(`super();`)
+                if (modifierInfo.parent) writer.print(`super();`)
                 writer.print(`this.${this.generateFilledFlagName(peer)}.fill(0);`)
                 writer.popIndent()
                 writer.print(`}`)
@@ -588,10 +631,11 @@ class ModifiersFileVisitor {
                     )
                 }
 
-                if (!this.hasHeirs(peer)) {
+                if (!modifierInfo.isParent) {
                     writer.print(`isUpdater: () => boolean = () => false`)
                     baseModifierMethods.forEach(method => {
-                        writer.print(`${method}(instance: ${compAttributteConverted}): void { }`)
+                        const methodName = modifierInfo.isParent ? `${method}${peer.componentName}` : method
+                        writer.print(`${methodName}(instance: ${compAttributteConverted}): void { }`)
                     })
                 }
                 attributeTypes.forEach((attribute, index) => {
@@ -602,8 +646,8 @@ class ModifiersFileVisitor {
                     })
                 })
 
-                this.printApplyModifierPatch(peer, writer, component, attributeTypes, parentSet, collectedHooks)
-                this.printMergeModifier(peer, writer, modifierName, attributeTypes, parentSet)
+                this.printApplyModifierPatch(peer, writer, component, attributeTypes, modifierInfo.parent !== undefined, collectedHooks, modifierInfo.isParent)
+                this.printMergeModifier(peer, writer, classWithLogicName, attributeTypes, modifierInfo.parent !== undefined, modifierInfo.isParent)
 
                 attributeTypes.forEach((attribute, index) => {
                     printer.writeMethodImplementation(attribute.method.method, (writer) => {
@@ -650,17 +694,21 @@ class ModifiersFileVisitor {
                     })
                 })
                 const attributeModifierSignature = generateAttributeModifierSignature(this.library, component)
-                writer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
+                const attributeModifierMethodName = modifierInfo.isParent ? `attributeModifier${peer.componentName}` : `attributeModifier`
+                writer.writeMethodImplementation(new Method(attributeModifierMethodName, attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
                     writer.writeStatement(writer.makeThrowError("Not implemented"))
                 })
-                abstractMethods.forEach((method => {
-                    const signature = new MethodSignature(method.returnType,
-                        method.parameters.map(param => param.type),
-                        undefined, undefined, undefined,
-                        method.parameters.map(param => param.name))
-                    writer.writeMethodDeclaration(method.name, signature, [MethodModifier.ABSTRACT])
-                }))
-            }, parentSet, extendsInterface, undefined, undefined, abstractMethods.length > 0)
+                if (!modifierInfo.isParent) {
+                    abstractMethods.forEach((method => {
+                        const signature = new MethodSignature(method.returnType,
+                            method.parameters.map(param => param.type),
+                            undefined, undefined, undefined,
+                            method.parameters.map(param => param.name))
+                        writer.writeMethodDeclaration(method.name, signature, [MethodModifier.ABSTRACT])
+                    }))
+                }
+            }, parentSet, modifierInfo.isParent ? [compAttributteConverted] : extendsInterface, undefined, undefined, !modifierInfo.isParent && abstractMethods.length > 0)
+
             const collector = this.printImports(modifierInfo)
             collector.addFeatures(collectedHooks, HandwrittenModule(this.library.language))
 
@@ -670,14 +718,77 @@ class ModifiersFileVisitor {
             }
         }
 
-        return [{
-            generate,
-            over: {
-                node: component.attributeDeclaration,
-                role: LayoutNodeRole.COMPONENT,
-                hint: 'component.modifier'
+        const needInterface = modifierInfo.modifier !== undefined && modifierInfo.isTrivial === true
+        const logicPrinter: PrinterResult = {
+            generate: generateLogic,
+            over: this.getLayoutTargetDescription(modifierInfo, needInterface, component.attributeDeclaration)
+        }
+        let results = [ logicPrinter ]
+
+        // If the corresponding component has heirs requiring modifiers, modifier interface should be generated
+        // separately
+        if (modifierInfo.modifier && modifierInfo.isParent) {
+            const generateInterface: PrinterResult['generate'] = () => {
+                const printer = this.library.createLanguageWriter()
+                const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
+                const compAttributteConverted = nameConvertor.convert(componentAttribute)
+
+                let extendsInterface: string[] = [
+                    `${compAttributteConverted}`, `AttributeModifier<${compAttributteConverted}>`
+                ]
+                printer.writeClass(modifierName, (writer) => {
+                    if (!(modifierInfo.isTrivial ?? true)) {
+                        writer.writeStaticInitBlock(writer => {
+                            writer.print(
+                                `const _check: ${
+                                    this.generateAttributeSetDerivedName(modifierInfo)} | undefined = undefined`)
+                        })
+                    }
+                    writer.print(`isUpdater: () => boolean = () => false`)
+                    for (const method of baseModifierMethods) {
+                        writer.print(`${method}(instance: ${compAttributteConverted}): void { }`)
+                    }
+                    writer.writeMethodImplementation(new Method(`applyModifierPatch`,
+                        new MethodSignature(
+                            idl.createPrimitiveType('void'),
+                            [idl.createReferenceType("arkui.PeerNode.PeerNode")],
+                            [], [], [], ['node'])),
+                        writer => {
+                            writer.print(`super.applyModifierPatch${peer.componentName}(node)`)
+                        }
+                    )
+                    writer.print(
+                        `mergeModifier(modifier: ${this.generateAttributeSetDerivedName(modifierInfo)}): void {`)
+                    writer.pushIndent()
+                    {
+                        writer.print(`super.mergeModifier${peer.componentName}(modifier)`)
+                    }
+                    writer.popIndent()
+                    writer.print('}')
+                    abstractMethods.forEach((method => {
+                        const signature = new MethodSignature(method.returnType,
+                            method.parameters.map(param => param.type),
+                            undefined, undefined, undefined,
+                            method.parameters.map(param => param.name))
+                        writer.writeMethodDeclaration(method.name, signature, [MethodModifier.ABSTRACT])
+                    }))
+                }, classWithLogicName, extendsInterface, undefined, undefined, abstractMethods.length > 0)
+
+                const collector = this.printImports(modifierInfo)
+
+                return {
+                    content: printer,
+                    imports: collector,
+                }
             }
-        }]
+
+            results.push({
+                generate: generateInterface,
+                over: this.getLayoutTargetDescription(modifierInfo, true, component.attributeDeclaration)
+            })
+        }
+
+        return results
     }
 }
 

@@ -41,7 +41,7 @@ import { isComponentDeclaration } from '../ComponentsCollector.js'
 import { DependenciesCollector, KotlinDependenciesCollector } from '../idl/IdlDependenciesCollector.js'
 import { ImportsCollector, ImportFeature } from '../ImportsCollector.js'
 import { convertDeclToFeature, collectDeclDependencies } from '../ImportsCollectorUtils.js'
-import { isModifier } from '../ModifiersCollector.js'
+import { getComponentIfModifier } from '../ModifiersCollector.js'
 import { collectAllProperties, getAllSuperProps } from '../propertyCollectors.js'
 
 export interface InterfacesVisitor {
@@ -738,7 +738,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
         return idl.isInterface(entry) && !this.isDeclarationFile && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
-            || isModifier(entry, this.peerLibrary)
+            || getComponentIfModifier(entry, this.peerLibrary) !== undefined
             || ((idl.isTypedef(entry)
                 || idl.isCallback(entry)
                 || idl.isInterface(entry)
@@ -1207,7 +1207,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
         return idl.isInterface(entry) && isMaterialized(entry, this.peerLibrary)
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
-            || isModifier(entry, this.peerLibrary)
+            || getComponentIfModifier(entry, this.peerLibrary) !== undefined
             || (idl.isTypedef(entry)|| idl.isCallback(entry) || idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
             || idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses
     }

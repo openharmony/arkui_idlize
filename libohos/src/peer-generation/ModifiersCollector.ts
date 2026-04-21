@@ -13,15 +13,16 @@
  * limitations under the License.
  */
 import * as idl from "@idlizer/core/idl"
-import { LibraryInterface, PeerClass, PeerLibrary, ReferenceResolver } from "@idlizer/core"
-import { getSuperComponent } from './ComponentsCollector.js'
+import { LibraryInterface, PeerClass, PeerLibrary } from "@idlizer/core"
+import { IdlComponentDeclaration, findComponentByDeclaration, getSuperComponent } from './ComponentsCollector.js'
 import { collectPeers } from './PeersCollector.js'
 import { peerGeneratorConfiguration } from "../DefaultConfiguration.js"
 
 export class ModifierInfo {
     constructor(
         public readonly modifier: idl.IDLInterface | undefined,
-        public readonly peer: PeerClass
+        public readonly peer: PeerClass,
+        public isParent: boolean = false
     ) {}
     public isTrivial?: boolean
     public parent?: ModifierInfo
@@ -36,21 +37,27 @@ class ModifierCollector {
     private modifiers?: Map<string, ModifierInfo>
     private peers: PeerClass[]
 
-    private collectParentModifiers(modifier: ModifierInfo, newModifiers: Map<string, ModifierInfo>) {
-        let parentComponent = getSuperComponent(this.library, modifier.peer.componentName)
+    private collectParentModifiers(
+        componentName: string,
+        modifier: ModifierInfo,
+        newModifiers: Map<string, ModifierInfo>) {
+        let parentComponent = getSuperComponent(this.library, componentName)
         if (parentComponent) {
-            const parentName = parentComponent.name
-            if (this.modifiers?.has(parentName)) {
-                modifier.parent = this.modifiers.get(parentName)!
-            } else if (newModifiers.has(parentName)) {
-                modifier.parent = newModifiers.get(parentName)!
+            if (this.modifiers?.has(parentComponent.name)) {
+                let parentModifier = this.modifiers.get(parentComponent.name)!
+                modifier.parent = parentModifier
+                parentModifier.isParent = true
+            } else if (newModifiers.has(parentComponent.name)) {
+                let parentModifier = newModifiers.get(parentComponent.name)!
+                modifier.parent = parentModifier
+                parentModifier.isParent = true
             } else {
-                const parentPeer = this.peers.find(peer => (peer.componentName === parentName))
+                const parentPeer = this.peers.find(peer => (peer.componentName === parentComponent!.name))
                 if (parentPeer) {
-                    let parentModifier = new ModifierInfo(undefined, parentPeer)
+                    let parentModifier = new ModifierInfo(undefined, parentPeer, true)
                     modifier.parent = parentModifier
-                    newModifiers.set(parentName, parentModifier)
-                    this.collectParentModifiers(parentModifier, newModifiers)
+                    newModifiers.set(parentComponent.name, parentModifier)
+                    this.collectParentModifiers(parentComponent.name, parentModifier, newModifiers)
                 }
             }
         }
@@ -86,10 +93,8 @@ class ModifierCollector {
  	                peerGeneratorConfiguration().isHandWritten(entry.name)) {
                     continue
                 }
-                if (isModifier(entry, this.library)) {
-                    const componentName = (entry.name.endsWith('Modifier')) ?
-                        entry.name.substring(0, entry.name.length - 'Modifier'.length) :
-                        entry.name
+                const componentName = getComponentIfModifier(entry, this.library)
+                if (componentName) {
                     const peer = this.peers.find(peer => (peer.componentName === componentName))
                     if (peer) {
                         this.modifiers.set(componentName, new ModifierInfo(entry, peer))
@@ -98,9 +103,9 @@ class ModifierCollector {
             }
         }
         let newModifiers = new Map<string, ModifierInfo>()
-        for (let modifier of this.modifiers.values()) {
-            this.collectParentModifiers(modifier, newModifiers)
-        }
+        this.modifiers.forEach((modifier, compName) => {
+            this.collectParentModifiers(compName, modifier, newModifiers)
+        })
         for (const [newComp, newModifier] of newModifiers.entries()) {
             this.modifiers.set(newComp, newModifier)
         }
@@ -111,7 +116,7 @@ class ModifierCollector {
     }
 }
 
-export function isModifier(entry: idl.IDLEntry, resolver: ReferenceResolver): boolean {
+export function isModifier(entry: idl.IDLEntry, library: LibraryInterface): boolean {
     if (!idl.isInterface(entry)) {
         return false
     }
@@ -119,15 +124,46 @@ export function isModifier(entry: idl.IDLEntry, resolver: ReferenceResolver): bo
         return true;
     }
     for (const ancestor of entry.inheritance) {
-        const ancestorEntry = resolver.resolveTypeReference(ancestor)
+        const ancestorEntry = library.resolveTypeReference(ancestor)
         if (ancestorEntry?.name === 'AttributeModifier') {
             return true
         }
-        if (ancestorEntry && isModifier(ancestorEntry, resolver)) {
+        if (ancestorEntry && isModifier(ancestorEntry, library)) {
             return true
         }
     }
     return false
+}
+
+export function getComponentIfModifier(
+    entry: idl.IDLEntry,
+    library: LibraryInterface): string | undefined {
+    if (!idl.isInterface(entry)) {
+        return undefined
+    }
+    for (const ancestor of entry.inheritance) {
+        const ancestorEntry = library.resolveTypeReference(ancestor)
+        if (ancestorEntry?.name === 'AttributeModifier') {
+            if (ancestor.typeArguments?.length) {
+                const componentRef = ancestor.typeArguments[0]
+                if (idl.isReferenceType(componentRef)) {
+                    let componentEntry = library.resolveTypeReference(componentRef)
+                    while (componentEntry && idl.isTypedef(componentEntry)) {
+                        const typedefType = componentEntry.type
+                        if (idl.isReferenceType(typedefType)) {
+                            componentEntry = library.resolveTypeReference(typedefType)
+                        } else {
+                            break
+                        }
+                    }
+                    if (componentEntry && idl.isInterface(componentEntry)) {
+                        return findComponentByDeclaration(library, componentEntry)?.name
+                    }
+                }
+            }
+        }
+    }
+    return undefined
 }
 
 export function isNonTrivialModifier(entry: idl.IDLEntry, library: PeerLibrary) {

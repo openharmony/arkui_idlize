@@ -31,10 +31,6 @@ export function HandwrittenModule(language: Language, isSdk = false) {
     }
 }
 
-function modifierNameGenerator(name: string): string {
-    return name.replaceAll("Attribute", "" ).concat("Modifier")
-}
-
 function toFileName(name:string) {
     return name.split(/[_-]/gi).map(it => idl.capitalize(it)).join('')
 }
@@ -150,16 +146,15 @@ export class ArkTsLayout extends CommonLayoutBase {
         if (target.hint === 'component.handwritten') {
             return 'handwritten/modifiers/hooks'
         }
-        if (target.hint === 'component.modifier') {
-            return modifierNameGenerator(target.node.name)
-        }
         if (target.node.name === NativeModule.Generated.name)
             return `#components`
         if (this.arkTSInternalPaths.has(target.node.name))
             return this.arkTSInternalPaths.get(target.node.name)!
 
         if (this.library.isHandwritten(target.node)) {
-            return HandwrittenModule(this.library.language, this.isSdk)
+            if (target.hint !== 'component.modifier' || target.role === LayoutNodeRole.INTERFACE) {
+                return HandwrittenModule(this.library.language, this.isSdk)
+            }
         }
 
         const moduleImport = getModuleImport(target.node, target.role, Language.ARKTS)
