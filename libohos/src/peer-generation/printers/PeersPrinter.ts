@@ -206,16 +206,13 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     const returnConvertor = library.typeConvertor(returnValName, returnType)
     const valueVarName = 'returnResult'
     let needReturnType: IDLType = returnType
-    const optionalNeedReturnType = idl.createOptionalType(needReturnType)
     const resultStmts = [
-        writer.makeAssign(valueVarName, optionalNeedReturnType, writer.makeNull(optionalNeedReturnType), true, false),
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
             (expr) => writer.makeAssign(valueVarName, returnType, expr, true),
             writer
         ),
-        writer.makeReturn(writer.makeString(valueVarName))
     ]
     if (library.language === Language.ARKTS) {
         resultStmts.push(writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),)
