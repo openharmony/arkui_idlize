@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, E, LWStatement, Md, S, T, Ts, lw } from "@idlizer/ost"
+import { Builders, E, LWStatement, Md, S, T, lw } from "@idlizer/ost"
 import { expectExpr, expectType, managedName } from "../common.js"
 import { argConvertor } from "../components/argConvertor.js"
 import { createProducer } from "../../engine/index.js"
@@ -22,14 +22,14 @@ import { maybeRestoreThrows } from "@idlizer/core"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'managed' },
-  (method, ctx) => {
+  (method, ctx, role, data) => {
     const declName = method.isFree
       ? managedName(idl.getFQName(method))
       : idl.getExtAttribute(method, idl.IDLExtendedAttributes.DtsName) ?? method.name
     const serializerName = 'serializer'
     const restoredType = maybeRestoreThrows(method.returnType, ctx.library)
     const returnType = expectType(ctx, restoredType ?? method.returnType, 'managed')
-    const nativeModuleCall = Builders.call(expectExpr(ctx, method, 'native-module'))
+    const nativeModuleCall = Builders.call(expectExpr(ctx, method, 'native-module', data))
       .arg().call('asBuffer').receiver(serializerName).$().$()
       .arg().call('length').receiver(serializerName).$().$().$()
     if (!method.isFree && !method.isStatic) {
@@ -76,10 +76,10 @@ export const functionProducer = createProducer(
 
 export const constructorProducer = createProducer(
   { is: idl.isConstructor, role: 'managed' },
-  (ctor, ctx) => {
+  (ctor, ctx, role, data) => {
     const className = managedName(idl.getFQName(ctor.parent!))
     const serializerName = 'serializer'
-    const nativeModuleCall = Builders.call(expectExpr(ctx, ctor, 'native-module'))
+    const nativeModuleCall = Builders.call(expectExpr(ctx, ctor, 'native-module', data))
       .arg().call('asBuffer').receiver(serializerName).$().$()
       .arg().call('length').receiver(serializerName).$().$().$()
     const body: LWStatement[] = [
