@@ -204,16 +204,32 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     )
 
     const returnConvertor = library.typeConvertor(returnValName, returnType)
-    const returnResultValName = "returnResult"
-    return [
+    const valueVarName = 'returnResult'
+    let needReturnType: IDLType = returnType
+    const optionalNeedReturnType = idl.createOptionalType(needReturnType)
+    const resultStmts = [
+        writer.makeAssign(valueVarName, optionalNeedReturnType, writer.makeNull(optionalNeedReturnType), true, false),
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
-            (expr) => writer.makeAssign(returnResultValName, returnType, expr, true),
+            (expr) => writer.makeAssign(valueVarName, returnType, expr, true),
             writer
         ),
-        writer.makeReturn(writer.makeString(returnResultValName))
+        writer.makeReturn(writer.makeString(valueVarName))
     ]
+    if (library.language === Language.ARKTS) {
+        resultStmts.push(writer.makeStatement(writer.makeMethodCall(deserializerName, 'dispose', [])),)
+    }
+    if (library.language === Language.ARKTS) {
+        resultStmts.push(writer.makeReturn(writer.makeCast(writer.makeString(valueVarName), needReturnType)))
+    } else {
+        if (idl.isOptionalType(needReturnType)) {
+            resultStmts.push(writer.makeReturn(writer.makeString(valueVarName)))
+        } else {
+            resultStmts.push(writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(valueVarName))))
+        }
+    }
+    return resultStmts
 }
 
 function makeDeserializerInstance(returnValName: string, language: Language) {
