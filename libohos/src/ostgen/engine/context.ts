@@ -75,7 +75,7 @@ export interface OhosEffect {
 
 export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>
 export type OhosProducer<N extends idl.IDLNode, R=OhosRole<N>> =
-    (type: N, ctx: OhosProducerContext, role: R, data?: OhosSeedData<N, R>) => ProducerResult
+    (type: N, ctx: OhosProducerContext, role: R, data?: OhosSeedData<N>) => ProducerResult
 
 type CommonRole = 'managed' | 'capi'
 type SpecificRole<N extends idl.IDLNode> =
@@ -86,22 +86,18 @@ type SpecificRole<N extends idl.IDLNode> =
   never
 export type OhosRole<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
-export type OhosSeedData<N extends idl.IDLNode, R=OhosRole<N>> =
-    N extends idl.IDLMethod ? { overrideIndex?: number } :///simplify
+export type OhosSeedData<N extends idl.IDLNode> =
+    N extends idl.IDLMethod ? { overrideIndex?: number } :
     N extends idl.IDLConstructor ? { overrideIndex?: number } :
-    N extends idl.IDLEntry ?
-        R extends 'managed' ? { typeArgs?: idl.IDLType[] } :
-        never :
-    N extends idl.IDLType ?
-        R extends 'initializer' ? { name?: string } :
-        never :
+    N extends idl.IDLEntry ? { typeArgs?: idl.IDLType[] } :
+    N extends idl.IDLType ? { name?: string } :
     never
 
 export class OhosSeed<N extends idl.IDLNode, R=OhosRole<N>> extends Seed {
   constructor(
     public node: N,
     public role: R,
-    public data?: OhosSeedData<N, R>
+    public data?: OhosSeedData<N>
   ) {
     super()
   }
