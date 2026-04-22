@@ -411,7 +411,7 @@ class DeserializeCallbacksVisitor {
                 const deserializeFunctionReference = this.writer.language === Language.KOTLIN
                     ? "::deserializeAndCallCallback" : "deserializeAndCallCallback"
                 writer.writeExpressionStatement(writer.makeFunctionCall(`registerApiEventHandler`, [
-                    writer.makeString('API_KIND'),
+                    writer.makeString(peerGeneratorConfiguration().ApiKind.toString()),
                     writer.makeString(deserializeFunctionReference),
                 ]))
             })
