@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Builders, LWExpression, LWType, T, Ts } from "@idlizer/ost"
+import { Builders, FunctionDeclaration, LWExpression, LWType, Md, T, Ts } from "@idlizer/ost"
 import { cApiName, implName } from "../common.js";
 import { createProducer, fqName, mapPush, moduleName } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js";
@@ -35,9 +35,9 @@ export const functionProducer = createProducer(
         Builders.struct(cApiName(modifierClassName(method) + 'Modifier'))
           .field(funcName)
             .funcType()
-            .parameters(params(ctx, method))
+            .parameters(makeParameters(ctx, method))
             .returns(returnType).$().$().$(),
-        generateImpl(ctx, method, returnType)
+        makeImpl(ctx, method, returnType)
       ]
     }
   }
@@ -47,25 +47,19 @@ export const constructorProducer = createProducer(
   { is: idl.isConstructor, role: 'capi' },
   (ctor, ctx) => {
     const funcName = '_construct'
-    const params = ctor.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
     return {
       continuation: apiAccessor(ctor, funcName, ctx),
       declarations: [
         Builders.struct(cApiName(modifierClassName(ctor) + 'Modifier'))
           .field(funcName)
             .funcType()
-            .parameters(params)
+            .parameters(makeParameters(ctx, ctor))
             .returns(Ts.prim.pointer).$().$().$(),
-        generateImpl(ctx, ctor, Ts.prim.pointer)
+        makeImpl(ctx, ctor, Ts.prim.pointer)
       ]
     }
   }
 )
-
-function wrapPtr(type: idl.IDLType, ctx: OhosProducerContext): LWType {
-    const typeRef = expectType(ctx, type, 'capi')
-    return argConvertor(ctx, type).isPointer() ? Ts.const(Ts.ptr(typeRef)) : typeRef
-}
 
 function modifierClassName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor): string {
   return idl.isInterface(node)
@@ -84,17 +78,22 @@ function apiAccessor(method: idl.IDLMethod | idl.IDLConstructor, name: string, c
         .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
 }
 
-function generateImpl(ctx: OhosProducerContext, method: idl.IDLMethod | idl.IDLConstructor, returnType: LWType) {
+function makeImpl(ctx: OhosProducerContext, method: idl.IDLMethod | idl.IDLConstructor, returnType: LWType) {
   return Builders.func(implName(fqName(method) + 'Impl'))
     .returns(returnType)
-    .parameters(params(ctx, method)).$()
+    .parameters(makeParameters(ctx, method)).$()
 }
 
-function params(
+function makeParameters(
   ctx: OhosProducerContext,
   method: idl.IDLMethod | idl.IDLConstructor
-): { name: string, type: LWType }[] {
-  let params = method.parameters.map(it => ({ name: it.name, type: wrapPtr(it.type, ctx) }))
+): FunctionDeclaration['parameters'] {
+  const params = method.parameters.map(param => {
+    const rawType = expectType(ctx, param.type, 'capi')
+    const maybeOptType = param.isOptional ? Ts.optional(rawType) : rawType
+    const maybePtrType = argConvertor(ctx, param.type, param.isOptional).isPointer() ? Ts.const(Ts.ptr(maybeOptType)) : maybeOptType
+    return { name: param.name, type: maybePtrType }
+  })
   if (!idl.isConstructor(method) && !method.isFree && !method.isStatic)
     params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
   const isPromise = idl.isMethod(method) && idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)

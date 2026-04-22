@@ -664,6 +664,9 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
 }
 
 class OptionalConvertor extends StructConvertor<idl.IDLOptionalType> {
+    isPointer(): boolean {
+        return true
+    }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         const isUndefinedCondition = native
             ? Builders.binary(Op.eq).left().access('tag').receiver(accessor).$().$().right('INTEROP_TAG_UNDEFINED').$()

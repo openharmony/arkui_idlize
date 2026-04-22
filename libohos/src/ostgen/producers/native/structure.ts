@@ -42,15 +42,12 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
     Builders.struct(name)
       .fields(collectProperties(node, ctx.library).map(prop => {
         const modifiers = [
-          ...prop.isOptional ? [Md.optional()] : [],
           ...prop.isReadonly ? [Md.readonly()] : [],
           ...prop.isStatic ? [Md.static()] : [],
         ]
-        return {
-          name: prop.name,
-          type: expectType(ctx, prop.type, 'capi'),
-          modifiers,
-        }
+        const rawType = expectType(ctx, prop.type, 'capi')
+        const type = prop.isOptional ? Ts.optional(rawType) : rawType
+        return { name: prop.name, type, modifiers }
       })).$()
   ]
 }

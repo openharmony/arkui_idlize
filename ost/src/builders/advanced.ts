@@ -1545,12 +1545,13 @@ class BlockBuilder<P> {
  * ```
  */
 class ParamBuilder<P> {
+    private _modifiers: Modifier[] = []
     /**
      * @param _cont - Continuation function that receives the parameter name and type
      * @param _name - Parameter name
      */
     constructor(
-        private _cont: (name: string, type: LWType) => P,
+        private _cont: (name: string, type: LWType, modifiers: Modifier[]) => P,
         private _name: string
     ) {}
     private _type?: LWType
@@ -1561,6 +1562,8 @@ class ParamBuilder<P> {
      * @returns This builder for chaining
      */
     type(type: LWType | string) { this._type = typeof type === 'string' ? T.c(type) : type; return this }
+    optional() { this._modifiers.push(Md.optional()); return this }
+    private() { this._modifiers.push(Md.private()); return this }
     /**
      * Finalize the builder and return the parameter to the parent builder.
      *
@@ -1569,7 +1572,7 @@ class ParamBuilder<P> {
      */
     $(): P {
         check("Parameter", this._type)
-        return this._cont(this._name, this._type!)
+        return this._cont(this._name, this._type!, this._modifiers)
     }
 }
 
@@ -1593,7 +1596,7 @@ class FunctionTypeBuilder<P> {
      * @param _cont - Continuation function that receives the built functional type
      */
     constructor(private _cont: (type: FunctionalType) => P) {}
-    private _parameters: {name: string, type: LWType}[] = []
+    private _parameters: FunctionDeclaration['parameters'] = []
     private _returnType?: LWType
     /**
      * Set the return type for the functional type.
@@ -1617,8 +1620,8 @@ class FunctionTypeBuilder<P> {
      * @returns ParamBuilder for deferred parameter type specification
      */
     param(name: string): ParamBuilder<FunctionTypeBuilder<P>> {
-        return new ParamBuilder((name, type) => {
-            this._parameters.push({name, type})
+        return new ParamBuilder((name, type, modifiers) => {
+            this._parameters.push({name, type, modifiers})
             return this
         }, name)
     }
@@ -1720,8 +1723,8 @@ class FunctionBuilder<P> {
      * @returns ParamBuilder for deferred parameter type specification
      */
     param(name: string): ParamBuilder<FunctionBuilder<P>> {
-        return new ParamBuilder((name, type) => {
-            this._parameters.push({name, type})
+        return new ParamBuilder((name, type, modifiers) => {
+            this._parameters.push({name, type, modifiers})
             return this
         }, name)
     }

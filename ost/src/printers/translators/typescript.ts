@@ -641,7 +641,12 @@ export class TSPrinter {
             if (i > 0) {
               this.p.put(',', ' ')
             }
+            param.modifiers
+              ?.filter(mod => mod.name !== std.names.modifiers.optional)
+              .forEach(mod => this.p.put(mod.name, ' '))
             this.p.put(param.name)
+            if (param.modifiers?.find(mod => mod.name === std.names.modifiers.optional))
+              this.p.put('?')
             this.p.put(':', ' ')
             this.printType(param.type)
             if (param.expression) {

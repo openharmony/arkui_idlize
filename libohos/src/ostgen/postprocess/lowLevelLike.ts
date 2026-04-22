@@ -20,7 +20,6 @@ import { callbackKindDeclaration, monoName } from "./postprocess.js"
 import { bridgeName, C_API_PREFIX, cApiName, implName } from "../producers/common.js"
 
 export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>, callbacks: string[]): Map<string, lw.LWDeclaration[]> {
-    decls = introduceOptionalTypes(decls)
     decls = introduceCallbackCaller(decls, callbacks)
     decls = monomorphizeGenerics(decls)
     decls = monomorphizeAlgebraicTypes(decls)
@@ -30,23 +29,6 @@ export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, st
     if (capi)
         files.set(C_API_PREFIX, sortDeclarationsByDependency(capi))
     return files
-}
-
-class MakeOptional extends IdentityTransformer {
-    override goStructureDeclaration(decl: lw.StructureDeclaration): lw.StructureDeclaration {
-        decl.members.forEach(field => {
-            if (field.modifiers?.find(it => it.name === std.names.modifiers.optional))
-                field.type = Ts.optional(field.type)
-        })
-        return decl
-    }
-    go(decls: lw.LWDeclaration[]) {
-        return decls.map(decl => this.goDeclaration(decl))
-    }
-}
-
-function introduceOptionalTypes(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    return new MakeOptional().go(decls)
 }
 
 function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[]): lw.LWDeclaration[] {

@@ -42,8 +42,7 @@ export const functionProducer = createProducer(
     const body = [
       Builders.decl(serializerName, T.c('SerializerBase'))
         .value().call('hold').receiver('SerializerBase').$().$().$(),
-      ...[...method.parameters, ...promiseParam]
-      .flatMap(param =>
+      ...[...method.parameters, ...promiseParam].flatMap(param =>
         argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
       isVoid
         ? S.e(nativeModuleCall)
@@ -52,7 +51,8 @@ export const functionProducer = createProducer(
       ...argConvertor(ctx, method.returnType).returnFromInterop('retval')
     ]
     const funcDecl = Builders.func(declName)
-      .parameters(method.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') })))
+      .parameters(method.parameters.map(it =>
+        ({ name: it.name, type: expectType(ctx, it.type, 'managed'), modifiers: it.isOptional ? [Md.optional()] : [] })))
       .returns(returnType)
       .block().statements(body).$().$()
     switch (idl.getExtAttribute(method, idl.IDLExtendedAttributes.Accessor)) {
@@ -94,7 +94,8 @@ export const constructorProducer = createProducer(
       continuation: E.v(className),
       declarations: [
         Builders.class(className).ctor()
-          .parameters(ctor.parameters.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') })))
+          .parameters(ctor.parameters.map(it =>
+            ({ name: it.name, type: expectType(ctx, it.type, 'managed'), modifiers: it.isOptional ? [Md.optional()] : [] })))
           .block()
             .statements(body)
             .call('this')
