@@ -18,7 +18,8 @@ import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGeneric
     getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression,
     DelegationCall, getInternalClassName, LanguageWriter, LayoutNodeRole, MaterializedClass, MaterializedField,
     qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics,
-    PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary } from '@idlizer/core'
+    PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary, 
+    stateToAccessor} from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -115,7 +116,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         for (const mField of clazz.fields) {
             const f = mField.field
             const isStatic = f.modifiers.includes(FieldModifier.STATIC)
-            if (!mField.state.isAccessor && !isStatic) {
+            const state = stateToAccessor(clazz.decl, writer.language, mField.state)
+            if (!state.isAccessor && !isStatic) { 
                 const initializer = this.printer.makeMethodCall(receiver.asString(), `get${capitalize(f.name)}`, [])
                 writer.writeStatement(
                     writer.makeAssign(f.name, f.type, initializer, false, false, { receiver: receiver.asString() })
@@ -180,7 +182,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     printCollapsedCtor(clazz: MaterializedClass, ctor: Method, ctorPostfix: string, superClassName?: string) {
-        const hasSuperClass = (superClassName != undefined)
+        const hasMaterializedSuperClass = isSuperClassMaterialized(this.library, clazz.superClass)
         const peerPtr = "peerPtr"
         const unwrapPeerPtr = "unwrapPeerPtr"
         const ctorSig = ctor.signature as NamedMethodSignature
@@ -207,12 +209,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const delegationCall = this.getSuperDelegationCall(writer, clazz, peerPtrExpr, superClassName)
 
         this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
-
-            if (hasSuperClass) return
-
-            writer.writeStatement(
-                writer.makeAssign(unwrapPeerPtr, idl.IDLPointerType, peerPtrExpr, true))
-            this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, clazz.isRefCounted, writer)
+            if (!hasMaterializedSuperClass) {
+                writer.writeStatement(
+                    writer.makeAssign(unwrapPeerPtr, idl.createPrimitiveType('pointer'), peerPtrExpr, true))
+                this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, clazz.isRefCounted, writer)
+            }
+            this.printFieldsInitialization(clazz) 
         }, delegationCall)
     }
 
@@ -376,14 +378,14 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            if (!field.state.isAccessor && (this.printer.language === Language.ARKTS)) {
+            const state = stateToAccessor(clazz.decl, this.printer.language, field.state)
+            if (!state.isAccessor) {
                 // arkts can not have property and getter at the same time
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
                 this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
             } else {
-                const hasGetter = !field.state.isAccessor || field.state.hasGetter
-                const hasSetter = !field.state.isAccessor && !field.state.isReadonly
-                    || field.state.isAccessor && field.state.hasSetter
+                const hasGetter = state.hasGetter
+                const hasSetter = state.hasSetter 
                 this.printer.writeProperty(mField.name, type, (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
                     hasGetter ? {
                         method: new Method('get', new MethodSignature(type, [])), op: () => {
