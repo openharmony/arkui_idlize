@@ -24,8 +24,16 @@ import {
  } from '../../generated/arkts'
 
 export {
-    OSTIntEnum,
-    checkOSTIntEnum,
+    PlainEnum,
+    IntEnum,
+    LongEnum,
+    LegacyEnum,
+    StringEnum,
+    checkPlainEnum,
+    checkIntEnum,
+    checkLongEnum,
+    checkLegacyEnum,
+    checkStringEnum,
     getCallbackBooleanIntString,
 } from '../../generated/arkts'
 

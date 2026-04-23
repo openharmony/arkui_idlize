@@ -20,8 +20,16 @@ import {
 } from "#compat"
 
 import {
-    OSTIntEnum,
-    checkOSTIntEnum,
+    PlainEnum,
+    IntEnum,
+    LongEnum,
+    LegacyEnum,
+    StringEnum,
+    checkPlainEnum,
+    checkIntEnum,
+    checkLongEnum,
+    checkLegacyEnum,
+    checkStringEnum,
 } from "#compat"
 
 import {
@@ -65,8 +73,25 @@ export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void
 }
 
 function checkEnum() {
-    assertEQ(1, OSTIntEnum.E1)
-    assertEQ(OSTIntEnum.E3, checkOSTIntEnum(OSTIntEnum.E1, 1))
+    // PlainEnum
+    assertEQ(1, PlainEnum.E2)
+    assertEQ(PlainEnum.E2, checkPlainEnum(PlainEnum.E3, 2))
+
+    // IntEnum
+    assertEQ(1, IntEnum.E1)
+    assertEQ(IntEnum.E3, checkIntEnum(IntEnum.E1, 1))
+
+    // LongEnum
+    assertEQ(LongEnum.NEG, checkLongEnum(LongEnum.POS))
+
+    // LegacyEnum
+    assertEQ(0, LegacyEnum.FIRST)
+    assertEQ(0, LegacyEnum.first)
+    assertEQ(LegacyEnum.SECOND, checkLegacyEnum(LegacyEnum.FIRST, 0))
+
+    // StringEnum
+    assertEQ("two", StringEnum.S2)
+    assertEQ(StringEnum.S2, checkStringEnum(StringEnum.S1, "one"))
 }
 
 function checkSequence() {

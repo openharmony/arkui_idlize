@@ -70,17 +70,56 @@ void AssertEqStr(const char* golden, OH_String str, const char* comment)
 
 // Enum
 
-OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enumValue, OH_Int32 value)
+OH_UNIT_OST_PlainEnum ost_enums_checkPlainEnumImpl(OH_UNIT_OST_PlainEnum value, OH_Int32 step)
 {
-    if (OH_UNIT_OST_OSTINT_ENUM_E1 != 1) {
-        INTEROP_FATAL("Enum OSTINT_ENUM_E1 %d does not equal to: %d", OH_UNIT_OST_OSTINT_ENUM_E1, -1);
+    return (OH_UNIT_OST_PlainEnum) ((value + step) % 3);
+}
+
+OH_UNIT_OST_IntEnum ost_enums_checkIntEnumImpl(OH_UNIT_OST_IntEnum enumValue, OH_Int32 value)
+{
+    if (OH_UNIT_OST_INT_ENUM_E1 != 1) {
+        INTEROP_FATAL("Enum OSTINT_ENUM_E1 %d does not equal to: %d", OH_UNIT_OST_INT_ENUM_E1, -1);
     }
 
-    if (enumValue != OH_UNIT_OST_OSTINT_ENUM_E1) {
-        INTEROP_FATAL("Enum param value1 %d does not equal OSTINT_ENUM_E1: %d", enumValue, OH_UNIT_OST_OSTINT_ENUM_E1);
+    if (enumValue != OH_UNIT_OST_INT_ENUM_E1) {
+        INTEROP_FATAL("Enum param value1 %d does not equal OSTINT_ENUM_E1: %d", enumValue, OH_UNIT_OST_INT_ENUM_E1);
     }
 
-    return OH_UNIT_OST_OSTINT_ENUM_E3;
+    return OH_UNIT_OST_INT_ENUM_E3;
+}
+
+OH_UNIT_OST_LongEnum ost_enums_checkLongEnumImpl(OH_UNIT_OST_LongEnum enumValue)
+{
+    if (enumValue != OH_UNIT_OST_LONG_ENUM_POS) {
+        INTEROP_FATAL("LongEnum param %d does not equal LONG_ENUM_POS: %d", enumValue, OH_UNIT_OST_LONG_ENUM_POS);
+    }
+    return OH_UNIT_OST_LONG_ENUM_NEG;
+}
+
+OH_UNIT_OST_LegacyEnum ost_enums_checkLegacyEnumImpl(OH_UNIT_OST_LegacyEnum enumValue, OH_Int32 value)
+{
+    if (enumValue != (OH_UNIT_OST_LegacyEnum)value) {
+        INTEROP_FATAL("LegacyEnum param %d does not equal value: %d", enumValue, value);
+    }
+    if (OH_UNIT_OST_LEGACY_ENUM_FIRST != OH_UNIT_OST_LEGACY_ENUM_LEGACY_FIRST) {
+        INTEROP_FATAL("FIRST %d does not equal LEGACY_FIRST: %d", OH_UNIT_OST_LEGACY_ENUM_FIRST, OH_UNIT_OST_LEGACY_ENUM_LEGACY_FIRST);
+    }
+    if (OH_UNIT_OST_LEGACY_ENUM_SECOND != OH_UNIT_OST_LEGACY_ENUM_LEGACY_SECOND) {
+        INTEROP_FATAL("SECOND %d does not equal LEGACY_SECOND: %d", OH_UNIT_OST_LEGACY_ENUM_SECOND, OH_UNIT_OST_LEGACY_ENUM_LEGACY_SECOND);
+    }
+    if (OH_UNIT_OST_LEGACY_ENUM_THIRD != OH_UNIT_OST_LEGACY_ENUM_LEGACY_THIRD) {
+        INTEROP_FATAL("THIRD %d does not equal LEGACY_THIRD: %d", OH_UNIT_OST_LEGACY_ENUM_THIRD, OH_UNIT_OST_LEGACY_ENUM_LEGACY_THIRD);
+    }
+    return OH_UNIT_OST_LEGACY_ENUM_SECOND;
+}
+
+OH_UNIT_OST_StringEnum ost_enums_checkStringEnumImpl(OH_UNIT_OST_StringEnum enumValue, const OH_String* value)
+{
+    if (enumValue != OH_UNIT_OST_STRING_ENUM_S1) {
+        INTEROP_FATAL("StringEnum param %d does not equal STRING_ENUM_S1: %d", enumValue, OH_UNIT_OST_STRING_ENUM_S1);
+    }
+    AssertEqStr("one", *value, "StringEnum value does not equal 'one'");
+    return OH_UNIT_OST_STRING_ENUM_S2;
 }
 
 // Sequence
