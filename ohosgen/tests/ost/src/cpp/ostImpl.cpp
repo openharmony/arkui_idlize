@@ -397,6 +397,138 @@ void ost_promises_getOSTPromiseBooleanIntStringImpl(
     work.queue(work.workId);
 }
 
+// Generics
+
+OH_Boolean ost_generics_unboxBooleanImpl(const OH_UNIT_OST_GenericBox_Boolean* box) {
+    return box->value;
+}
+
+OH_String ost_generics_unboxStringImpl(const OH_UNIT_OST_GenericBox_String* box)
+{
+    return box->value;
+}
+
+OH_UNIT_OST_GenericBox_Number ost_generics_unboxBoxImpl(const OH_UNIT_OST_GenericBox_GenericBox_Number* box)
+{
+    return box->value;
+}
+
+OH_UNIT_OST_Unbox ost_generics_unboxStringNumberImpl(const OH_UNIT_OST_GenericBox2_String_Number* box)
+{
+    return { .numberValue = box->value2, .stringValue = box->value1 };
+}
+
+OH_UNIT_OST_Unbox ost_generics_unboxBoxStringBoxNumberImpl(const OH_UNIT_OST_GenericBox2_GenericBox_String_GenericBox_Number* box)
+{
+    return { .numberValue = box->value2.value, .stringValue = box->value1.value };
+}
+
+// Namespace
+
+OH_Number ost_namespaces_outer_inner_getValueImpl(const OH_UNIT_OST_OuterData* data)
+{
+    return data->value;
+}
+
+// Optional
+
+OH_Int32 ost_optionals_sumOptionalAttributesImpl(const OH_UNIT_OST_TestOptional* arg)
+{
+    return arg->value + (arg->optValue.tag == INTEROP_TAG_UNDEFINED ? 0 : arg->optValue.value);
+}
+
+OH_Int32 ost_optionals_idOrZeroImpl(const OH_UNIT_OST_Opt_Int32* arg)
+{
+    return arg->tag == INTEROP_TAG_UNDEFINED ? 0 : arg->value;
+}
+
+// Override (MultiCtor)
+
+struct MultiCtorData {
+    char* name;
+    int32_t age;
+};
+
+OH_NativePointer ost_overrides_MultiCtor_constructImpl(const OH_String* name)
+{
+    auto* data = new MultiCtorData();
+    data->name = new char[name->length + 1];
+    memcpy(data->name, name->chars, name->length);
+    data->name[name->length] = '\0';
+    data->age = 0;
+    return data;
+}
+
+OH_NativePointer ost_overrides_MultiCtor_construct1Impl(OH_Int32 age)
+{
+    auto* data = new MultiCtorData();
+    data->name = new char[1];
+    data->name[0] = '\0';
+    data->age = age;
+    return data;
+}
+
+OH_NativePointer ost_overrides_MultiCtor_construct2Impl(const OH_String* name, OH_Int32 age)
+{
+    auto* data = new MultiCtorData();
+    data->name = new char[name->length + 1];
+    memcpy(data->name, name->chars, name->length);
+    data->name[name->length] = '\0';
+    data->age = age;
+    return data;
+}
+
+OH_String ost_overrides_MultiCtor_getNameImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    return { .chars = data->name, .length = string_len(data->name) };
+}
+
+void ost_overrides_MultiCtor_setNameImpl(OH_NativePointer thisPtr, const OH_String* name)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    delete[] data->name;
+    data->name = new char[name->length + 1];
+    memcpy(data->name, name->chars, name->length);
+    data->name[name->length] = '\0';
+}
+
+OH_Int32 ost_overrides_MultiCtor_getAgeImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    return data->age;
+}
+
+void ost_overrides_MultiCtor_setAgeImpl(OH_NativePointer thisPtr, OH_Int32 age)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    data->age = age;
+}
+
+void ost_overrides_MultiCtor_destructImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    delete[] data->name;
+    delete data;
+}
+
+// Union
+
+OH_Int32 ost_unions_checkUnionInterfaceImpl(const OH_UNIT_OST_UnionInterface* arg)
+{
+    return arg->prop.selector;
+}
+
+OH_Int32 ost_unions_checkUnionArgImpl(const OH_UNIT_OST_Union_String_PlainEnum_Array_Boolean_Array_PlainEnum* arg)
+{
+    return arg->selector;
+}
+
+OH_Int32 ost_unions_checkGenericUnionImpl(const OH_UNIT_OST_Union_String_GenericBox_String_GenericBox_UnionInterface* arg)
+{
+    return arg->selector;
+}
+
 // Error
 
 OH_UNIT_OST_ThrowsWrapper_I32 ost_errors_getOSTErrorBooleanIntImpl(OH_Boolean flag) {

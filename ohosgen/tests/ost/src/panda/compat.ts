@@ -72,6 +72,13 @@ export {
     getOSTPromiseBooleanIntString,
 } from '../../generated/arkts'
 
+export { DataClass } from '../../generated/arkts'
+export { GenericBox, GenericBox2, Unbox, unboxBoolean, unboxString, unboxBox, unboxStringNumber, unboxBoxStringBoxNumber } from '../../generated/arkts'
+export { outer } from '../../generated/arkts'
+export { TestOptional, sumOptionalAttributes, idOrZero } from '../../generated/arkts'
+export { MultiCtor, MultiMethod } from '../../generated/arkts'
+export { UnionInterface, checkUnionInterface, checkUnionArg, checkGenericUnion } from '../../generated/arkts'
+
 
 export type OHBuffer = ArrayBuffer
 

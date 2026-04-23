@@ -68,6 +68,13 @@ import {
     getOSTPromiseBooleanIntString,
 } from "#compat"
 
+import { DataClass } from "#compat"
+import { GenericBox, GenericBox2, Unbox, unboxBoolean, unboxString, unboxBox, unboxStringNumber, unboxBoxStringBoxNumber } from "#compat"
+import { outer } from "#compat"
+import { TestOptional, sumOptionalAttributes, idOrZero } from "#compat"
+import { MultiCtor, MultiMethod } from "#compat"
+import { UnionInterface, checkUnionInterface, checkUnionArg, checkGenericUnion } from "#compat"
+
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
     checkEQ(value1, value2, comment)
 }
@@ -202,6 +209,103 @@ function checkPromise() {
         })
 }
 
+function checkDataClass() {
+    const instance = new DataClass()
+    checkEQ(false, instance.booleanProp)
+    checkEQ(0, instance.numericProp)
+    checkEQ('', instance.stringProp)
+
+    const obj = instance.objectProp
+    checkEQ(false, obj.booleanValue)
+    checkEQ(0, obj.numberValue)
+    checkEQ('', obj.stringValue)
+
+    const tuple = instance.tupleProp
+    checkEQ(false, tuple[0])
+    checkEQ(0, tuple[1])
+    checkEQ('', tuple[2])
+}
+
+function checkGenerics() {
+    assertEQ(true, unboxBoolean({value: true}))
+    assertEQ("x y", unboxString({value: "x y"}))
+    const box = unboxBox({value: {value: 16}})
+    assertEQ(16, box.value)
+
+    const in1: GenericBox2<String, number> = { value1: "chuchu", value2: -128 }
+    const out1 = unboxStringNumber(in1)
+    assertEQ(-128, out1.numberValue)
+    assertEQ("chuchu", out1.stringValue)
+
+    const in2: GenericBox2<GenericBox<String>, GenericBox<number>> = {
+        value1: { value: "-100"},
+        value2: { value: -100 },
+    }
+    const out2 = unboxBoxStringBoxNumber(in2)
+    assertEQ(-100, out2.numberValue)
+    assertEQ("-100", out2.stringValue)
+}
+
+function checkNamespaces() {
+    const data: outer.OuterData = { value: 5 }
+    assertEQ(5, outer.inner.getValue(data))
+
+    const data2: outer.OuterData = { value: -10 }
+    assertEQ(-10, outer.inner.getValue(data2))
+}
+
+function checkOptional() {
+    // idOrZero with no argument
+    assertEQ(0, idOrZero())
+    // idOrZero with argument
+    assertEQ(42, idOrZero(42))
+
+    // sumOptionalAttributes without optional field
+    const t1: TestOptional = { value: 10 }
+    assertEQ(10, sumOptionalAttributes(t1))
+
+    // sumOptionalAttributes with optional field
+    const t2: TestOptional = { value: 10, optValue: 5 }
+    assertEQ(15, sumOptionalAttributes(t2))
+}
+
+function checkUnion() {
+    assertEQ(0, checkUnionArg("hello"))
+    assertEQ(1, checkUnionArg(PlainEnum.E1))
+
+    assertEQ(0, checkUnionInterface({ prop: "test" }))
+    assertEQ(1, checkUnionInterface({ prop: PlainEnum.E2 }))
+
+    assertEQ(0, checkGenericUnion("plain value"))
+    const box: GenericBox<string> = { value: "boxed value" }
+    assertEQ(1, checkGenericUnion(box))
+    const box2: GenericBox<UnionInterface> = { value: { prop: "boxed interface" } }
+    assertEQ(2, checkGenericUnion(box2))
+}
+
+function checkOverrides() {
+    // Construct with name
+    const c1 = new MultiCtor("Alice")
+    assertEQ("Alice", c1.name)
+    assertEQ(0, c1.age)
+
+    // Construct with age
+    const c2 = new MultiCtor(25)
+    assertEQ("", c2.name)
+    assertEQ(25, c2.age)
+
+    // Construct with name and age
+    const c3 = new MultiCtor("Bob", 30)
+    assertEQ("Bob", c3.name)
+    assertEQ(30, c3.age)
+
+    // Test setters
+    c3.name = "Charlie"
+    assertEQ("Charlie", c3.name)
+    c3.age = 35
+    assertEQ(35, c3.age)
+}
+
 export function run() {
 
     const suite = new UnitTestsuite("idlize ost tests")
@@ -212,5 +316,11 @@ export function run() {
     suite.addTest("checkError", checkError)
     suite.addTest("checkCallback", checkCallback)
     suite.addTest("checkPromise", checkPromise)
+    suite.addTest("checkDataClass", checkDataClass)
+    suite.addTest("checkGenerics", checkGenerics)
+    suite.addTest("checkNamespace", checkNamespaces)
+    suite.addTest("checkOptional", checkOptional)
+    suite.addTest("checkUnion", checkUnion)
+    suite.addTest("checkOverride", checkOverrides)
     return suite.run()
 }
