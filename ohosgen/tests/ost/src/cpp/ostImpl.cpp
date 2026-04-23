@@ -68,6 +68,65 @@ void AssertEqStr(const char* golden, OH_String str, const char* comment)
     INTEROP_FATAL("%s, golden: '%s', curr: [length: %d, chars: '%s']", comment, golden, str.length, str.chars);
 }
 
+// Primitives
+
+OH_Boolean ost_primitives_negateBooleanImpl(OH_Boolean value)
+{
+    return !value;
+}
+
+OH_Int32 ost_primitives_incrementIntImpl(OH_Int32 value)
+{
+    return value + 1;
+}
+
+OH_Number ost_primitives_doubleNumberImpl(const OH_Number* value)
+{
+    OH_Number result;
+    result.tag = value->tag;
+    if (value->tag == INTEROP_TAG_FLOAT32) {
+        result.f32 = value->f32 * 2.0f;
+    } else {
+        result.i32 = value->i32 * 2;
+    }
+    return result;
+}
+
+OH_String ost_primitives_reverseStringImpl(const OH_String* value)
+{
+    OH_Int32 len = value->length;
+    char* reversed = reinterpret_cast<char*>(malloc(len + 1));
+    for (OH_Int32 i = 0; i < len; i++) {
+        reversed[i] = value->chars[len - 1 - i];
+    }
+    reversed[len] = '\0';
+    return { .chars = reversed, .length = len };
+}
+
+OH_Buffer ost_primitives_reverseBufferImpl(const OH_Buffer* value)
+{
+    OH_Int64 len = value->length;
+    uint8_t* src = reinterpret_cast<uint8_t*>(value->data);
+    uint8_t* reversed = new uint8_t[len];
+    for (OH_Int64 i = 0; i < len; i++) {
+        reversed[i] = src[len - 1 - i];
+    }
+    OH_Buffer result;
+    result.resource = {
+        .resourceId = 0,
+        .hold = [](const OH_Int32 resourceId) -> void {},
+        .release = [](const OH_Int32 resourceId) -> void {}
+    };
+    result.data = reinterpret_cast<InteropNativePointer>(reversed);
+    result.length = len;
+    return result;
+}
+
+OH_Int64 ost_primitives_negateBigIntImpl(OH_Int64 value)
+{
+    return -value;
+}
+
 // Enum
 
 OH_UNIT_OST_PlainEnum ost_enums_checkPlainEnumImpl(OH_UNIT_OST_PlainEnum value, OH_Int32 step)

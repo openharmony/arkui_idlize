@@ -68,6 +68,8 @@ import {
     getOSTPromiseBooleanIntString,
 } from "#compat"
 
+import { BOOL_TRUE, BOOL_FALSE, NUM_INT, NUM_NEGATIVE, STR_HELLO, STR_EMPTY } from "#compat"
+import { negateBoolean, incrementInt, doubleNumber, reverseString, reverseBuffer, negateBigInt } from "#compat"
 import { DataClass } from "#compat"
 import { GenericBox, GenericBox2, Unbox, unboxBoolean, unboxString, unboxBox, unboxStringNumber, unboxBoxStringBoxNumber } from "#compat"
 import { outer } from "#compat"
@@ -77,6 +79,55 @@ import { UnionInterface, checkUnionInterface, checkUnionArg, checkGenericUnion }
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
     checkEQ(value1, value2, comment)
+}
+
+function checkConstants() {
+    assertEQ(true, BOOL_TRUE)
+    assertEQ(false, BOOL_FALSE)
+    assertEQ(42, NUM_INT)
+    assertEQ(-17, NUM_NEGATIVE)
+    assertEQ("hello", STR_HELLO)
+    assertEQ("", STR_EMPTY)
+}
+
+function checkPrimitives() {
+    // boolean negation
+    assertEQ(false, negateBoolean(true))
+    assertEQ(true, negateBoolean(false))
+
+    // integer increment
+    assertEQ(1, incrementInt(0))
+    assertEQ(0, incrementInt(-1))
+    assertEQ(43, incrementInt(42))
+
+    // number doubling
+    assertEQ(10, doubleNumber(5))
+    assertEQ(-6, doubleNumber(-3))
+    assertEQ(0, doubleNumber(0))
+
+    // string reversal
+    assertEQ("olleh", reverseString("hello"))
+    assertEQ("", reverseString(""))
+    assertEQ("a", reverseString("a"))
+    assertEQ("cba", reverseString("abc"))
+
+    // buffer reversal
+    const buf = new ArrayBuffer(3)
+    const view = new Uint8Array(buf)
+    view[0] = 1
+    view[1] = 2
+    view[2] = 3
+    const reversed = reverseBuffer(buf)
+    const revView = new Uint8Array(reversed)
+    assertEQ(3, revView.length)
+    assertEQ(3, revView[0])
+    assertEQ(2, revView[1])
+    assertEQ(1, revView[2])
+
+    // i64 negation
+    assertEQ(-42 as long, negateBigInt(42 as long))
+    assertEQ(0 as long, negateBigInt(0 as long))
+    assertEQ(100 as long, negateBigInt(-100 as long))
 }
 
 function checkEnum() {
@@ -309,6 +360,8 @@ function checkOverrides() {
 export function run() {
 
     const suite = new UnitTestsuite("idlize ost tests")
+    suite.addTest("checkConstants", checkConstants)
+    suite.addTest("checkPrimitives", checkPrimitives)
     suite.addTest("checkEnum", checkEnum)
     suite.addTest("checkSequence", checkSequence)
     suite.addTest("checkMap", checkMap)

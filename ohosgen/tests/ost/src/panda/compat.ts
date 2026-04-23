@@ -72,6 +72,8 @@ export {
     getOSTPromiseBooleanIntString,
 } from '../../generated/arkts'
 
+export { BOOL_TRUE, BOOL_FALSE, NUM_INT, NUM_NEGATIVE, STR_HELLO, STR_EMPTY } from '../../generated/arkts'
+export { negateBoolean, incrementInt, doubleNumber, reverseString, reverseBuffer, negateBigInt } from '../../generated/arkts'
 export { DataClass } from '../../generated/arkts'
 export { GenericBox, GenericBox2, Unbox, unboxBoolean, unboxString, unboxBox, unboxStringNumber, unboxBoxStringBoxNumber } from '../../generated/arkts'
 export { outer } from '../../generated/arkts'
