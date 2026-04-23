@@ -566,8 +566,8 @@ class ModifiersFileVisitor {
                     writer.print("_instanceId: number = -1;")
                     writer.print("_state: ModifierState = new ModifierState;")
                 }
-                writer.print(`private ${this.generateAddrName(peer)}: ArrayBuffer = new ArrayBuffer(4096);`)
-                writer.print(`private ${this.generateFilledFlagName(peer)}: Uint8Array = new Uint8Array(this.${this.generateAddrName(peer)});`)
+                writer.print(`${this.generateAddrName(peer)}: ArrayBuffer = new ArrayBuffer(4096);`)
+                writer.print(`${this.generateFilledFlagName(peer)}: Uint8Array = new Uint8Array(this.${this.generateAddrName(peer)});`)
 
                 writer.print(`constructor() {`)
                 writer.pushIndent()
