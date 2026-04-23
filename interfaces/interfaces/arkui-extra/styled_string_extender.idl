@@ -28,3 +28,9 @@ interface CustomSpanWrapper {
 interface CustomSpanNative {
     void invalidate();
 };
+
+interface CustomSpanMeasureInfoProxy {
+    attribute f64 fontSize;
+    [Optional] attribute (f64 or undefined) maxWidth;
+    [Optional] attribute (pointer or undefined) layoutPolicyPtr;
+};
