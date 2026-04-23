@@ -1528,17 +1528,6 @@ OH_UNIT_HookInterfaceHandle HookInterface_constructImpl()
     return {};
 }
 void HookInterface_destructImpl(OH_UNIT_HookInterfaceHandle thisPtr) {}
-void HookInterface_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value) {}
-void HookInterface_methodImpl(OH_NativePointer thisPtr) {}
-void HookInterface_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {}
-OH_UNIT_ImportedHookValue HookInterface_methodImportedReturnImpl(OH_NativePointer thisPtr)
-{
-    return {};
-}
-OH_UNIT_HookValue HookInterface_methodReturnImpl(OH_NativePointer thisPtr)
-{
-    return {};
-}
 
 class HookClassPeer {};
 OH_UNIT_HookClassHandle HookClass_constructImpl()
@@ -1546,24 +1535,6 @@ OH_UNIT_HookClassHandle HookClass_constructImpl()
     return (OH_UNIT_HookClassHandle) new HookClassPeer();
 }
 void HookClass_destructImpl(OH_UNIT_HookClassHandle thisPtr) {}
-void HookClass_methodImpl(OH_NativePointer thisPtr)
-{
-    printf("[native] [0] call HookClass_methodImpl\n");
-}
-// Needs: remove implementation for the hooked method
-void HookClass_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value) {}
-OH_UNIT_HookValue HookClass_methodReturnImpl(OH_NativePointer thisPtr)
-{
-    return {};
-}
-void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {}
-
-// Needs: update
-void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue) {}
-OH_UNIT_ImportedHookValue HookClass_methodImportedReturnImpl(OH_NativePointer thisPtr)
-{
-    return {};
-}
 
 // Internal library
 class DTSCheckInternalLibPeer {};
