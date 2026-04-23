@@ -397,7 +397,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     hasSetter ? {
                         method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
                             let castedNonNullArg
-                            if (field.isNullableOriginalTypeField) {
+                            if (field.isNullableOriginalTypeField && this.printer.language === Language.CJ) {
                                 castedNonNullArg = `${mField.name}_NonNull`
                                 this.printer.writeStatement(this.printer.makeAssign(castedNonNullArg,
                                     undefined,
