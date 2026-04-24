@@ -24,6 +24,15 @@
             ],
             "arkui.PeerNode": [
                 "./PeerNode"
+            ],
+            "@koalaui/common": [
+                "../../../../../../../../node_modules/@koalaui/common/src"
+            ],
+            "@koalaui/interop": [
+                "../../../../../../../../node_modules/@koalaui/interop/src/arkts"
+            ],
+            "@koalaui/compat": [
+                "../../../../../../../../node_modules/@koalaui/compat/src/arkts"
             ]
         }
     },
