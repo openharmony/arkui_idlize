@@ -2,7 +2,7 @@
     "name": "dummy-tests",
     "private": true,
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.68195-8888"
+        "@koalaui/smart-arkts": "1.5.0-dev.69604-9053"
     },
     "imports": {
         "#compat": "./build/node/src/node/compat.js"
@@ -37,8 +37,8 @@
         "all:cj": "TARGET=cj npm run all"
     },
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.68195-8888",
-        "@koalaui/common": "1.5.0-dev.68195-8888",
-        "@koalaui/interop": "1.5.0-dev.68195-8888"
+        "@koalaui/compat": "1.5.0-dev.69604-9053",
+        "@koalaui/common": "1.5.0-dev.69604-9053",
+        "@koalaui/interop": "1.5.0-dev.69604-9053"
     }
 }
