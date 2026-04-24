@@ -258,7 +258,19 @@ class DeserializeCallbacksVisitor {
                     // Issue: https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/21332
                     const callResultRef = `${callName}Result`
                     writer.writeStatement(writer.makeAssign(callResultRef, undefined, callExpression, true, true))
-                    callExpression = writer.makeFunctionCall(`continuationResult`, [writer.makeString(callResultRef)])
+                    const isAsyncCallback = idl.isContainerType(callback.returnType) && idl.IDLContainerUtils.isPromise(callback.returnType)
+                    if (isAsyncCallback) {
+                        // For async callbacks, unwrap Promise before passing to continuation
+                        const promiseElementType = (callback.returnType as idl.IDLContainerType).elementType[0]
+                        callExpression = writer.makeMethodCall(callResultRef, 'then', [
+                            writer.makeLambda(
+                                new NamedMethodSignature(idl.IDLVoidType, [promiseElementType], ['result']),
+                                [writer.makeStatement(writer.makeFunctionCall('continuationResult', [writer.makeString('result')]))]
+                            )
+                        ])
+                    } else {
+                        callExpression = writer.makeFunctionCall(`continuationResult`, [writer.makeString(callResultRef)])
+                    }
                 }
                 writer.writeExpressionStatement(callExpression)
             }
