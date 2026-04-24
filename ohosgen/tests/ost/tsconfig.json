@@ -1,14 +1,16 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
+        "target": "es2022",
+        "module": "esnext",
         "moduleResolution": "node",
         "outDir": "build/ts",
         "sourceMap": true,
+        "skipLibCheck": true,
+        "allowSyntheticDefaultImports": true,
         "baseUrl": ".",
         "paths": {
             "#compat": ["./src/node/compat.ts"]
         }
     },
-    "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"],
+    "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"]
 }
