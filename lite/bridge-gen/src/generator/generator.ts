@@ -17,12 +17,12 @@ import * as idl from "@idlizer/core/idl"
 import { capitalize } from "@idlizer/core"
 import { LWExpression, LWStatement, FunctionDeclaration, LWDeclaration, D, std, Ts, S, E } from "@idlizer/ost"
 import { Config, ConfigBundle } from "../config"
-import { ProducerContext, ProducerResult, GeneratorMemory, makeGeneratorMemory, continueWith, Producer, GenerateOptions } from "@idlizer/kit"
+import { ProducerContext, ProducerResult, GeneratorMemory, makeGeneratorMemory, continueWith, Producer, GenerateOptions, onlyFor, TypedProducer, Seed } from "@idlizer/kit"
 import { InputLibrary } from "../library"
 import { CustomDeclarationProducer, InteropProducerTypeDescription, InteropProducerTypeDescriptionHolder } from "./builder"
 import { Convertor, GenerationLibrary, NotTransferrableType } from "./common"
 import { GeneratedNativeModule, DividedResult, nativeModuleProducer } from "./nativeModuleProducer"
-import { GeneratorSeedIDL, GeneratorSeedType, ApiSeedType, InteropGenerationSeedType, InteropGenerationSeed, TwinFunctionCallSeedType, TwinFunctionCallSeed, ApiCallSeed, GeneratorSeed } from "./seed"
+import { InteropGenerationSeed, GeneratorSeed, GeneratorSeedIDL, GeneratorSeedNested, ApiCallSeed, TwinFunctionCallSeed } from "./seed"
 
 export interface MakeApiOptions {
     noHeader: boolean
@@ -40,7 +40,7 @@ export type Defined<T> = T extends undefined ? never : T
 export class TypeSpecSelector {
     constructor(
         private typeSpecs: InteropProducerTypeDescriptionHolder<any>[],
-        private customProducers: CustomDeclarationProducer<any>[],
+        private customProducers: CustomDeclarationProducer<Seed>[],
     ) { }
 
     private memoizeTypeSpecCalls = new Map<InteropProducerTypeDescriptionHolder<any>, [any, LWDeclaration[]][]>()
@@ -90,31 +90,33 @@ export class TypeSpecSelector {
             ?? this.notTransferrableType(type, 'toManaged')
     }
 
-    private createProducer(producer: (prod: InteropProducerTypeDescription<any>, val: any, seed: GeneratorSeedIDL, ctx: ProducerContext<GenerationLibrary, undefined>) => ProducerResult): Producer<GeneratorSeedType, GenerationLibrary, undefined> {
-        return (req, context) => {
-            if (req.sort === 'idl') {
-                const [arg, found] = this.findSpec(req.reference)
-                const result = producer(found, arg, req, context)
+    private createProducer(producer: (prod: InteropProducerTypeDescription<any>, val: any, seed: GeneratorSeedIDL, ctx: ProducerContext<GenerationLibrary, undefined>) => ProducerResult): TypedProducer<GeneratorSeed, GenerationLibrary, undefined> {
+        return (seed, context) => {
+            if (seed instanceof GeneratorSeedIDL) {
+                const [arg, found] = this.findSpec(seed.reference)
+                const result = producer(found, arg, seed, context)
                 if (!("skip" in result)) {
                     this.registerTypeSpecCall(found, arg, result.declarations)
                 }
                 return result
             }
-            for (const listeners of this.customProducers) {
-                if (listeners.seedType.isCurrentSeed(req.seed)) {
-                    return listeners.produce(req.seed.data, context)
+            if (seed instanceof GeneratorSeedNested) {
+                for (const cp of this.customProducers) {
+                    if (seed.innerSeed instanceof cp.seedClass) {
+                        return cp.produce(seed.innerSeed, context)
+                    }
                 }
             }
             return { skip: true }
         }
     }
 
-    createNativeProducer(): Producer<GeneratorSeedType, GenerationLibrary, undefined> {
-        return this.createProducer((prod, val, seed, ctx) => prod.onNativeDeclaration(val, seed, ctx))
+    createManagedProducer(): TypedProducer<GeneratorSeed, GenerationLibrary, undefined> {
+        return this.createProducer((prod, val, seed, ctx) => prod.onManagedDeclaration(val, seed, ctx))
     }
 
-    createManagedProducer(): Producer<GeneratorSeedType, GenerationLibrary, undefined> {
-        return this.createProducer((prod, val, seed, ctx) => prod.onManagedDeclaration(val, seed, ctx))
+    createNativeProducer(): TypedProducer<GeneratorSeed, GenerationLibrary, undefined> {
+        return this.createProducer((prod, val, seed, ctx) => prod.onNativeDeclaration(val, seed, ctx))
     }
 
     callAfterAll(): LWDeclaration[] {
@@ -137,7 +139,7 @@ export interface ProduceOptions {
 export interface EssentialsGenerators {
     twinProducer: (method: idl.IDLMethod, selector: TypeSpecSelector) => FunctionDeclaration,
     bridgeProducer: (nm: GeneratedNativeModule) => LWDeclaration[],
-    apiCallProducer: (seed: ApiSeedType, ctx: ProducerContext<GenerationLibrary, undefined>, options: MakeApiOptions) => ProducerResult
+    apiCallProducer: (seed: ApiCallSeed, ctx: ProducerContext<GenerationLibrary, undefined>, options: MakeApiOptions) => ProducerResult
 }
 
 export interface ProduceResult {
@@ -159,7 +161,7 @@ export class InteropGenerator {
         private generators: EssentialsGenerators,
         private options: ProduceOptions,
         private supportedTypes: InteropProducerTypeDescriptionHolder<any>[] = [],
-        private customProducers: CustomDeclarationProducer<any>[] = [],
+        private customProducers: CustomDeclarationProducer<Seed>[] = [],
 
         private overwrittenPeerProducer?: (method: idl.IDLMethod, func: FunctionDeclaration) => PeerFunctionPlacementResult,
     ) { }
@@ -169,16 +171,15 @@ export class InteropGenerator {
     private sharedMemory: GeneratorMemory = makeGeneratorMemory()
 
     private produceInitialFunctionPair(
-        roots: GenerateOptions<InteropGenerationSeedType, {}, undefined>['roots'],
+        roots: { declarations: LWDeclaration[] } | { seeds: Seed[] },
         library: GenerationLibrary
     ): LWDeclaration[] {
-        const { declarations } = continueWith<InteropGenerationSeedType, {}, undefined>({
+        const { declarations } = continueWith<unknown, {}, undefined>({
             createEffect: () => undefined,
             library: {},
             roots,
-            seedType: InteropGenerationSeed,
             sharedMemory: this.sharedMemory,
-        }, (seed) => {
+        }, onlyFor(InteropGenerationSeed, (seed) => {
             let wrappedFunction: LWDeclaration = this.generators.twinProducer(seed.method, library.selector)
             let wrapperReference: LWExpression = E.v(wrappedFunction.name)
             if (this.overwrittenPeerProducer) {
@@ -190,22 +191,21 @@ export class InteropGenerator {
                 continuation: wrapperReference,
                 declarations: [wrappedFunction]
             }
-        })
+        }))
         return declarations
     }
 
     private divideAndGenerate(wrapperDeclarations: LWDeclaration[], library: GenerationLibrary): DividedResult {
         const targetMappedName = library.targetName.split(/[.@\\/-]/).map(capitalize).join('_')
         const nativeModuleName = 'framework.nativeModule.GeneratedNM' + targetMappedName
-        const { declarations: producedWrapperDeclarations, effect: nativeModuleDescription } = continueWith<TwinFunctionCallSeedType, GenerationLibrary, GeneratedNativeModule>({
+        const { declarations: producedWrapperDeclarations, effect: nativeModuleDescription } = continueWith<unknown, GenerationLibrary, GeneratedNativeModule>({
             library,
             createEffect: () => ({ nativeModuleName, methods: [] }),
-            seedType: TwinFunctionCallSeed,
             roots: {
                 declarations: wrapperDeclarations
             },
             sharedMemory: this.sharedMemory,
-        }, nativeModuleProducer)
+        }, onlyFor(TwinFunctionCallSeed, nativeModuleProducer))
 
         if (library.target === 'panda') {
             producedWrapperDeclarations.unshift(
@@ -228,30 +228,28 @@ export class InteropGenerator {
         declarations: LWDeclaration[],
         library: GenerationLibrary,
     ): LWDeclaration[] {
-        const { declarations: produced } = continueWith({
+        const { declarations: produced } = continueWith<unknown, GenerationLibrary, undefined>({
             createEffect: () => undefined,
             library: library,
-            seedType: ApiCallSeed,
             roots: { declarations },
             sharedMemory: this.sharedMemory,
-        }, (req, ctx) => this.generators.apiCallProducer(
+        }, onlyFor(ApiCallSeed, (req, ctx) => this.generators.apiCallProducer(
             req,
             ctx,
             {
                 noHeader: !this.options.projectConfig.originalConfig.library.header,
                 noReceiver: this.options.projectConfig.originalConfig.library.no_api_receiver
-            }))
+            })))
         return produced
     }
 
     private closeDeclarationsAndSerializers(declarations: LWDeclaration[], library: GenerationLibrary, style: 'managed' | 'native'): LWDeclaration[] {
-        const { declarations: produced } = continueWith({
+        const { declarations: produced } = continueWith<unknown, GenerationLibrary, undefined>({
             createEffect: () => undefined,
             library,
             roots: { declarations },
-            seedType: GeneratorSeed,
             sharedMemory: this.sharedMemory,
-        }, style === 'managed' ? library.selector.createManagedProducer() : library.selector.createNativeProducer())
+        }, onlyFor(GeneratorSeed, style === 'managed' ? library.selector.createManagedProducer() : library.selector.createNativeProducer()))
         return produced
     }
 
@@ -275,8 +273,8 @@ export class InteropGenerator {
         // MANAGED SIDE GENERATION. SHARED MEMORY
         this.sharedMemory = makeGeneratorMemory()
         selector.flushMemory()
-        let wrappedState: GenerateOptions<undefined, undefined, undefined>['roots'] = {
-            seeds: this.methods.map(method => InteropGenerationSeed.create({ method }))
+        let wrappedState: GenerateOptions<undefined, undefined>['roots'] = {
+            seeds: this.methods.map(method => new InteropGenerationSeed(method))
         }
 
         /* until there is more InteropGenerationSeed in generated tree */
@@ -324,4 +322,3 @@ export class InteropGenerator {
         }
     }
 }
-

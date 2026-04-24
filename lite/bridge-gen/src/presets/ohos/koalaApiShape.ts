@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 import { E, Hs, DD, Md, Ts, D, T } from "@idlizer/ost"
-import { makeSeed, ProducerResult } from "@idlizer/kit"
+import { ProducerResult, Seed } from "@idlizer/kit"
 import { isInterface } from "@idlizer/core/idl"
-import { ApiSeedType } from "../../generator/seed"
+import { ApiCallSeed } from "../../generator/seed"
 import { makeDeclarationProducer } from "../../generator/builder"
 
+class GetApiSeed extends Seed {
+    hash(): string { return 'capi.getAPI' }
+}
 export const [getApiProducer, getApiProducerSeed] = makeDeclarationProducer(
-        makeSeed(() => 'capi.getAPI'),
+        GetApiSeed,
         () => ({
             continuation: E.v('_getAPI'),
             declarations: [
@@ -28,19 +31,19 @@ export const [getApiProducer, getApiProducerSeed] = makeDeclarationProducer(
         })
     )
 
-function makeFreeFunctionApiCall(req: ApiSeedType): ProducerResult {
+function makeFreeFunctionApiCall(req: ApiCallSeed): ProducerResult {
     const nameTokens = [req.method.name]
     if (req.method.parent && isInterface(req.method.parent)) {
         nameTokens.unshift(req.method.parent.name)
     }
     const functionName = nameTokens.join('_')
-    const callBase = E.get(E.call(getApiProducerSeed.createExpr({}), [], [], [Hs.ptrVal()]), functionName)
+    const callBase = E.get(E.call(getApiProducerSeed.createExpr(), [], [], [Hs.ptrVal()]), functionName)
     return {
-        continuation: E.call(callBase, req.arguments),
+        continuation: E.call(callBase, req.callArgs),
         declarations: [
             D.struct('capi.GENERATED_Api', [{
                 name: functionName,
-                type: T.fn(req.apiCallParams.map(p => [p.name, p.type]), req.apiReturnType)
+                type: T.fn(req.apiCallParams.map(p => ({ name: p.name, type: p.type })), req.apiReturnType)
             }])
         ]
     }

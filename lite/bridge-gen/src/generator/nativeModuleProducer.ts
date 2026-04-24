@@ -15,8 +15,8 @@
 import * as idl from "@idlizer/core/idl"
 import { DD, E, Hs, lw, Md, Modifier, S } from "@idlizer/ost"
 import { GenerationLibrary } from "./common"
-import { TwinFunctionCallSeedType } from "./seed"
-import { Producer } from "@idlizer/kit"
+import { TwinFunctionCallSeed } from "./seed"
+import { TypedProducer } from "@idlizer/kit"
 
 export interface GeneratedNativeModule {
     nativeModuleName: string
@@ -28,7 +28,7 @@ export interface GeneratedNativeModule {
 
 ///
 
-export const nativeModuleProducer: Producer<TwinFunctionCallSeedType, GenerationLibrary, GeneratedNativeModule> = (seed, ctx) => {
+export const nativeModuleProducer: TypedProducer<TwinFunctionCallSeed, GenerationLibrary, GeneratedNativeModule> = (seed, ctx) => {
     const method = seed.method
     const methodFQ = idl.getFQName(method)
     const nmName = ctx.getEffect().nativeModuleName

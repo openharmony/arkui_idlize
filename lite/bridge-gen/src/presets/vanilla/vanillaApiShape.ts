@@ -17,9 +17,9 @@ import { ProducerContext, ProducerResult } from "@idlizer/kit"
 import { isInterface } from "@idlizer/core/idl"
 import { GenerationLibrary } from "../../generator/common"
 import { MakeApiOptions } from "../../generator/generator"
-import { ApiSeedType, Ask } from "../../generator/seed"
+import { ApiCallSeed, Ask } from "../../generator/seed"
 
-function makeFreeFunctionApiCall(req: ApiSeedType, _: ProducerContext<GenerationLibrary, undefined>, options: MakeApiOptions): ProducerResult {
+function makeFreeFunctionApiCall(req: ApiCallSeed, _: ProducerContext<GenerationLibrary, undefined>, options: MakeApiOptions): ProducerResult {
     const nameTokens = [req.method.name]
     if (req.method.parent && isInterface(req.method.parent)) {
         nameTokens.unshift(req.method.parent.name)
@@ -27,23 +27,23 @@ function makeFreeFunctionApiCall(req: ApiSeedType, _: ProducerContext<Generation
     const functionName = req.method.extendedAttributes?.find(x => x.name === 'Name')?.value ?? nameTokens.join('_')
     const callBase = options.noReceiver ? E.v(functionName) : E.get(E.call(E.v('getAPI'), [], [], [Hs.ptrVal()]), functionName)
     return {
-        continuation: E.call(callBase, req.arguments),
+        continuation: E.call(callBase, req.callArgs),
         declarations: (options.noHeader && options.noReceiver) ? [
             DD({ modifiers: [Md.externC()] }).func(functionName, req.apiCallParams, req.apiReturnType, S.none())
         ] : []
     }
 }
 
-function makeInstanceClassApiCall(req: ApiSeedType, ctx: ProducerContext<GenerationLibrary, undefined>, options: MakeApiOptions): ProducerResult {
+function makeInstanceClassApiCall(req: ApiCallSeed, ctx: ProducerContext<GenerationLibrary, undefined>, options: MakeApiOptions): ProducerResult {
     if (req.method.parent && isInterface(req.method.parent)) {
         if (req.method.isStatic) {
             return {
-                continuation:  E.call(E.get(E.type(Ask.typeName(req.method.parent)), req.method.name), req.arguments),
+                continuation:  E.call(E.get(E.type(Ask.typeName(req.method.parent)), req.method.name), req.callArgs),
                 declarations: []
             }
         }
         return {
-            continuation: E.call(E.get(E.cast(req.arguments[0], Ts.ptr(Ask.typeName(req.method.parent)), [Hs.ptrVal()]), req.method.name), req.arguments.slice(1)),
+            continuation: E.call(E.get(E.cast(req.callArgs[0], Ts.ptr(Ask.typeName(req.method.parent)), [Hs.ptrVal()]), req.method.name), req.callArgs.slice(1)),
             declarations: []
         }
     }

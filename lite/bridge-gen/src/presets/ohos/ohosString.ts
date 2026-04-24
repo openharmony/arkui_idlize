@@ -17,12 +17,15 @@ import { IDLPrimitiveType, isPrimitiveType } from "@idlizer/core/idl"
 import { InputLibrary } from "../../library"
 import { InteropProducerTypeDescription, makeDeclarationProducer, SelectResult } from "../../generator/builder"
 import { D, E, Hs, S, T, Ts } from "@idlizer/ost"
-import { makeSeed } from "@idlizer/kit"
+import { Seed } from "@idlizer/kit"
 import { KOALAUI_INTEROP_STRING } from "../../generator/names"
 
+class OHStringSeedClass extends Seed {
+    hash(): string { return 'capi.OH_String' }
+}
 export const [ohStringProducer, OHStringSeed] = makeDeclarationProducer(
-    makeSeed(() => 'capi.OH_String'),
-    () => {
+    OHStringSeedClass,
+    (_seed) => {
         return {
             continuation: T.c('capi.OH_String'),
             declarations: [
@@ -54,7 +57,7 @@ export const createOHStringProducer = (_: InputLibrary): InteropProducerTypeDesc
         },
         onNativeDeclaration() {
             return {
-                continuation: OHStringSeed.createType({}),
+                continuation: OHStringSeed.createType(),
                 declarations: []
             }
         },

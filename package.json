@@ -19,7 +19,6 @@
     "arktscgen",
     "runner",
     "idlinter",
-    "scraper",
     "lite/sk-gen",
     "lite/bridge-gen",
     "ost",

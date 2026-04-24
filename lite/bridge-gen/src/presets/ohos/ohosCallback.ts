@@ -51,7 +51,7 @@ export const createOhosCallbackProducer = (library: ColoredLibrary): InteropProd
                 continuation: T.c(generatedDeclName),
                 declarations: [
                     Builders.type(generatedDeclName).funcType()
-                        .parameters(callback.parameters.map(it => [it.name, Ask.typeName(it.type)]))
+                        .parameters(callback.parameters.map(it => ({ name: it.name, type: Ask.typeName(it.type) })))
                         .returns(Ask.typeName(callback.returnType)).$().$(),
                     Builders.func('framework.engine.deserializeAndCall' + callback.name)
                         .param(deserializerName).type(KOALAUI_DESERIALIZER_BASE).$()
@@ -80,10 +80,10 @@ export const createOhosCallbackProducer = (library: ColoredLibrary): InteropProd
                     Builders.struct(generatedDeclName)
                         .field('resource').type(callbackResourceType).$()
                         .field('call').funcType()
-                        .parameters(asyncParams.map(({ name, type }) => [name, type]))
+                        .parameters(asyncParams)
                         .returns(Ts.prim.void).$().$()
                         .field('callSync').funcType()
-                        .parameters(syncParams.map(({ name, type }) => [name, type]))
+                        .parameters(syncParams)
                         .returns(Ts.prim.void).$().$().$(),
                     Builders.func(`impl.CallManaged${callback.name}`)
                         .parameters(asyncParams)
@@ -128,9 +128,9 @@ export const createOhosCallbackProducer = (library: ColoredLibrary): InteropProd
             fromInteropBuffer(buffer) {
                 const callbackName = getFQName(decl).split('.').at(-1)!
                 const kindName = E.v(`KIND_${callbackName.toUpperCase()}`)
-                const callbackParams: [string, LWType][] = decl.parameters.map(p => [p.name, Ask.typeName(p.type)])
-                const asyncParams: [string, LWType][] = [['resourceId', Ask.typeName(createPrimitiveType('i32'))], ...callbackParams]
-                const syncParams: [string, LWType][] = [['vmContext', vmContentSeed.createType({})], ...asyncParams]
+                const callbackParams: { name: string; type: LWType }[] = decl.parameters.map(p => ({ name: p.name, type: Ask.typeName(p.type) }))
+                const asyncParams: { name: string; type: LWType }[] = [{ name: 'resourceId', type: Ask.typeName(createPrimitiveType('i32')) }, ...callbackParams]
+                const syncParams: { name: string; type: LWType }[] = [{ name: 'vmContext', type: vmContentSeed.createType({}) }, ...asyncParams]
                 const name = 'gotCallback'
                 return [[
                     Builders.decl(name, Ask.typeName(decl)).value()
