@@ -16,18 +16,21 @@
 import { D, DD, E, Hs, LWExpression, LWStatement, Md, S, T, Ts } from "@idlizer/ost";
 import { getFQName, IDLInterface, IDLType, isInterface, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
-import { makeSeed } from "@idlizer/kit";
+import { Seed } from "@idlizer/kit";
 import { makeDeclarationProducer, InteropProducerTypeDescription, SelectResult } from "../../generator/builder";
 import { showErrorFile, throwDeclarationWasNotFound } from "../../generator/common";
 import { KOALAUI_SERIALIZER_BASE, KOALAUI_DESERIALIZER_BASE } from "../../generator/names";
 import { Ask } from "../../generator/seed";
 
+class StructureSerializerReadSeedClass extends Seed {
+    constructor(public decl: IDLInterface) { super() }
+    hash(): string { return `::SERIALIZER:DECL:READ:` + getFQName(this.decl) }
+    debugMessage(): string { return `Generating read serializer for structure type "${getFQName(this.decl)}" ${showErrorFile(this.decl)}` }
+}
 const [structureSerializerReadProducer, StructureSerializerReedSeed] = makeDeclarationProducer(
-    makeSeed<IDLInterface>(
-        decl => `::SERIALIZER:DECL:READ:` + getFQName(decl),
-        decl => `Generating read serializer for structure type "${getFQName(decl)}" ${showErrorFile(decl)}`,
-    ),
-    (node, ctx) => {
+    StructureSerializerReadSeedClass,
+    (seed, ctx) => {
+        const node = seed.decl
         const generate = (
             readProp: (type: IDLType, buffer: LWExpression) => [LWStatement[], LWExpression]
         ) => {
@@ -85,12 +88,15 @@ const [structureSerializerReadProducer, StructureSerializerReedSeed] = makeDecla
             )
     }
 )
+class StructureSerializerWriteSeedClass extends Seed {
+    constructor(public decl: IDLInterface) { super() }
+    hash(): string { return `::SERIALIZER:DECL:WRITE:` + getFQName(this.decl) }
+    debugMessage(): string { return `Generating write serializer for structure type "${getFQName(this.decl)}" ${showErrorFile(this.decl)}` }
+}
 const [structureSerializerWriteProducer, StructureSerializerWriteSeed] = makeDeclarationProducer(
-    makeSeed<IDLInterface>(
-        decl => `::SERIALIZER:DECL:WRITE:` + getFQName(decl),
-        decl => `Generating write serializer for structure type "${getFQName(decl)}" ${showErrorFile(decl)}`,
-    ),
-    (node, ctx) => {
+    StructureSerializerWriteSeedClass,
+    (seed, ctx) => {
+        const node = seed.decl
         const generate = (
             writeProp: (type: IDLType, field: LWExpression, buffer: LWExpression) => LWStatement[]
         ) => {

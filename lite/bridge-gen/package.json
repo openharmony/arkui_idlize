@@ -2,17 +2,23 @@
   "name": "@idlizer/bridge-gen",
   "version": "0.2.0",
   "private": true,
-  "bin": {
-    "bridge-gen": "build/lib/bridge-gen.js"
+  "type": "module",
+  "bin": "build/lib/src/main.js",
+  "types": "build/lib/src/main.d.ts",
+  "exports": {
+    ".": [
+      "./build/lib/src/main.js"
+    ]
   },
   "files": [
     "build/lib/**/*.js",
+    "build/lib/**/*.d.ts",
     "resources"
   ],
-  "main": "build/lib/bridge-gen.js",
+  "main": "build/lib/src/main.js",
   "scripts": {
     "compile": "npm run -C ../../ost compile && npm run -C ../../core compile && npm run compile:self",
-    "compile:self": "rollup -c",
+    "compile:self": "tsc -b .",
     "clean": "rimraf build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -26,12 +32,6 @@
     "@idlizer/kit": "2.2.2+devel",
     "@idlizer/core": "2.2.2+devel",
     "@idlizer/ost": "2.2.2+devel",
-    "@rollup/plugin-commonjs": "^26.0.1",
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-replace": "^5.0.7",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "rollup": "^4.24.4",
     "typescript": "4.9.5",
     "@types/node": "^18.19.127",
     "@idlizer/rimraf": "2.2.2+devel"

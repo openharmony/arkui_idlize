@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +17,7 @@
 
 import { createAlgotithmicReferenceResolver, createEmptyReferenceResolver, IndentedPrinter, Language, NativeModuleType, parseIDLFile, PeerLibrary, TSLanguageWriter, TSTypeNameConvertor } from "@idlizer/core"
 import { basename, dirname, join, relative, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 import * as idl from "@idlizer/core/idl"
 import { LWDeclaration, LWKind, processNPrintArkTS, processNPrintCXX, processNPrintTS } from "@idlizer/ost"
 import { lowLevelLike, moduleLike, topSortDeclarations, forkWith, getArgs, getEnv, getIO, CURRENT_LOG_LEVEL, logger, terminate, TerminateError, makeDeclaration, ContinueWithGenerationError } from "@idlizer/kit"
@@ -531,8 +534,8 @@ async function buildAni(nativeModuleName: string, generationFolder: GenerationFi
     logger.info(`Produce native library`)
 
     const includeDirs: (string | undefined)[] = [
-        resolve(__dirname, '..', '..', 'essentials', 'third_party', 'panda'),
-        resolve(__dirname, '..', '..', 'essentials'),
+        resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'essentials', 'third_party', 'panda'),
+        resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'essentials'),
         bundleInfo.runtime?.headers,
     ]
     projectConfig.originalConfig.library.include_directory?.forEach(dir => {
@@ -666,7 +669,7 @@ async function buildNode(generationFolder: GenerationFilesInfo, bundleInfo: Conf
                     defines: ['NAPI_INTEROP', 'KOALA_USE_NODE_VM', 'KOALA_NAPI'],
                     target_name: "framework.nativeModule",
                     include_dirs: [
-                        resolve(__dirname, '..', '..', 'essentials'),
+                        resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'essentials'),
                         ...(projectConfig.originalConfig.library.include_directory ?? []),
                         bundleInfo.runtime?.headers
                     ].filter(x => !!x),

@@ -16,14 +16,17 @@
 import { getFQName, IDLCallback, isCallback, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
 import { InteropProducerTypeDescription, makeDeclarationProducer, SelectResult } from "../../generator/builder";
-import { terminate, makeSeed } from "@idlizer/kit";
+import { terminate, Seed } from "@idlizer/kit";
 import { DD, D, E, Hs, S, T, Ts, Md, LWStatement, LWExpression, LWType } from "@idlizer/ost";
 import { IDLIZER_RAW_MEMORY, IDLIZER_SERIALIZER_BASE, IDLIZER_RESOURCE_MANAGER, IDLIZER_DESERIALIZER_BASE } from "../../generator/names";
 import { Ask } from "../../generator/seed";
 import { NotTransferrableType } from "../../generator/common";
 
+class VanillaResourceBoxSeed extends Seed {
+    hash(): string { return ':VANILLA:NATIVE_RESOURCE_BOX' }
+}
 const [vanillaResourceBox, ResourceBoxSeed] = makeDeclarationProducer(
-    makeSeed(() => ':VANILLA:NATIVE_RESOURCE_BOX'),
+    VanillaResourceBoxSeed,
     () => {
         return {
             continuation: T.c('capi.ResourceBox'),
@@ -35,18 +38,25 @@ const [vanillaResourceBox, ResourceBoxSeed] = makeDeclarationProducer(
         }
     }
 )
+class NativeCallbackCallSeed extends Seed {
+    constructor(
+        public callback: IDLCallback,
+        public named?: string,
+    ) { super() }
+    hash(): string { return `:VANILLA:NATIVE:FUNCTION_CALL:${this.named ?? '_'}:${getFQName(this.callback)}` }
+}
 const [vanillaNativeCallbackCall, NativeCallbackCall] = makeDeclarationProducer(
-    makeSeed<{ callback: IDLCallback, named?: string }>((cb) => `:VANILLA:NATIVE:FUNCTION_CALL:${cb.named ?? '_'}:${getFQName(cb.callback)}`),
+    NativeCallbackCallSeed,
     (req, ctx) => {
         const functionName = req.callback.name + '_' + 'CallbackCall'
-        const callArgs: [string, LWType][] = req.callback.parameters.map(param => [param.name, Ask.typeName(param.type)])
+        const callArgs: [string, LWType][] = req.callback.parameters.map((param: IDLCallback['parameters'][number]) => [param.name, Ask.typeName(param.type)])
         callArgs.unshift(['resource', T.c('capi.ResourceBox')])
 
         const body: LWStatement[] = []
         body.push(S.declaration('memory', T.c(IDLIZER_RAW_MEMORY), true, E.call(E.get(E.v(IDLIZER_RAW_MEMORY, [Hs.isType()]), 'allocate'), [])))
         body.push(S.declaration('thisSerializer', T.c(IDLIZER_SERIALIZER_BASE), true, E.call(E.get(E.v(IDLIZER_SERIALIZER_BASE, [Hs.isType()]), 'use'), [E.v('memory')])))
 
-        req.callback.parameters.forEach(param => {
+        req.callback.parameters.forEach((param) => {
             const stmts = ctx.library.selector.selectConvertor(param.type).fromBufferTransferrable?.toReturnBuffer(E.v(param.name), E.v('thisSerializer'))
             if (!stmts) {
                 throw new NotTransferrableType(param.type, 'fromNativeToManaged')
@@ -70,9 +80,14 @@ const [vanillaNativeCallbackCall, NativeCallbackCall] = makeDeclarationProducer(
     }
 )
 
+class ManagedCallbackSerializerSeed extends Seed {
+    constructor(public cb: IDLCallback) { super() }
+    hash(): string { return `:VANILLA:MANAGED:SERIALIZER:${getFQName(this.cb)}` }
+}
 const [vanillaManagedSerializerProducer, ManagedCallbackSerializer] = makeDeclarationProducer(
-    makeSeed<IDLCallback>(cb => `:VANILLA:MANAGED:SERIALIZER:${getFQName(cb)}`),
-    (node, ctx) => {
+    ManagedCallbackSerializerSeed,
+    (seed, ctx) => {
+        const node = seed.cb
         const serializerName = getFQName(node) + "_CallbackSerializer"
 
         const applyBody: LWStatement[] = []
@@ -125,10 +140,10 @@ export function createVanillaCallbackProducer(library: ColoredLibrary): InteropP
                         S.declaration('resourceId', Ts.prim.i32, true, E.call(E.get(buffer, 'readInt32'), [])),
                     ],
                     E.instance2(Ask.typeName(entry), [
-                        E.instance2(ResourceBoxSeed.createType({}), [
+                        E.instance2(ResourceBoxSeed.createType(), [
                             E.v('resourceId', [Hs.named('resourceId')])
                         ], [Hs.asStruct(), Hs.named('resource')]),
-                        NativeCallbackCall.createExpr({ callback: entry, named: 'call' })
+                        NativeCallbackCall.createExpr(entry, 'call')
                     ], [Hs.asStruct()])
                 ]
             },
@@ -146,7 +161,7 @@ export function createVanillaCallbackProducer(library: ColoredLibrary): InteropP
                     D.type(
                         name,
                         T.fn(
-                            val.parameters.map(param => [param.name, Ask.typeName(param.type)]),
+                            val.parameters.map(param => ({ name: param.name, type: Ask.typeName(param.type) })),
                             Ask.typeName(val.returnType)
                         )
                     )
@@ -155,13 +170,13 @@ export function createVanillaCallbackProducer(library: ColoredLibrary): InteropP
         },
         onNativeDeclaration(val) {
             const name = 'capi.' + getFQName(val)
-            const callArgs: [string, LWType][] = val.parameters.map(param => [param.name, Ask.typeName(param.type)])
-            callArgs.unshift(['resource', T.c('capi.ResourceBox')])
+            const callArgs: { name: string; type: LWType }[] = val.parameters.map(param => ({ name: param.name, type: Ask.typeName(param.type) }))
+            callArgs.unshift({ name: 'resource', type: T.c('capi.ResourceBox') })
             return {
                 continuation: T.c(name),
                 declarations: [
                     D.struct(name, [
-                        { name: 'resource', type: ResourceBoxSeed.createType({}) },
+                        { name: 'resource', type: ResourceBoxSeed.createType() },
                         {
                             name: 'call',
                             type: T.fn(
