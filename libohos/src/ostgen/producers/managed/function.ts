@@ -14,22 +14,22 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, E, LWStatement, Md, S, T, lw } from "@idlizer/ost"
+import { Builders, E, LWStatement, Md, S, T, Ts, lw } from "@idlizer/ost"
 import { expectExpr, expectType, managedName } from "../common.js"
 import { argConvertor } from "../components/argConvertor.js"
 import { createProducer } from "../../engine/index.js"
-import { maybeRestoreThrows } from "@idlizer/core"
+import { maybeRestoreThrows, PeerMethodSignature } from "@idlizer/core"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'managed' },
-  (method, ctx, role, data) => {
+  (method, ctx) => {
     const declName = method.isFree
       ? managedName(idl.getFQName(method))
       : idl.getExtAttribute(method, idl.IDLExtendedAttributes.DtsName) ?? method.name
     const serializerName = 'serializer'
     const restoredType = maybeRestoreThrows(method.returnType, ctx.library)
     const returnType = expectType(ctx, restoredType ?? method.returnType, 'managed')
-    const nativeModuleCall = Builders.call(expectExpr(ctx, method, 'native-module', data))
+    const nativeModuleCall = Builders.call(expectExpr(ctx, maybeOverload(method), 'native-module'))
       .arg().call('asBuffer').receiver(serializerName).$().$()
       .arg().call('length').receiver(serializerName).$().$().$()
     if (!method.isFree && !method.isStatic) {
@@ -76,10 +76,10 @@ export const functionProducer = createProducer(
 
 export const constructorProducer = createProducer(
   { is: idl.isConstructor, role: 'managed' },
-  (ctor, ctx, role, data) => {
+  (ctor, ctx) => {
     const className = managedName(idl.getFQName(ctor.parent!))
     const serializerName = 'serializer'
-    const nativeModuleCall = Builders.call(expectExpr(ctx, ctor, 'native-module', data))
+    const nativeModuleCall = Builders.call(expectExpr(ctx, maybeOverload(ctor), 'native-module'))
       .arg().call('asBuffer').receiver(serializerName).$().$()
       .arg().call('length').receiver(serializerName).$().$().$()
     const body: LWStatement[] = [
@@ -105,3 +105,20 @@ export const constructorProducer = createProducer(
     }
   }
 )
+
+function maybeOverload(func: idl.IDLMethod | idl.IDLConstructor): idl.IDLMethod {
+  let result: idl.IDLMethod
+  const overloadInfo = PeerMethodSignature.mangleOverloadedName(func)
+  const decorate = (name: string) => overloadInfo.alias ?? name + overloadInfo.postfix
+  if (idl.isMethod(func)) {
+    result = idl.createMethod(decorate(func.name), func.parameters, func.returnType,
+      { isAsync: func.isAsync, isOptional: func.isOptional, isStatic: func.isStatic, isFree: func.isFree },
+      undefined, func.typeParameters)
+  } else {
+    result = idl.createMethod(decorate('_construct'), func.parameters, idl.createPrimitiveType('pointer'),
+      { isAsync: false, isOptional: false, isStatic: true, isFree: false },
+      undefined, func.typeParameters)
+  }
+  result.parent = func.parent
+  return result
+}

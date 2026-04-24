@@ -87,8 +87,6 @@ type SpecificRole<N extends idl.IDLNode> =
 export type OhosRole<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
 export type OhosSeedData<N extends idl.IDLNode> =
-    N extends idl.IDLMethod ? { overrideIndex?: number } :
-    N extends idl.IDLConstructor ? { overrideIndex?: number } :
     N extends idl.IDLEntry ? { typeArgs?: idl.IDLType[] } :
     N extends idl.IDLType ? { name?: string } :
     never
@@ -106,13 +104,14 @@ export class OhosSeed<N extends idl.IDLNode, R=OhosRole<N>> extends Seed {
         ? 'type:' + idl.printType(this.node)
         : 'node:' + idl.getFQName(this.node)
     const suffix =
-        !this.data ? '' :
+        idl.isMethod(this.node) || idl.isConstructor(this.node)
+            ? this.node.parameters.map(it => idl.printType(it.type)).join(',') :
+        !this.data
+            ? '' :
         'typeArgs' in this.data && this.data.typeArgs
             ? 'typeArgs:' + this.data.typeArgs.map(ty => idl.printType(ty)).join(',') :
         'name' in this.data && this.data.name
             ? 'name:' + this.data.name :
-        'overrideIndex' in this.data && this.data.overrideIndex
-            ? 'overrideIndex:' + this.data.overrideIndex :
         ''
     return `${repr}:${this.role}:${suffix}`
   }

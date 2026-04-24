@@ -23,21 +23,21 @@ import { OhosProducerContext } from "../../engine/index.js"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'capi' },
-  (method, ctx, role, data) => {
-    const funcName = (method.isFree ? fqName(method) : method.name) + (data?.overrideIndex ?? '')
+  (method, ctx) => {
+    const funcName = method.isFree ? fqName(method) : method.name
     const isPromise = idl.isContainerType(method.returnType) && idl.IDLContainerUtils.isPromise(method.returnType)
     const returnType = isPromise || (idl.isPrimitiveType(method.returnType) && method.returnType.name === 'this')
       ? Ts.prim.void
       : expectType(ctx, method.returnType, 'capi')
     return {
-      continuation: apiAccessor(method, funcName, ctx, data?.overrideIndex),
+      continuation: apiAccessor(method, funcName, ctx),
       declarations: [
         Builders.struct(cApiName(modifierClassName(method) + 'Modifier'))
           .field(funcName)
             .funcType()
             .parameters(makeParameters(ctx, method))
             .returns(returnType).$().$().$(),
-        makeImpl(ctx, method, returnType, data?.overrideIndex)
+        makeImpl(ctx, method, returnType)
       ]
     }
   }
@@ -45,17 +45,17 @@ export const functionProducer = createProducer(
 
 export const constructorProducer = createProducer(
   { is: idl.isConstructor, role: 'capi' },
-  (ctor, ctx, role, data) => {
-    const funcName = '_construct' + (data?.overrideIndex ?? '')
+  (ctor, ctx) => {
+    const funcName = '_construct'
     return {
-      continuation: apiAccessor(ctor, funcName, ctx, data?.overrideIndex),
+      continuation: apiAccessor(ctor, funcName, ctx),
       declarations: [
         Builders.struct(cApiName(modifierClassName(ctor) + 'Modifier'))
           .field(funcName)
             .funcType()
             .parameters(makeParameters(ctx, ctor))
             .returns(Ts.prim.pointer).$().$().$(),
-        makeImpl(ctx, ctor, Ts.prim.pointer, data?.overrideIndex)
+        makeImpl(ctx, ctor, Ts.prim.pointer)
       ]
     }
   }
@@ -69,19 +69,17 @@ function modifierClassName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConst
       : 'GlobalScope'
 }
 
-function apiAccessor(
-  method: idl.IDLMethod | idl.IDLConstructor, name: string, ctx: OhosProducerContext, overrideIndex?: number
-): LWExpression {
+function apiAccessor(method: idl.IDLMethod | idl.IDLConstructor, name: string, ctx: OhosProducerContext): LWExpression {
   const modifierName = modifierClassName(method)
-  ctx.updateEffect(e => mapPush(e.modifiers, modifierName, fqName(method, undefined, overrideIndex?.toString())))
+  ctx.updateEffect(e => mapPush(e.modifiers, modifierName, fqName(method)))
   return Builders
     .access(name).ptr().receiver().call().function()
       .access(modifierName).ptr().receiver().call(ctx.getEffect().apiFunctionName)
         .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
 }
 
-function makeImpl(ctx: OhosProducerContext, method: idl.IDLMethod | idl.IDLConstructor, returnType: LWType, overrideIndex?: number) {
-  return Builders.func(implName(fqName(method) + (overrideIndex ?? '') + 'Impl'))
+function makeImpl(ctx: OhosProducerContext, method: idl.IDLMethod | idl.IDLConstructor, returnType: LWType) {
+  return Builders.func(implName(fqName(method) + 'Impl'))
     .returns(returnType)
     .parameters(makeParameters(ctx, method)).$()
 }

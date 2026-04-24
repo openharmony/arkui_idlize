@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
 import { bridgeName, cApiName, expectExpr, expectType, isDirectInteropType } from "../common.js"
-import { createProducer, fqName, OhosProducerContext, OhosRole, OhosSeed, OhosSeedData } from "../../engine/index.js"
+import { createProducer, fqName, OhosProducerContext } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js"
 
 export const nativeModuleMaterializedProducer = createProducer(
@@ -34,8 +34,8 @@ export const nativeModuleMaterializedProducer = createProducer(
 
 export const nativeModuleFunctionProducer = createProducer(
   { is: idl.isMethod, role: 'native-module' },
-  (method, ctx, role, data) => {
-    const funcName = fqName(method) + (data?.overrideIndex ?? '')
+  (method, ctx) => {
+    const funcName = fqName(method)
     const className = ctx.getEffect().nativeModuleName
     const returnType = argConvertor(ctx, method.returnType).interopType(false)
     const params = [
@@ -54,7 +54,7 @@ export const nativeModuleFunctionProducer = createProducer(
             .annotation(!isPromise && isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
             .parameters(params)
             .returns(returnType).$().$(),
-        makeBridge(funcName, method, ctx, data)
+        makeBridge(funcName, method, ctx)
       ]
     }
   }
@@ -62,8 +62,8 @@ export const nativeModuleFunctionProducer = createProducer(
 
 export const nativeModuleConstructorProducer = createProducer(
   { is: idl.isConstructor, role: 'native-module' },
-  (ctor, ctx, role, data) => {
-    const funcName = fqName(ctor) + (data?.overrideIndex ?? '')
+  (ctor, ctx) => {
+    const funcName = fqName(ctor)
     const nativeModuleClassName = ctx.getEffect().nativeModuleName
     const params = [
       { name: 'buffer', type: Ts.prim.serializerBuffer },
@@ -79,15 +79,13 @@ export const nativeModuleConstructorProducer = createProducer(
             .returns(Ts.prim.pointer)
             .parameters(params).$().$(),
         // bridge
-        makeConstructorBridge(funcName, ctor, ctx, data)
+        makeConstructorBridge(funcName, ctor, ctx)
       ]
     }
   }
 )
 
-function makeConstructorBridge(
-  name: string, ctor: idl.IDLConstructor, ctx: OhosProducerContext, data?: OhosSeedData<idl.IDLConstructor>
-): FunctionDeclaration {
+function makeConstructorBridge(name: string, ctor: idl.IDLConstructor, ctx: OhosProducerContext): FunctionDeclaration {
   const params = [
     { name: 'thisArray', type: Ts.prim.serializerBuffer },
     { name: 'thisLength', type: Ts.prim.i32 },
@@ -98,7 +96,7 @@ function makeConstructorBridge(
     return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
   })
   const apiCallArgs = argReads.map(([_, expr]) => expr)
-  const apiCall = Builders.call(expectExpr(ctx, ctor, 'capi', data)).args(apiCallArgs).$()
+  const apiCall = Builders.call(expectExpr(ctx, ctor, 'capi')).args(apiCallArgs).$()
 
   const body = Builders.block()
     .decl('deserializer', T.c('DeserializerBase')).mutable().value()
@@ -113,9 +111,7 @@ function makeConstructorBridge(
     .macro('KOALA_INTEROP_DIRECT_2', name, Ts.prim.pointer, Ts.prim.serializerBuffer, Ts.prim.i32).$()
 }
 
-function makeBridge(
-  name: string, method: idl.IDLMethod, ctx: OhosProducerContext, data?: OhosSeedData<idl.IDLMethod>
-): FunctionDeclaration {
+function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContext): FunctionDeclaration {
   const params = [
     { name: 'thisArray', type: Ts.prim.serializerBuffer },
     { name: 'thisLength', type: Ts.prim.i32 },
@@ -165,7 +161,7 @@ function makeBridge(
     capiMethod.parent = method.parent
     makeApiCall = (expr: LWExpression) => Builders.cast(Ts.prim.pointer).value(expr).$()
   }
-  const apiCall = makeApiCall(expectExpr(ctx, capiMethod, 'capi', data))
+  const apiCall = makeApiCall(expectExpr(ctx, capiMethod, 'capi'))
 
   const body = Builders.block()
     .decl('deserializer', T.c('DeserializerBase')).mutable().value()

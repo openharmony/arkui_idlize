@@ -116,7 +116,7 @@ function staticMaterializedInterface(node: idl.IDLInterface, name: string, ctx: 
       Builders.class(name)
         .extends(superType ? expectType(ctx, superType, 'managed') : undefined).$()
     ],
-    trigger: methodSeeds(...node.methods)
+    trigger: node.methods.map(it => new OhosSeed(it, 'managed'))
   }
 }
 
@@ -187,15 +187,10 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
   return {
     continuation: T.c(name),
     declarations: [ intClass, matClass ],
-    trigger: methodSeeds(...node.constructors, ...node.methods, ...syntheticMethods)
+    trigger: [
+      ...node.constructors,
+      ...node.methods,
+      ...syntheticMethods
+    ].map(it => new OhosSeed(it, 'managed'))
   }
-}
-
-function methodSeeds(...methods: (idl.IDLMethod | idl.IDLConstructor)[]) {
-  const nameCache = new Map<string, number>()
-  return methods.map(m => {
-    const overrideIndex = nameCache.get(m.name)
-    nameCache.set(m.name, (overrideIndex ?? 0) + 1)
-    return new OhosSeed(m, 'managed', { overrideIndex })
-  })
 }
