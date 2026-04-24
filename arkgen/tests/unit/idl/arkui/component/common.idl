@@ -15,10 +15,9 @@
 
 package arkui.component.common;
 import arkui.component.units.Length as Length;
-import arkui.Graphics.DrawContext as _DrawContext;
+import arkui.Graphics.DrawContext as DrawContext;
 import arkui.CheckCustomModifierModifier.CheckCustomModifierModifier as CheckCustomModifierModifier;
 import arkui.CheckTrivialModifierModifier.CheckTrivialModifierModifier as CheckTrivialModifierModifier;
-typedef DrawContext = _DrawContext;
 
 // Improve: used in conf/ets-sdk.refs.json
 interface <T> AttributeModifier {
