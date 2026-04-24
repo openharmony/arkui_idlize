@@ -103,7 +103,9 @@ function isSubclassComponent(library: LibraryInterface, a: IdlComponentDeclarati
     return isSubclass(library, a.attributeDeclaration, b.attributeDeclaration)
 }
 
-export function getSuperComponent(library: LibraryInterface, componentName :string): IdlComponentDeclaration | undefined {
+export function getSuperComponent(
+    library: LibraryInterface,
+    componentName :string): IdlComponentDeclaration | undefined {
     const component = findComponentByName(library, componentName)
     if (component?.attributeDeclaration.inheritance.length) {
         const [parentRef] = component.attributeDeclaration.inheritance

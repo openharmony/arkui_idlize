@@ -1,46 +1,44 @@
 {
-  "name": "@idlizer/arkgen-unit-test",
-  "version": "2.2.2+devel",
-  "description": "Arkgen unit test",
-  "files": [
-  ],
-  "license": "Apache-2.0",
-  "keywords": [],
-  "arkts": {
-    "bin": "./generated/abc/all.abc",
-    "entryPoint": "arkui.framework.main.ETSGLOBAL::main"
-  },
-  "dependencies": {
-    "@koalaui/compat": "panda-next",
-    "@koalaui/common": "panda-next",
-    "@koalaui/interop": "panda-next",
-    "@idlizer/arkgen-tests-template-arkts": "file:../../tests-template/arkts",
-    "commander": "^10.0.0"
-  },
-  "devDependencies": {
-    "@koalaui/smart-arkts": "panda-next"
-  },
-
-  "scripts": {
-    "gen": "node ../../ --api-version 99 --idl2peer --reference-names  ./conf/ets-sdk.refs.json --use-memo-m3 --arkts-extension .ets --input-files $(find ./idl -type f | tr '\\n' ' ')  --output-dir ./generated --language $LANG --ignore-default-config --options-file ./conf/config-arkui.json",
-    "UNIT": "#-------------------",
-    "init:arkts": "./scripts/init-arkts.sh",
-    "gen:arkts": "LANG=arkts npm run gen",
-    "build:arkts": "smart-arkts compile --config ./arktsconfig.json --simultaneous",
-    "build:arkts:native":  "cd ../../.. && npm run gn:gen && ninja -C out/dir arkgen/tests/unit:check:arkts:install:native",
-    "exec:arkts": "ACE_LIBRARY_PATH=./build-arkts LD_LIBRARY_PATH=./build-arkts smart-arkts run",
-    "all:arkts": "cd ../../.. && npm run gn:gen && ninja -C out/dir arkgen/tests/unit:check:arkts",
-    "KOTLIN": "#-------------------------",
-    "init:kt": "./scripts/init-kotlin.sh",
-    "build:kt:interop": "npm run compile:kotlin:interop -C ../../../external/koala_projects/interop",
-    "gen:kt": "LANG=kotlin npm run gen",
-    "build:kt": "bash ./scripts/compile-kotlin.sh",
-    "build:kt:native": "cd ./../../native && meson setup -Dsource_set=unit-kotlin build-unit-kotlin && meson compile --verbose -C build-unit-kotlin && meson install -C build-unit-kotlin",
-    "exec:kt": "LD_LIBRARY_PATH=./../../native ACE_LIBRARY_PATH=./../../native ./generated/bin/idlize_test.kexe",
-    "all:kt": "npm run -C ../.. download:koala_projects && npm run -C ../../ compile && npm run init:kt && npm run gen:kt && npm run build:kt:interop && npm run build:kt:native && npm run build:kt && npm run exec:kt",
-    "API GOLDEN TEST": "#-------------------",
-    "gen:golden": "npm run gen:arkts && mkdir -p generated/golden && cp -f generated/sig/arkoala-arkts/framework/native/src/generated/arkoala_api_generated.h generated/golden",
-    "exec:golden": "node ../../../tools/golden.mjs --input-dir ./generated/golden --golden-dir ./golden",
-    "all:golden": "npm run -C ../../ compile && npm run gen:golden && npm run exec:golden"
-  }
+    "name": "@idlizer/arkgen-unit-test",
+    "version": "2.2.2+devel",
+    "description": "Arkgen unit test",
+    "files": [],
+    "license": "Apache-2.0",
+    "keywords": [],
+    "arkts": {
+        "bin": "./generated/abc/all.abc",
+        "entryPoint": "arkui.framework.main.ETSGLOBAL::main"
+    },
+    "dependencies": {
+        "@koalaui/compat": "1.5.0-dev.68195-8888",
+        "@koalaui/common": "1.5.0-dev.68195-8888",
+        "@koalaui/interop": "1.5.0-dev.68195-8888",
+        "@idlizer/arkgen-tests-template-arkts": "file:../../tests-template/arkts",
+        "commander": "^10.0.0"
+    },
+    "devDependencies": {
+        "@koalaui/smart-arkts": "1.5.0-dev.68195-8888"
+    },
+    "scripts": {
+        "gen": "node ../../ --api-version 99 --idl2peer --reference-names  ./conf/ets-sdk.refs.json --use-memo-m3 --arkts-extension .ets --input-files $(find ./idl -type f | tr '\\n' ' ')  --output-dir ./generated --language $LANG --ignore-default-config --options-file ./conf/config-arkui.json",
+        "UNIT": "#-------------------",
+        "init:arkts": "./scripts/init-arkts.sh",
+        "gen:arkts": "LANG=arkts npm run gen",
+        "build:arkts": "smart-arkts compile --config ./arktsconfig.json --simultaneous",
+        "build:arkts:native": "cd ../../.. && npm run gn:gen && ninja -C out/dir arkgen/tests/unit:check:arkts:install:native",
+        "exec:arkts": "ACE_LIBRARY_PATH=./build-arkts LD_LIBRARY_PATH=./build-arkts smart-arkts run",
+        "all:arkts": "cd ../../.. && npm run gn:gen && ninja -C out/dir arkgen/tests/unit:check:arkts",
+        "KOTLIN": "#-------------------------",
+        "init:kt": "./scripts/init-kotlin.sh",
+        "build:kt:interop": "npm run compile:kotlin:interop -C ../../../external/koala_projects/interop",
+        "gen:kt": "LANG=kotlin npm run gen",
+        "build:kt": "bash ./scripts/compile-kotlin.sh",
+        "build:kt:native": "cd ./../../native && meson setup -Dsource_set=unit-kotlin build-unit-kotlin && meson compile --verbose -C build-unit-kotlin && meson install -C build-unit-kotlin",
+        "exec:kt": "LD_LIBRARY_PATH=./../../native ACE_LIBRARY_PATH=./../../native ./generated/bin/idlize_test.kexe",
+        "all:kt": "npm run -C ../.. download:koala_projects && npm run -C ../../ compile && npm run init:kt && npm run gen:kt && npm run build:kt:interop && npm run build:kt:native && npm run build:kt && npm run exec:kt",
+        "API GOLDEN TEST": "#-------------------",
+        "gen:golden": "npm run gen:arkts && mkdir -p generated/golden && cp -f generated/sig/arkoala-arkts/framework/native/src/generated/arkoala_api_generated.h generated/golden",
+        "exec:golden": "node ../../../tools/golden.mjs --input-dir ./generated/golden --golden-dir ./golden",
+        "all:golden": "npm run -C ../../ compile && npm run gen:golden && npm run exec:golden"
+    }
 }

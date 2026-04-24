@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, hashCodeFromString, isDefined, isMaterialized, maybeRestoreThrows } from "@idlizer/core"
+import { capitalize, generatorConfiguration, hashCodeFromString, isDefined, isMaterialized, maybeRestoreThrows } from "@idlizer/core"
 import { Builders, E, LWExpression, LWStatement, lw, Op, std, T, Ts, Hs } from "@idlizer/ost"
 import { cApiName, expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
@@ -67,7 +67,7 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     returnFromInterop(resultVarName: string): LWStatement[] {
         return [Builders.return().value(resultVarName).$()]
     }
-    protected getSerializer(node: idl.IDLInterface, native: boolean) {
+    protected getSerializer(node: idl.IDLInterface | idl.IDLTypedef, native: boolean) {
         return native
             ? expectExpr(this.ctx, node, 'native-serde')
             : expectExpr(this.ctx, node, 'managed-serde')
@@ -102,7 +102,7 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
     if (idl.isUnionType(type))
         return new UnionConvertor(ctx, type)
     if (idl.isReferenceType(type)) {
-        const resolved = ctx.library.toDeclaration(type)
+        const resolved = ctx.library.resolveTypeReference(type)
         if (resolved) {
             if (idl.isType(resolved))
                 return argConvertor(ctx, resolved, optional)
@@ -118,6 +118,8 @@ export function argConvertor(ctx: OhosProducerContext, type: idl.IDLType, option
                 return new EnumConvertor(ctx, resolved)
             if (idl.isCallback(resolved))
                 return new CallbackConvertor(ctx, type, resolved)
+            if (idl.isTypedef(resolved))
+                return new TypedefConvertor(ctx, type, resolved)
         }
     }
     throw new Error(`Missing convertor for "${idl.DebugUtils.debugPrintTrace(type)}"`)
@@ -262,6 +264,38 @@ class MaterializedConvertor extends ArgConvertor<idl.IDLReferenceType> {
     }
 }
 
+class TypedefConvertor extends ArgConvertor<idl.IDLReferenceType> {
+    private delegate: ArgConvertor<idl.IDLType>
+    constructor(ctx: OhosProducerContext, type: idl.IDLReferenceType, protected decl: idl.IDLTypedef) {
+        super(ctx, type)
+        this.delegate = argConvertor(ctx, decl.type, false)
+    }
+    interopType(native: boolean): lw.LWType {
+        return this.delegate.interopType(native)
+    }
+    isPointer(): boolean {
+        return this.delegate.isPointer()
+    }
+    returnFromInterop(resultVarName: string): LWStatement[] {
+        return this.delegate.returnFromInterop(resultVarName)
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            Builders.stmt().call().function()
+                .access('write').static().receiver(this.getSerializer(this.decl, native)).$().$()
+                .arg(serializerName).arg(accessor).$().$()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        return [
+            [Builders.decl(name).value().call()
+                .function().access('read').static().receiver(this.getSerializer(this.decl, native)).$().$()
+                .arg(serializerName).$().$().$()
+            ], E.v(name)
+        ]
+    }
+}
+
 abstract class StructConvertor<T extends idl.IDLType> extends ArgConvertor<T> {
     interopType(native: boolean): lw.LWType {
         return Ts.prim.interopReturnBuffer
@@ -394,8 +428,10 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
                 .cond().binary(Op.lt).left('i').right().access('length').receiver(accessor).$().$().$().$()
                 .step().binary('=').left('i').right().binary(Op.add).left('i').right(1).$().$().$().$()
                 .body().block()
-                    .decl('item').value().access().receiver(arrayAccess).index('i').$().$().$()
-                    .statements(argConvertor(this.ctx, this.type.elementType[0]).write(E.v('item'), serializerName, native)).$().$().$()
+                    .decl('arrayElement').value().access().receiver(arrayAccess).index('i').$().$().$()
+                    .statements(
+                        argConvertor(this.ctx, this.type.elementType[0]).write(E.v('arrayElement'), serializerName, native)
+                    ).$().$().$()
         ]
     }
 
@@ -416,7 +452,7 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
             : name
         const resizeArray = native
             ? Builders.stmt().call("resizeArray").typeArgs([nativeArrayType, elemType]).receiver(serializerName)
-                .arg(Builders.expr().unary(Op.ref).value(name).$().$())
+                .arg().unary(Op.ref).value(name).$().$()
                 .arg(`${name}Length`).$().$()
             : Builders.none().$()
         const loop = Builders.loop()
@@ -453,17 +489,17 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
                         ? []
                         : [Builders.decl('entry').value().access().receiver('entries').index('i').$().$().$()])
                     .statements(['key', 'value'].map((prop, index) =>
-                        Builders.decl(prop).value(native
-                            ? Builders.access().receiver(Builders.access().receiver(accessor).member(`${prop}s`).$()).index('i').$()
+                        Builders.decl('map' + capitalize(prop)).value(native
+                            ? Builders.access().receiver().access().receiver(accessor).member(prop + 's').$().$().index('i').$()
                             : Builders.access().receiver('entry').index(index).$()
                         ).$(),
                     ))
                     .statements(
                         argConvertor(this.ctx, this.type.elementType[0])
-                            .write(E.v('key'), serializerName, native))
+                            .write(E.v('mapKey'), serializerName, native))
                     .statements(
                         argConvertor(this.ctx, this.type.elementType[1])
-                            .write(E.v('value'), serializerName, native)).$().$().$()
+                            .write(E.v('mapValue'), serializerName, native)).$().$().$()
         ]
     }
 
@@ -480,7 +516,7 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
                 .ctor(std.names.types.map).typeArgs([keyType, valueType]).$().$().$()
         const resizeMap = native
             ? Builders.stmt().call("resizeMap").typeArgs([nativeMapType, keyType, valueType]).receiver(serializerName)
-                .arg(Builders.expr().unary(Op.ref).value(name).$().$())
+                .arg().unary(Op.ref).value(name).$().$()
                 .arg(`${name}Length`).$().$()
             : Builders.none().$()
         const [keyReads, keyReadValue] = argConvertor(this.ctx, this.type.elementType[0])
@@ -498,7 +534,7 @@ class MapConvertor extends StructConvertor<idl.IDLContainerType> {
                 ? [{ prop: 'keys', value: keyReadValue }, { prop: 'values', value: valueReadValue }].map(it =>
                     Builders.stmt()
                         .binary('=')
-                        .left().access().receiver(Builders.access().receiver(name).member(it.prop).$()).index('i').$().$()
+                        .left().access().receiver().access().receiver(name).member(it.prop).$().$().index('i').$().$()
                         .right(it.value).$().$(),)
                 : [Builders.stmt().call('set').receiver(name).arg(keyReadValue).arg(valueReadValue).$().$()])
             .$().$().$()
@@ -562,17 +598,28 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
         return [
             this.orderIndices().map(i => {
                 const type = this.type.types[i]
-                const cond = native
-                    ? Builders.binary(Op.eq)
+                let cond: lw.LWExpression
+                let value: lw.LWExpression
+                const maybeCast: lw.LWStatement[] = []
+                if (native) {
+                    cond = Builders.binary(Op.eq)
                         .left().access('selector').receiver(accessor).$().$()
                         .right(i).$()
-                    : Builders.instanceof(expectType(this.ctx, type, 'managed')).value(accessor).$()
-                const value = native
-                    ? Builders.access('value' + i).receiver(accessor).$()
-                    : accessor /// cast to `ty`
+                    value = Builders.access('value' + i).receiver(accessor).$()
+                } else {
+                    cond = Builders.call(expectExpr(this.ctx, type, 'typecheck')).arg(accessor).$()
+                    const castedName = accessor.kind === lw.LWKind.VariableExpression
+                        ? accessor.name + 'Casted'
+                        : 'valueCasted'
+                    maybeCast.push(
+                        Builders.decl(castedName).value()
+                            .cast(expectType(this.ctx, type, 'managed')).value(accessor).$().$().$())
+                    value = E.v(castedName)
+                }
                 return Builders.if()
                     .condition(cond)
                     .then().block()
+                        .statements(maybeCast)
                         .call('writeInt8').receiver(serializerName).arg(i).$()
                         .statements(argConvertor(this.ctx, type).write(value, serializerName, native)).$().$().$()
             })
@@ -822,8 +869,8 @@ export function deserializeAndCallCallback(name: string, serializerName: lw.LWEx
                         .arg(generatorConfiguration().ApiKind)
                         // TBD: Use CallbackKind
                         .arg(hashCodeFromString(decl.name.toUpperCase()) + ` /* CallbackKind.${decl.name} */`)
-                        .arg(Builders.call('asBuffer').receiver(returnCallbackSerializer).$())
-                        .arg(Builders.call('length').receiver(returnCallbackSerializer).$()).$()
+                        .arg().call('asBuffer').receiver(returnCallbackSerializer).$().$()
+                        .arg().call('length').receiver(returnCallbackSerializer).$().$().$()
                     .call('release').receiver(returnCallbackSerializer).$()
                     .statements([needsContinuation
                         ? Builders.return(returnCallbackType).value(E.c(`${name}Result`, [Hs.excl()])).$()

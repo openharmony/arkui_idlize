@@ -2,42 +2,36 @@
     "name": "demo-huks",
     "private": true,
     "dependencies": {
-        "@koalaui/common": "panda-next",
-        "@koalaui/compat": "panda-next",
-        "@koalaui/interop": "panda-next"
+        "@koalaui/common": "1.5.0-dev.68195-8888",
+        "@koalaui/compat": "1.5.0-dev.68195-8888",
+        "@koalaui/interop": "1.5.0-dev.68195-8888"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next"
+        "@koalaui/smart-arkts": "1.5.0-dev.68195-8888"
     },
     "scripts": {
         "clean:ts": "rm -rf generated/ts",
         "clean:arkts": "rm -rf generated/arkts",
         "clean:cj": "rm -rf generated/cangjie",
         "clean:native": "rm -rf generated/native",
-
         "gen": "npm run run:huks:${TARGET} -C ../.. -- --output-dir demos/huks",
         "gen:ts": "TARGET=ts npm run gen",
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
-
         "compile:ts": "esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/*",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
-
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
-
         "exec:ts": "LD_LIBRARY_PATH=build/node:$LD_LIBRARY_PATH node build/node/index.js",
         "exec:arkts": "bash scripts/run-panda.sh",
         "exec:cj": "bash scripts/run-cj.sh",
-
         "build": "npm run compile:${TARGET} && npm run compile:native:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
-
         "all": "npm run clean:native && npm run clean:${TARGET} && npm run gen:${TARGET} && npm run build:${TARGET} && npm run exec:${TARGET}",
         "all:ts": "TARGET=ts npm run all",
         "all:arkts": "TARGET=arkts npm run all",

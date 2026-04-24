@@ -21,6 +21,9 @@
             ],
             "@koalaui/builderLambda": [
                 "./annotations"
+            ],
+            "arkui.PeerNode": [
+                "./PeerNode"
             ]
         }
     },

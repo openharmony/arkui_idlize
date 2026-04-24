@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { MakeSelector, OhosSeed, Role } from "@idlizer/libohos"
+import { MakeSelector, OhosSeed, OhosRole } from "@idlizer/libohos"
 import { attributeProducer, componentProducer, peerProducer } from "./managed/attribute.js"
 import { propertyProducer } from "./managed/property.js"
 import { interfaceProducer } from "./managed/interface.js"
@@ -26,9 +26,9 @@ type ArkUISpecificRole<N extends idl.IDLNode> =
   N extends idl.IDLCallable ? 'peer' : ///better names?
   never
 
-export type ArkUIRole<N extends idl.IDLNode> = Role<N> | ArkUISpecificRole<N>
+export type ArkUIRole<N extends idl.IDLNode> = OhosRole<N> | ArkUISpecificRole<N>
 
-export type ArkUISeed = OhosSeed<ArkUIRole<idl.IDLNode>>
+export type ArkUISeed<N extends idl.IDLNode> = OhosSeed<N, ArkUIRole<N>>
 
 export const producers = [
   attributeProducer,
@@ -39,7 +39,7 @@ export const producers = [
   optionsProducer
 ]
 
-export function registerArkUIProducers(selector: MakeSelector<ArkUIRole<idl.IDLNode>>) {
+export function registerArkUIProducers(selector: MakeSelector) {
   for (const producer of producers) {
     selector.register(producer as any)
   }

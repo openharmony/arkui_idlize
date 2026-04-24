@@ -89,7 +89,8 @@ import {
     createCSerializerPrinter,
     getDeclarationUniqueName,
     printKotlinCInteropDefFile,
-    readInteropTypesHeader
+    readInteropTypesHeader,
+    getHookMethod
 } from '@idlizer/libohos'
 
 class NameType {
@@ -219,6 +220,8 @@ class OHOSNativeVisitor {
             }
         }
         generatePostfixForOverloads(clazz.methods).forEach(({ method, overloadPostfix }) => {
+            if (getHookMethod(clazz.name, method.name)?.replaceImplementation)
+                return
             const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
             let params = new Array<NameType>()
             if (!method.isStatic && !method.isFree) {
@@ -236,7 +239,8 @@ class OHOSNativeVisitor {
 
         const propertiesFromInterface: IDLProperty[] = this.getPropertiesFromInterfaces(clazz)
         propertiesFromInterface.concat(clazz.properties).forEach(property => {
-
+            if (getHookMethod(clazz.name, property.name)?.replaceImplementation)
+                return
             const accessor = idl.getExtAttribute(property, idl.IDLExtendedAttributes.Accessor)
             const isGetter = accessor == idl.IDLAccessorAttribute.Getter
             const isSetter = accessor == idl.IDLAccessorAttribute.Setter

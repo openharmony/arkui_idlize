@@ -111,7 +111,7 @@ export class ETSLambdaExpression extends LambdaExpression {
     }
     asString(): string {
         const params = this.signature.args.map((it, i) => {
-            const maybeOptional = idl.isOptionalType(it) ? "?" : ""
+            const maybeOptional = idl.isOptionalType(it) && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.UnionOnlyNull) ? "?" : ""
             return `${this.signature.argName(i)}${maybeOptional}: ${this.convertor.convert(it)}`
         })
         // Workaround to fix ArkTS error: SyntaxError: Unexpected token, arrow (=>)

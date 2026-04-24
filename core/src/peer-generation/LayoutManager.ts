@@ -21,6 +21,7 @@ export enum LayoutNodeRole {
     GLOBAL,
     COMPONENT,
     SERIALIZER,
+    MODIFIER_FUNCTIONS
 }
 
 export type LayoutTargetDescriptionHint =

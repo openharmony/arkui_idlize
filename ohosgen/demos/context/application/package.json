@@ -3,8 +3,8 @@
     "private": true,
     "dependencies": {
         "@idlizer/ohosgen-demos-context-bundleManager": "file:../bundleManager",
-        "@koalaui/compat": "panda-next",
-        "@koalaui/common": "panda-next",
-        "@koalaui/interop": "panda-next"
+        "@koalaui/compat": "1.5.0-dev.68195-8888",
+        "@koalaui/common": "1.5.0-dev.68195-8888",
+        "@koalaui/interop": "1.5.0-dev.68195-8888"
     }
 }

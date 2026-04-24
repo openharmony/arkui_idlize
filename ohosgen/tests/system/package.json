@@ -3,42 +3,37 @@
     "private": true,
     "arkts": {},
     "dependencies": {
-        "@koalaui/compat": "panda-next",
-        "@koalaui/common": "panda-next",
-        "@koalaui/interop": "panda-next"
+        "@koalaui/compat": "1.5.0-dev.68195-8888",
+        "@koalaui/common": "1.5.0-dev.68195-8888",
+        "@koalaui/interop": "1.5.0-dev.68195-8888"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next"
+        "@koalaui/smart-arkts": "1.5.0-dev.68195-8888"
     },
     "scripts": {
         "_meson:setup": "meson setup ./${TEST_CASE}/build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} -Dtest_case=${TEST_CASE}",
         "_meson:compile": "meson compile -C ./${TEST_CASE}/build/native/${TARGET_VM}",
         "_meson:install": "meson install -C ./${TEST_CASE}/build/native/${TARGET_VM}",
         "_meson": "npm run _meson:setup && npm run _meson:compile && npm run _meson:install",
-
         "generate:dts:arkts": "node ../../../dtsgen --dts2idl --input-dir ./${TEST_CASE}/dts --output-dir ./${TEST_CASE}/generated/idl && node ../.. --idl2peer ${OST_FLAG} --language=arkts --input-dir ./${TEST_CASE}/generated/idl",
         "generate:idl:arkts": "node ../.. --language=arkts --idl2peer ${OST_FLAG} --input-dir ./${TEST_CASE}/idl",
         "generate:arkts": "npm run generate:${INPUT_TYPE}:arkts -- --options-file ./${TEST_CASE}/generation_config.json --output-dir ./${TEST_CASE}",
         "compile:arkts": "bash ./build-panda.sh ${TEST_CASE}",
         "compile:native:arkts": "TARGET_VM=panda npm run _meson",
         "start:arkts": "bash ./run-panda.sh ${TEST_CASE}",
-
         "generate:dts:kt": "node ../../../dtsgen --dts2idl --input-dir ./${TEST_CASE}/dts --output-dir ./${TEST_CASE}/generated/idl && node ../.. --idl2peer ${OST_FLAG} --language=kotlin --input-dir ./${TEST_CASE}/generated/idl",
         "generate:idl:kt": "node ../.. --language=kotlin --idl2peer ${OST_FLAG} --input-dir ./${TEST_CASE}/idl",
         "generate:kt": "npm run generate:${INPUT_TYPE}:kt -- --options-file ./${TEST_CASE}/generation_config.json --output-dir ./${TEST_CASE}",
         "compile:kt": "bash ./build-kt.sh ${TEST_CASE}",
         "compile:native:kt": "TARGET_VM=kt npm run _meson",
         "start:kt": "bash ./run-kt.sh ${TEST_CASE}",
-
         "clean": "rm -rf ./${TEST_CASE}/build ./${TEST_CASE}/generated",
         "build": "npm run compile:native:${TARGET} && npm run compile:${TARGET}",
         "pre-start": "npm run clean && npm run generate:${TARGET} && npm run build:${TARGET}",
         "check": "npm run clean && npm run pre-start:${TARGET} && npm run start:${TARGET}",
-
         "build:arkts": "TARGET=arkts npm run build",
         "pre-start:arkts": "TARGET=arkts npm run pre-start",
         "check:arkts": "TARGET=arkts npm run check",
-
         "build:interop:kt": "npm run compile:native-kotlin-host -C ../../../external/koala_projects/interop && npm run compile:kotlin:interop -C ../../../external/koala_projects/interop",
         "build:kt": "npm run build:interop:kt && TARGET=kt npm run build",
         "pre-start:kt": "TARGET=kt npm run pre-start",

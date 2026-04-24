@@ -15,7 +15,7 @@
 
 import { callbackProducer } from "./callback.js";
 import { constructorProducer, functionProducer } from "./function.js";
-import { serializerProducer } from "./serializer.js";
+import { serializerProducer, typedefSerializerProducer } from "./serializer.js";
 import { structureProducer } from "./structure.js";
 
 export const producers = {
@@ -24,4 +24,5 @@ export const producers = {
     functionProducer,
     constructorProducer,
     serializerProducer,
+    typedefSerializerProducer,
 }

@@ -6,12 +6,12 @@
         "entryPoint": "@unit_ost.src.panda.main.ETSGLOBAL::main"
     },
     "dependencies": {
-        "@koalaui/common": "panda-next",
-        "@koalaui/compat": "panda-next",
-        "@koalaui/interop": "panda-next"
+        "@koalaui/common": "1.5.0-dev.68195-8888",
+        "@koalaui/compat": "1.5.0-dev.68195-8888",
+        "@koalaui/interop": "1.5.0-dev.68195-8888"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "panda-next",
+        "@koalaui/smart-arkts": "1.5.0-dev.68195-8888",
         "@rollup/plugin-inject": "^5.0.5",
         "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-typescript": "^11.1.6",
@@ -23,39 +23,32 @@
         "clean:cj": "rm -rf generated/cangjie",
         "clean:kt": "rm -rf generated/kotlin",
         "clean:native": "rm -rf generated/native",
-
-        "prepare" : "mkdir -p generated/idl && cp ./idl/*.idl ./generated/idl",
+        "prepare": "mkdir -p generated/idl && cp ./idl/*.idl ./generated/idl",
         "debug": "node ../.. --idl2peer --feature ost  --input-dir ./idl --output-dir . --language=arkts --options-file ./conf/config.json",
         "gen": "npm run prepare && npm run compile:all -C ../.. && node ../.. --idl2peer --feature ost --input-dir ./idl --output-dir . --language=$TARGET --options-file ./conf/config.json",
         "gen:ts": "TARGET=ts npm run gen",
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cangjie npm run gen && cp ./src/cangjie/* ./generated/cangjie",
         "gen:kt": "TARGET=kotlin npm run gen",
-
         "build": "npm run compile:native:${TARGET} && npm run compile:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
         "build:kt": "npm run compile:interop:native:kt && TARGET=kt npm run build",
-
         "compile:interop:native:kt": "npm run compile:native-kotlin-host --prefix ../../../external/koala_projects/interop && npm run compile:kotlin:interop --prefix ../../../external/koala_projects/interop",
-
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
         "compile:kt": "bash scripts/build-kotlin.sh",
-
         "compile:native": "meson setup build/native/${TARGET} -Dtarget=${TARGET} && meson compile -C build/native/${TARGET} && meson install -C build/native/${TARGET}",
         "compile:native:ts": "TARGET=node npm run compile:native",
         "compile:native:arkts": "TARGET=panda npm run compile:native",
         "compile:native:cj": "TARGET=cangjie npm run compile:native",
         "compile:native:kt": "TARGET=kotlin npm run compile:native",
-
         "exec:ts": "bash scripts/run-ts.sh",
         "exec:arkts": "bash scripts/run-panda.sh",
         "exec:cj": "bash scripts/run-cj.sh",
         "exec:kt": "bash scripts/run-kt.sh",
-
         "all": "npm run clean:native && npm run clean:${TARGET} && npm run gen:${TARGET} && npm run build:${TARGET} && npm run exec:${TARGET}",
         "all:ts": "TARGET=ts npm run all",
         "all:arkts": "TARGET=arkts npm run all",

@@ -69,9 +69,6 @@ export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
             others.push(decl)
             return
         }
-        if (decl.generics.length > 0) {
-            return
-        }
         if (!index.has(decl.name)) {
             index.set(decl.name, [])
         }
