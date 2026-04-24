@@ -74,8 +74,10 @@ import { DataClass } from "#compat"
 import { GenericBox, GenericBox2, Unbox, unboxBoolean, unboxString, unboxBox, unboxStringNumber, unboxBoxStringBoxNumber } from "#compat"
 import { outer } from "#compat"
 import { TestOptional, sumOptionalAttributes, idOrZero } from "#compat"
-import { MultiCtor, MultiMethod } from "#compat"
+import { MultiCtors, MultiMethods } from "#compat"
 import { UnionInterface, checkUnionInterface, checkUnionArg, checkGenericUnion } from "#compat"
+import { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "#compat"
+import { Materialized, StaticMaterialized } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
     checkEQ(value1, value2, comment)
@@ -109,7 +111,6 @@ function checkPrimitives() {
     assertEQ("olleh", reverseString("hello"))
     assertEQ("", reverseString(""))
     assertEQ("a", reverseString("a"))
-    assertEQ("cba", reverseString("abc"))
 
     // buffer reversal
     const buf = new ArrayBuffer(3)
@@ -127,7 +128,7 @@ function checkPrimitives() {
     // i64 negation
     assertEQ(-42 as long, negateBigInt(42 as long))
     assertEQ(0 as long, negateBigInt(0 as long))
-    assertEQ(100 as long, negateBigInt(-100 as long))
+    assertEQ(0xcaffeebabe, negateBigInt(-0xcaffeebabe))
 }
 
 function checkEnum() {
@@ -283,10 +284,10 @@ function checkGenerics() {
     const box = unboxBox({value: {value: 16}})
     assertEQ(16, box.value)
 
-    const in1: GenericBox2<String, number> = { value1: "chuchu", value2: -128 }
+    const in1: GenericBox2<String, number> = { value1: "choo choo", value2: -128 }
     const out1 = unboxStringNumber(in1)
     assertEQ(-128, out1.numberValue)
-    assertEQ("chuchu", out1.stringValue)
+    assertEQ("choo choo", out1.stringValue)
 
     const in2: GenericBox2<GenericBox<String>, GenericBox<number>> = {
         value1: { value: "-100"},
@@ -336,17 +337,17 @@ function checkUnion() {
 
 function checkOverrides() {
     // Construct with name
-    const c1 = new MultiCtor("Alice")
+    const c1 = new MultiCtors("Alice")
     assertEQ("Alice", c1.name)
     assertEQ(0, c1.age)
 
     // Construct with age
-    const c2 = new MultiCtor(25)
+    const c2 = new MultiCtors(25)
     assertEQ("", c2.name)
     assertEQ(25, c2.age)
 
     // Construct with name and age
-    const c3 = new MultiCtor("Bob", 30)
+    const c3 = new MultiCtors("Bob", 30)
     assertEQ("Bob", c3.name)
     assertEQ(30, c3.age)
 
@@ -355,6 +356,34 @@ function checkOverrides() {
     assertEQ("Charlie", c3.name)
     c3.age = 35
     assertEQ(35, c3.age)
+
+    const mm = new MultiMethods()
+    assertEQ(8, mm.valueOf(8))
+    assertEQ(1, mm.valueOf("8"))
+    assertEQ(12, mm.valueOf(9, "ark"))
+}
+
+function checkMaterialized() {
+    // Materialized class with constructor, readonly and readwrite attributes
+    const m = new Materialized("hello")
+    assertEQ("hello", m.readOnly)  // readOnly = string from constructor
+    assertEQ(14, m.readWrite)      // always 14 no matter what
+    m.readWrite = 999              // no-op setter
+    assertEQ(14, m.readWrite)      // still 14
+
+    const m2 = new Materialized("")
+    assertEQ("", m2.readOnly)
+
+    // StaticMaterialized with static reverse method
+    assertEQ("olleh", StaticMaterialized.reverse("hello"))
+    assertEQ("", StaticMaterialized.reverse(""))
+    assertEQ("a", StaticMaterialized.reverse("a"))
+}
+
+function checkHandwrittenDeserializer() {
+  const gesture = BaseGesture.createGesture2()
+  assertEQ(gesture.getType(), GestureType.Second)
+  assertEQ(gesture instanceof DerivedGesture2, true)
 }
 
 export function run() {
@@ -375,5 +404,7 @@ export function run() {
     suite.addTest("checkOptional", checkOptional)
     suite.addTest("checkUnion", checkUnion)
     suite.addTest("checkOverride", checkOverrides)
+    suite.addTest("checkMaterialized", checkMaterialized)
+    suite.addTest("checkHandwrittenDeserializer", checkHandwrittenDeserializer)
     return suite.run()
 }

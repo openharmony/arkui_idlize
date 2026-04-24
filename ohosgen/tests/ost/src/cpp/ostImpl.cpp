@@ -501,14 +501,14 @@ OH_Int32 ost_optionals_idOrZeroImpl(const OH_UNIT_OST_Opt_Int32* arg)
     return arg->tag == INTEROP_TAG_UNDEFINED ? 0 : arg->value;
 }
 
-// Override (MultiCtor)
+// Override
 
 struct MultiCtorData {
     char* name;
     int32_t age;
 };
 
-OH_NativePointer ost_overrides_MultiCtor_constructImpl(const OH_String* name)
+OH_NativePointer ost_overrides_MultiCtors_construct0Impl(const OH_String* name)
 {
     auto* data = new MultiCtorData();
     data->name = new char[name->length + 1];
@@ -518,7 +518,7 @@ OH_NativePointer ost_overrides_MultiCtor_constructImpl(const OH_String* name)
     return data;
 }
 
-OH_NativePointer ost_overrides_MultiCtor_construct1Impl(OH_Int32 age)
+OH_NativePointer ost_overrides_MultiCtors_construct1Impl(OH_Int32 age)
 {
     auto* data = new MultiCtorData();
     data->name = new char[1];
@@ -527,7 +527,7 @@ OH_NativePointer ost_overrides_MultiCtor_construct1Impl(OH_Int32 age)
     return data;
 }
 
-OH_NativePointer ost_overrides_MultiCtor_construct2Impl(const OH_String* name, OH_Int32 age)
+OH_NativePointer ost_overrides_MultiCtors_construct2Impl(const OH_String* name, OH_Int32 age)
 {
     auto* data = new MultiCtorData();
     data->name = new char[name->length + 1];
@@ -537,13 +537,13 @@ OH_NativePointer ost_overrides_MultiCtor_construct2Impl(const OH_String* name, O
     return data;
 }
 
-OH_String ost_overrides_MultiCtor_getNameImpl(OH_NativePointer thisPtr)
+OH_String ost_overrides_MultiCtors_getNameImpl(OH_NativePointer thisPtr)
 {
     auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
     return { .chars = data->name, .length = string_len(data->name) };
 }
 
-void ost_overrides_MultiCtor_setNameImpl(OH_NativePointer thisPtr, const OH_String* name)
+void ost_overrides_MultiCtors_setNameImpl(OH_NativePointer thisPtr, const OH_String* name)
 {
     auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
     delete[] data->name;
@@ -552,23 +552,43 @@ void ost_overrides_MultiCtor_setNameImpl(OH_NativePointer thisPtr, const OH_Stri
     data->name[name->length] = '\0';
 }
 
-OH_Int32 ost_overrides_MultiCtor_getAgeImpl(OH_NativePointer thisPtr)
+OH_Int32 ost_overrides_MultiCtors_getAgeImpl(OH_NativePointer thisPtr)
 {
     auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
     return data->age;
 }
 
-void ost_overrides_MultiCtor_setAgeImpl(OH_NativePointer thisPtr, OH_Int32 age)
+void ost_overrides_MultiCtors_setAgeImpl(OH_NativePointer thisPtr, OH_Int32 age)
 {
     auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
     data->age = age;
 }
 
-void ost_overrides_MultiCtor_destructImpl(OH_NativePointer thisPtr)
+void ost_overrides_MultiCtors_destructImpl(OH_NativePointer thisPtr)
 {
     auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
     delete[] data->name;
     delete data;
+}
+
+OH_NativePointer ost_overrides_MultiMethods_constructImpl()
+{
+    return new MultiCtorData();
+}
+void ost_overrides_MultiMethods_destructImpl(OH_NativePointer thisPtr)
+{
+    delete reinterpret_cast<MultiCtorData*>(thisPtr);
+}
+OH_Int32 ost_overrides_MultiMethods_valueOf0Impl(OH_NativePointer thisPtr, OH_Int32 n) {
+    return n;
+}
+OH_Int32 ost_overrides_MultiMethods_valueOf1Impl(OH_NativePointer thisPtr, const OH_String* s)
+{
+    return s->length;
+}
+OH_Int32 ost_overrides_MultiMethods_valueOf2Impl(OH_NativePointer thisPtr, OH_Int32 n, const OH_String* s)
+{
+    return n + s->length;
 }
 
 // Union
@@ -626,4 +646,106 @@ OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanImpl(OH_Int32 v
             }
         }
     };
+}
+
+// Materialized
+
+struct MaterializedData {
+    OH_String readOnlyValue;
+};
+
+OH_NativePointer ost_materialized_Materialized_constructImpl(const OH_String* readOnlyValue)
+{
+    auto* data = new MaterializedData();
+    data->readOnlyValue = *readOnlyValue;
+    return data;
+}
+
+OH_String ost_materialized_Materialized_getReadOnlyImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MaterializedData*>(thisPtr);
+    return data->readOnlyValue;
+}
+
+OH_Int32 ost_materialized_Materialized_getReadWriteImpl(OH_NativePointer thisPtr)
+{
+    return 14;
+}
+
+void ost_materialized_Materialized_setReadWriteImpl(OH_NativePointer thisPtr, OH_Int32 readWrite)
+{
+    // no-op: always 14 no matter what
+}
+
+void ost_materialized_Materialized_destructImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MaterializedData*>(thisPtr);
+    delete data;
+}
+
+// StaticMaterialized
+
+OH_String ost_materialized_StaticMaterialized_reverseImpl(const OH_String* s)
+{
+    return ost_primitives_reverseStringImpl(s);
+}
+
+// Inheritance
+
+class BaseGesture {
+public:
+    virtual OH_UNIT_OST_GestureType getType() = 0;
+    virtual ~BaseGesture() = default;
+};
+
+class DerivedGesture1 : public BaseGesture {
+public:
+    OH_UNIT_OST_GestureType getType() override
+    {
+        return OH_UNIT_OST_GestureType::OH_UNIT_OST_GESTURE_TYPE_First;
+    }
+};
+
+class DerivedGesture2 : public BaseGesture {
+public:
+    OH_UNIT_OST_GestureType getType() override
+    {
+        return OH_UNIT_OST_GestureType::OH_UNIT_OST_GESTURE_TYPE_Second;
+    }
+};
+
+OH_NativePointer ost_inheritance_BaseGesture_constructImpl()
+{
+    return new DerivedGesture2();
+}
+void ost_inheritance_BaseGesture_destructImpl(OH_NativePointer thisPtr)
+{
+    delete reinterpret_cast<BaseGesture*>(thisPtr);
+}
+OH_UNIT_OST_GestureType ost_inheritance_BaseGesture_getTypeImpl(OH_NativePointer thisPtr)
+{
+    BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(thisPtr);
+    return gesturePtr->getType();
+}
+OH_UNIT_OST_BaseGesture ost_inheritance_BaseGesture_createGesture2Impl()
+{
+    BaseGesture* ptr = new DerivedGesture2();
+    return reinterpret_cast<OH_UNIT_OST_BaseGesture>(ptr);
+}
+OH_NativePointer ost_inheritance_DerivedGesture1_constructImpl()
+{
+    return {};
+}
+void ost_inheritance_DerivedGesture1_destructImpl(OH_NativePointer thisPtr) {
+}
+OH_NativePointer ost_inheritance_DerivedGesture2_constructImpl()
+{
+    return {};
+}
+void ost_inheritance_DerivedGesture2_destructImpl(OH_NativePointer thisPtr) {
+}
+OH_UNIT_OST_GestureType ost_inheritance_getBaseGestureTypeImpl(OH_NativePointer ptr)
+{
+    BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(ptr);
+    return gesturePtr->getType();
 }

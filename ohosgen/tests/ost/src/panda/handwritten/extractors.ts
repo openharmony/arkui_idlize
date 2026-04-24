@@ -13,19 +13,15 @@
  * limitations under the License.
  */
 
-package ost.overrides;
+import { KPointer, MaterializedBaseTag } from "@koalaui/interop"
+import { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "#compat"
 
-[Entity=Class]
-interface MultiCtors {
-    attribute String name;
-    attribute i32 age;
-    constructor(String name);
-    constructor(i32 age);
-    constructor(String name, i32 age);
-};
-
-interface MultiMethods {
-    i32 valueOf(i32 n);            // == n
-    i32 valueOf(String s);         // == s.length
-    i32 valueOf(i32 n, String s);  // == n + s.length
-};
+export namespace extractors {
+    export function deserialize_ost_inheritance_BaseGesture(ptr: KPointer): BaseGesture {
+        const gestureType = getBaseGestureType(ptr)
+        switch (gestureType) {
+            case GestureType.First: return new DerivedGesture1(MaterializedBaseTag.NOP, ptr)
+            default: return new DerivedGesture2(MaterializedBaseTag.NOP, ptr)
+        }
+    }
+}

@@ -13,19 +13,4 @@
  * limitations under the License.
  */
 
-package ost.overrides;
-
-[Entity=Class]
-interface MultiCtors {
-    attribute String name;
-    attribute i32 age;
-    constructor(String name);
-    constructor(i32 age);
-    constructor(String name, i32 age);
-};
-
-interface MultiMethods {
-    i32 valueOf(i32 n);            // == n
-    i32 valueOf(String s);         // == s.length
-    i32 valueOf(i32 n, String s);  // == n + s.length
-};
+export * from "./extractors"

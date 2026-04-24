@@ -13,19 +13,16 @@
  * limitations under the License.
  */
 
-package ost.overrides;
+package ost.materialized;
 
 [Entity=Class]
-interface MultiCtors {
-    attribute String name;
-    attribute i32 age;
-    constructor(String name);
-    constructor(i32 age);
-    constructor(String name, i32 age);
+interface Materialized {
+    constructor(String readOnlyValue);
+    readonly attribute String readOnly; // set in constructor
+    attribute i32 readWrite;            // always 14 no matter what
 };
 
-interface MultiMethods {
-    i32 valueOf(i32 n);            // == n
-    i32 valueOf(String s);         // == s.length
-    i32 valueOf(i32 n, String s);  // == n + s.length
+[Entity=Class]
+interface StaticMaterialized {
+    static String reverse(String s);
 };

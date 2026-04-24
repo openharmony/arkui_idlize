@@ -20,7 +20,6 @@ import {
 
 import {
     registerUnitOstApiHandler,
-    UNIT_OSTNativeModule,
  } from '../../generated/arkts'
 
 export {
@@ -78,8 +77,10 @@ export { DataClass } from '../../generated/arkts'
 export { GenericBox, GenericBox2, Unbox, unboxBoolean, unboxString, unboxBox, unboxStringNumber, unboxBoxStringBoxNumber } from '../../generated/arkts'
 export { outer } from '../../generated/arkts'
 export { TestOptional, sumOptionalAttributes, idOrZero } from '../../generated/arkts'
-export { MultiCtor, MultiMethod } from '../../generated/arkts'
+export { MultiCtors, MultiMethods } from '../../generated/arkts'
 export { UnionInterface, checkUnionInterface, checkUnionArg, checkGenericUnion } from '../../generated/arkts'
+export { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "../../generated/arkts"
+export { Materialized, StaticMaterialized } from '../../generated/arkts'
 
 
 export type OHBuffer = ArrayBuffer

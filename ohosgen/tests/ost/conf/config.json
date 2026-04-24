@@ -8,5 +8,8 @@
             "packages": ["ost"],
             "useFoldersLayout": true
         }
-    }
+    },
+    "handwrittenDeserializers": [
+        "ost.inheritance.BaseGesture"
+    ]
 }
