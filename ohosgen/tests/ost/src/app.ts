@@ -15,6 +15,7 @@
 
 
 import {
+    int64,
     checkEQ,
     UnitTestsuite,
 } from "#compat"
@@ -126,8 +127,8 @@ function checkPrimitives() {
     assertEQ(1, revView[2])
 
     // i64 negation
-    assertEQ(-42 as long, negateBigInt(42 as long))
-    assertEQ(0 as long, negateBigInt(0 as long))
+    assertEQ(-42 as int64, negateBigInt(42 as int64))
+    assertEQ(0 as int64, negateBigInt(0 as int64))
     assertEQ(0xcaffeebabe, negateBigInt(-0xcaffeebabe))
 }
 

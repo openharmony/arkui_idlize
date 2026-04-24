@@ -22,6 +22,8 @@ import {
     registerUnitOstApiHandler,
  } from '../../generated/arkts'
 
+export { int64 } from "@koalaui/common"
+
 export {
     PlainEnum,
     IntEnum,
