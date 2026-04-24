@@ -32,7 +32,7 @@ export const createOhosBufferProducer = (_: ColoredLibrary): InteropProducerType
         },
         onNativeDeclaration() {
             return {
-                continuation: ohosBufferSeed.createType({}),
+                continuation: ohosBufferSeed.createType(),
                 declarations: []
             }
         },

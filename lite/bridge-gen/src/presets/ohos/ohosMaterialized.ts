@@ -16,7 +16,7 @@
 import { Builders, D, DD, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWType, Md, S, std, T, Ts, Vs } from "@idlizer/ost";
 import { createMethod, createPrimitiveType, getFQName, IDLInterface, IDLMethod, isClassSubkind, isInterface, isInterfaceSubkind, isReferenceType } from "@idlizer/core/idl";
 import { ColoredLibrary } from "../../library";
-import { makeSeed, functionToMethod } from "@idlizer/kit";
+import { Seed, functionToMethod } from "@idlizer/kit";
 import { makeDeclarationProducer, InteropProducerTypeDescription, SelectResult } from "../../generator/builder";
 import { showErrorForIDLNode, throwDeclarationWasNotFound } from "../../generator/common";
 import { KOALAUI_FINALIZABLE, KOALAUI_INTEROP_NATIVE_POINTER, KOALAUI_KPOINTER, KOALAUI_MATERIALIZED_BASE, KOALAUI_TO_PEER_PTR } from "../../generator/names";
@@ -30,12 +30,15 @@ function getMaterializedImplementationName(decl: IDLInterface) {
         : fqName
 }
 
+class MaterializedImplementationSeedClass extends Seed {
+    constructor(public decl: IDLInterface) { super() }
+    hash(): string { return ':OHOS:MATERIALIZED:IMPL:' + getFQName(this.decl) }
+    debugMessage(): string { return `Generating implementation for materialized class. ` + showErrorForIDLNode(this.decl) }
+}
 const [materializedImplementationProducer, MaterializedImplementationSeed] = makeDeclarationProducer(
-    makeSeed<IDLInterface>(
-        decl => ':OHOS:MATERIALIZED:IMPL:' + getFQName(decl),
-        decl => `Generating implementation for materialized class. ` + showErrorForIDLNode(decl),
-    ),
-    decl => {
+    MaterializedImplementationSeedClass,
+    (seed) => {
+        const decl = seed.decl
         const finalizerMethod = createMethod('getFinalizer', [], createPrimitiveType('pointer'), { isStatic: true, isAsync: false, isFree: false, isOptional: false })
         finalizerMethod.parent = decl
         const name = getMaterializedImplementationName(decl)

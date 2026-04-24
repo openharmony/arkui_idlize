@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { join, resolve } from "node:path";
+import { join, resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { getIO } from "@idlizer/kit";
 
-const TEMPLATE_PATH = resolve(__dirname, '..', '..', 'resources')
+const TEMPLATE_PATH = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'resources')
 const io = getIO()
 
 export async function installTemplate(name:string, destination:string, variables:Map<string, string>) {

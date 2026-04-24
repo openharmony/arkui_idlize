@@ -15,10 +15,10 @@
 
 import * as idl from "@idlizer/core/idl"
 import { LWType, LWExpression, E, T, FunctionDeclaration, LWDeclaration } from "@idlizer/ost"
-import { ProducerContext, ProducerResult, SeedType, Seed, Producer, makeSeed, terminate } from "@idlizer/kit"
+import { ProducerContext, ProducerResult, Seed, Producer, TypedProducer, terminate } from "@idlizer/kit"
 import { EssentialsGenerators, ProduceOptions, InteropGenerator, MakeApiOptions, PeerFunctionPlacementResult } from "./generator"
 import { GenerationLibrary, Convertor } from "./common"
-import { GeneratorSeedIDL, GeneratorSeedType, GeneratorSeed, ApiSeedType } from "./seed"
+import { GeneratorSeed } from "./seed"
 
 export class SelectResult<T> {
     private constructor(
@@ -43,14 +43,14 @@ export class SelectResult<T> {
 
 export interface InteropProducerTypeDescription<T> {
     select: (ref: idl.IDLType) => SelectResult<T>
-    onManagedDeclaration: (val: T, seed: GeneratorSeedIDL, ctx: ProducerContext<GenerationLibrary, undefined>) => ProducerResult
-    onNativeDeclaration: (val: T, seed: GeneratorSeedIDL, ctx: ProducerContext<GenerationLibrary, undefined>) => ProducerResult
+    onManagedDeclaration: (val: T, seed: GeneratorSeed, ctx: ProducerContext<GenerationLibrary, undefined>) => ProducerResult
+    onNativeDeclaration: (val: T, seed: GeneratorSeed, ctx: ProducerContext<GenerationLibrary, undefined>) => ProducerResult
     fromInteropTransferable?: (val: T) => Convertor['fromInteropTransferable'],
     toInteropTransferable?: (val: T) => Convertor['toInteropTransferable'],
     interopBufferTransferable?: (val: T) => Convertor['toBufferTransferable'] & { symmetric?: true }
     returnBufferTransferable?: (val: T) => Convertor['fromBufferTransferrable']
     afterAll?: (val:[T, LWDeclaration[]][]) => LWDeclaration[]
-    otherProducers?: CustomDeclarationProducer<any>[]
+    otherProducers?: CustomDeclarationProducer<Seed>[]
 }
 
 export interface InteropProducerTypeDescriptionHolder<T> {
@@ -61,43 +61,52 @@ export interface InteropProducerTypeDescriptionHolder<T> {
     convertor: (val: T) => Convertor
 }
 
-export interface CustomDeclarationProducer<T> {
-    seedType: SeedType<T>
-    produce: Producer<T, GenerationLibrary, undefined>
+export interface CustomDeclarationProducer<T extends Seed> {
+    seedClass: new (...args: any[]) => T
+    produce: Producer<GenerationLibrary, undefined>
 }
 
-export interface DeclarationSeedBuilder<T> {
-    create: (x: T) => Seed<GeneratorSeedType>
-    createType: (x: T) => LWType
-    createExpr: (x: T) => LWExpression
+export interface DeclarationSeedBuilder {
+    create: (...args: any[]) => Seed
+    createType: (...args: any[]) => LWType
+    createExpr: (...args: any[]) => LWExpression
 }
 
-export function makeDeclarationProducer<T>(seedType: SeedType<T>, produce: Producer<T, GenerationLibrary, undefined>): [CustomDeclarationProducer<T>, DeclarationSeedBuilder<T>] {
+export function makeDeclarationProducer<T extends Seed>(
+    seedClass: new (...args: any[]) => T,
+    produce: TypedProducer<T, GenerationLibrary, undefined>,
+): [CustomDeclarationProducer<T>, DeclarationSeedBuilder] {
+    const wrappedProduce: Producer<GenerationLibrary, undefined> = (seed, ctx) => {
+        if (seed instanceof seedClass) {
+            return produce(seed, ctx)
+        }
+        return { skip: true }
+    }
     return [
         {
-            seedType,
-            produce
+            seedClass,
+            produce: wrappedProduce
         },
         {
-            create(x) {
-                return GeneratorSeed.create({
-                    sort: 'custom',
-                    seed: seedType.create(x)
-                })
+            create(this: any, ...args: any[]) {
+                return GeneratorSeed.customSeed(new seedClass(...args))
             },
-            createExpr(x) {
-                return E.hole(this.create(x))
+            createExpr(this: any, ...args: any[]) {
+                return E.hole(this.create(...args))
             },
-            createType(x) {
-                return T.hole(this.create(x))
+            createType(this: any, ...args: any[]) {
+                return T.hole(this.create(...args))
             },
         }
     ]
 }
 
-export function makeSingletonProducer(name:string, generator:(name:string) => LWDeclaration): [CustomDeclarationProducer<{}>, DeclarationSeedBuilder<{}>] {
+export function makeSingletonProducer(name:string, generator:(name:string) => LWDeclaration): [CustomDeclarationProducer<Seed>, DeclarationSeedBuilder] {
+    class SingletonSeed extends Seed {
+        hash(): string { return name }
+    }
     return makeDeclarationProducer(
-        makeSeed(() => name),
+        SingletonSeed,
         () => ({
             continuation: T.c(name),
             declarations: [generator(name)]
@@ -108,9 +117,9 @@ export function makeSingletonProducer(name:string, generator:(name:string) => LW
 export class InteropGeneratorBuilder {
 
     private supportedTypes: InteropProducerTypeDescription<any>[] = []
-    private customProducers: CustomDeclarationProducer<any>[] = []
+    private customProducers: CustomDeclarationProducer<Seed>[] = []
     private overwrittenPeerProducer?: (node: idl.IDLMethod, func: FunctionDeclaration) => PeerFunctionPlacementResult
-    private overwrittenApiCallProducer?: (seed: ApiSeedType, ctx: ProducerContext<GenerationLibrary, undefined>, options: MakeApiOptions) => ProducerResult
+    private overwrittenApiCallProducer?: (seed: import("./seed").ApiCallSeed, ctx: ProducerContext<GenerationLibrary, undefined>, options: MakeApiOptions) => ProducerResult
 
     constructor(
         private methods: idl.IDLMethod[],
@@ -122,7 +131,7 @@ export class InteropGeneratorBuilder {
         this.supportedTypes.push(desc)
         return this
     }
-    addDeclarationProducer<T>(producer: CustomDeclarationProducer<T>) {
+    addDeclarationProducer<T extends Seed>(producer: CustomDeclarationProducer<T>) {
         this.customProducers.push(producer)
         return this
     }

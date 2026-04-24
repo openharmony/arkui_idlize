@@ -37,7 +37,8 @@ export function print(outDir: string, declarations: LWDeclaration[], packages: S
                 }
                 return {
                     source: '#handwritten',
-                    name: name
+                    name: name,
+                    result: name,
                 }
             }
         }
