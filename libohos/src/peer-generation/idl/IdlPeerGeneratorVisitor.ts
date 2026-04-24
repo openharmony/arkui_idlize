@@ -187,7 +187,7 @@ export class IdlPeerProcessor {
             new Method("getFinalizer", new NamedMethodSignature(idl.createPrimitiveType('pointer'), [], [], []), [MethodModifier.STATIC]))
         
         const mMethods: MaterializedMethod[] = []
-        if (mFinalizer) {
+        if (mFinalizer && peerGeneratorConfiguration().SupportCallHolder) {
             const callHolder = new MaterializedMethod(
                 undefined,
                 new PeerMethodSignature(

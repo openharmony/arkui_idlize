@@ -43,6 +43,7 @@ export const HookMethodSchema = D.object({
 export const PeerGeneratorConfigurationSchema = D.combine(
     CoreConfigurationSchema,
     D.object({
+        SupportCallHolder: D.boolean({ default: true }),
         GenerateUnused: D.boolean(),
         ApiVersion: D.number(),
         dumpSerialized: D.boolean(),

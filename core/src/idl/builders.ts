@@ -15,8 +15,8 @@
 
 import { Location } from "../diagnostictypes.js";
 import { capitalize } from "../util.js";
-import { isOptionalType, getFQName, isContainerType, isNamedNode, isPrimitiveType } from "./discriminators.js";
-import { IDLCallable, IDLCallback, IDLConstant, IDLConstructor, IDLContainerKind, IDLContainerType, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFile, IDLImport, IDLInterface, IDLInterfaceSubkind, IDLKind, IDLMethod, IDLNamespace, IDLNode, IDLOptionalType, IDLParameter, IDLPrimitiveType, IDLPrimitiveTypeKind, IDLProperty, IDLReferenceType, IDLType, IDLTypedef, IDLTypeParameterType, IDLUnionType, IDLVersion } from "./node.js";
+import { isOptionalType, getFQName, isContainerType, isNamedNode, isPrimitiveType, hasExtAttribute } from "./discriminators.js";
+import { IDLCallable, IDLCallback, IDLConstant, IDLConstructor, IDLContainerKind, IDLContainerType, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLExtendedAttributes, IDLFile, IDLImport, IDLInterface, IDLInterfaceSubkind, IDLKind, IDLMethod, IDLNamespace, IDLNode, IDLOptionalType, IDLParameter, IDLPrimitiveType, IDLPrimitiveTypeKind, IDLProperty, IDLReferenceType, IDLType, IDLTypedef, IDLTypeParameterType, IDLUnionType, IDLVersion } from "./node.js";
 
 const innerIdlSymbol = Symbol("innerIdlSymbol")
 
@@ -40,6 +40,15 @@ export function createPrimitiveType(name: IDLPrimitiveTypeKind, nodeInitializer?
 }
 
 export function createOptionalType(element: IDLType, nodeInitializer?: IDLNodeInitializer): IDLOptionalType {
+    if (isOptionalType(element) && hasExtAttribute(element, IDLExtendedAttributes.UnionOnlyNull)) {
+        // if type has only `| null` in union, expand it to `| null | undefined`
+        if (!nodeInitializer?.extendedAttributes?.some(it => it.name === IDLExtendedAttributes.UnionWithNull)) {
+            nodeInitializer = {
+                ...nodeInitializer,
+                extendedAttributes: [...(nodeInitializer?.extendedAttributes ?? []), { name: IDLExtendedAttributes.UnionWithNull }]
+            }
+        }
+    }
     if (isOptionalType(element) && !nodeInitializer) {
         return element
     }

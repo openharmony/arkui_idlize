@@ -112,9 +112,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 ), false
             )
         )
-        writer.writeExpressionStatement(
-            writer.makeMethodCall('this', PeerMethodSignature.CALL_HOLDER, [])
-        )
+        if (peerGeneratorConfiguration().SupportCallHolder) {
+            writer.writeExpressionStatement(
+                writer.makeMethodCall('this', PeerMethodSignature.CALL_HOLDER, [])
+            )
+        }
     }
 
     // print non-static readonly fields initialization
@@ -407,7 +409,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     hasSetter ? {
                         method: new Method('set', new NamedMethodSignature(idl.createPrimitiveType('void'), [mField.type], [mField.name])), op: () => {
                             let castedNonNullArg
-                            if (field.isNullableOriginalTypeField) {
+                            if (field.isNullableOriginalTypeField && this.printer.language === Language.CJ) {
                                 castedNonNullArg = `${mField.name}_NonNull`
                                 this.printer.writeStatement(this.printer.makeAssign(castedNonNullArg,
                                     undefined,
