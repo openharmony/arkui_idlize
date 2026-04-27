@@ -1134,7 +1134,7 @@ export class UnionConvertor extends BaseArgConvertor {
             statements.push(convertor.convertorSerialize(param, varName, printer))
         }
 
-        const dicriminatorCondition = withDiscriminatorCondition(this.library, this.memberConvertors, array, discriminator, type, printer)
+        const dicriminatorCondition = withDiscriminatorCondition(this.library, this.memberConvertors, value, discriminator, type, printer)
         const stmt = new BlockStatement(statements, false)
         return { expr: dicriminatorCondition, stmt }
     }
