@@ -720,7 +720,38 @@ class IDLVisitor extends arkts.AbstractVisitor {
             initializer = expression.str
             type = idl.createPrimitiveType('String')
         }
+        if (arkts.isBinaryExpression(expression)) {
+            const result = this.evaluateConstExpression(expression)
+            if (result !== undefined) {
+                decimalType = 16
+                initializer = result
+            }
+        } 
         return [type, decimalType, initializer]
+    }
+
+    evaluateConstExpression(expression: arkts.Expression): number | undefined {
+        if (arkts.isNumberLiteral(expression) && expression.str !== "") {
+            const value = parseInt(expression.str)
+            return Number.isNaN(value) ? undefined : value
+        }
+        if (arkts.isBinaryExpression(expression)) {
+            const left = this.evaluateConstExpression(expression.left!)
+            const right = this.evaluateConstExpression(expression.right!)
+            if (left === undefined || right === undefined) return undefined
+            const op = expression.operatorType
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_LEFT_SHIFT) return left << right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_RIGHT_SHIFT) return left >> right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_UNSIGNED_RIGHT_SHIFT) return left >>> right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_BITWISE_AND) return left & right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_BITWISE_OR) return left | right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_BITWISE_XOR) return left ^ right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_PLUS) return left + right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_MINUS) return left - right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_MULTIPLY) return left * right
+            if (op === arkts.Es2pandaTokenType.TOKEN_TYPE_PUNCTUATOR_DIVIDE) return Math.trunc(left / right)
+        }
+        return undefined
     }
 
     visitImportDeclaration(node: arkts.ImportDeclaration): arkts.ImportDeclaration {

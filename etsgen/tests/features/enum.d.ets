@@ -40,3 +40,20 @@ export namespace ns {
         Value2 = "three",
     }
 }
+
+export enum ShiftEnum {
+    Value0 = 0x1 << 0,
+    Value1 = 0x1 << 1,
+    Value2 = 0x11 << 2,
+    Value3 = 2 >> 1,
+    Value4 = 1 | 2,
+    Value5 = 1 & 3,
+    Value6 = 1 ^ 3,
+    Value7 = 1 + 3,
+    Value8 = 3 - 1,
+    Value9 = 2 * 3,
+    Value10 = 6 / 2,
+    Value11 = (1 + 2) * 3,
+    Value11 = 1 + 2 * 3,
+    Value11 = 1 * 2 + 3,
+}

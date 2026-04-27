@@ -59,3 +59,33 @@ namespace ns {
         String LEGACY_VALUE_2 = "three";
     };
 };
+enum ShiftEnum {
+    [OriginalEnumMemberName=Value0]
+    number VALUE_0 = 0x1;
+    [OriginalEnumMemberName=Value1]
+    number VALUE_1 = 0x2;
+    [OriginalEnumMemberName=Value2]
+    number VALUE_2 = 0x44;
+    [OriginalEnumMemberName=Value3]
+    number VALUE_3 = 0x1;
+    [OriginalEnumMemberName=Value4]
+    number VALUE_4 = 0x3;
+    [OriginalEnumMemberName=Value5]
+    number VALUE_5 = 0x1;
+    [OriginalEnumMemberName=Value6]
+    number VALUE_6 = 0x2;
+    [OriginalEnumMemberName=Value7]
+    number VALUE_7 = 0x4;
+    [OriginalEnumMemberName=Value8]
+    number VALUE_8 = 0x2;
+    [OriginalEnumMemberName=Value9]
+    number VALUE_9 = 0x6;
+    [OriginalEnumMemberName=Value10]
+    number VALUE_10 = 0x3;
+    [OriginalEnumMemberName=Value11]
+    number VALUE_11 = 0x9;
+    [OriginalEnumMemberName=Value11]
+    number undefined = 0x7;
+    [OriginalEnumMemberName=Value11]
+    number LEGACY_VALUE_11 = 0x5;
+};
