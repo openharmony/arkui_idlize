@@ -1477,40 +1477,20 @@ export class CallbackConvertor extends BaseArgConvertor {
             this.decl.parameters.map(it => it.name),
         )
         const hasContinuation = !idl.isVoidType(this.decl.returnType)
-        const returnType = this.decl.returnType
-        const isPromiseReturnType = idl.isContainerType(returnType) && idl.IDLContainerUtils.isPromise(returnType)
-        const resolvedReturnType = isPromiseReturnType
-            ? (returnType as idl.IDLContainerType).elementType[0]
-            : returnType
         let continuation: LanguageStatement[] = []
         if (hasContinuation) {
             const continuationReference = this.library.createContinuationCallbackReference(this.decl.returnType)
             const continuationConvertor = this.library.typeConvertor(continuationCallbackName, continuationReference)
-            const optionalResolvedReturnType = idl.createOptionalType(resolvedReturnType)
-            // Build lambda parameters matching the continuation callback type
-            const lambdaParamTypes: idl.IDLType[] = []
-            const lambdaParamNames: string[] = []
-            if (isPromiseReturnType) {
-                const promiseType = returnType as idl.IDLContainerType
-                if (!idl.isVoidType(promiseType.elementType[0])) {
-                    lambdaParamTypes.push(idl.createOptionalType(promiseType.elementType[0]))
-                    lambdaParamNames.push('value')
-                }
-                lambdaParamTypes.push(idl.createOptionalType(idl.createContainerType("sequence", [idl.IDLStringType])))
-                lambdaParamNames.push('error')
-            } else {
-                lambdaParamTypes.push(returnType)
-                lambdaParamNames.push('value')
-            }
-            const lambdaSignature = new NamedMethodSignature(idl.IDLVoidType, lambdaParamTypes, lambdaParamNames)
+            const returnType = this.decl.returnType
+            const optionalReturnType = idl.createOptionalType(this.decl.returnType)
             continuation = [
                 writer.language == Language.CJ ?
-                writer.makeAssign(continuationValueName, undefined, writer.makeString(`${writer.getNodeName(resolvedReturnType).replace(/[\<\>]/g, '')}Holder(None<${writer.getNodeName(resolvedReturnType)}>)`), true, true) :
-                writer.makeAssign(continuationValueName, optionalResolvedReturnType, writer.language == Language.KOTLIN ? writer.makeNull() : undefined, true, false),
+                writer.makeAssign(continuationValueName, undefined, writer.makeString(`${writer.getNodeName(this.decl.returnType).replace(/[\<\>]/g, '')}Holder(None<${writer.getNodeName(this.decl.returnType)}>)`), true, true) :
+                writer.makeAssign(continuationValueName, optionalReturnType, writer.language == Language.KOTLIN ? writer.makeNull() : undefined, true, false),
                 writer.makeAssign(
                     continuationCallbackName,
                     continuationReference,
-                    writer.makeLambda(lambdaSignature, [
+                    writer.makeLambda(new NamedMethodSignature(idl.IDLVoidType, [returnType], [`value`]), [
                         writer.language == Language.CJ ?
                         writer.makeAssign(`${continuationValueName}.value`, undefined, writer.makeString(`value`), false) :
                         writer.makeAssign(continuationValueName, undefined, writer.makeString(`value`), false)
@@ -1554,20 +1534,11 @@ export class CallbackConvertor extends BaseArgConvertor {
             ),
             new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `release`, [])),
             writer.makeLambdaReturn(hasContinuation
-                ? isPromiseReturnType
-                    ? writer.makeFunctionCall('Promise.resolve', [
-                        writer.makeCast(
-                            writer.language == Language.CJ ?
-                            writer.makeString(`${continuationValueName}.value`) :
-                            writer.makeString(continuationValueName),
-                            resolvedReturnType
-                        )
-                    ])
-                    : writer.makeCast(
-                        writer.language == Language.CJ ?
-                        writer.makeString(`${continuationValueName}.value`) :
-                        writer.makeString(continuationValueName),
-                        this.decl.returnType)
+                ? writer.makeCast(
+                    writer.language == Language.CJ ?
+                    writer.makeString(`${continuationValueName}.value`) :
+                    writer.makeString(continuationValueName),
+                    this.decl.returnType)
                 : undefined),
         ])
         writer.addFeature(idl.createReferenceType('idlize.internal.resourceFinalizerRegister'))
