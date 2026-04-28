@@ -214,10 +214,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
 
                 const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
                 const applyAttributesFinish = 'applyAttributesFinish'
-                const hookClassName = peer.componentName == "CommonMethod"
-                    ? peer.componentName
-                    : `${peer.componentName}Attribute`
-                const applyAttributesFinishHook = peerGeneratorConfiguration().hooks.get(hookClassName)?.get(applyAttributesFinish)
+                const applyAttributesFinishHook = peerGeneratorConfiguration().hooks.get(component.attributeDeclaration.name)?.get(applyAttributesFinish)
                 writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
                     if (applyAttributesFinishHook && applyAttributesFinishHook.replaceImplementation) {
                         writer.print(`${applyAttributesFinishHook.hookName}(this)`)
