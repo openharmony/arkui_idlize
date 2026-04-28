@@ -116,9 +116,7 @@ function staticMaterializedInterface(node: idl.IDLInterface, name: string, ctx: 
       Builders.class(name)
         .extends(superType ? expectType(ctx, superType, 'managed') : undefined).$()
     ],
-    trigger: [
-      ...node.methods,
-    ].map(it => new OhosSeed(it, 'managed'))
+    trigger: node.methods.map(it => new OhosSeed(it, 'managed', ctx))
   }
 }
 
@@ -193,6 +191,6 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
       ...node.constructors,
       ...node.methods,
       ...syntheticMethods
-    ].map(it => new OhosSeed(it, 'managed'))
+    ].map(it => new OhosSeed(it, 'managed', ctx))
   }
 }

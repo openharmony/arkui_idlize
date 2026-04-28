@@ -23,9 +23,9 @@ function isComponentInterface(node: idl.IDLInterface) {
 
 export const interfaceProducer = createProducer(
   { is: idl.isInterface, predicate: isComponentInterface, role: 'managed' },
-  node => ({
+  (node, ctx) => ({
     continuation: T.c(managedName(idl.getFQName(node))),
     declarations: [],
-    trigger: node.callables.map(it => new OhosSeed<idl.IDLCallable, ArkUIRole<idl.IDLCallable>>(it, 'peer'))
+    trigger: node.callables.map(it => new OhosSeed<idl.IDLCallable, ArkUIRole<idl.IDLCallable>>(it, 'peer', ctx))
   })
 )

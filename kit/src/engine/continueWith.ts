@@ -14,7 +14,7 @@
  */
 
 import { E, IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType, T } from "@idlizer/ost"
-import { Seed, showHistory, withProcessingSeed } from "./seed.js"
+import { Seed, showHistory } from "./seed.js"
 
 export class ContinueWithGenerationError extends Error {
     constructor(
@@ -27,7 +27,7 @@ export class ContinueWithGenerationError extends Error {
 
 function callProduce(currentSeed: Seed, op: () => ProducerResult): ProducerResult {
     try {
-        return withProcessingSeed(currentSeed, op)
+        return op()
     } catch (ex) {
         throw new ContinueWithGenerationError(showHistory(currentSeed), ex)
     }
@@ -38,10 +38,11 @@ function callProduce(currentSeed: Seed, op: () => ProducerResult): ProducerResul
 
 export interface ProducerContext<T, E> {
     library: T
-    expectType<T extends Seed>(seed:T): LWType
-    expectExpr<T extends Seed>(seed:T): LWExpression
+    expectType<S extends Seed>(seed: S): LWType
+    expectExpr<S extends Seed>(seed: S): LWExpression
     updateEffect: (updater: (x: E) => void) => void
     getEffect: () => E
+    getCurrentSeed(): Seed | undefined
 }
 
 export type ProducerContinuationResult = LWType | LWExpression
@@ -135,16 +136,18 @@ export interface GenerateResult<E> {
 /**
  * @deprecated Please use forEachSeed instead
  */
-export function continueWith<Q, T, E>({ library, roots, createEffect, sharedMemory }: GenerateOptions<T, E>, produce: Producer<T, E>): GenerateResult<E> {
+export function continueWith<T, E>({ library, roots, createEffect, sharedMemory }: GenerateOptions<T, E>, produce: Producer<T, E>): GenerateResult<E> {
 
     /// THE ALGORITHM
+    let currentSeed: Seed | undefined
     const effect = createEffect?.()
     const producerContext: ProducerContext<T, E> = {
         library,
         expectExpr: (s) => E.hole(s),
         expectType: (s) => T.hole(s),
         updateEffect: (up) => { up(effect) },
-        getEffect: () => effect
+        getEffect: () => effect,
+        getCurrentSeed: () => currentSeed
     }
 
     const currentGeneratedIndex = sharedMemory ?? new Map<string, LWType | LWExpression>()
@@ -163,12 +166,12 @@ export function continueWith<Q, T, E>({ library, roots, createEffect, sharedMemo
     }
 
     while (requestQueue.length) {
-        const query = requestQueue.shift()!
-        const queryString = query.hash()
-        if (currentGeneratedIndex.has(queryString)) {
+        currentSeed = requestQueue.shift()!
+        const currentHash = currentSeed.hash()
+        if (currentGeneratedIndex.has(currentHash)) {
             continue
         }
-        const result = callProduce(query, () => produce(query, producerContext))
+        const result = callProduce(currentSeed, () => produce(currentSeed!, producerContext))
         if ("skip" in result) {
             continue
         }
@@ -178,7 +181,7 @@ export function continueWith<Q, T, E>({ library, roots, createEffect, sharedMemo
         } else {
             scanner.goExpression(result.continuation)
         }
-        currentGeneratedIndex.set(queryString, result.continuation)
+        currentGeneratedIndex.set(currentHash, result.continuation)
         result.declarations.forEach(declaration => {
             generatedDeclarations.push(declaration)
             scanner.goDeclaration(declaration)

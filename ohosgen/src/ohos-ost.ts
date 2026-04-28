@@ -65,7 +65,7 @@ const OSTFeature: Feature<OhosRole<idl.IDLNode>> = {
             !idl.isImport(e) &&
             !idl.isNamespace(e) &&
             !idl.isCallback(e))
-        .map(e => new OhosSeed(e, 'managed')),
+        .map(e => new OhosSeed(e, 'managed', undefined)),
     importHook: name => {
         const parts = name.split('.')
         if (parts.length > 2 && parts[0] === 'managed' && parts[1].startsWith('#')) {
@@ -90,7 +90,7 @@ const ArkUIFeature: Feature<ArkUIRole<idl.IDLNode>> = {
         .filter(e =>
             idl.hasExtAttribute(e, idl.IDLExtendedAttributes.Component) ||
             idl.hasExtAttribute(e, idl.IDLExtendedAttributes.ComponentInterface))
-        .map(e => new OhosSeed(e, 'managed')),
+        .map(e => new OhosSeed(e, 'managed', undefined)),
     importHook: (name: string) => {
         switch (name) {
             case 'PeerNode':
@@ -136,7 +136,7 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
     const seeds = feature.seeds(files)
-    const {effect, declarations } = continueWith<OhosSeed<idl.IDLNode, ArkUIRole<idl.IDLNode>>, PeerLibrary, OhosEffect>({
+    const {effect, declarations } = continueWith<PeerLibrary, OhosEffect>({
         createEffect: createOhosEffect,
         library,
         roots: { seeds }},

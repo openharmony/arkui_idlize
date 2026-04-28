@@ -46,7 +46,7 @@ export const optionsProducer = createProducer<idl.IDLCallable, ArkUIRole<idl.IDL
                 .call('getPeer').receiver('this').$().$().$()
               .return().value('this').$().$().$().$()
       ],
-      trigger: [new OhosSeed(propMethod, 'managed')]
+      trigger: [new OhosSeed(propMethod, 'managed', ctx)]
     }
   }
 )

@@ -13,23 +13,7 @@
  * limitations under the License.
  */
 
-///
-
-let processingSeed: Seed | undefined = undefined
-export function setProcessingSeed(seed:Seed) {
-    processingSeed = seed
-}
-export function deleteProcessingSeed() {
-    processingSeed = undefined
-}
-export function withProcessingSeed<T>(seed:Seed, op: () => T): T {
-    setProcessingSeed(seed)
-    const r = op()
-    deleteProcessingSeed()
-    return r
-}
-
-export function showHistory(seed:Seed): string {
+export function showHistory(seed: Seed): string {
     const records: Seed[] = []
     let current: Seed | undefined = seed
     while (current) {
@@ -37,12 +21,12 @@ export function showHistory(seed:Seed): string {
         current = current.causedBy
     }
 
-    let text: string = ''
+    let text: string = '\n'
     records.forEach((record, i) => {
         if (i > 0) {
-            text += '\n'
+            text += '=> '
         }
-        text += '=> ' + (record.debugMessage ? record.debugMessage() : record.hash())
+        text += (record.debugMessage ? record.debugMessage() : record.hash()) + '\n'
     })
 
     return text

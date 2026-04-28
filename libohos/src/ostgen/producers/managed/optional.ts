@@ -20,7 +20,7 @@ import { createProducer, OhosSeed } from "../../engine/index.js"
 export const optionalProducer = createProducer(
   { is: idl.isOptionalType },
   (type, ctx, role) => ({
-    continuation: Ts.optional(ctx.expectType(new OhosSeed(type.type, role))),
+    continuation: Ts.optional(ctx.expectType(new OhosSeed(type.type, role, ctx))),
     declarations: []
   })
 )
