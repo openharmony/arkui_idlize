@@ -1043,10 +1043,16 @@
                 "replaceImplementation": false
             }
         },
-        "waterFlowAttribute": {
+        "WaterFlowAttribute": {
             "setWaterFlowOptions": {
                 "hookName": "hookWaterFlowOptionsImpl",
                 "replaceImplementation": true
+            }
+        },
+        "TabsAttribute": {
+            "applyAttributesFinish": {
+                "hookName": "hookTabsApplyAttributesFinish",
+                "replaceImplementation": false
             }
         },
         "CanvasRenderer": {
