@@ -302,14 +302,14 @@ Here is global function `foo` declared via IDL with functional type argument `Fo
 ```typescript
 // typescript
 function foo(cb: Foo): void {
-    const thisSerializer: Serializer = Serializer.hold()
+    const thisSerializer: SerializerBase = SerializerBase.hold()
     thisSerializer.holdAndWriteCallback(cb)
     OHOSNativeModule._GlobalScope_foo(thisSerializer.asBuffer(), thisSerializer.length())
     thisSerializer.release()
 }
 ```
 
-Currently serialization into buffer is a way to pass non-primitive data through the interop. So, callback is being written to Serializer with holdAndWriteCallback function:
+Currently serialization into buffer is a way to pass non-primitive data through the interop. So, callback is being written to SerializerBase with holdAndWriteCallback function:
 
 ```typescript
 class SerializerBase {
@@ -451,14 +451,14 @@ callback Foo = void (number value);
 
 Generated deserialization code:
 ```typescript
-class Deserializer {
+class DeserializerBase {
     // ...
     readOHOS_Foo(isSync: boolean = false): Foo {
         const _resource: CallbackResource = this.readCallbackResource()
         const _call: KPointer = this.readPointer()
         const _callSync: KPointer = this.readPointer()
         return (value: number): void => { 
-            const _argsSerializer: Serializer = Serializer.hold();
+            const _argsSerializer: SerializerBase = SerializerBase.hold();
             _argsSerializer.writeInt32(_resource.resourceId);
             _argsSerializer.writePointer(_call);
             _argsSerializer.writePointer(_callSync);

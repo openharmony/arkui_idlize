@@ -137,47 +137,6 @@ function complete(sdkPath: string, options: OhosgenOptions) {
     })
 }
 
-interface TrackerOptions {
-    sdkStatus: string
-    trackerStatus: string
-    arkgenOptionsFile: string
-    arkgenInteropTypes: string
-    etsgenOptionsFile: string
-    scraperOptionsFile: string
-    arkgen: string
-    etsgen: string
-    output: string
-}
-
-function tracker(sdkPathInput: string, idlFiles: string[], options: TrackerOptions) {
-    setup()
-
-    const { idlPaths } = commands.ets2idl({
-        etsgen: options.etsgen,
-        sdkPath: sdkPathInput,
-        arktsConfigPath: undefined,
-        traceStatus: options.sdkStatus,
-        optionsFile: options.etsgenOptionsFile,
-    })
-    const { scrapedIDLs, arkuiConfig } = commands.scrape({
-        idlDirectory: idlPaths,
-        extraIdlPaths: idlFiles,
-        configPath: options.scraperOptionsFile,
-    })
-    const { peersPath } = commands.idl2peer({
-        arkgen: options.arkgen,
-        target: 'tracker',
-        language: 'arkts',
-        optionsFiles: [options.arkgenOptionsFile, arkuiConfig],
-        idlPaths: [scrapedIDLs, ...idlFiles],
-        trackerStatus: options.trackerStatus,
-        interopTypes: options.arkgenInteropTypes,
-    })
-    commands.install({sourceDir: peersPath, installPath: options.output})
-}
-
-///
-
 function sdk(sdkPathInput: string, installPath12: string, installPath11: string) {
     setup()
 
@@ -240,19 +199,6 @@ function main(argv: string[]) {
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
         .action(complete)
-
-    program.command('tracker <sdk-path> <idl-files...>')
-        .description('generate tracker report')
-        .requiredOption('--sdk-status <file>', 'sdk status')
-        .requiredOption('--tracker-status <file>', 'tracker status')
-        .requiredOption('--output <path>', 'path to out dir')
-        .requiredOption('--arkgen-options-file <file>', 'arkgen config file')
-        .requiredOption('--arkgen-interop-types <file>', 'path to interop-types.h file')
-        .requiredOption('--scraper-options-file <file>', 'scraper config file')
-        .requiredOption('--etsgen-options-file <file>', 'etsgen config file')
-        .option('--etsgen <executable>', 'etsgen executable', 'npx etsgen')
-        .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
-        .action(tracker)
 
     program.command('m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>')
         .description('prepare sdk to link peers against')

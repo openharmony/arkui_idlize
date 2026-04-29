@@ -42,7 +42,7 @@ import {
     linkParentBack,
 } from "@idlizer/core/idl"
 import { loadPeerConfiguration,
-    generateTracker, IdlPeerProcessor, loadPlugin,
+    IdlPeerProcessor, loadPlugin,
     libohosPredefinedFiles,
     PeerGeneratorConfigurationSchema,
     peerGeneratorConfiguration,
@@ -90,7 +90,6 @@ export function arkgen(argv:string[]) {
         .option('--arkoala-destination <path>', 'Location of arkoala repository')
         .option('--libace-destination <path>', 'Location of libace repository')
         .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
-        .option('--tracker-status <file>', 'Tracker status file)')
         .option('--plugin <file>', 'File with generator\'s plugin')
         .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
         .option('--no-commented-code', 'Do not generate commented code in modifiers')
@@ -224,9 +223,6 @@ export function arkgen(argv:string[]) {
                 apiVersion: apiVersion,
                 commentedCode: options.commentedCode,
             }, idlLibrary)
-        }
-        if (options.generatorTarget == "tracker") {
-            generateTracker(outDir, idlLibrary, options.trackerStatus, options.verbose)
         }
         if (options.plugin) {
             loadPlugin(options.plugin)

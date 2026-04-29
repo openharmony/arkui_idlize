@@ -76,9 +76,6 @@ Generates C++ native implementation:
 - Bridge code (managed ↔ native)
 - Serialization code
 
-### tracker
-Generates API coverage tracking reports.
-
 ## Printers
 
 | Printer | Purpose |

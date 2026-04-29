@@ -15,7 +15,7 @@
 
 import { libraries as predefs } from "@idlizer/interfaces"
 import { GENERATED_PEER_DIR, RESPONSE_FILE_DIR } from "../shared"
-import { scan, over, run } from "../utils"
+import { scan, run } from "../utils"
 import { basename, join, parse } from "node:path"
 import { writeFileSync } from "node:fs"
 import { createResponseFile } from "@idlizer/core"
@@ -25,7 +25,6 @@ export interface Idl2PeerConfig {
     language: string
     idlPaths: string[]
     optionsFiles?: string[]
-    trackerStatus?: string
 }
 
 export interface Idl2PeerArkuiConfig extends Idl2PeerConfig {
@@ -39,7 +38,6 @@ export interface Idl2PeerOhosConfig {
     language: string
     idlPath: string
     optionsFile?: string
-    trackerStatus?: string
     ohosgen: string
 }
 
@@ -53,7 +51,6 @@ export function idl2peer({
     language,
     idlPaths,
     optionsFiles,
-    trackerStatus,
     interopTypes,
     noDummyImpl,
 }: Idl2PeerArkuiConfig): Idl2PeerResult {
@@ -65,9 +62,6 @@ export function idl2peer({
     }
     if (target === 'libace') {
         arkgenTarget = 'libace'
-    }
-    if (target === 'tracker') {
-        arkgenTarget = 'tracker'
     }
     if (target === 'all') {
         arkgenTarget = 'all'
@@ -92,7 +86,6 @@ export function idl2peer({
         optionsFiles ? ['--options-file', optionsFiles] : [],
         optionsFiles ? ['--ignore-default-config'] : [],
         ['--interop-types', interopTypes],
-        over(trackerStatus, st => ['--tracker-status', st]),
         noDummyImpl ? ['--no-arkgen-dummy-impl'] : [],
     ]))
     return {

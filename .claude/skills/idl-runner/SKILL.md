@@ -67,10 +67,6 @@ IDL-to-peer → install. Authoritative flag list lives in
 
 Wraps `m3` for whole-SDK runs, parameterised by an `ohosgen-config`.
 
-### tracker — coverage tracking
-
-Generates API-coverage reports for SDK + IDL inputs.
-
 ## Command Pipeline
 
 ```typescript
