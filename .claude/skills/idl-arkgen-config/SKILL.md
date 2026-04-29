@@ -24,10 +24,12 @@ arkgen/generation-config/
 
 ## Loading & Merging
 
-Configurations are loaded and merged via `--options-file`:
+Configurations are loaded and merged via `--options-file` passed by
+the pipeline (`generate.sh` → `runner m3`); you do not invoke `arkgen`
+directly. To pick up config changes, regenerate:
 
 ```bash
-npx arkgen --idl2peer --options-file config.json [--ignore-default-config]
+bash generate.sh
 ```
 
 ```typescript

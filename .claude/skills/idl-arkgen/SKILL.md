@@ -33,16 +33,16 @@ arkgen/src/
 │   └── PeersPrinter.ts
 ```
 
-## CLI Usage
+## Regeneration
+
+To regenerate after editing arkgen sources, run:
 
 ```bash
-npx arkgen --idl2peer \
-  --input-files <idl-files> \
-  --output-dir <output> \
-  --generator-target <arkoala|libace|all|tracker> \
-  --language <ts|arkts|cpp|cj> \
-  --options-file <config.json>
+bash generate.sh
 ```
+
+(see `INSTRUCTION.md`). This is the only supported entry point — do not
+invoke `arkgen` directly. Output lands under `./out`.
 
 ## ArkoalaPeerLibrary
 

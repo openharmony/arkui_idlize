@@ -37,38 +37,39 @@ runner/src/
     └── builderFuncsTransformer.ts # Builder function transforms
 ```
 
-## CLI Commands
+## Regeneration
 
-### m3 - Main Generation Pipeline
-
-```bash
-npx runner m3 <sdk-path> <idl-files...> \
-  --output <path> \
-  --sdk-stage <original|prepared|idl> \
-  --arkgen-options-file <file> \
-  --arkgen-interop-types <file> \
-  --scraper-options-file <file> \
-  --target <sig|libace|all> \
-  --language <ts|arkts>
-```
-
-### complete - Full SDK Generation
+To regenerate after editing runner (or any pipeline workspace), run:
 
 ```bash
-npx runner complete <sdk-path> \
-  --ohosgen-config <config> \
-  --sdk-stage <stage> \
-  --target <sig|libace|all>
+bash generate.sh
 ```
 
-### tracker - Coverage Tracking
+(see `INSTRUCTION.md`). This is the only supported entry point — do
+not invoke `runner` subcommands directly. Output lands under `./out`.
 
-```bash
-npx runner tracker <sdk-path> <idl-files...> \
-  --sdk-status <file> \
-  --tracker-status <file> \
-  --output <path>
-```
+## CLI Commands (reference)
+
+The descriptions below explain what each runner subcommand does so you
+can read and modify the pipeline. Do not paste these as user-facing
+recipes — `bash generate.sh` is the entry point.
+
+### m3 — main generation pipeline
+
+Drives the full flow: SDK preparation → ETS-to-IDL → scraping →
+IDL-to-peer → install. Authoritative flag list lives in
+`runner/src/main.ts` (look for the `m3` command). Key flags:
+`--sdk-stage <original|prepared|idl>`, `--target <sig|libace|all>`,
+`--arkgen-options-file`, `--etsgen-options-file`,
+`--scraper-options-file`, `--arkgen-interop-types`, `--output`.
+
+### complete — full SDK generation
+
+Wraps `m3` for whole-SDK runs, parameterised by an `ohosgen-config`.
+
+### tracker — coverage tracking
+
+Generates API-coverage reports for SDK + IDL inputs.
 
 ## Command Pipeline
 
@@ -118,15 +119,30 @@ interface PrepareSdkOptions {
 }
 ```
 
-## Working Directories
+## Intermediate artifacts (debug breadcrumbs)
 
-```typescript
-// From shared.ts
-WORKING_DIR = "working"
-SCRAPER_CWD = "working/scraper"
-GENERATED_IDL_DIR = "working/generated-idl"
-GENERATED_PEER_DIR = "working/generated-peer"
-```
+After `bash generate.sh`, runner populates `runner/out/` with the
+intermediate artifacts of each pipeline stage. Inspect these to find
+where a generated file went wrong — work backwards from the final
+peers to the source `.idl`, then to the patched SDK input.
+
+| Path | Content | Stage that wrote it |
+|---|---|---|
+| `runner/out/idl/` | Converted `.idl` files | `etsgen` (ETS → IDL) |
+| `runner/out/peers/sig/` | Peer signatures (TS / ArkTS) | `arkgen` (printers) |
+| `runner/out/peers/libace/` | C++ libace modifiers / accessors | `arkgen` (printers) |
+| `runner/out/patched-sdk-arkts/` | Prepared `.d.ets` SDK input | `runner sdk` |
+| `runner/out/patched-sdk-ts/` | Prepared `.d.ts` SDK input | `runner sdk` |
+| `runner/out/original-sdk/` | Cloned upstream SDK | `runner sdk` |
+| `runner/out/scraper/` | Scraper working dir | `scrape` |
+| `runner/out/response-files/` | Compiler response files | `runner` |
+| `runner/out/configs/` | Resolved config snapshots | `runner` |
+
+Authoritative path constants live in `runner/src/shared.ts`
+(`WORKING_DIR`, `GENERATED_IDL_DIR`, `GENERATED_PEER_DIR`,
+`GENERATED_PEER_SIG`, `GENERATED_PEER_LIBACE`, etc.). `runner/out/` is
+wiped and recreated on every `bash generate.sh` run, so do not edit
+files there — fix the source workspace and regenerate.
 
 ## SDK Stages
 
@@ -135,27 +151,6 @@ GENERATED_PEER_DIR = "working/generated-peer"
 | `original` | Raw SDK from source |
 | `prepared` | Preprocessed SDK |
 | `idl` | Already converted to IDL |
-
-## Common Patterns
-
-### Full M3 Generation
-
-```bash
-npx runner m3 ./sdk ./extra.idl \
-  --output ./output \
-  --sdk-stage original \
-  --arkgen-options-file ./arkgen-config.json \
-  --arkgen-interop-types ./interop-types.h \
-  --scraper-options-file ./scraper-config.json \
-  --target all \
-  --language arkts
-```
-
-### SDK Preparation Only
-
-```bash
-npx runner sdk ./original-sdk ./prepared-12 ./prepared-11
-```
 
 ## Dependencies
 

@@ -23,17 +23,18 @@ etsgen/src/
 └── cli.ts         # Additional CLI utilities
 ```
 
-## CLI Usage
+## Regeneration
+
+`etsgen` is invoked by the pipeline (`generate.sh` → `runner` →
+`etsgen`). Do not invoke it directly. To pick up changes, run:
 
 ```bash
-npx etsgen --ets2idl \
-  --input-dir <path> \
-  --output-dir <path> \
-  --ets-config <config.json> \
-  --options-file <options.json>
+bash generate.sh
 ```
 
-### Options
+The `--ets2idl` step accepts these options when the runner forwards
+them; this list is reference for understanding pipeline flags, not an
+invocation guide:
 
 | Option | Description |
 |--------|-------------|
@@ -89,26 +90,6 @@ class StatusRecord {
     status: string       // Generation status
     src: string          // Source file
 }
-```
-
-## Common Patterns
-
-### Converting SDK to IDL
-
-```bash
-# From runner
-npx etsgen --ets2idl \
-  --input-dir /path/to/sdk/api \
-  --output-dir /path/to/output/idl
-```
-
-### With Configuration
-
-```bash
-npx etsgen --ets2idl \
-  --input-dir ./sdk \
-  --output-dir ./idl \
-  --ets-config ./ets-config.json
 ```
 
 ## Dependencies
