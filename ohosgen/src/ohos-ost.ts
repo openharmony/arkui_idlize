@@ -65,7 +65,7 @@ const OSTFeature: Feature<OhosRole<idl.IDLNode>> = {
             !idl.isImport(e) &&
             !idl.isNamespace(e) &&
             !idl.isCallback(e))
-        .map(e => new OhosSeed(e, 'managed', undefined)),
+        .map(e => new OhosSeed(e, 'managed')),
     importHook: name => {
         const parts = name.split('.')
         if (parts.length > 2 && parts[0] === 'managed' && parts[1].startsWith('#')) {
@@ -90,7 +90,7 @@ const ArkUIFeature: Feature<ArkUIRole<idl.IDLNode>> = {
         .filter(e =>
             idl.hasExtAttribute(e, idl.IDLExtendedAttributes.Component) ||
             idl.hasExtAttribute(e, idl.IDLExtendedAttributes.ComponentInterface))
-        .map(e => new OhosSeed(e, 'managed', undefined)),
+        .map(e => new OhosSeed(e, 'managed')),
     importHook: (name: string) => {
         switch (name) {
             case 'PeerNode':

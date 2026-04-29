@@ -50,7 +50,7 @@ export const callbackProducer = createProducer(
               : [Builders.stmt().call('call').args(reads.map(it => it[1])).$().$()]
             ).$().$(),
       ],
-      trigger: continuation ? [new OhosSeed(continuation, 'managed', ctx)] : []
+      trigger: continuation ? [new OhosSeed(continuation, 'managed')] : []
     }
   }
 )

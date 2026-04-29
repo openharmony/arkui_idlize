@@ -42,7 +42,6 @@ export interface ProducerContext<T, E> {
     expectExpr<S extends Seed>(seed: S): LWExpression
     updateEffect: (updater: (x: E) => void) => void
     getEffect: () => E
-    getCurrentSeed(): Seed | undefined
 }
 
 export type ProducerContinuationResult = LWType | LWExpression
@@ -139,15 +138,13 @@ export interface GenerateResult<E> {
 export function continueWith<T, E>({ library, roots, createEffect, sharedMemory }: GenerateOptions<T, E>, produce: Producer<T, E>): GenerateResult<E> {
 
     /// THE ALGORITHM
-    let currentSeed: Seed | undefined
     const effect = createEffect?.()
     const producerContext: ProducerContext<T, E> = {
         library,
         expectExpr: (s) => E.hole(s),
         expectType: (s) => T.hole(s),
         updateEffect: (up) => { up(effect) },
-        getEffect: () => effect,
-        getCurrentSeed: () => currentSeed
+        getEffect: () => effect
     }
 
     const currentGeneratedIndex = sharedMemory ?? new Map<string, LWType | LWExpression>()
@@ -166,22 +163,25 @@ export function continueWith<T, E>({ library, roots, createEffect, sharedMemory 
     }
 
     while (requestQueue.length) {
-        currentSeed = requestQueue.shift()!
-        const currentHash = currentSeed.hash()
-        if (currentGeneratedIndex.has(currentHash)) {
+        const query = requestQueue.shift()!
+        const queryString = query.hash()
+        if (currentGeneratedIndex.has(queryString)) {
             continue
         }
-        const result = callProduce(currentSeed, () => produce(currentSeed!, producerContext))
+        const result = callProduce(query, () => produce(query, producerContext))
         if ("skip" in result) {
             continue
         }
-        const scanner = new HoleScanner(req => requestQueue.push(req))
+        const scanner = new HoleScanner(req => {
+            req.causedBy = query
+            requestQueue.push(req)
+        })
         if (isLWType(result.continuation)) {
             scanner.goType(result.continuation)
         } else {
             scanner.goExpression(result.continuation)
         }
-        currentGeneratedIndex.set(currentHash, result.continuation)
+        currentGeneratedIndex.set(queryString, result.continuation)
         result.declarations.forEach(declaration => {
             generatedDeclarations.push(declaration)
             scanner.goDeclaration(declaration)

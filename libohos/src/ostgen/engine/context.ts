@@ -99,11 +99,9 @@ export class OhosSeed<N extends idl.IDLNode, R=OhosRole<N>> extends Seed {
   constructor(
     public node: N,
     public role: R,
-    ctx: OhosProducerContext | undefined,
     public data?: OhosSeedData<N, R>
   ) {
     super()
-    this.causedBy = ctx?.getCurrentSeed()
   }
   hash(): string {
     const repr = idl.isType(this.node)

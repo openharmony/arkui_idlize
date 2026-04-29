@@ -20,13 +20,13 @@ import { createProducer, OhosSeed, throwError } from "../../engine/index.js"
 export const containerProducer = createProducer(
   { is: idl.isContainerType },
   (type, ctx, role) => {
-    const elemTypes = type.elementType.map(ty => ctx.expectType(new OhosSeed(ty, role, ctx)))
+    const elemTypes = type.elementType.map(ty => ctx.expectType(new OhosSeed(ty, role)))
     const continuation = idl.IDLContainerUtils.isSequence(type) ? Ts.array(elemTypes[0])
       : idl.IDLContainerUtils.isRecord(type) ? Ts.map(elemTypes[0], elemTypes[1])
       : idl.IDLContainerUtils.isPromise(type) ? Ts.promise(elemTypes[0])
       : throwError(`Unknown container type "${idl.DebugUtils.debugPrintTrace(type)}"`)
     const trigger = idl.IDLContainerUtils.isPromise(type)
-      ? [new OhosSeed(ctx.library.resolveTypeReference(ctx.library.createContinuationCallbackReference(type))!, role, ctx)]
+      ? [new OhosSeed(ctx.library.resolveTypeReference(ctx.library.createContinuationCallbackReference(type))!, role)]
       : []
     return {
       continuation,

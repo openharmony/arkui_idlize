@@ -59,7 +59,7 @@ export const attributeProducer = createProducer(
       ].filter(isDefined),
       trigger: node.properties
         .filter(it => !isAttributeModifier(it))
-        .map(it => new OhosSeed(it, 'peer', ctx))
+        .map(it => new OhosSeed(it, 'peer'))
         ///add attrModifier()
     }
   }
