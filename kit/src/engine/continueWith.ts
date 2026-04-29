@@ -14,7 +14,7 @@
  */
 
 import { E, IdentityTransformer, lw, LWDeclaration, LWExpression, LWKind, LWType, T } from "@idlizer/ost"
-import { Seed, showHistory, withProcessingSeed } from "./seed.js"
+import { Seed, showHistory } from "./seed.js"
 
 export class ContinueWithGenerationError extends Error {
     constructor(
@@ -27,7 +27,7 @@ export class ContinueWithGenerationError extends Error {
 
 function callProduce(currentSeed: Seed, op: () => ProducerResult): ProducerResult {
     try {
-        return withProcessingSeed(currentSeed, op)
+        return op()
     } catch (ex) {
         throw new ContinueWithGenerationError(showHistory(currentSeed), ex)
     }
@@ -38,8 +38,8 @@ function callProduce(currentSeed: Seed, op: () => ProducerResult): ProducerResul
 
 export interface ProducerContext<T, E> {
     library: T
-    expectType<T extends Seed>(seed:T): LWType
-    expectExpr<T extends Seed>(seed:T): LWExpression
+    expectType<S extends Seed>(seed: S): LWType
+    expectExpr<S extends Seed>(seed: S): LWExpression
     updateEffect: (updater: (x: E) => void) => void
     getEffect: () => E
 }
@@ -135,7 +135,7 @@ export interface GenerateResult<E> {
 /**
  * @deprecated Please use forEachSeed instead
  */
-export function continueWith<Q, T, E>({ library, roots, createEffect, sharedMemory }: GenerateOptions<T, E>, produce: Producer<T, E>): GenerateResult<E> {
+export function continueWith<T, E>({ library, roots, createEffect, sharedMemory }: GenerateOptions<T, E>, produce: Producer<T, E>): GenerateResult<E> {
 
     /// THE ALGORITHM
     const effect = createEffect?.()
@@ -172,7 +172,10 @@ export function continueWith<Q, T, E>({ library, roots, createEffect, sharedMemo
         if ("skip" in result) {
             continue
         }
-        const scanner = new HoleScanner(req => requestQueue.push(req))
+        const scanner = new HoleScanner(req => {
+            req.causedBy = query
+            requestQueue.push(req)
+        })
         if (isLWType(result.continuation)) {
             scanner.goType(result.continuation)
         } else {

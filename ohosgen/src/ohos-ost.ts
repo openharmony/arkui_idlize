@@ -136,7 +136,7 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
     const seeds = feature.seeds(files)
-    const {effect, declarations } = continueWith<OhosSeed<idl.IDLNode, ArkUIRole<idl.IDLNode>>, PeerLibrary, OhosEffect>({
+    const {effect, declarations } = continueWith<PeerLibrary, OhosEffect>({
         createEffect: createOhosEffect,
         library,
         roots: { seeds }},
