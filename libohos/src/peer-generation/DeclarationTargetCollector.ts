@@ -3,7 +3,7 @@ import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cle
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { UnionFlatteningMode, DependencySorter } from "./idl/DependencySorter";
 import { IdlNameConvertor } from "@idlizer/core";
-import { peerGeneratorConfiguration } from "../DefaultConfiguration";
+import { getHookMethod, peerGeneratorConfiguration } from "../DefaultConfiguration";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
@@ -35,12 +35,14 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
                     if (isMaterialized(entry, library) && !isStaticMaterialized(entry, library))
                         orderer.addDep(entry)
                     for (const property of entry.properties) {
-                        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name))
+                        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name)
+                            || getHookMethod(entry.name, property.name)?.replaceImplementation)
                             continue
                         orderer.addDep(library.toDeclaration(idl.maybeOptional(property.type, property.isOptional)))
                     }
                     for (const method of entry.methods) {
-                        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name))
+                        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name)
+                            || getHookMethod(entry.name, method.name)?.replaceImplementation)
                             continue
                         for (const parameter of method.parameters)
                             orderer.addDep(library.toDeclaration(idl.maybeOptional(parameter.type!, parameter.isOptional)))
