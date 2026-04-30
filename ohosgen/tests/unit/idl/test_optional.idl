@@ -6,3 +6,4 @@ interface TestOptional {
 };
 
 number sumOptionalAttributes(TestOptional arg);
+number idOrZero(optional number arg);

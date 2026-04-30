@@ -65,13 +65,13 @@ export function createOhosEffect() {
 }
 
 export function expectExpr<N extends idl.IDLNode, R=OhosRole<N>>(
-    ctx: OhosProducerContext, node: N, role: R, data?: OhosSeedData<N, R>
+    ctx: OhosProducerContext, node: N, role: R, data?: OhosSeedData<N>
 ): LWExpression {
     return ctx.expectExpr(new OhosSeed(node, role, data))
 }
 
 export function expectType<N extends idl.IDLNode, R=OhosRole<N>>(
-    ctx: OhosProducerContext, node: N, role: R, data?: OhosSeedData<N, R>
+    ctx: OhosProducerContext, node: N, role: R, data?: OhosSeedData<N>
 ): LWType {
     return ctx.expectType(new OhosSeed(node, role, data))
 }

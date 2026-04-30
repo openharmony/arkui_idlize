@@ -75,7 +75,7 @@ export interface OhosEffect {
 
 export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>
 export type OhosProducer<N extends idl.IDLNode, R=OhosRole<N>> =
-    (type: N, ctx: OhosProducerContext, role: R, data?: OhosSeedData<N, R>) => ProducerResult
+    (type: N, ctx: OhosProducerContext, role: R, data?: OhosSeedData<N>) => ProducerResult
 
 type CommonRole = 'managed' | 'capi'
 type SpecificRole<N extends idl.IDLNode> =
@@ -86,20 +86,16 @@ type SpecificRole<N extends idl.IDLNode> =
   never
 export type OhosRole<T extends idl.IDLNode> = CommonRole | SpecificRole<T>
 
-export type OhosSeedData<N extends idl.IDLNode, R=OhosRole<N>> =
-    N extends idl.IDLEntry ?
-        R extends 'managed' ? { typeArgs?: idl.IDLType[] } :
-        never :
-    N extends idl.IDLType ?
-        R extends 'initializer' ? { name?: string } :
-        never :
+export type OhosSeedData<N extends idl.IDLNode> =
+    N extends idl.IDLEntry ? { typeArgs?: idl.IDLType[] } :
+    N extends idl.IDLType ? { name?: string } :
     never
 
 export class OhosSeed<N extends idl.IDLNode, R=OhosRole<N>> extends Seed {
   constructor(
     public node: N,
     public role: R,
-    public data?: OhosSeedData<N, R>
+    public data?: OhosSeedData<N>
   ) {
     super()
   }
@@ -108,9 +104,14 @@ export class OhosSeed<N extends idl.IDLNode, R=OhosRole<N>> extends Seed {
         ? 'type:' + idl.printType(this.node)
         : 'node:' + idl.getFQName(this.node)
     const suffix =
-        !this.data ? '' :
-        'typeArgs' in this.data && this.data.typeArgs ? this.data.typeArgs.map(ty => idl.printType(ty)).join(',') :
-        'name' in this.data && this.data.name ? this.data.name :
+        idl.isMethod(this.node) || idl.isConstructor(this.node)
+            ? this.node.parameters.map(it => idl.printType(it.type)).join(',') :
+        !this.data
+            ? '' :
+        'typeArgs' in this.data && this.data.typeArgs
+            ? 'typeArgs:' + this.data.typeArgs.map(ty => idl.printType(ty)).join(',') :
+        'name' in this.data && this.data.name
+            ? 'name:' + this.data.name :
         ''
     return `${repr}:${this.role}:${suffix}`
   }

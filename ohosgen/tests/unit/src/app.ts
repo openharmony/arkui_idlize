@@ -37,7 +37,7 @@ import {
 } from '#compat'
 
 import { test_buffer } from '#compat'
-import { sumOptionalAttributes } from '#compat'
+import { sumOptionalAttributes, idOrZero } from '#compat'
 
 import {
   OrdinaryEnum,
@@ -482,16 +482,14 @@ function checkNativeBuffer() {
 
 function checkOptionalAttributes() {
   // With both attributes provided
-  let result = sumOptionalAttributes({ value: 10, optValue: 20 })
-  assertEQ(true, compareNumbers(result, 30))
-
+  assertEQ(30, sumOptionalAttributes({ value: 10, optValue: 20 }))
   // With only required attribute (optional missing → treated as 0)
-  result = sumOptionalAttributes({ value: 10 })
-  assertEQ(true, compareNumbers(result, 10))
-
+  assertEQ(10, sumOptionalAttributes({ value: 10 }))
   // With optional attribute set to zero explicitly
-  result = sumOptionalAttributes({ value: 7, optValue: 0 })
-  assertEQ(true, compareNumbers(result, 7))
+  assertEQ(7, sumOptionalAttributes({ value: 7, optValue: 0 }))
+
+  assertEQ(0, idOrZero())
+  assertEQ(18, idOrZero(18))
 }
 
 // function checkHandwritten() {
