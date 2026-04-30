@@ -3,12 +3,12 @@
     "private": true,
     "arkts": {},
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.69604-9053",
-        "@koalaui/common": "1.5.0-dev.69604-9053",
-        "@koalaui/interop": "1.5.0-dev.69604-9053"
+        "@koalaui/compat": "1.5.0-dev.70044-9102",
+        "@koalaui/common": "1.5.0-dev.70044-9102",
+        "@koalaui/interop": "1.5.0-dev.70044-9102"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.69604-9053"
+        "@koalaui/smart-arkts": "1.5.0-dev.70044-9102"
     },
     "scripts": {
         "_meson:setup": "meson setup ./${TEST_CASE}/build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} -Dtest_case=${TEST_CASE}",
