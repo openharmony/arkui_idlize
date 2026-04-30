@@ -15,9 +15,41 @@
 
 package ost.enums;
 
-enum OSTIntEnum {
+enum PlainEnum {
+    number E1;
+    number E2;
+    number E3;
+};
+
+enum IntEnum {
     i32 E1 = 1;
     i32 E3 = 3;
 };
 
-OSTIntEnum checkOSTIntEnum(OSTIntEnum enumValue, i32 value);
+enum LongEnum {
+    number POS = 0x80000000;
+    number NEG = -0x80000001;
+};
+
+enum LegacyEnum {
+    number FIRST = 0;
+    [OriginalEnumMemberName=first]
+    number LEGACY_FIRST = 0;
+    number SECOND = 1;
+    [OriginalEnumMemberName=second]
+    number LEGACY_SECOND = 1;
+    number THIRD = 2;
+    [OriginalEnumMemberName=third]
+    number LEGACY_THIRD = 2;
+};
+
+enum StringEnum {
+    String S1 = "one";
+    String S2 = "two";
+};
+
+PlainEnum checkPlainEnum(PlainEnum enumValue, i32 step);
+IntEnum checkIntEnum(IntEnum enumValue, i32 value);
+LongEnum checkLongEnum(LongEnum enumValue);
+LegacyEnum checkLegacyEnum(LegacyEnum enumValue, i32 value);
+StringEnum checkStringEnum(StringEnum enumValue, String value);

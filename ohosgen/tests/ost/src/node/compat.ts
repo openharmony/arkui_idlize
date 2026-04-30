@@ -1,8 +1,19 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule, checkEvents, wrapSystemApiHandlerCallback } from "@koalaui/interop"
 
+export { int64 } from "@koalaui/common"
+
 export {
-    OSTIntEnum,
-    checkOSTIntEnum,
+    PlainEnum,
+    IntEnum,
+    LongEnum,
+    LegacyEnum,
+    StringEnum,
+    checkPlainEnum,
+    checkIntEnum,
+    checkLongEnum,
+    checkLegacyEnum,
+    checkStringEnum,
+    getCallbackBooleanIntString,
 } from '../../generated/ts'
 
 export {
@@ -40,6 +51,17 @@ export {
     getOSTPromiseInt,
     getOSTPromiseBooleanIntString,
 } from '../../generated/ts'
+
+export { BOOL_TRUE, BOOL_FALSE, NUM_INT, NUM_NEGATIVE, STR_HELLO, STR_EMPTY } from '../../generated/ts'
+export { negateBoolean, incrementInt, doubleNumber, reverseString, reverseBuffer, negateBigInt } from '../../generated/ts'
+export { DataClass } from '../../generated/ts'
+export { GenericBox, GenericBox2, Unbox, unboxBoolean, unboxString, unboxBox, unboxStringNumber, unboxBoxStringBoxNumber } from '../../generated/ts'
+export { outer } from '../../generated/ts'
+export { TestOptional, sumOptionalAttributes, idOrZero } from '../../generated/ts'
+export { MultiCtors, MultiMethods } from '../../generated/ts'
+export { UnionInterface, checkUnionInterface, checkUnionArg, checkGenericUnion } from '../../generated/ts'
+export { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "../../generated/ts"
+export { Materialized, StaticMaterialized } from '../../generated/ts'
 
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
