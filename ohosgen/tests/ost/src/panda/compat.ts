@@ -20,12 +20,21 @@ import {
 
 import {
     registerUnitOstApiHandler,
-    UNIT_OSTNativeModule,
  } from '../../generated/arkts'
 
+export { int64 } from "@koalaui/common"
+
 export {
-    OSTIntEnum,
-    checkOSTIntEnum,
+    PlainEnum,
+    IntEnum,
+    LongEnum,
+    LegacyEnum,
+    StringEnum,
+    checkPlainEnum,
+    checkIntEnum,
+    checkLongEnum,
+    checkLegacyEnum,
+    checkStringEnum,
     getCallbackBooleanIntString,
 } from '../../generated/arkts'
 
@@ -63,6 +72,17 @@ export {
     getOSTPromiseInt,
     getOSTPromiseBooleanIntString,
 } from '../../generated/arkts'
+
+export { BOOL_TRUE, BOOL_FALSE, NUM_INT, NUM_NEGATIVE, STR_HELLO, STR_EMPTY } from '../../generated/arkts'
+export { negateBoolean, incrementInt, doubleNumber, reverseString, reverseBuffer, negateBigInt } from '../../generated/arkts'
+export { DataClass } from '../../generated/arkts'
+export { GenericBox, GenericBox2, Unbox, unboxBoolean, unboxString, unboxBox, unboxStringNumber, unboxBoxStringBoxNumber } from '../../generated/arkts'
+export { outer } from '../../generated/arkts'
+export { TestOptional, sumOptionalAttributes, idOrZero } from '../../generated/arkts'
+export { MultiCtors, MultiMethods } from '../../generated/arkts'
+export { UnionInterface, checkUnionInterface, checkUnionArg, checkGenericUnion } from '../../generated/arkts'
+export { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "../../generated/arkts"
+export { Materialized, StaticMaterialized } from '../../generated/arkts'
 
 
 export type OHBuffer = ArrayBuffer

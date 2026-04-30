@@ -17,7 +17,6 @@ import * as idl from "@idlizer/core/idl"
 import { ImportsCollector, isInExternalModule, Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
-    MANAGED_PREFIX,
     OutputFile,
     isManaged,
     processNPrintArkTS,
@@ -40,7 +39,7 @@ import {
     lowLevelLike,
     OhosEffect,
     createOhosEffect,
-    LWKind,
+    managedName,
 } from "@idlizer/libohos"
 import { continueWith, moduleLike, onlyFor } from '@idlizer/kit'
 import { ArkUIRole, registerArkUIProducers } from "./arkui/index.js"
@@ -155,26 +154,11 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
         library,
         roots: { seeds }},
         onlyFor(OhosSeed<idl.IDLNode, ArkUIRole<idl.IDLNode>>, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role, seed.data)))
-
-    console.log(`=== ${declarations.length} declarations {`)
-    declarations
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .forEach(decl => {
-            console.log('  ', decl.name)
-            if (decl.kind === LWKind.StructureDeclaration)
-                decl.members.forEach(member => console.log('    ', member.name))
-            if (decl.kind === LWKind.ClassDeclaration) {
-                decl.fields.forEach(field => console.log('    ', field.name))
-                decl.methods.forEach(method => console.log('    ', method.name, '()'))
-            }
-        })
-    console.log('} /// declarations')
-    
-    const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
-    const knownPackages = files
-        .map(file => file.packageClause.length ? file.packageClause : [library.name.toLowerCase()])
-        .map(clause => [MANAGED_PREFIX, ...clause].join('.'))
-        .concat(SPECIAL_PACKAGES)
+    const knownPackages = [
+        ...files.map(file => file.packageClause.length ? file.packageClause.join('.') : library.name.toLowerCase()),
+        'engine',
+        'synthetic',
+    ].map(managedName)
     const [managed, native] = declarations.reduce<[LWDeclaration[], LWDeclaration[]]>(([m, n], decl) => {
         (isManaged(decl.name) ? m : n).push(decl)
         return [m, n]

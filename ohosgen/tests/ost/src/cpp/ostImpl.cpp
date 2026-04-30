@@ -68,19 +68,117 @@ void AssertEqStr(const char* golden, OH_String str, const char* comment)
     INTEROP_FATAL("%s, golden: '%s', curr: [length: %d, chars: '%s']", comment, golden, str.length, str.chars);
 }
 
+// Primitives
+
+OH_Boolean ost_primitives_negateBooleanImpl(OH_Boolean value)
+{
+    return !value;
+}
+
+OH_Int32 ost_primitives_incrementIntImpl(OH_Int32 value)
+{
+    return value + 1;
+}
+
+OH_Number ost_primitives_doubleNumberImpl(const OH_Number* value)
+{
+    OH_Number result;
+    result.tag = value->tag;
+    if (value->tag == INTEROP_TAG_FLOAT32) {
+        result.f32 = value->f32 * 2.0f;
+    } else {
+        result.i32 = value->i32 * 2;
+    }
+    return result;
+}
+
+OH_String ost_primitives_reverseStringImpl(const OH_String* value)
+{
+    OH_Int32 len = value->length;
+    char* reversed = reinterpret_cast<char*>(malloc(len + 1));
+    for (OH_Int32 i = 0; i < len; i++) {
+        reversed[i] = value->chars[len - 1 - i];
+    }
+    reversed[len] = '\0';
+    return { .chars = reversed, .length = len };
+}
+
+OH_Buffer ost_primitives_reverseBufferImpl(const OH_Buffer* value)
+{
+    OH_Int64 len = value->length;
+    uint8_t* src = reinterpret_cast<uint8_t*>(value->data);
+    uint8_t* reversed = new uint8_t[len];
+    for (OH_Int64 i = 0; i < len; i++) {
+        reversed[i] = src[len - 1 - i];
+    }
+    OH_Buffer result;
+    result.resource = {
+        .resourceId = 0,
+        .hold = [](const OH_Int32 resourceId) -> void {},
+        .release = [](const OH_Int32 resourceId) -> void {}
+    };
+    result.data = reinterpret_cast<InteropNativePointer>(reversed);
+    result.length = len;
+    return result;
+}
+
+OH_Int64 ost_primitives_negateBigIntImpl(OH_Int64 value)
+{
+    return -value;
+}
+
 // Enum
 
-OH_UNIT_OST_OSTIntEnum ost_enums_checkOSTIntEnumImpl(OH_UNIT_OST_OSTIntEnum enumValue, OH_Int32 value)
+OH_UNIT_OST_PlainEnum ost_enums_checkPlainEnumImpl(OH_UNIT_OST_PlainEnum value, OH_Int32 step)
 {
-    if (OH_UNIT_OST_OSTINT_ENUM_E1 != 1) {
-        INTEROP_FATAL("Enum OSTINT_ENUM_E1 %d does not equal to: %d", OH_UNIT_OST_OSTINT_ENUM_E1, -1);
+    return (OH_UNIT_OST_PlainEnum) ((value + step) % 3);
+}
+
+OH_UNIT_OST_IntEnum ost_enums_checkIntEnumImpl(OH_UNIT_OST_IntEnum enumValue, OH_Int32 value)
+{
+    if (OH_UNIT_OST_INT_ENUM_E1 != 1) {
+        INTEROP_FATAL("Enum OSTINT_ENUM_E1 %d does not equal to: %d", OH_UNIT_OST_INT_ENUM_E1, -1);
     }
 
-    if (enumValue != OH_UNIT_OST_OSTINT_ENUM_E1) {
-        INTEROP_FATAL("Enum param value1 %d does not equal OSTINT_ENUM_E1: %d", enumValue, OH_UNIT_OST_OSTINT_ENUM_E1);
+    if (enumValue != OH_UNIT_OST_INT_ENUM_E1) {
+        INTEROP_FATAL("Enum param value1 %d does not equal OSTINT_ENUM_E1: %d", enumValue, OH_UNIT_OST_INT_ENUM_E1);
     }
 
-    return OH_UNIT_OST_OSTINT_ENUM_E3;
+    return OH_UNIT_OST_INT_ENUM_E3;
+}
+
+OH_UNIT_OST_LongEnum ost_enums_checkLongEnumImpl(OH_UNIT_OST_LongEnum enumValue)
+{
+    if (enumValue != OH_UNIT_OST_LONG_ENUM_POS) {
+        INTEROP_FATAL("LongEnum param %d does not equal LONG_ENUM_POS: %d", enumValue, OH_UNIT_OST_LONG_ENUM_POS);
+    }
+    return OH_UNIT_OST_LONG_ENUM_NEG;
+}
+
+OH_UNIT_OST_LegacyEnum ost_enums_checkLegacyEnumImpl(OH_UNIT_OST_LegacyEnum enumValue, OH_Int32 value)
+{
+    if (enumValue != (OH_UNIT_OST_LegacyEnum)value) {
+        INTEROP_FATAL("LegacyEnum param %d does not equal value: %d", enumValue, value);
+    }
+    if (OH_UNIT_OST_LEGACY_ENUM_FIRST != OH_UNIT_OST_LEGACY_ENUM_LEGACY_FIRST) {
+        INTEROP_FATAL("FIRST %d does not equal LEGACY_FIRST: %d", OH_UNIT_OST_LEGACY_ENUM_FIRST, OH_UNIT_OST_LEGACY_ENUM_LEGACY_FIRST);
+    }
+    if (OH_UNIT_OST_LEGACY_ENUM_SECOND != OH_UNIT_OST_LEGACY_ENUM_LEGACY_SECOND) {
+        INTEROP_FATAL("SECOND %d does not equal LEGACY_SECOND: %d", OH_UNIT_OST_LEGACY_ENUM_SECOND, OH_UNIT_OST_LEGACY_ENUM_LEGACY_SECOND);
+    }
+    if (OH_UNIT_OST_LEGACY_ENUM_THIRD != OH_UNIT_OST_LEGACY_ENUM_LEGACY_THIRD) {
+        INTEROP_FATAL("THIRD %d does not equal LEGACY_THIRD: %d", OH_UNIT_OST_LEGACY_ENUM_THIRD, OH_UNIT_OST_LEGACY_ENUM_LEGACY_THIRD);
+    }
+    return OH_UNIT_OST_LEGACY_ENUM_SECOND;
+}
+
+OH_UNIT_OST_StringEnum ost_enums_checkStringEnumImpl(OH_UNIT_OST_StringEnum enumValue, const OH_String* value)
+{
+    if (enumValue != OH_UNIT_OST_STRING_ENUM_S1) {
+        INTEROP_FATAL("StringEnum param %d does not equal STRING_ENUM_S1: %d", enumValue, OH_UNIT_OST_STRING_ENUM_S1);
+    }
+    AssertEqStr("one", *value, "StringEnum value does not equal 'one'");
+    return OH_UNIT_OST_STRING_ENUM_S2;
 }
 
 // Sequence
@@ -358,6 +456,158 @@ void ost_promises_getOSTPromiseBooleanIntStringImpl(
     work.queue(work.workId);
 }
 
+// Generics
+
+OH_Boolean ost_generics_unboxBooleanImpl(const OH_UNIT_OST_GenericBox_Boolean* box) {
+    return box->value;
+}
+
+OH_String ost_generics_unboxStringImpl(const OH_UNIT_OST_GenericBox_String* box)
+{
+    return box->value;
+}
+
+OH_UNIT_OST_GenericBox_Number ost_generics_unboxBoxImpl(const OH_UNIT_OST_GenericBox_GenericBox_Number* box)
+{
+    return box->value;
+}
+
+OH_UNIT_OST_Unbox ost_generics_unboxStringNumberImpl(const OH_UNIT_OST_GenericBox2_String_Number* box)
+{
+    return { .numberValue = box->value2, .stringValue = box->value1 };
+}
+
+OH_UNIT_OST_Unbox ost_generics_unboxBoxStringBoxNumberImpl(const OH_UNIT_OST_GenericBox2_GenericBox_String_GenericBox_Number* box)
+{
+    return { .numberValue = box->value2.value, .stringValue = box->value1.value };
+}
+
+// Namespace
+
+OH_Number ost_namespaces_outer_inner_getValueImpl(const OH_UNIT_OST_OuterData* data)
+{
+    return data->value;
+}
+
+// Optional
+
+OH_Int32 ost_optionals_sumOptionalAttributesImpl(const OH_UNIT_OST_TestOptional* arg)
+{
+    return arg->value + (arg->optValue.tag == INTEROP_TAG_UNDEFINED ? 0 : arg->optValue.value);
+}
+
+OH_Int32 ost_optionals_idOrZeroImpl(const OH_UNIT_OST_Opt_Int32* arg)
+{
+    return arg->tag == INTEROP_TAG_UNDEFINED ? 0 : arg->value;
+}
+
+// Override
+
+struct MultiCtorData {
+    char* name;
+    int32_t age;
+};
+
+OH_NativePointer ost_overrides_MultiCtors_construct0Impl(const OH_String* name)
+{
+    auto* data = new MultiCtorData();
+    data->name = new char[name->length + 1];
+    memcpy(data->name, name->chars, name->length);
+    data->name[name->length] = '\0';
+    data->age = 0;
+    return data;
+}
+
+OH_NativePointer ost_overrides_MultiCtors_construct1Impl(OH_Int32 age)
+{
+    auto* data = new MultiCtorData();
+    data->name = new char[1];
+    data->name[0] = '\0';
+    data->age = age;
+    return data;
+}
+
+OH_NativePointer ost_overrides_MultiCtors_construct2Impl(const OH_String* name, OH_Int32 age)
+{
+    auto* data = new MultiCtorData();
+    data->name = new char[name->length + 1];
+    memcpy(data->name, name->chars, name->length);
+    data->name[name->length] = '\0';
+    data->age = age;
+    return data;
+}
+
+OH_String ost_overrides_MultiCtors_getNameImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    return { .chars = data->name, .length = string_len(data->name) };
+}
+
+void ost_overrides_MultiCtors_setNameImpl(OH_NativePointer thisPtr, const OH_String* name)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    delete[] data->name;
+    data->name = new char[name->length + 1];
+    memcpy(data->name, name->chars, name->length);
+    data->name[name->length] = '\0';
+}
+
+OH_Int32 ost_overrides_MultiCtors_getAgeImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    return data->age;
+}
+
+void ost_overrides_MultiCtors_setAgeImpl(OH_NativePointer thisPtr, OH_Int32 age)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    data->age = age;
+}
+
+void ost_overrides_MultiCtors_destructImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MultiCtorData*>(thisPtr);
+    delete[] data->name;
+    delete data;
+}
+
+OH_NativePointer ost_overrides_MultiMethods_constructImpl()
+{
+    return new MultiCtorData();
+}
+void ost_overrides_MultiMethods_destructImpl(OH_NativePointer thisPtr)
+{
+    delete reinterpret_cast<MultiCtorData*>(thisPtr);
+}
+OH_Int32 ost_overrides_MultiMethods_valueOf0Impl(OH_NativePointer thisPtr, OH_Int32 n) {
+    return n;
+}
+OH_Int32 ost_overrides_MultiMethods_valueOf1Impl(OH_NativePointer thisPtr, const OH_String* s)
+{
+    return s->length;
+}
+OH_Int32 ost_overrides_MultiMethods_valueOf2Impl(OH_NativePointer thisPtr, OH_Int32 n, const OH_String* s)
+{
+    return n + s->length;
+}
+
+// Union
+
+OH_Int32 ost_unions_checkUnionInterfaceImpl(const OH_UNIT_OST_UnionInterface* arg)
+{
+    return arg->prop.selector;
+}
+
+OH_Int32 ost_unions_checkUnionArgImpl(const OH_UNIT_OST_Union_String_PlainEnum_Array_Boolean_Array_PlainEnum* arg)
+{
+    return arg->selector;
+}
+
+OH_Int32 ost_unions_checkGenericUnionImpl(const OH_UNIT_OST_Union_String_GenericBox_String_GenericBox_UnionInterface* arg)
+{
+    return arg->selector;
+}
+
 // Error
 
 OH_UNIT_OST_ThrowsWrapper_I32 ost_errors_getOSTErrorBooleanIntImpl(OH_Boolean flag) {
@@ -396,4 +646,112 @@ OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanImpl(OH_Int32 v
             }
         }
     };
+}
+
+// Materialized
+
+struct MaterializedData {
+    OH_String readOnlyValue;
+};
+
+OH_NativePointer ost_materialized_Materialized_constructImpl(const OH_String* readOnlyValue)
+{
+    auto* data = new MaterializedData();
+    data->readOnlyValue = *readOnlyValue;
+    return data;
+}
+
+OH_String ost_materialized_Materialized_getReadOnlyImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MaterializedData*>(thisPtr);
+    return data->readOnlyValue;
+}
+
+OH_Int32 ost_materialized_Materialized_getReadWriteImpl(OH_NativePointer thisPtr)
+{
+    return 14;
+}
+
+void ost_materialized_Materialized_setReadWriteImpl(OH_NativePointer thisPtr, OH_Int32 readWrite)
+{
+    // no-op: always 14 no matter what
+}
+
+void ost_materialized_Materialized_destructImpl(OH_NativePointer thisPtr)
+{
+    auto* data = reinterpret_cast<MaterializedData*>(thisPtr);
+    delete data;
+}
+
+// StaticMaterialized
+
+OH_String ost_materialized_StaticMaterialized_reverseImpl(const OH_String* s)
+{
+    return ost_primitives_reverseStringImpl(s);
+}
+
+// Inheritance
+
+class BaseGesture {
+public:
+    virtual OH_UNIT_OST_GestureType getType() = 0;
+    virtual ~BaseGesture() = default;
+};
+
+class DerivedGesture1 : public BaseGesture {
+public:
+    OH_UNIT_OST_GestureType getType() override
+    {
+        return OH_UNIT_OST_GestureType::OH_UNIT_OST_GESTURE_TYPE_First;
+    }
+};
+
+class DerivedGesture2 : public BaseGesture {
+public:
+    OH_UNIT_OST_GestureType getType() override
+    {
+        return OH_UNIT_OST_GestureType::OH_UNIT_OST_GESTURE_TYPE_Second;
+    }
+};
+
+OH_NativePointer ost_inheritance_BaseGesture_constructImpl()
+{
+    return new DerivedGesture2();
+}
+void ost_inheritance_BaseGesture_destructImpl(OH_NativePointer thisPtr)
+{
+    delete reinterpret_cast<BaseGesture*>(thisPtr);
+}
+OH_UNIT_OST_GestureType ost_inheritance_BaseGesture_getTypeImpl(OH_NativePointer thisPtr)
+{
+    BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(thisPtr);
+    return gesturePtr->getType();
+}
+OH_UNIT_OST_BaseGesture ost_inheritance_BaseGesture_createGesture2Impl()
+{
+    BaseGesture* ptr = new DerivedGesture2();
+    return reinterpret_cast<OH_UNIT_OST_BaseGesture>(ptr);
+}
+OH_NativePointer ost_inheritance_DerivedGesture1_constructImpl()
+{
+    return {};
+}
+void ost_inheritance_DerivedGesture1_destructImpl(OH_NativePointer thisPtr) {
+}
+OH_NativePointer ost_inheritance_DerivedGesture2_constructImpl()
+{
+    return {};
+}
+void ost_inheritance_DerivedGesture2_destructImpl(OH_NativePointer thisPtr) {
+}
+OH_UNIT_OST_GestureType ost_inheritance_getBaseGestureTypeImpl(OH_NativePointer ptr)
+{
+    BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(ptr);
+    return gesturePtr->getType();
+}
+
+// Typedef -- just check that type alias is present in CAPI
+
+void ost_typedefs_testTypedefImpl(const OH_UNIT_OST_TypeAlias* arg)
+{
 }

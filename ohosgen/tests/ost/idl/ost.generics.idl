@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ost.generics;
+
+interface <T> GenericBox {
+    attribute T value;
+};
+
+interface <U, V> GenericBox2 {
+    attribute U value1;
+    attribute V value2;
+};
+
+boolean unboxBoolean(GenericBox<boolean> box);
+String unboxString(GenericBox<String> box);
+GenericBox<number> unboxBox(GenericBox<GenericBox<number>> box);
+
+interface Unbox {
+    attribute number numberValue;
+    attribute String stringValue;
+};
+
+// read boxed values into an Unbox
+Unbox unboxStringNumber(GenericBox2<String, number> box);
+Unbox unboxBoxStringBoxNumber(GenericBox2<GenericBox<String>, GenericBox<number>> box);
