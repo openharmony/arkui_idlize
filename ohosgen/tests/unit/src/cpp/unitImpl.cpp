@@ -1629,6 +1629,14 @@ OH_Number GlobalScope_sumOptionalAttributesImpl(const OH_UNIT_TestOptional* arg)
     return result;
 }
 
+OH_Number GlobalScope_idOrZeroImpl(const Opt_Number* arg)
+{
+    if (arg->tag == INTEROP_TAG_UNDEFINED)
+        return { .tag = INTEROP_TAG_INT32, .i32 = 0 };
+    else
+        return arg->value;
+}
+
 OH_UNIT_IDLCheckPropsHandle IDLCheckProps_constructImpl()
 {
     return {};

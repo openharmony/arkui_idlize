@@ -443,6 +443,7 @@ export interface FunctionDeclaration {
     name: string
     /** Parameter type */
     type: LWType
+    modifiers?: Modifier[]
     /** Parameter optional default expression (has limited support) */
     expression?: LWExpression
   }[]

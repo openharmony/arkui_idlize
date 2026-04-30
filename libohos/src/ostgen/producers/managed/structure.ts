@@ -116,9 +116,7 @@ function staticMaterializedInterface(node: idl.IDLInterface, name: string, ctx: 
       Builders.class(name)
         .extends(superType ? expectType(ctx, superType, 'managed') : undefined).$()
     ],
-    trigger: [
-      ...node.methods,
-    ].map(it => new OhosSeed(it, 'managed'))
+    trigger: node.methods.map(it => new OhosSeed(it, 'managed'))
   }
 }
 
@@ -144,22 +142,23 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
   const matClass = Builders.class(name)
     .extends(superType ? expectType(ctx, superType, 'managed') : undefined)
     .implements(T.c('MaterializedBase'))
-    // peer
-    .field('peer').type(peerType).$()
-    .method('getPeer').returns(peerType).block()
-      .return(peerType).access('peer').receiver('this').$().$().$().$()
-    .method('setPeer').private().param('peerPtr').type(Ts.prim.pointer).$().block()
-      .binary('=')
-        .left().access('peer').receiver('this').$().$()
-        .right().ctor('Finalizable')
-          .arg('peerPtr')
-          .arg().call('getFinalizer').receiver(name).$().$().$().$().$().$().$()
-    // default constructor
     .ctor().param('tag').type(T.c('MaterializedBaseTag')).$().param('ptr').type(Ts.prim.pointer).$()
       .block().statements([superIsMaterialized
         ? Builders.stmt().call('super').arg('tag').arg('ptr').$().$()
-        : Builders.stmt().call('setPeer').receiver('this').arg('ptr').$().$()
+        : Builders.stmt().binary('=')
+            .left().access('peer').receiver('this').$().$()
+            .right().ctor('Finalizable')
+              .arg('ptr')
+              .arg().call('getFinalizer').receiver(name).$().$().$().$().$().$()
       ]).$().$().$()
+  // peer field and getPeer() only when no superclass
+  if (!superType) {
+    matClass.fields.unshift(Builders.field('peer').type(peerType).$())
+    matClass.methods.unshift(
+      Builders.func('getPeer').returns(peerType).block()
+        .return(peerType).access('peer').receiver('this').$().$().$().$())
+  }
+
   const syntheticMethods = [
     // client constructors
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],

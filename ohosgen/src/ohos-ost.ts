@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { ImportsCollector, Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
+import { ImportsCollector, isInExternalModule, Language, linearizeNamespaceMembers, PeerLibrary } from "@idlizer/core"
 import {
     LWDeclaration,
     MANAGED_PREFIX,
@@ -41,19 +41,18 @@ import {
     OhosEffect,
     createOhosEffect,
     LWKind,
-    OhosRole,
 } from "@idlizer/libohos"
 import { continueWith, moduleLike, onlyFor } from '@idlizer/kit'
 import { ArkUIRole, registerArkUIProducers } from "./arkui/index.js"
 
-type Feature<R> = {
+type Feature = {
     name: string
     init: () => MakeSelector
     seeds: (files: idl.IDLFile[]) => OhosSeed<idl.IDLNode>[]
     importHook?: moduleLike.OnUnknownImport
 }
 
-const OSTFeature: Feature<OhosRole<idl.IDLNode>> = {
+const OSTFeature: Feature = {
     name: 'ost',
     init: () => {
         const selector = new MakeSelector()
@@ -62,23 +61,38 @@ const OSTFeature: Feature<OhosRole<idl.IDLNode>> = {
     },
     seeds: (files: idl.IDLFile[]) => linearizeNamespaceMembers(files.flatMap(f => f.entries))
         .filter(e =>
+            !isInExternalModule(e) &&
             !idl.isImport(e) &&
             !idl.isNamespace(e) &&
             !idl.isCallback(e))
         .map(e => new OhosSeed(e, 'managed')),
     importHook: name => {
         const parts = name.split('.')
-        if (parts.length > 2 && parts[0] === 'managed' && parts[1].startsWith('#')) {
-            return {
-                result: parts.slice(2).join('.'),
-                name: parts[2],
-                source: parts[1]
+        if (parts.length > 2 && parts[0] === 'managed') {
+            if (parts[1].startsWith('#')) {
+                return {
+                    result: parts.slice(2).join('.'),
+                    name: parts[2],
+                    source: parts[1]
+                }
+            } else {
+                const trimmedName = parts.slice(1).join('.')
+                for (const [module, moduleData] of peerGeneratorConfiguration().modules) {
+                    if (moduleData.external && trimmedName.startsWith(module)) {
+                        const moduleParts = module.split('.')
+                        return {
+                            result: parts.slice(moduleParts.length + 1).join('.'),
+                            name: parts[moduleParts.length + 1],
+                            source: '@' + module
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-const ArkUIFeature: Feature<ArkUIRole<idl.IDLNode>> = {
+const ArkUIFeature: Feature = {
     name: 'arkui',
     init: () => {
         const selector = new MakeSelector()
@@ -136,7 +150,7 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
     const seeds = feature.seeds(files)
-    const {effect, declarations } = continueWith<OhosSeed<idl.IDLNode, ArkUIRole<idl.IDLNode>>, PeerLibrary, OhosEffect>({
+    const {effect, declarations } = continueWith<PeerLibrary, OhosEffect>({
         createEffect: createOhosEffect,
         library,
         roots: { seeds }},

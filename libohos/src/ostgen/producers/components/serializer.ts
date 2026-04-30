@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 import * as idl from "@idlizer/core/idl"
+import { isInExternalModule } from "@idlizer/core"
 import { Builders, E, Hs, LWExpression, LWStatement, LWType, T, Ts } from "@idlizer/ost"
 import { expectType, managedName, bridgeName } from "../common.js"
 import { OhosProducerContext, OhosProducer, OhosRole } from "../../engine/index.js"
@@ -23,10 +24,11 @@ export function produceSerializer(
   native: boolean
 ): OhosProducer<idl.IDLInterface | idl.IDLTypedef, OhosRole<idl.IDLInterface | idl.IDLTypedef>> {
   return (node, ctx) => {
-    const serializerName = (native ? bridgeName : managedName)(idl.getFQName(node) + 'Serializer')
+    const serializerName = (isInExternalModule(node) ? 'engine.' : '') + idl.getFQName(node)
+    const declName = (native ? bridgeName : managedName)(serializerName + 'Serializer')
     return {
-      continuation: E.v(serializerName, [Hs.isType()]),
-      declarations: makeSerializer(ctx, node, native, serializerName)
+      continuation: E.v(declName, [Hs.isType()]),
+      declarations: makeSerializer(ctx, node, native, declName)
     }
   }
 }
