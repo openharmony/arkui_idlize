@@ -749,3 +749,9 @@ OH_UNIT_OST_GestureType ost_inheritance_getBaseGestureTypeImpl(OH_NativePointer 
     BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(ptr);
     return gesturePtr->getType();
 }
+
+// Typedef -- just check that type alias is present in CAPI
+
+void ost_typedefs_testTypedefImpl(const OH_UNIT_OST_TypeAlias* arg)
+{
+}
