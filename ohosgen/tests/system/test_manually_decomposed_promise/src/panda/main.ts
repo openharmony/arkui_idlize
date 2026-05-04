@@ -38,7 +38,7 @@ function asyncMainBody() {
     asyncDemo(0, 2);
 }
 
-export function main() {
+export function main(): void {
     init();
     asyncMainBody();
     pullEvents();

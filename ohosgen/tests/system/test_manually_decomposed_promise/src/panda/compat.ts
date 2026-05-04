@@ -3,11 +3,11 @@ import { registerTestManuallyDecomposedPromiseApiHandler } from '../../generated
 
 export { FooWork, FooResult } from '../../generated/arkts';
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents();
 }
 
-export function init() {
+export function init(): void {
     registerNativeModuleLibraryName('InteropNativeModule', 'TEST_MANUALLY_DECOMPOSED_PROMISENativeModule');
     wrapSystemApiHandlerCallback()
     registerTestManuallyDecomposedPromiseApiHandler()

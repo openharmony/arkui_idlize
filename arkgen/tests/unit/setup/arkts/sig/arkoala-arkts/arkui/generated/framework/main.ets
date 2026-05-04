@@ -48,7 +48,7 @@ import { InteropNativeModule } from "@koalaui/interop"
 
 let hasTestErrors = false
 
-export function checkResult<R>(name: string, actual: R, expected: R) {
+export function checkResult<R>(name: string, actual: R, expected: R): void {
     if (actual != expected) {
         console.log(`TEST ${name} FAIL:\n  EXPECTED "${expected}"\n  ACTUAL   "${actual}"`)
         hasTestErrors = true
@@ -71,7 +71,7 @@ export function getNativeLog(): string {
     return result.toString()
 }
 
-export function checkNativeLog<R>(name: string, test: () => R, expected: string) {
+export function checkNativeLog<R>(name: string, test: () => R, expected: string): void {
     InteropNativeModule._StartGroupedLog(1)
     test()
     InteropNativeModule._StopGroupedLog(1)

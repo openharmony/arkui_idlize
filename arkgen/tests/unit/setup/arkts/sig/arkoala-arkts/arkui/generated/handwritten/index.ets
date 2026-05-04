@@ -56,23 +56,23 @@ export class ModifierState {
 }
 
 export function _animateTo(param: AnimateParam, event: (() => void)): void {}
-export function _animationStart(param: AnimateParam, isFirstBuild: boolean) {}
+export function _animationStart(param: AnimateParam, isFirstBuild: boolean): void {}
 export function _animationEnd(isFirstBuild: boolean, update: (() => void)): void {}
 
-export function hookCheckHooksText(receiver: ArkCheckHooksComponent, text?: string){
+export function hookCheckHooksText(receiver: ArkCheckHooksComponent, text?: string): void {
     receiver.checkHookResult(`Check hook text: ${text}`)
 }
 
-export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksComponent, flag: boolean, count: number, text: string){
+export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksComponent, flag: boolean, count: number, text: string): void {
     receiver.checkHookResult(`Check hook method primitives: ${flag}, ${count}, ${text}`)
 }
 
 // Probably only one set of methods with Component or Peer are needed
-export function hookCheckHooksText(receiver: ArkCheckHooksPeer, text?: string){
+export function hookCheckHooksText(receiver: ArkCheckHooksPeer, text?: string): void {
     receiver.setCheckHookResultAttribute(`Check hook text: ${text}`)
 }
 
-export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksPeer, flag: boolean, count: number, text: string){
+export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksPeer, flag: boolean, count: number, text: string): void {
     receiver.setCheckHookResultAttribute(`Check hook method primitives: ${flag}, ${count}, ${text}`)
 }
 
@@ -95,15 +95,15 @@ export namespace initializers {
             export namespace check {
                 export namespace duplicates {
                     export namespace DuplicateClassParentNS {
-                        export const parentEnabled = false
-                        export const commonEnabled = false
-                        export const parentStatic = false
+                        export const parentEnabled: boolean = false
+                        export const commonEnabled: boolean = false
+                        export const parentStatic: boolean = false
                     }
                     export namespace DuplicateClassChildNS {
-                        export const childEnabled = false
-                        export const commonEnabled = false
-                        export const parentStatic = false
-                        export const childStatic = false
+                        export const childEnabled: boolean = false
+                        export const commonEnabled: boolean = false
+                        export const parentStatic: boolean = false
+                        export const childStatic: boolean = false
                     }
                 }
             }
@@ -133,12 +133,12 @@ export class ModifierStateManager {
 export function hookCheckDuplicateParentAttributeModifier(
     attr: ArkCheckDuplicateParentComponent,
     value: AttributeModifier<CheckDuplicateParentAttribute> | AttributeModifier<Root> | undefined
-) {}
+): void {}
 export function hookCheckDuplicateChildAttributeModifier(
     attr: ArkCheckDuplicateChildComponent,
     value: AttributeModifier<CheckDuplicateChildAttribute> | AttributeModifier<CheckDuplicateParentAttribute>
         | AttributeModifier<Root> | undefined
-) {}
+): void {}
 export function hookCheckEnumAttributeModifier(
     attr: ArkCheckEnumComponent,
     value: AttributeModifier<CheckEnumAttribute> | AttributeModifier<Root> | undefined

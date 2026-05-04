@@ -19,7 +19,7 @@ function mainBody() {
     console.log('All cases done.');
 }
 
-export function main() {
+export function main(): void {
     init();
     mainBody();
     pullEvents();

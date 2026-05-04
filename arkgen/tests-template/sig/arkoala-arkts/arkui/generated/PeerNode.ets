@@ -18,9 +18,9 @@ import { NativePeerNode } from "./NativePeerNode"
 import { pointer } from "@koalaui/interop"
 import { int32 } from "@koalaui/common"
 
-export const PeerNodeType = 11
-export const RootPeerType = 33
-export const LazyForEachType = 13
+export const PeerNodeType: number = 11
+export const RootPeerType: number = 33
+export const LazyForEachType: number = 13
 const INITIAL_ID = 1000
 
 export class PeerNode extends IncrementalNode {
@@ -30,8 +30,8 @@ export class PeerNode extends IncrementalNode {
     }
     peer: NativePeerNode
     constructor(peerPtr: pointer, id: int32, name: string, flags: int32, derivedNodeType?: int32) {
-        super(derivedNodeType ?? PeerNodeType)
+        super((derivedNodeType ?? PeerNodeType) as int)
         this.peer = NativePeerNode.create(this, peerPtr, flags)
     }
-    applyAttributes(attrs: Object) { }
+    applyAttributes(attrs: Object): void { }
 }

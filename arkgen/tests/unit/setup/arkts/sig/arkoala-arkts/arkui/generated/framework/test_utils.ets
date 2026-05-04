@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export function assertEquals<E, A>(name: String, expected: E, actual: A) {
+export function assertEquals<E, A>(name: String, expected: E, actual: A): void {
     if (expected != actual) {
         console.log(`TEST ${name} FAIL:\n  EXPECTED "${expected}"\n  ACTUAL   "${actual}"`)
     } else {
@@ -21,7 +21,7 @@ export function assertEquals<E, A>(name: String, expected: E, actual: A) {
     }
 }
 
-export function assertThrows(name: String, fn: () => void) {
+export function assertThrows(name: String, fn: () => void): void {
     let caught = false
     try {
         fn()

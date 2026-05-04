@@ -16,7 +16,7 @@ function mainBody() {
     }
 }
 
-export function main() {
+export function main(): void {
     init();
     mainBody();
     pullEvents();

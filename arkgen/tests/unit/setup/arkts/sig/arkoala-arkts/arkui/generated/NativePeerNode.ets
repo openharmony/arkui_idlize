@@ -27,22 +27,22 @@ export class NativePeerNode extends Finalizable {
         return new NativePeerNode(peer, peerPtr)
     }
 
-    addChild(node: pointer) {
+    addChild(node: pointer): void {
         ArkUINativeModule._AddChild(this.ptr, node)
     }
-    removeChild(node: pointer) {
+    removeChild(node: pointer): void {
         ArkUINativeModule._RemoveChild(this.ptr, node)
     }
-    insertChildBefore(node: pointer, sibling: pointer) {
+    insertChildBefore(node: pointer, sibling: pointer): void {
         ArkUINativeModule._InsertChildBefore(this.ptr, node, sibling)
     }
-    insertChildAfter(node: pointer, sibling: pointer) {
+    insertChildAfter(node: pointer, sibling: pointer): void {
         ArkUINativeModule._InsertChildAfter(this.ptr, node, sibling)
     }
-    insertChildAt(node: pointer, position: int32) {
+    insertChildAt(node: pointer, position: int32): void {
         ArkUINativeModule._InsertChildAt(this.ptr, node, position)
     }
-    dumpTree() {
+    dumpTree(): void {
         ArkUINativeModule._DumpTreeNode(this.ptr)
     }
 }

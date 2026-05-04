@@ -25,7 +25,7 @@ export class ArkThemeScopeManager {
         return ArkThemeScopeManager.instance!;
     }
 
-    public applyThemeScopeIdToNode(ptr: KPointer) {
+    public applyThemeScopeIdToNode(ptr: KPointer): void {
         // Stub !
     }
 }
