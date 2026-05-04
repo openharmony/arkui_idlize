@@ -16,4 +16,4 @@
 set -e
 shopt -s globstar # to make **/*.abc recursive
 
-npx smart-arkts compile --config arktsconfig.json --simultaneous
+npx smart-arkts build --target main
