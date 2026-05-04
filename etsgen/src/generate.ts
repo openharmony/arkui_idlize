@@ -1091,7 +1091,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (definition.super) {
                 const sup = this.serializeType(definition.super)
                 if (!idl.isReferenceType(sup)) {
-                    throw new Error("Expected reference type")
+                    throw new Error(`Expected reference type in class ${name} extends`)
                 }
                 sup.extendedAttributes ??= []
                 sup.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Extends })
@@ -1101,7 +1101,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 definition.implements.forEach(int => {
                     const type = this.serializeType(int.expr)
                     if (!idl.isReferenceType(type)) {
-                        throw new Error("Expected reference type")
+                        throw new Error(`Expected reference in class ${name} implements`)
                     }
                     inheritance.push(type)
                 })
@@ -1166,7 +1166,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 declaration.extends.forEach(int => {
                     const type = this.serializeType(int.expr)
                     if (!idl.isReferenceType(type)) {
-                        throw new Error("Expected reference type")
+                        throw new Error(`Expected reference type in interface ${name} extends`)
                     }
                     inheritance.push(type)
                 })
