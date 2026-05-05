@@ -5,7 +5,7 @@ export default defineConfig({
   targets: {
     main: {
       package: "@huks",
-      source: ".",
+      baseUrl: ".",
       include: [
         "src/app.ts",
         "src/panda/**/*.ts",

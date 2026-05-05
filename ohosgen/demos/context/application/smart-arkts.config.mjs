@@ -5,7 +5,7 @@ export default defineConfig({
   targets: {
     main: {
       package: "@application",
-      source: "./generated/arkts",
+      baseUrl: "./generated/arkts",
       include: [
         "**/*.ts",
       ],

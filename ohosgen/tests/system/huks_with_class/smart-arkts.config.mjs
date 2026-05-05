@@ -5,7 +5,7 @@ export default defineConfig({
   targets: {
     main: {
       package: "@huks-with-class",
-      source: ".",
+      baseUrl: ".",
       include: [
         "src/panda/**/*.ts",
         "generated/arkts/**/*.ts"

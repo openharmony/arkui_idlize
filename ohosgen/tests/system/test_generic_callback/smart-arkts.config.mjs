@@ -5,7 +5,7 @@ export default defineConfig({
   targets: {
     main: {
       package: "@test-generic-callback",
-      source: ".",
+      baseUrl: ".",
       include: [
         "src/panda/**/*.ts",
         "generated/arkts/**/*.ts"

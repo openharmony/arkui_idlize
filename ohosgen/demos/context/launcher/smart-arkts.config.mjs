@@ -5,7 +5,7 @@ export default defineConfig({
   targets: {
     main: {
       package: "@context",
-      source: ".",
+      baseUrl: ".",
       include: [
         "src/*.ts",
         "src/panda/**/*.ts",

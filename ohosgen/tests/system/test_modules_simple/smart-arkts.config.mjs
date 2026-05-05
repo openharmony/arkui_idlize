@@ -5,7 +5,7 @@ export default defineConfig({
   targets: {
     main: {
       package: "@test-modules-simple",
-      source: ".",
+      baseUrl: ".",
       include: [
         "src/panda/**/*.ts",
         "generated/arkts/**/*.ts"
