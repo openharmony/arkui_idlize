@@ -2,13 +2,13 @@
     "name": "unit-tests",
     "private": true,
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.70044-9102",
-        "@koalaui/common": "1.5.0-dev.70044-9102",
-        "@koalaui/interop": "1.5.0-dev.70044-9102",
+        "@koalaui/compat": "1.5.0-dev.70044-9140",
+        "@koalaui/common": "1.5.0-dev.70044-9140",
+        "@koalaui/interop": "1.5.0-dev.70044-9140",
         "commander": "^10.0.0"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.70044-9102",
+        "@koalaui/smart-arkts": "1.5.0-dev.70044-9140",
         "esbuild": "^0.27.3"
     },
     "scripts": {
