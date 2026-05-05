@@ -4,7 +4,7 @@ import { defineConfig } from '@koalaui/smart-arkts/frontend';
 export default defineConfig({
   targets: {
     main: {
-      package: "@idlizer/arkgen-tests-template-arkts",
+      package: "",
       baseUrl: "./src",
       include: [
         "src/**/*.ets",
