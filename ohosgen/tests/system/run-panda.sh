@@ -14,7 +14,7 @@ ARCH_TOOLS="linux_host_tools"
 ARK="$PANDA_SDK/$ARCH_TOOLS/bin/ark"
 ETSSTDLIB="$PANDA_SDK/ets/etsstdlib.abc"
 ENTRY_POINT="@${cur_test_case//_/-}.src.panda.main.ETSGLOBAL::main"
-APP_ABC="$TARGET_DIR/build/panda/app.abc"
+APP_ABC="$TARGET_DIR/build/main/common/common.abc"
 
 INTEROP_ABC="${NODE_MODULES_DIR}/@koalaui/interop/build/main/common/common.abc"
 COMPAT_ABC="${NODE_MODULES_DIR}/@koalaui/compat/build/main/common/common.abc"
