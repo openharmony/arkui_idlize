@@ -174,10 +174,10 @@ export class UnitTestsuite extends arktest.ArkTestsuite {
     }
 }
 
-export function isInstanceofChildI(value: Object) {
+export function isInstanceofChildI(value: Object): boolean {
     return value instanceof ChildI
 }
 
-export function isInstanceofParentI(value: Object) {
+export function isInstanceofParentI(value: Object): boolean {
     return value instanceof ParentI
 }
