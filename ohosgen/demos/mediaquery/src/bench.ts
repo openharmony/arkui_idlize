@@ -132,11 +132,11 @@ class FfiBenchmark extends BenchmarkBase {
 }
 
 namespace raw {
-    export const STRING_128 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    export const STRING_128: string = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
-    export const STRING_128_UNICODE = "０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ";
+    export const STRING_128_UNICODE: string = "０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ０１２３４５６７８９ａｂｃｄｅｆ";
 
-    export function testPutString(x: string) {}
+    export function testPutString(x: string): void {}
     export function testGetString(): string { return "x"; }
     export function testGetString128(): string { return STRING_128; }
     export function testGetString128Unicode(): string { return STRING_128_UNICODE; }
@@ -233,7 +233,7 @@ function benchmarkRegisterString(bench: FfiBenchmark) {
     // );
 }
 
-export function runAll() {
+export function runAll(): void {
     const bench = new FfiBenchmark();
     benchmarkRegisterString(bench);
 

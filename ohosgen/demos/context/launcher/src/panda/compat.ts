@@ -10,11 +10,11 @@ export { ApplicationContext } from "@application.ApplicationContext"
 
 export type OHBuffer = NativeBuffer
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents()
 }
 
-export function init() {
+export function init(): void {
     wrapSystemApiHandlerCallback()
     registerApplicationApiHandler()
     registerBundleManagerApiHandler()

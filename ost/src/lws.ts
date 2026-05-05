@@ -475,6 +475,8 @@ export interface TopLevelExpression {
   generics: GenericDescriptor[]
   /** The expression value */
   expression: LWExpression
+  /** Optional type annotation */
+  type?: LWType
 }
 /**
  * Union type representing any declaration AST node.

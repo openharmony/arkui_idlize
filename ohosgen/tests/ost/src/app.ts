@@ -387,7 +387,7 @@ function checkHandwrittenDeserializer() {
   assertEQ(gesture instanceof DerivedGesture2, true)
 }
 
-export function run() {
+export function run(): void {
 
     const suite = new UnitTestsuite("idlize ost tests")
     suite.addTest("checkConstants", checkConstants)

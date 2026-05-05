@@ -16,16 +16,18 @@
 import * as idl from "@idlizer/core/idl"
 import { Builders, T } from "@idlizer/ost"
 import { createProducer } from "../../engine/index.js"
-import { expectExpr, managedName } from "../common.js"
+import { expectExpr, expectType, managedName } from "../common.js"
 
 export const constProducer = createProducer(
   { is: idl.isConstant, role: 'managed' },
   (node, ctx) => {
     const declName = managedName(idl.getFQName(node))
+    const constType = expectType(ctx, node.type, 'managed')
     return {
       continuation: T.c(declName),
       declarations: [
         Builders.topLevel(declName)
+          .type(constType)
           .value(node.value
             ? node.value
             : expectExpr(ctx, node.type, 'initializer')).$()

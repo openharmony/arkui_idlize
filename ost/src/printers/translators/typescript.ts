@@ -610,7 +610,12 @@ export class TSPrinter {
         break
       }
       case lw.LWKind.TopLevelExpression: {
-        this.p.put('export', ' ', 'const', ' ', declaration.name, ' ', '=', ' ')
+        this.p.put('export', ' ', 'const', ' ', declaration.name)
+        if (declaration.type) {
+          this.p.put(':', ' ')
+          this.printType(declaration.type)
+        }
+        this.p.put(' ', '=', ' ')
         this.printExpression(declaration.expression)
         break
       }

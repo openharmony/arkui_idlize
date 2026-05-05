@@ -1,7 +1,7 @@
 import { pullEvents, init } from "./compat"
 import { run } from "../app"
 
-export function main() {
+export function main(): void {
     init()
     run()
     pullEvents()

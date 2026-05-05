@@ -122,11 +122,11 @@ export {
 export type OHBuffer = NativeBuffer
 export type OHAny = object
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents()
 }
 
-export function init() {
+export function init(): void {
     wrapSystemApiHandlerCallback()
     registerUnitApiHandler()
     new UNITNativeModule()

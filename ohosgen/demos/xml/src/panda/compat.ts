@@ -7,11 +7,11 @@ export { xml } from "../../generated/arkts"
 export type EventType = xml.EventType
 export type OHBuffer = ArrayBuffer
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents()
 }
 
-export function init() {
+export function init(): void {
     wrapSystemApiHandlerCallback()
     registerOhosXmlApiHandler()
     new OHOS_XMLNativeModule()
@@ -23,6 +23,6 @@ export function encodeText(text: string): OHBuffer {
     return buffer;
 }
 
-export function eventTypeStr(eventType: xml.EventType) {
+export function eventTypeStr(eventType: xml.EventType): string {
     return eventType.getName()
 }

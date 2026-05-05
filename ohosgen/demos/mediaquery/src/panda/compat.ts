@@ -12,11 +12,11 @@ export namespace performance {
 
 export type OHBuffer = NativeBuffer
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents()
 }
 
-export function init() {
+export function init(): void {
     wrapSystemApiHandlerCallback()
     registerOhosMediaqueryApiHandler()
     new OHOS_MEDIAQUERYNativeModule()
