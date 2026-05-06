@@ -114,7 +114,7 @@ cp("check:arkts:generate:cp") {
     deps = [ ":check:arkts:generate" ]
 }
 
-# Compile ArkTS code (smart-arkts compile)
+# Compile ArkTS code (smart-arkts build)
 npm_cmd("check:arkts:build") {
     project_path = rebase_path(".")
     run_tasks = [ "build:arkts" ]
