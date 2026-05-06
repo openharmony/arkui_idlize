@@ -9,6 +9,11 @@ export default defineConfig({
       include: [
         "**/*.ts",
       ],
+      exports: {
+        "@bundleManager.ApplicationInfo": "./generated/arkts/ApplicationInfo",
+        "@bundleManager.bundleManager.INTERNAL": "./generated/arkts/bundleManager.INTERNAL",
+        "@bundleManager.index": "./generated/arkts/index",
+      },
       dependencies: [
         { external: "@koalaui/compat" },
         { external: "@koalaui/common" },
