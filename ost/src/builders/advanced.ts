@@ -328,6 +328,7 @@ class CallBuilder<P> {
     private _receiver?: LWExpression
     private _args: LWExpression[] = []
     private _typeArgs: LWType[] = []
+    private _hints: Hint[] = []
 
     /**
      * Set the receiver expression (the object on which the method is called).
@@ -379,6 +380,11 @@ class CallBuilder<P> {
      */
     typeArgs(args: LWType[]) { this._typeArgs.push(...args); return this }
     /**
+     * Add question mark hint to the call. `f(arg)` becomes `f?.(arg)`
+     * @returns This builder for chaining
+     */
+    questionMark() { this._hints.push(Hs.questionMark()); return this }
+    /**
      * Finalize the builder and return the constructed call expression.
      *
      * @returns The built CallExpression
@@ -389,7 +395,7 @@ class CallBuilder<P> {
         const callee = this._receiver ? E.get(this._receiver, this._func!)
             : typeof this._func === 'object' ? this._func
             : E.v(this._func!)
-        return this._cont(E.call(callee, this._args, this._typeArgs))
+        return this._cont(E.call(callee, this._args, this._typeArgs, this._hints))
     }
 }
 

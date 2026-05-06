@@ -132,32 +132,21 @@ function createImpl(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrNa
   const name = attrName.replace(/Attribute$/, '')
   const peerType = expectType(ctx, attrNode, 'peer')
   const componentType = expectType(ctx, attrNode, 'component')
-  const rememberCall = E.call(
-    E.v('remember'),
-    [Builders.lambda().body().block().return().ctor(name + 'Component').$().$().$().$().$()],
-    [componentType]
-  )
-  const nodeAttachCall = E.call(
-    E.v('NodeAttach'),
-    [
-      Builders.lambda().body()
-        .call('create')
-          .receiver(E.v(name + 'Peer', [Hs.isType()]))
-          .arg('receiver').$().$().$(),
-      Builders.lambda().param('_').type(peerType).$().body().block()
-        .call('style').arg('receiver').$()
-        .call('content_').$().$().$().$()
-    ],
-    [peerType]
-  )
   return Builders.func(name + 'Impl')
     .param('style').type(Ts.optional(T.fn([{ name: 'attributes', type: T.c(attrName)}], Ts.prim.void))).$()
-    .param('content_').type(Ts.optional(T.fn([], Ts.prim.void))).$()
+    .param('content').type(Ts.optional(T.fn([], Ts.prim.void))).$()
     .returns(Ts.prim.void)
     .annotation('memo')
     .block()
-      .decl('receiver').value(rememberCall).$()
-      .call(nodeAttachCall).$().$().$()
+      .decl('receiver').value().call('remember').typeArgs([componentType])
+        .arg().lambda().body().block().return().ctor(name + 'Component').$().$().$().$().$().$().$().$().$()
+      .call('NodeAttach').typeArgs([peerType])
+        .arg().lambda().body().call('create')
+          .receiver(E.v(name + 'Peer', [Hs.isType()]))
+          .arg('receiver').$().$().$().$()
+        .arg().lambda().param('_').type(peerType).$().body().block()
+          .call('style').arg('receiver').questionMark().$()
+          .call('content').questionMark().$().$().$().$().$().$().$().$()
 }
 
 function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrName: string): ClassDeclaration {
