@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { E, Builders, managedName, Ts, createProducer, expectType, OhosSeed } from "@idlizer/libohos"
+import { E, Builders, managedName, Ts, createProducer, expectType, OhosSeed, Md } from "@idlizer/libohos"
 import { ArkUIRole } from "../index.js"
 
 export const optionsProducer = createProducer<idl.IDLCallable, ArkUIRole<idl.IDLCallable>>(
@@ -29,7 +29,11 @@ export const optionsProducer = createProducer<idl.IDLCallable, ArkUIRole<idl.IDL
     propMethod.parent = peerClass
     peerClass.parent = idl.getFileFor(callsig)
 
-    const params = idlParams.map(it => ({ name: it.name, type: expectType(ctx, it.type, 'managed') }))
+    const params = idlParams.map(it => ({
+      name: it.name,
+      type: expectType(ctx, it.type, 'managed'),
+      modifiers: it.isOptional ? [Md.optional()] : []
+    }))
     return {
       continuation: E.v(methodName),
       declarations: [
