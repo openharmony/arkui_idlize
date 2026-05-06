@@ -3,8 +3,8 @@ project('ArkUI', 'c', 'cpp',
     default_options: ['cpp_std=c++17', 'buildtype=release']
 )
 
-external_interop_build_dir = '../../node_modules/@koalaui/interop/build'
-external_interop_dir = '../../node_modules/@koalaui/interop/src/cpp'
+external_interop_build_dir = '../../../../../node_modules/@koalaui/interop/build'
+external_interop_dir = '../../../node_modules/@koalaui/interop/src/cpp'
 
 cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []
@@ -20,7 +20,6 @@ include_dirs = [
 sources = [
     './out/generated/native/arkui.cpp',
     './out/generated/native/arkuiApiImpl_temp.cpp',
-    './out/generated/native/arkuiImpl_temp.cpp',
     external_interop_dir / 'common-interop.cpp',
     external_interop_dir / 'callback-resource.cpp',
     external_interop_dir / 'interop-logging.cpp',
