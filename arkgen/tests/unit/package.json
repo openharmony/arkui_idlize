@@ -5,10 +5,6 @@
     "files": [],
     "license": "Apache-2.0",
     "keywords": [],
-    "arkts": {
-        "bin": "./generated/abc/all.abc",
-        "entryPoint": "arkui.framework.main.ETSGLOBAL::main"
-    },
     "dependencies": {
         "@koalaui/compat": "1.5.0-dev.70044-9140",
         "@koalaui/common": "1.5.0-dev.70044-9140",
@@ -24,9 +20,9 @@
         "UNIT": "#-------------------",
         "init:arkts": "./scripts/init-arkts.sh",
         "gen:arkts": "LANG=arkts npm run gen",
-        "build:arkts": "smart-arkts compile --config ./arktsconfig.json --simultaneous",
+        "build:arkts": "LIBARKTS_PATH=@idlizer/ui2abc/libarkts smart-arkts build --target main -- --simultaneous",
         "build:arkts:native": "cd ../../.. && npm run gn:gen && ninja -C out/dir arkgen/tests/unit:check:arkts:install:native",
-        "exec:arkts": "ACE_LIBRARY_PATH=./build-arkts LD_LIBRARY_PATH=./build-arkts smart-arkts run",
+        "exec:arkts": "ACE_LIBRARY_PATH=./build-arkts LD_LIBRARY_PATH=./build-arkts smart-arkts run --target main --executable main",
         "all:arkts": "cd ../../.. && npm run gn:gen && ninja -C out/dir arkgen/tests/unit:check:arkts",
         "KOTLIN": "#-------------------------",
         "init:kt": "./scripts/init-kotlin.sh",
