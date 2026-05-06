@@ -161,6 +161,10 @@ export function isHandwritten(decl: IDLEntry): boolean {
     return hasExtAttribute(decl, IDLExtendedAttributes.HandWrittenImplementation)
 }
 
+export function isNativeOnly(decl: IDLEntry): boolean {
+    return hasExtAttribute(decl, IDLExtendedAttributes.NativeOnly)
+}
+
 export function isStringEnum(decl: IDLEnum): boolean {
     return decl.elements.some(e => isPrimitiveType(e.type, 'String'))
 }
