@@ -638,35 +638,38 @@ export class TSPrinter {
           if (this.scope.at(-1) !== 'member') {
             this.p.put('function', ' ')
           }
-          const isCtor = std.names.members.ctor === declaration.name
-          if (isCtor) {
-            this.p.put('constructor')
-          } else {
-            this.p.put(declaration.name)
-          }
-          this.printGenerics(declaration.generics)
-          this.p.put('(')
-          declaration.parameters.forEach((param, i) => {
-            if (i > 0) {
-              this.p.put(',', ' ')
+          const isStaticCtor = std.names.members.staticCtor === declaration.name
+          if (!isStaticCtor) {
+            const isCtor = std.names.members.ctor === declaration.name
+            if (isCtor) {
+              this.p.put('constructor')
+            } else {
+              this.p.put(declaration.name)
             }
-            param.modifiers
-              ?.filter(mod => mod.name !== std.names.modifiers.optional)
-              .forEach(mod => this.p.put(mod.name, ' '))
-            this.p.put(param.name)
-            if (param.modifiers?.find(mod => mod.name === std.names.modifiers.optional))
-              this.p.put('?')
-            this.p.put(':', ' ')
-            this.printType(param.type)
-            if (param.expression) {
-              this.p.put(' ', '=', ' ')
-              this.printExpression(param.expression)
+            this.printGenerics(declaration.generics)
+            this.p.put('(')
+            declaration.parameters.forEach((param, i) => {
+              if (i > 0) {
+                this.p.put(',', ' ')
+              }
+              param.modifiers
+                ?.filter(mod => mod.name !== std.names.modifiers.optional)
+                .forEach(mod => this.p.put(mod.name, ' '))
+              this.p.put(param.name)
+              if (param.modifiers?.find(mod => mod.name === std.names.modifiers.optional))
+                this.p.put('?')
+              this.p.put(':', ' ')
+              this.printType(param.type)
+              if (param.expression) {
+                this.p.put(' ', '=', ' ')
+                this.printExpression(param.expression)
+              }
+            })
+            this.p.put(')')
+            if (!isCtor && !declaration.modifiers.find(it => it.name === std.names.modifiers.setter)) {
+              this.p.put(':', ' ')
+              this.printType(declaration.returnType)
             }
-          })
-          this.p.put(')')
-          if (!isCtor && !declaration.modifiers.find(it => it.name === std.names.modifiers.setter)) {
-            this.p.put(':', ' ')
-            this.printType(declaration.returnType)
           }
         }
         if (declaration.body) {
