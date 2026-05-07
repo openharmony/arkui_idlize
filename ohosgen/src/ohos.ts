@@ -101,7 +101,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, feature: 
     // managed-index
     if ([Language.TS, Language.ARKTS].includes(peerLibrary.language)) {
         writeFile(path.join(ohos.managedDir(), 'index.ts'),
-            makeOhosModule(peerLibrary, ohos.managedDir(), installed, feature)
+            makeOhosModule(peerLibrary, ohos.managedDir(), installed, feature, managedFiles)
         )
     }
 
@@ -112,7 +112,18 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, feature: 
     setDefaultConfiguration(origGenConfig)
 }
 
-function makeOhosModule(library: PeerLibrary, root:string, componentsFiles: string[], feature: string | undefined): string {
+function collectExportedNames(content: string[]): Set<string> {
+    const names = new Set<string>()
+    for (const line of content) {
+        const match = line.match(/^export\s+(?:interface|class|function|const|type|enum|namespace)\s+(\w+)/)
+        if (match) {
+            names.add(match[1])
+        }
+    }
+    return names
+}
+
+function makeOhosModule(library: PeerLibrary, root:string, componentsFiles: string[], feature: string | undefined, managedFiles: Map<string, OutputFile>): string {
     const defaultEntries = new Map<string, string>()
     library.files
         .filter(file => isInCurrentModule(file))
@@ -132,7 +143,7 @@ function makeOhosModule(library: PeerLibrary, root:string, componentsFiles: stri
             `export default ${entry}`
         )
     })
-    const exports = componentsFiles.map(file => {
+    const fileData = componentsFiles.map(file => {
         const relativePath = path.relative(root, file)
         const fileNameNoExt = relativePath.replaceAll(path.extname(file), "")
         const output = managedFiles.get(fileNameNoExt)
