@@ -1,7 +1,7 @@
 import { getLong, mediaquery } from '#compat'
 import { runAll } from './bench'
 
-export function run() {
+export function run(): void {
     console.log(`Mediaquery test app`)
     const listener = new mediaquery.MediaQueryListenerInternal()
     listener.onChange((result) => { console.log("MESSAGE FROM NATIVE: " + result.media) })

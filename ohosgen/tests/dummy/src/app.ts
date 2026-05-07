@@ -3,7 +3,7 @@ import { dtsDummy, idlDummy } from "#compat"
 // import { DTSDummyClass } from "#compat"
 // import { IDLDummyClass } from "#compat"
 
-export function run() {
+export function run(): void {
 
   console.log("Run dummy sample")
 

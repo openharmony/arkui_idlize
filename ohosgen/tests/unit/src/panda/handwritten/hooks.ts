@@ -17,10 +17,10 @@ import { HookClass, HookValue, HookInterface } from "#compat"
 import { ImportedHookValue } from "@external.lib"
 
 // HookInterface hooks
-export function customHookInterfaceMethod(receiver: HookInterface) {
+export function customHookInterfaceMethod(receiver: HookInterface): void {
 }
 
-export function customHookInterfaceMethodArg(receiver: HookInterface, value: HookValue) {
+export function customHookInterfaceMethodArg(receiver: HookInterface, value: HookValue): void {
     console.log(`[managed] [1] call customHookInterfaceMethodArg(receiver = ${receiver}, value count = ${value.count})`)
     arktest.assertEQ(701, value.count)
 }
@@ -32,7 +32,7 @@ export function hookHookInterfaceMethodReturn(receiver: HookInterface): HookValu
     return value
 }
 
-export function hookHookInterfaceImportedArg(receiver: HookInterface, value: ImportedHookValue) {
+export function hookHookInterfaceImportedArg(receiver: HookInterface, value: ImportedHookValue): void {
     console.log(`[managed] [3] call hookHookInterfaceImportedArg(receiver = ${receiver}, value count = ${value.count})`)
     arktest.assertEQ(703, value.count)
 }
@@ -46,11 +46,11 @@ export function customHookInterfaceMethodImportedReturn(receiver: HookInterface)
 
 // HookClass hooks
 
-export function customHookClassMethod(receiver: HookClass) {
+export function customHookClassMethod(receiver: HookClass): void {
     console.log(`[managed] [0] call hook_HookClass_methodArg(receiver = ${receiver}`)
 }
 
-export function customHookClassMethodArg(receiver: HookClass, value: HookValue) {
+export function customHookClassMethodArg(receiver: HookClass, value: HookValue): void {
     console.log(`[managed] [1] call hook_HookClass_methodArg(receiver = ${receiver}, value count = ${value.count})`)
     arktest.assertEQ(901, value.count)
 }
@@ -62,7 +62,7 @@ export function hookHookClassMethodReturn(receiver: HookClass): HookValue {
     return value
 }
 
-export function hookHookClassImportedArg(receiver: HookClass, value: ImportedHookValue) {
+export function hookHookClassImportedArg(receiver: HookClass, value: ImportedHookValue): void {
     console.log(`[managed] [3] call hook_HookClass_methodImportedArg(receiver = ${receiver}, value count = ${value.count})`)
     arktest.assertEQ(903, value.count)
 }

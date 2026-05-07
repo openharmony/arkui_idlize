@@ -2251,6 +2251,14 @@ class TopLevelBuilder {
      */
     constructor(private _name: string) {}
     private _expr?: LWExpression
+    private _type?: LWType
+    /**
+     * Set the type annotation.
+     *
+     * @param type - Type annotation for the constant
+     * @returns This builder for chaining
+     */
+    type(type: LWType): this { this._type = type; return this }
     /**
      * Set the expression value.
      * If called with an argument, sets the value directly and returns this builder.
@@ -2276,7 +2284,8 @@ class TopLevelBuilder {
             kind: LWKind.TopLevelExpression,
             name: this._name,
             generics: [],
-            expression: this._expr!
+            expression: this._expr!,
+            type: this._type
         }
     }
 }

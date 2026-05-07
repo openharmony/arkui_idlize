@@ -18,17 +18,17 @@ import { int32, float32, int8 } from "@koalaui/common"
 export class NativeLog {
     static Default: NativeLog = new NativeLog()
     private _isStarted: boolean = false
-    startNativeLog(group: int32) {
+    startNativeLog(group: int32): void {
         this._isStarted = true
         InteropNativeModule._StartGroupedLog(group)
     }
 
-    stopNativeLog(group: int32) {
+    stopNativeLog(group: int32): void {
         this._isStarted = false
         InteropNativeModule._StopGroupedLog(group)
     }
 
-    appendNativeLog(group: int32, message: string) {
+    appendNativeLog(group: int32, message: string): void {
         if (!this._isStarted) {
             this.startNativeLog(group)
         }
@@ -51,7 +51,7 @@ export class NativeLog {
         return result.toString()
     }
 
-    printNativeLog(group: int32) {
+    printNativeLog(group: int32): void {
         InteropNativeModule._PrintGroupedLog(group)
     }
 }

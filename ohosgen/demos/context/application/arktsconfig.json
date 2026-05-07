@@ -1,8 +1,0 @@
-{
-    "compilerOptions": {
-        "package": "@application",
-        "baseUrl": "./generated/arkts",
-        "outDir": "build/panda/out"
-    },
-    "include": ["generated/arkts/**/*.ts"]
-}

@@ -5,11 +5,11 @@ import { OHOS_SECURITY_HUKSNativeModule, registerOhosSecurityHuksApiHandler } fr
 export { huks } from "../../generated/arkts"
 export type OHBuffer = NativeBuffer
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents()
 }
 
-export function init() {
+export function init(): void {
     registerNativeModuleLibraryName("InteropNativeModule", "HUKS_NativeBridgeArk")
     registerNativeModuleLibraryName("OHOS_SECURITY_HUKSNativeModule", "HUKS_NativeBridgeArk")
     new OHOS_SECURITY_HUKSNativeModule()

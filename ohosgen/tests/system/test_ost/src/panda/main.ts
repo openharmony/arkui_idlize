@@ -41,7 +41,7 @@ function testCallbacks() {
     checkEvents()
 }
 
-export function testFqn() {
+export function testFqn(): void {
     console.log('==== FQN');
     iresize(
         { intWidth: 21, intHeight: 11 }
@@ -64,7 +64,7 @@ export function testFqn() {
     )
 }
 
-export function main() {
+export function main(): void {
     console.log('Starting demo: test_ost')
     init();
     testBuffers()

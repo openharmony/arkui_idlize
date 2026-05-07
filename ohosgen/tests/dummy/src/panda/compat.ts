@@ -8,11 +8,11 @@ export { dtsDummy, idlDummy } from "../../generated/arkts"
 
 export type OHBuffer = NativeBuffer
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents()
 }
 
-export function init() {
+export function init(): void {
     wrapSystemApiHandlerCallback()
     registerDummyApiHandler()
     new DUMMYNativeModule()

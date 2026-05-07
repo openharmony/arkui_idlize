@@ -14,7 +14,7 @@ function mainBody() {
     console.log('  buf.length =', buf.byteLength);
 }
 
-export function main() {
+export function main(): void {
     init();
     mainBody();
     pullEvents();

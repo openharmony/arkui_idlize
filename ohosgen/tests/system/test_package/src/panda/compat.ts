@@ -3,11 +3,11 @@ import { registerTestPackageApiHandler } from '../../generated/arkts';
 
 export { FooObject, BarObject } from '../../generated/arkts';
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents();
 }
 
-export function init() {
+export function init(): void {
     registerNativeModuleLibraryName('InteropNativeModule', 'TEST_PACKAGENativeModule');
     wrapSystemApiHandlerCallback()
     registerTestPackageApiHandler()

@@ -16,7 +16,7 @@ function mainBody() {
     foo.call(cb);
 }
 
-export function main() {
+export function main(): void {
     init();
     mainBody();
     pullEvents();

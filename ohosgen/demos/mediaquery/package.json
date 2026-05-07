@@ -1,17 +1,13 @@
 {
     "name": "demo-mediaquery",
     "private": true,
-    "arkts": {
-        "bin": "build/panda/app.abc",
-        "entryPoint": "@mediaquery.src.panda.main.ETSGLOBAL::main"
-    },
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.68195-8888",
-        "@koalaui/common": "1.5.0-dev.68195-8888",
-        "@koalaui/interop": "1.5.0-dev.68195-8888"
+        "@koalaui/compat": "1.5.0-dev.70044-9140",
+        "@koalaui/common": "1.5.0-dev.70044-9140",
+        "@koalaui/interop": "1.5.0-dev.70044-9140"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.68195-8888",
+        "@koalaui/smart-arkts": "1.5.0-dev.70044-9140",
         "esbuild": "^0.27.3"
     },
     "scripts": {
@@ -24,7 +20,7 @@
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
         "compile:ts": "esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/*",
-        "compile:arkts": "smart-arkts compile --config arktsconfig.json",
+        "compile:arkts": "smart-arkts build --target main",
         "compile:cj": "",
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",

@@ -1,12 +1,11 @@
 {
     "name": "@idlizer/ohosgen-demos-context-launcher",
     "private": true,
-    "arkts": {},
     "dependencies": {
         "@idlizer/ohosgen-demos-context-bundleManager": "file:../bundleManager",
         "@idlizer/ohosgen-demos-context-application": "file:../application",
-        "@koalaui/compat": "1.5.0-dev.68195-8888",
-        "@koalaui/common": "1.5.0-dev.68195-8888",
-        "@koalaui/interop": "1.5.0-dev.68195-8888"
+        "@koalaui/compat": "1.5.0-dev.70044-9140",
+        "@koalaui/common": "1.5.0-dev.70044-9140",
+        "@koalaui/interop": "1.5.0-dev.70044-9140"
     }
 }

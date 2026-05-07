@@ -903,7 +903,7 @@ function checkSequences() {
   assertEQ(setAsArray[1], 12)
 }
 
-export function run() {
+export function run(): void {
   console.log("Run common unit tests")
 
   const suite = new UnitTestsuite("idlize ut")

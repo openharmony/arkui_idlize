@@ -22,7 +22,7 @@ import { unsafeCast } from "@koalaui/common"
 export class ComponentBase {
     protected peer?: PeerNode
     protected isFirstBuild: boolean = true
-    setPeer(peer: PeerNode) {
+    setPeer(peer: PeerNode): void {
         this.peer = peer
     }
     protected checkPriority(name: string): boolean {

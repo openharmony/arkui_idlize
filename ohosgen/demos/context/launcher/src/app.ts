@@ -1,6 +1,6 @@
 import { ApplicationContext } from "#compat"
 
-export function run() {
+export function run(): void {
     console.log(`Context test app`)
     const appCtx = new ApplicationContext()
     const currentAppCloneIndex = appCtx.getCurrentAppCloneIndex()

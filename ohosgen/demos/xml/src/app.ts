@@ -1,6 +1,6 @@
 import { xml, EventType, eventTypeStr, encodeText } from "#compat"
 
-export function run() {
+export function run(): void {
     xml.returnPromise().then((value: number) => console.log('FROM PROMISE: ' + value))
     const point = xml.getPoint()
     console.log(`GOT point (${point.x},${point.y})`)

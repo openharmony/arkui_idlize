@@ -107,7 +107,8 @@ export class IdentityTransformer {
       kind: lw.LWKind.TopLevelExpression,
       name: decl.name,
       generics: decl.generics.slice(),
-      expression: this.goExpression(decl.expression)
+      expression: this.goExpression(decl.expression),
+      type: decl.type ? this.goType(decl.type) : undefined
     }
   }
   goDeclaration(decl: lw.LWDeclaration): lw.LWDeclaration {

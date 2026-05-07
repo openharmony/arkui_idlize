@@ -22,7 +22,7 @@ export { resize as iresize, fp } from '../../generated/arkts/fqnDeps'
 export { Buffers } from '../../generated/arkts/buffers';
 export { Callbacks } from '../../generated/arkts/callbacks';
 
-export function init() {
+export function init(): void {
     registerNativeModuleLibraryName('InteropNativeModule', 'TEST_OSTNativeModule')
     wrapSystemApiHandlerCallback()
     registerTestOstApiHandler()

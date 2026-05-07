@@ -110,11 +110,11 @@ export class UnitTestsuite extends arktest.ArkTestsuite {
     }
 }
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents()
 }
 
-export function init() {
+export function init(): void {
     wrapSystemApiHandlerCallback()
     registerUnitOstApiHandler()
 }

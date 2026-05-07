@@ -122,11 +122,11 @@ export {
 export type OHBuffer = NativeBuffer
 export type OHAny = object
 
-export function pullEvents() {
+export function pullEvents(): void {
     checkEvents()
 }
 
-export function init() {
+export function init(): void {
     wrapSystemApiHandlerCallback()
     registerUnitApiHandler()
     new UNITNativeModule()
@@ -174,10 +174,10 @@ export class UnitTestsuite extends arktest.ArkTestsuite {
     }
 }
 
-export function isInstanceofChildI(value: Object) {
+export function isInstanceofChildI(value: Object): boolean {
     return value instanceof ChildI
 }
 
-export function isInstanceofParentI(value: Object) {
+export function isInstanceofParentI(value: Object): boolean {
     return value instanceof ParentI
 }
