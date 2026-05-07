@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-import { snakeCaseToCamelCase } from "@idlizer/core";
+import { snakeCaseToCamelCase, moduleName } from "@idlizer/core";
 import { Builders, E, Hs, lw, std } from "@idlizer/ost"
-import { moduleName } from "../engine/utils.js";
 import { managedName } from "../producers/common.js";
 import { callbackKindDeclaration } from "./postprocess.js";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";

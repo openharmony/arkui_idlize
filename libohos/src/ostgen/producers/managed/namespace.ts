@@ -13,24 +13,19 @@
  * limitations under the License.
  */
 
-package ost.namespaces;
+import * as idl from "@idlizer/core/idl"
+import { createProducer } from "../../engine/index.js"
+import { managedName } from "../common.js"
 
-// Checks that names are generated correctly, such as `ost_namespaces_outer_inner_getValueImpl`
-namespace outer {
-  interface OuterData {
-    attribute number value;
-  };
-  namespace inner {
-    number getValue(OuterData data);
-  };
-};
-
-[DefaultExport]
-namespace defaultOuter {
-  interface DefaultOuterData {
-    attribute boolean flag;
-  };
-  namespace inner {
-    boolean getValue(DefaultOuterData data);
-  };
-};
+export const namespaceProducer = createProducer(
+    { is: idl.isNamespace, role: 'managed' },
+    (node, ctx) => {
+        if (idl.isNamespace(node) && idl.hasExtAttribute(node, idl.IDLExtendedAttributes.DefaultExport)) {
+            const file = idl.getFileFor(node)
+            if (file) {
+                ctx.updateEffect(e => e.defaultNamespaces.set(managedName(idl.getFQName(file)), node.name))
+            }
+        }
+        return { skip: true }
+    }
+)

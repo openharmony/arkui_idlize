@@ -14,9 +14,9 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration } from "@idlizer/core"
+import { generatorConfiguration, moduleName } from "@idlizer/core"
 import { LWExpression, LWType, Ts, lw } from "@idlizer/ost"
-import { MakeSelector, moduleName, OhosProducerContext, OhosSeed, OhosRole, OhosSeedData } from "../engine/index.js"
+import { MakeSelector, OhosProducerContext, OhosSeed, OhosRole, OhosSeedData } from "../engine/index.js"
 import { producers } from "./index.js"
 
 export const MANAGED_PREFIX = 'managed'
@@ -60,7 +60,8 @@ export function createOhosEffect() {
         nativeModuleName: managedName('engine.' + moduleName('NativeModule')), ///substitute name @ type aliasing time?
         apiFunctionName: 'Get' + generatorConfiguration().TypePrefix + moduleName('_API'),
         modifiers: new Map<string, string[]>(),
-        callbacks: []
+        callbacks: [],
+        defaultNamespaces: new Map<string, string>()
     }
 }
 

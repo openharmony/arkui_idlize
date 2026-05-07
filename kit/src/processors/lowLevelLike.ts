@@ -14,7 +14,7 @@
  */
 
 import { D, IdentityTransformer, lw, std, T, Ts, utils } from "@idlizer/ost";
-import { camelCaseToUpperSnakeCase, generatorConfiguration } from "@idlizer/core";
+import { camelCaseToUpperSnakeCase, generatorConfiguration, moduleName } from "@idlizer/core";
 import { mergeEnums, mergeStructs } from "./utils.js";
 
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
@@ -40,7 +40,7 @@ function makeForwardDeclarations(decls: lw.LWDeclaration[]): lw.LWDeclaration[] 
 
 class TypeAliasing extends IdentityTransformer {
     private readonly ShortPrefix = generatorConfiguration().TypePrefix
-    private readonly LongPrefix = this.ShortPrefix + generatorConfiguration().moduleName.toUpperCase() + '_'
+    private readonly LongPrefix = this.ShortPrefix + moduleName('_')
     private conflicts: Set<string> = new Set()
 
     private goTypeName(name: string): string {

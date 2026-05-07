@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration } from "@idlizer/core"
+import { cppKeywords, generatorConfiguration } from "@idlizer/core"
 import { readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
 
@@ -39,10 +39,6 @@ export function mapFileName(name: string): string {
       .replace(/^engine/, generatorConfiguration().moduleName + '.INTERNAL')
 }
 
-export function moduleName(suffix?: string): string {
-  return generatorConfiguration().moduleName.toUpperCase() + (suffix ?? '')
-}
-
 export function fqName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, prefix?: string, postfix?: string): string {
   const fqn = idl.isConstructor(node)
     ? idl.getFQName(node.parent as idl.IDLInterface) + '_construct'
@@ -50,6 +46,10 @@ export function fqName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstruct
       ? idl.getFQName(node.parent) + (node.name.startsWith('_') ? '' : '_') + node.name
       : idl.getFQName(node)
   return (prefix ?? '') + fqn.split('.').join('_') + (postfix ?? '')
+}
+
+export function cppParamName(name: string): string {
+  return cppKeywords.has(name) ? `${name}_` : name
 }
 
 export function mapPush<K,V>(map: Map<K,V[]>, key: K, value: V) {
