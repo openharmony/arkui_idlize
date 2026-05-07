@@ -14,25 +14,12 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { isDefined, isRoot, capitalize } from "@idlizer/core"
+import { isDefined, capitalize } from "@idlizer/core"
 import { T, Ts, E, S, Hs, LWType, Builders, FunctionDeclaration,
   ClassDeclaration, managedName, createProducer, expectExpr, expectType,
   OhosSeed, OhosProducerContext
 } from "@idlizer/libohos"
-import { ArkUIRole } from "../index.js"
-
-function isComponentAttribute(node: idl.IDLInterface) {
-  return isRoot(node.name) ||
-    idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Component)
-}
-
-function isCommonMethodProperty(prop: idl.IDLProperty) {
-  return idl.hasExtAttribute(prop, idl.IDLExtendedAttributes.CommonMethod)
-}
-
-function isAttributeModifier(prop: idl.IDLProperty) {
-  return prop.name === 'attributeModifier'
-}
+import { ArkUIRole, isAttributeModifier, isComponentAttribute } from "../index.js"
 
 function superClassForRole(node: idl.IDLInterface, role: 'peer' | 'component', ctx: OhosProducerContext): LWType | undefined {
   return node.name === 'CommonMethod'
@@ -57,10 +44,7 @@ export const attributeProducer = createProducer(
         createImpl(ctx, node, attrName),
         createModifier(ctx, node, attrName)
       ].filter(isDefined),
-      trigger: node.properties
-        .filter(it => !isAttributeModifier(it))
-        .map(it => new OhosSeed(it, 'peer'))
-        ///add attrModifier()
+      trigger: node.properties.map(it => new OhosSeed(it, 'peer'))
     }
   }
 )
@@ -75,7 +59,7 @@ export const peerProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLIn
         idl.createParameter('peerPtr', idl.createPrimitiveType('i32')),
         idl.createParameter('id', idl.createPrimitiveType('i32')),
       ], undefined)
-    ctor.parent = node ///parent should in fact be peer, not attribute
+    ctor.parent = node  // parent should in fact be peer, not attribute
     const nativeModuleCall = expectExpr(ctx, ctor, 'native-module')
     return {
       continuation: T.c(peerName),
@@ -274,11 +258,11 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
           .return().value('this').$()
           .$().$()))
 
-    /// attributeModifier stub methods
-    // .methods(attrModProps.map(prop =>
-    //   Builders.func(prop.name)
-    //     .param('value').type(expectType(ctx, prop.type, 'managed')).$()
-    //     .returns(Ts.prim.self)
-    //     .block().unimplemented().$().$()))
+    // attributeModifier stub methods
+    .methods(attrModProps.map(prop =>
+      Builders.func(prop.name)
+        .param('value').type(expectType(ctx, prop.type, 'managed')).$()
+        .returns(Ts.prim.self)
+        .block().unimplemented().$().$()))
     .$()
 }

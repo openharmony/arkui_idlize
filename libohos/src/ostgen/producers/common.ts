@@ -23,6 +23,7 @@ export const MANAGED_PREFIX = 'managed'
 export const C_API_PREFIX = 'capi'
 export const BRIDGE_PREFIX = 'bridge'
 export const IMPL_PREFIX = 'impl'
+const HANDWRITTEN_PREFIX = '#handwritten'
 
 export function managedName(name:string) {
     return MANAGED_PREFIX + '.' + name
@@ -35,6 +36,9 @@ export function bridgeName(name:string) {
 }
 export function implName(name:string) {
     return IMPL_PREFIX + '.' + name
+}
+export function handwrittenName(name: string) {
+    return managedName(HANDWRITTEN_PREFIX + '.' + name)
 }
 
 function is(prefix:string, name:string) {

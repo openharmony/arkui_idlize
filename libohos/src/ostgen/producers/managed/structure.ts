@@ -29,7 +29,7 @@ export const structureProducer = createProducer<idl.IDLInterface, OhosRole<idl.I
   (node, ctx, role, data) => {
     const declName = managedName(idl.getFQName(node))
     return node.subkind === idl.IDLInterfaceSubkind.Tuple ? tuple(node, ctx)
-      : skip(node) ? { continuation: T.c(declName), declarations: [] }
+      : skip(node) ? { continuation: type(ctx, declName, data?.typeArgs), declarations: [] }
       : isMonomorphized(node) ? unmonomorphize(node, ctx)
       : isGeneric(node) ? dataInterface(node, declName, ctx, data?.typeArgs)
       : isStaticMaterialized(node, ctx.library) ? staticMaterializedInterface(node, declName, ctx)
@@ -54,9 +54,13 @@ function isMonomorphized(node: idl.IDLInterface): boolean {
 function unmonomorphize(node: idl.IDLInterface, ctx: OhosProducerContext): ProducerResult {
   const attr = node.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.OriginalGenericName)!
   return {
-    continuation: T.c(managedName(attr.value!), ...attr.typesValue?.map(ty => expectType(ctx, ty, 'managed')) ?? []),
+    continuation: type(ctx, managedName(attr.value!), attr.typesValue),
     declarations: []
   }
+}
+
+function type(ctx: OhosProducerContext, name: string, typeArgs?: idl.IDLType[]) {
+  return T.c(name, ...typeArgs?.map(ty => expectType(ctx, ty, 'managed')) ?? [])
 }
 
 function tuple(node: idl.IDLInterface, ctx: OhosProducerContext): ProducerResult {
@@ -78,7 +82,7 @@ function dataInterface(node: idl.IDLInterface, name: string, ctx: OhosProducerCo
   const superType = getSuperType(node, ctx.library)
   if (typeArgs) {
     return {
-      continuation: T.c(name, ...typeArgs.map(ty => expectType(ctx, ty, 'managed'))),
+      continuation: type(ctx, name, typeArgs),
       declarations: []
     }
   }
