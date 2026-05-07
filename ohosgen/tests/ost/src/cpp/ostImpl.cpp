@@ -489,6 +489,10 @@ OH_Number ost_namespaces_outer_inner_getValueImpl(const OH_UNIT_OST_OuterData* d
     return data->value;
 }
 
+OH_Boolean ost_namespaces_defaultOuter_inner_getValueImpl(const OH_UNIT_OST_DefaultOuterData* data) {
+    return data->flag;
+}
+
 // Optional
 
 OH_Int32 ost_optionals_sumOptionalAttributesImpl(const OH_UNIT_OST_TestOptional* arg)

@@ -62,7 +62,6 @@ const OSTFeature: Feature = {
         .filter(e =>
             !isInExternalModule(e) &&
             !idl.isImport(e) &&
-            !idl.isNamespace(e) &&
             !idl.isCallback(e))
         .map(e => new OhosSeed(e, 'managed')),
     importHook: name => {
@@ -173,7 +172,7 @@ function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Langua
     packages: Set<string>, onUnknownImport?: moduleLike.OnUnknownImport
 ): Map<string, OutputFile> {
     decls = libohosModuleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
-    const files = moduleLike.formFiles(packages, decls, {knownReference: new Map(), knownImports: new Map(), defaultImports, onUnknownImport})
+    const files = moduleLike.formFiles(packages, decls, {knownReference: new Map(), defaultNamespaces: effect.defaultNamespaces, knownImports: new Map(), defaultImports, onUnknownImport})
     const result: Map<string, OutputFile> = new Map()
     const printer = language === Language.ARKTS ? processNPrintArkTS : processNPrintTS
     files.forEach((content, fileName) => {

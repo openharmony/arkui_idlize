@@ -70,7 +70,8 @@ export interface OhosEffect {
     nativeModuleName: string,
     apiFunctionName: string,
     modifiers: Map<string, string[]>,
-    callbacks: string[]
+    callbacks: string[],
+    defaultNamespaces: Map<string, string>,
 }
 
 export type OhosProducerContext = ProducerContext<PeerLibrary, OhosEffect>

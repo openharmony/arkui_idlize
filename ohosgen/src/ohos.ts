@@ -101,7 +101,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, feature: 
     // managed-index
     if ([Language.TS, Language.ARKTS].includes(peerLibrary.language)) {
         writeFile(path.join(ohos.managedDir(), 'index.ts'),
-            makeOhosModule(peerLibrary, ohos.managedDir(), installed, managedFiles)
+            makeOhosModule(peerLibrary, ohos.managedDir(), installed, feature)
         )
     }
 
@@ -112,35 +112,27 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, feature: 
     setDefaultConfiguration(origGenConfig)
 }
 
-function collectExportedNames(content: string[]): Set<string> {
-    const names = new Set<string>()
-    for (const line of content) {
-        const match = line.match(/^export\s+(?:interface|class|function|const|type|enum|namespace)\s+(\w+)/)
-        if (match) {
-            names.add(match[1])
-        }
-    }
-    return names
-}
-
-function makeOhosModule(library: PeerLibrary, root:string, componentsFiles: string[], managedFiles: Map<string, OutputFile>): string {
-    const filesWithDefault = library.files.filter(file => {
-        if (!isInCurrentModule(file))
-            return
-        return file.entries.some(entry => hasExtAttribute(entry, IDLExtendedAttributes.DefaultExport) && isNamespace(entry))
-    })
+function makeOhosModule(library: PeerLibrary, root:string, componentsFiles: string[], feature: string | undefined): string {
+    const defaultEntries = new Map<string, string>()
+    library.files
+        .filter(file => isInCurrentModule(file))
+        .forEach(file => {
+            file.entries.filter(entry => hasExtAttribute(entry, IDLExtendedAttributes.DefaultExport) && isNamespace(entry))
+                .forEach(entry => {
+                    const filePath = feature
+                        ? file.packageClause.join('.')
+                        : library.layout.resolve({ node: entry, role: LayoutNodeRole.INTERFACE })
+                    defaultEntries.set(entry.name, filePath)
+                })
+        })
     let defaultExports: string[] = []
-    if (filesWithDefault.length > 0) {
-        const entry = filesWithDefault[0].entries.find(entry => hasExtAttribute(entry, IDLExtendedAttributes.DefaultExport))!
-        const filePath = library.layout.resolve({ node: entry, role: LayoutNodeRole.INTERFACE })
+    defaultEntries.forEach((file, entry) => {
         defaultExports.push(
-            `import { default as ${entry.name} } from "./${filePath}"`,
-            `export default ${entry.name}`
+            `import { default as ${entry} } from "./${file}"`,
+            `export default ${entry}`
         )
-    }
-
-    // Collect exported names per file and detect collisions
-    const fileData = componentsFiles.map(file => {
+    })
+    const exports = componentsFiles.map(file => {
         const relativePath = path.relative(root, file)
         const fileNameNoExt = relativePath.replaceAll(path.extname(file), "")
         const output = managedFiles.get(fileNameNoExt)

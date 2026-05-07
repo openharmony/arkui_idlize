@@ -591,6 +591,10 @@ export class TSPrinter {
         break
       }
       case lw.LWKind.NamespaceDeclaration: {
+        if (utils.hasHint(declaration, std.names.hints.asDefault)) {
+          this.p.put('export', ' ', 'default', ' ', declaration.name)
+          this.p.newline()
+        }
         this.p.put('export', ' ', 'namespace', ' ', declaration.name, ' ', '{')
         this.p.inc().newline()
         declaration.members.forEach((member, i) => {

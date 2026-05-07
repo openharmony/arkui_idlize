@@ -405,10 +405,11 @@ export const createDeclarationBuilder = ({ generics = [], modifiers = [] }: Decl
    * @param members - Array of declarations inside the namespace
    * @returns NamespaceDeclaration node
    */
-  makeNamespace: (name: string, members: lw.LWDeclaration[]): lw.NamespaceDeclaration => ({
+  makeNamespace: (name: string, members: lw.LWDeclaration[], hints: lw.Hint[]): lw.NamespaceDeclaration => ({
     kind: lw.LWKind.NamespaceDeclaration,
     name,
     members,
+    hints,
   }),
   /**
    * Create a type alias declaration.

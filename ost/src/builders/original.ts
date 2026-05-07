@@ -727,10 +727,11 @@ export const DD = ({ generics = [], modifiers = [] }: DDOptions) => ({
    * const mathNamespace = DD({}).ns('MathUtils', [addFunction]);
    * ```
    */
-  ns: (name: string, members: lw.LWDeclaration[]): lw.NamespaceDeclaration => ({
+  ns: (name: string, members: lw.LWDeclaration[], hints: lw.Hint[] = []): lw.NamespaceDeclaration => ({
     kind: lw.LWKind.NamespaceDeclaration,
     name,
     members,
+    hints,
   }),
   /**
    * Create a type alias declaration with configured defaults.
@@ -858,7 +859,7 @@ export const utils = {
    * const hasPtrVal = utils.hasHint(expr, 'ptrVal'); // returns the hint object
    * ```
    */
-  hasHint(node: lw.LWExpression, hint: string) {
+  hasHint(node: lw.LWExpression | lw.NamespaceDeclaration, hint: string) {
     return node.hints.find(x => x.name === hint)
   },
   /**

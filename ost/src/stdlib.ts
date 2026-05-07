@@ -28,6 +28,7 @@ const knownHints = {
     excl: 'excl',
     macroCall: 'macroCall',
     questionMark: 'questionMark',
+    asDefault: 'default'
 }
 
 const knownModifiers = {
@@ -124,7 +125,8 @@ export const Hs = {
     promise: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.promise }),
     excl: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.excl }),
     macroCall: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.macroCall }),
-    questionMark: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.questionMark })
+    questionMark: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.questionMark }),
+    asDefault: (): Hint => ({ kind: DecoratorKind.Hint, name: knownHints.asDefault }),
 }
 
 export const Md = {

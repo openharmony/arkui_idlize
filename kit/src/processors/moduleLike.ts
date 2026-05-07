@@ -14,7 +14,7 @@
  */
 
 import { ImportsCollector } from "@idlizer/core";
-import { D, IdentityTransformer, lw, std, T, utils } from "@idlizer/ost";
+import { D, Hs, IdentityTransformer, lw, LWKind, std, T, utils } from "@idlizer/ost";
 import { mapFileName, mergeStructs } from "./utils.js";
 
 export function postprocess(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
@@ -210,7 +210,7 @@ class RefSearcher extends IdentityTransformer {
     }
 }
 
-function putToNs(declarations:lw.LWDeclaration[]): lw.LWDeclaration[] {
+function putToNs(declarations:lw.LWDeclaration[], defaultNamespace?: string): lw.LWDeclaration[] {
     const index = new Map<string, lw.LWDeclaration[]>()
     const result: lw.LWDeclaration[] = []
     declarations.forEach(decl => {
@@ -229,13 +229,15 @@ function putToNs(declarations:lw.LWDeclaration[]): lw.LWDeclaration[] {
     })
 
     index.forEach((decls, name) => {
-        result.push(D.ns(name, putToNs(decls)))
+        const nsHints = name == defaultNamespace ? [Hs.asDefault()] : []
+        result.push(D.ns(name, putToNs(decls), nsHints))
     })
     return result
 }
 
 interface FormFilesOptions {
     knownReference:Map<string, string>
+    defaultNamespaces: Map<string, string>
     knownImports: Map<string, string>
     defaultImports?: InitImports
     onUnknownImport?: OnUnknownImport
@@ -280,7 +282,8 @@ export function formFiles(knownPackages: Set<string>, declarations: lw.LWDeclara
     const nsFiles = new Map<string, ResultFile>()
     files.forEach((decls, fileName) => {
         const imports = options?.defaultImports?.() ?? new ImportsCollector()
-        const nsDecls = new RefSearcher(putToNs(decls), fileName, refIndex, imports, options?.knownImports, options?.onUnknownImport).go()
+        const defaultNamespace = options?.defaultNamespaces.get(fileName)
+        const nsDecls = new RefSearcher(putToNs(decls, defaultNamespace), fileName, refIndex, imports, options?.knownImports, options?.onUnknownImport).go()
         nsFiles.set(fileName, {
             moduleLikeImports: imports,
             body: nsDecls

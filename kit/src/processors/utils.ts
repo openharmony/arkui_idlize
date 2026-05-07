@@ -40,10 +40,6 @@ export function mapFileName(name: string): string {
       .replace(/^engine/, generatorConfiguration().moduleName + '.INTERNAL')
 }
 
-export function moduleName(suffix?: string): string {
-  return generatorConfiguration().moduleName.toUpperCase() + (suffix ?? '')
-}
-
 export function fqName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, prefix?: string, postfix?: string): string {
   const fqn = idl.isConstructor(node)
     ? idl.getFQName(node.parent as idl.IDLInterface) + '_construct'

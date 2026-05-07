@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { Builders, D, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
 import { bridgeName, cApiName, expectExpr, expectType, isDirectInteropType } from "../common.js"
-import { createProducer, fqName, OhosProducerContext } from "../../engine/index.js"
+import { cppParamName, createProducer, fqName, OhosProducerContext } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js"
 
 export const nativeModuleMaterializedProducer = createProducer(
@@ -123,7 +123,7 @@ function makeBridge(name: string, method: idl.IDLMethod, ctx: OhosProducerContex
   ]
   .map(it => {
     const conv = argConvertor(ctx, it.type, it.isOptional)
-    const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
+    const [stmts, expr] = conv.read(cppParamName(it.name), E.v('deserializer'), true)
     return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
   })
 

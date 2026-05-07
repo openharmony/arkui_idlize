@@ -29,8 +29,10 @@ import { typeParameterProducer } from "./typeParameter.js";
 import { typecheckProducer } from "./typecheck.js";
 import { initializerProducer } from "./initializer.js";
 import { constProducer } from "./const.js";
+import { namespaceProducer } from "./namespace.js";
 
 export const producers = {
+    namespaceProducer,
     constProducer,
     enumProducer,
     functionProducer,
