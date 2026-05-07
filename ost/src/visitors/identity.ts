@@ -71,7 +71,8 @@ export class IdentityTransformer {
     return {
       kind: decl.kind,
       name: decl.name,
-      members: decl.members.map(m => this.goDeclaration(m))
+      members: decl.members.map(m => this.goDeclaration(m)),
+      hints: decl.hints,
     }
   }
   goTypedefDeclaration(decl: lw.TypedefDeclaration): lw.TypedefDeclaration {

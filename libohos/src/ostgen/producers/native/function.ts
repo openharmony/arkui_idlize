@@ -16,10 +16,11 @@
 import * as idl from "@idlizer/core/idl";
 import { Builders, FunctionDeclaration, LWExpression, LWType, Md, T, Ts } from "@idlizer/ost"
 import { cApiName, implName } from "../common.js";
-import { createProducer, fqName, mapPush, moduleName } from "../../engine/index.js"
+import { cppParamName, createProducer, fqName, mapPush } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js";
 import { expectType } from "../common.js"
 import { OhosProducerContext } from "../../engine/index.js"
+import { moduleName } from "@idlizer/core";
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'capi' },
@@ -92,7 +93,7 @@ function makeParameters(
     const rawType = expectType(ctx, param.type, 'capi')
     const maybeOptType = param.isOptional ? Ts.optional(rawType) : rawType
     const maybePtrType = argConvertor(ctx, param.type, param.isOptional).isPointer() ? Ts.const(Ts.ptr(maybeOptType)) : maybeOptType
-    return { name: param.name, type: maybePtrType }
+    return { name: cppParamName(param.name), type: maybePtrType }
   })
   if (!idl.isConstructor(method) && !method.isFree && !method.isStatic)
     params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })

@@ -375,6 +375,9 @@ export interface NamespaceDeclaration {
   name: string
   /** Declarations contained within the namespace */
   members: LWDeclaration[]
+
+  /** Hints providing metadata about the namespace */
+  hints: Hint[]
 }
 /**
  * Type alias declaration AST node.

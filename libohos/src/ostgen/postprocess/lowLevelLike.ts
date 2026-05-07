@@ -14,7 +14,7 @@
  */
 
 import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from "@idlizer/ost"
-import { generatorConfiguration, zipStrip } from "@idlizer/core"
+import { generatorConfiguration, zipStrip, moduleName } from "@idlizer/core"
 import { lowLevelLike } from "@idlizer/kit"
 import { callbackKindDeclaration, monoName } from "./postprocess.js"
 import { bridgeName, C_API_PREFIX, cApiName, implName } from "../producers/common.js"
@@ -354,7 +354,7 @@ function makeApis(decls: lw.LWDeclaration[], modifierNames: Map<string, string[]
         apiImpls.push(E.unary(Op.ref, E.v(modifierImplName, [Hs.isType()])))
     })
     // API implementation function
-    const apiImpl = Builders.func(implName(`Get${generatorConfiguration().moduleName.toUpperCase()}APIImpl`))
+    const apiImpl = Builders.func(implName(`Get${moduleName()}APIImpl`))
         .returns(Ts.const(Ts.ptr(T.c(apiStructName))))
         .param('version').type(Ts.prim.i32).$()
         ///extern "C"

@@ -16,6 +16,7 @@
 import * as path from 'node:path'
 import * as fs from "node:fs"
 import { Language } from './Language.js'
+import { generatorConfiguration } from './config.js'
 
 export function arrayAt<T>(array: T[] | undefined, index: number): T | undefined {
     return array ? array[index >= 0 ? index : array.length + index] : undefined
@@ -419,4 +420,8 @@ export function consoleWarn(message: string) {
     if (printedWarnMessages.has(message)) return
     printedWarnMessages.add(message)
     console.warn(message)
+}
+
+export function moduleName(suffix?: string): string {
+  return generatorConfiguration().moduleName.toUpperCase().replaceAll('.', '_') + (suffix ?? '')
 }
