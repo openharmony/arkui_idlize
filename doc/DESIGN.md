@@ -51,7 +51,7 @@ We design system by providing the following components:
    * IDL IR
    * IDL library abstraction
    * TS frontend
-   * Language emitters: TS, C++, Java, CangJie, ArkTS NEXT
+   * Language emitters: TS, C++, Kotlin, CangJie, ArkTS
    * Native interop library
    * Generated code templates
    * Library-specific generators
@@ -59,7 +59,7 @@ We design system by providing the following components:
 ## Language
 
 We base on WebIDL language and extend it with features relevant for modern interfaces, with both syntax extensions and extended
-attributes. See [IDL.md](../IDL.md) for full list of language extensions.
+attributes. See IDL.md for full list of language extensions.
 
 ### Language extensions
 
