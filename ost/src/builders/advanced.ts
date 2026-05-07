@@ -1585,7 +1585,7 @@ class BlockBuilder<P> {
      * @returns This builder for chaining
      */
     unimplemented(): BlockBuilder<P> {
-        this._body.push(S.e(E.v('throw new Error("Not implemented")')))
+        this._body.push(S.e(E.c('throw new Error("Not implemented")')))
         return this
     }
     /**
@@ -1902,6 +1902,12 @@ class FieldBuilder<P> {
      * @returns This builder for chaining
      */
     optional() { this._modifiers.push(Md.optional()); return this }
+    /**
+     * Add private modifier to the field (private member).
+     *
+     * @returns This builder for chaining
+     */
+    private() { this._modifiers.push(Md.private()); return this }
     /**
      * Add readonly modifier to the field (immutable member).
      *

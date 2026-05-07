@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { isDefined, capitalize } from "@idlizer/core"
+import { isDefined, capitalize, isCommonMethod } from "@idlizer/core"
 import { T, Ts, E, S, Hs, LWType, Builders, FunctionDeclaration,
   ClassDeclaration, managedName, createProducer, expectExpr, expectType,
   OhosSeed, OhosProducerContext
@@ -136,9 +136,9 @@ function createImpl(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrNa
 function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrName: string): ClassDeclaration {
   const baseName = attrName.replace(/Attribute$/, '')
   const modifierName = baseName + 'Modifier'
-  const parentModifierName = attrNode.inheritance.length
-    ? managedName((attrNode.inheritance[0] as idl.IDLReferenceType).name.replace(/(Attribute)?$/, 'Modifier'))
-    : modifierName /// fallback, e.g. CommonMethod extends itself
+  const parentModifier = attrNode.inheritance.length
+    ? T.c(managedName((attrNode.inheritance[0] as idl.IDLReferenceType).name.replace(/(Attribute)?$/, 'Modifier')))
+    : undefined
   const valueFieldName = (propName: string, index: number) => `_${propName}_${index}_value`
 
   // Separate regular properties from attributeModifier
@@ -146,14 +146,12 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
   const attrModProps = attrNode.properties.filter(it => isAttributeModifier(it))
   const applyMethods = ['applyNormalAttribute', 'applyPressedAttribute', 'applyFocusedAttribute', 'applyDisabledAttribute', 'applySelectedAttribute']
 
-  return Builders.class(modifierName)
-    .extends(T.c(parentModifierName))
+  const modifierClass = Builders.class(modifierName)
+    .extends(parentModifier)
     .implements(T.c(attrName))
     .implements(T.c('AttributeModifier', T.c(attrName)))
-    .field('_instanceId').type(Ts.prim.number).value(-1).$()
-    .field('_state').type(T.c('ModifierState')).value().ctor('ModifierState').$().$().$()
-    .field('_addr').type(T.c('ArrayBuffer')).value().ctor('ArrayBuffer').arg(4096).$().$().$()
-    .field('_flagArray').type(T.c('Uint8Array')).value().ctor('Uint8Array').arg().access('_addr').receiver('this').$().$().$().$().$()
+    .field('_addr').private().type(T.c('ArrayBuffer')).value().ctor('ArrayBuffer').arg(4096).$().$().$()
+    .field('_flagArray').private().type(T.c('Uint8Array')).value().ctor('Uint8Array').arg().access('_addr').receiver('this').$().$().$().$().$()
     // per-property value fields
     .fields(regularProps.map((prop, i) =>
       Builders.field(valueFieldName(prop.name, i)).type(Ts.optional(expectType(ctx, prop.type, 'managed'))).$()))
@@ -162,13 +160,8 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
 
     // Constructor: super() + fill flagArray with 0
     .ctor().block()
-      .call('super').$()
+      .statements(isCommonMethod(attrNode.name) ? [] : [Builders.stmt().call('super').$().$()])
       .call('fill').receiver().access('_flagArray').receiver('this').$().$().arg(E.c(0)).$().$().$()
-    // setInstanceId method
-    .method('setInstanceId')
-      .param('instanceId').type(Ts.prim.number).$()
-      .returns(Ts.prim.void)
-      .block().binary('=').left(E.get(E.v('this'), '_instanceId')).right(E.v('instanceId')).$().$().$()
     // apply*Attribute methods
     .methods(applyMethods.map(it =>
       Builders.func(it)
@@ -265,4 +258,18 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
         .returns(Ts.prim.self)
         .block().unimplemented().$().$()))
     .$()
+
+    if (isCommonMethod(attrNode.name)) {
+      modifierClass.fields.unshift(
+        Builders.field('_instanceId').type(Ts.prim.number).value(-1).$(),
+        Builders.field('_state').type(T.c('ModifierState')).value().ctor('ModifierState').$().$().$()
+      )
+      modifierClass.methods.unshift(
+        Builders.func('setInstanceId')
+          .param('instanceId').type(Ts.prim.number).$()
+          .returns(Ts.prim.void)
+          .block().binary('=').left(E.get(E.v('this'), '_instanceId')).right(E.v('instanceId')).$().$().$()
+      )
+    }
+    return modifierClass
 }
