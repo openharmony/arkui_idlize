@@ -66,6 +66,9 @@ export function isCApi(name:string) {
 export function isBridge(name:string) {
     return is(BRIDGE_PREFIX, name)
 }
+export function isModifierStruct(name:string) {
+    return is(C_API_PREFIX + '.' + MODIFIER_INFIX, name)
+}
 
 export function isDirectInteropType(type: lw.LWType) {
     return type !== Ts.prim.interopReturnBuffer

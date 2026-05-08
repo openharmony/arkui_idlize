@@ -17,7 +17,7 @@ import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from 
 import { generatorConfiguration, zipStrip, moduleName } from "@idlizer/core"
 import { lowLevelLike } from "@idlizer/kit"
 import { callbackKindDeclaration, monoName } from "./postprocess.js"
-import { bridgeName, cApiName, implName, isCApi } from "../producers/common.js"
+import { bridgeName, cApiName, implName, isCApi, isModifierStruct } from "../producers/common.js"
 
 export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>, callbacks: string[]): Map<string, lw.LWDeclaration[]> {
     decls = introduceCallbackCaller(decls, callbacks)
@@ -248,7 +248,7 @@ export function orderCApiDeclarations(decls: lw.LWDeclaration[]): lw.LWDeclarati
     // Split decls into capi and all the others
     const [capi, rest] = decls.reduce<[lw.LWDeclaration[], lw.LWDeclaration[]]>(
         ([capi, rest], decl) =>
-            isCApi(decl.name) && !decl.name.startsWith('capi.@') ? [capi.concat(decl), rest] : [capi, rest.concat(decl)],
+            isCApi(decl.name) && !isModifierStruct(decl.name) ? [capi.concat(decl), rest] : [capi, rest.concat(decl)],
         [[], []]
     )
 
