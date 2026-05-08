@@ -17,18 +17,15 @@ import { Builders, Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts } from 
 import { generatorConfiguration, zipStrip, moduleName } from "@idlizer/core"
 import { lowLevelLike } from "@idlizer/kit"
 import { callbackKindDeclaration, monoName } from "./postprocess.js"
-import { bridgeName, C_API_PREFIX, cApiName, implName } from "../producers/common.js"
+import { bridgeName, cApiName, implName, isCApi } from "../producers/common.js"
 
 export function postprocess(decls: lw.LWDeclaration[], modifiers: Map<string, string[]>, callbacks: string[]): Map<string, lw.LWDeclaration[]> {
     decls = introduceCallbackCaller(decls, callbacks)
     decls = monomorphizeGenerics(decls)
     decls = monomorphizeAlgebraicTypes(decls)
+    decls = orderCApiDeclarations(decls)
     decls = makeApis(decls, modifiers)
-    const files = lowLevelLike.postprocess(decls)
-    const capi = files.get(C_API_PREFIX)
-    if (capi)
-        files.set(C_API_PREFIX, sortDeclarationsByDependency(capi))
-    return files
+    return lowLevelLike.postprocess(decls)
 }
 
 function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[]): lw.LWDeclaration[] {
@@ -247,35 +244,34 @@ function collectTypeDeps(type: lw.LWType, deps: Set<string>): void {
  * all other declaration kinds are left in their original positions.
  * Pointer-typed fields are not treated as dependencies.
  */
-export function sortDeclarationsByDependency(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
-    // Separate struct declarations and track their original indices
-    const structIndices: number[] = []
-    const structs: lw.StructureDeclaration[] = []
-    for (let i = 0; i < decls.length; i++) {
-        if (decls[i].kind === lw.LWKind.StructureDeclaration) {
-            structIndices.push(i)
-            structs.push(decls[i] as lw.StructureDeclaration)
-        }
-    }
+export function orderCApiDeclarations(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
+    // Split decls into capi and all the others
+    const [capi, rest] = decls.reduce<[lw.LWDeclaration[], lw.LWDeclaration[]]>(
+        ([capi, rest], decl) =>
+            isCApi(decl.name) && !decl.name.startsWith('capi.@') ? [capi.concat(decl), rest] : [capi, rest.concat(decl)],
+        [[], []]
+    )
 
-    if (structs.length <= 1) return decls
-
-    // Build name-to-index map for structs
+    // Build name-to-index map
     const nameToIdx = new Map<string, number>()
-    for (let i = 0; i < structs.length; i++) {
-        nameToIdx.set(structs[i].name, i)
+    for (let i = 0; i < capi.length; i++) {
+        nameToIdx.set(capi[i].name, i)
     }
 
     // Build adjacency list and in-degree array
-    // dependents[i] = set of struct indices that depend on struct i
-    const dependsOn: Set<number>[] = structs.map(() => new Set<number>())
-    const dependents: Set<number>[] = structs.map(() => new Set<number>())
-    const inDegree: number[] = new Array(structs.length).fill(0)
+    // dependents[i] = set of indices that depend on declaration i
+    const dependsOn: Set<number>[] = capi.map(() => new Set<number>())
+    const dependents: Set<number>[] = capi.map(() => new Set<number>())
+    const inDegree: number[] = new Array(capi.length).fill(0)
 
-    for (let i = 0; i < structs.length; i++) {
+    for (let i = 0; i < capi.length; i++) {
+        const decl = capi[i]
         const deps = new Set<string>()
-        for (const member of structs[i].members) {
-            collectTypeDeps(member.type, deps)
+        if (decl.kind === lw.LWKind.StructureDeclaration) {
+            for (const member of decl.members)
+                collectTypeDeps(member.type, deps)
+        } else if (decl.kind === lw.LWKind.TypedefDeclaration) {
+            collectTypeDeps(decl.type, deps)
         }
         for (const depName of deps) {
             const depIdx = nameToIdx.get(depName)
@@ -291,18 +287,18 @@ export function sortDeclarationsByDependency(decls: lw.LWDeclaration[]): lw.LWDe
 
     // Kahn's algorithm
     const queue: number[] = []
-    for (let i = 0; i < structs.length; i++) {
+    for (let i = 0; i < capi.length; i++) {
         if (inDegree[i] === 0) {
             queue.push(i)
         }
     }
 
-    const sorted: lw.StructureDeclaration[] = []
+    const sorted: lw.LWDeclaration[] = []
     const visited = new Set<number>()
 
     while (queue.length > 0) {
         const idx = queue.shift()!
-        sorted.push(structs[idx])
+        sorted.push(capi[idx])
         visited.add(idx)
         for (const depIdx of dependents[idx]) {
             inDegree[depIdx]--
@@ -312,20 +308,13 @@ export function sortDeclarationsByDependency(decls: lw.LWDeclaration[]): lw.LWDe
         }
     }
 
-    // Cycle fallback: append remaining structs in original order
-    for (let i = 0; i < structs.length; i++) {
+    // Cycle fallback: append remaining declarations in original order
+    for (let i = 0; i < capi.length; i++) {
         if (!visited.has(i)) {
-            sorted.push(structs[i])
+            sorted.push(capi[i])
         }
     }
-
-    // Reconstruct the result array: non-struct declarations stay in place,
-    // struct slots are filled with the sorted structs in order
-    const result = decls.slice()
-    for (let i = 0; i < structIndices.length; i++) {
-        result[structIndices[i]] = sorted[i]
-    }
-    return result
+    return sorted.concat(rest)
 }
 
 function makeApis(decls: lw.LWDeclaration[], modifierNames: Map<string, string[]>): lw.LWDeclaration[] {

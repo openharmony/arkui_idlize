@@ -14,8 +14,8 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Builders, FunctionDeclaration, LWExpression, LWType, Md, T, Ts } from "@idlizer/ost"
-import { cApiName, implName } from "../common.js";
+import { Builders, FunctionDeclaration, LWExpression, LWType, T, Ts } from "@idlizer/ost"
+import { cApiName, implName, modifierName } from "../common.js";
 import { cppParamName, createProducer, fqName, mapPush } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js";
 import { expectType } from "../common.js"
@@ -33,7 +33,7 @@ export const functionProducer = createProducer(
     return {
       continuation: apiAccessor(method, funcName, ctx),
       declarations: [
-        Builders.struct(cApiName(modifierClassName(method) + 'Modifier'))
+        Builders.struct(modifierName(modifierClassName(method) + 'Modifier'))
           .field(funcName)
             .funcType()
             .parameters(makeParameters(ctx, method))
@@ -51,7 +51,7 @@ export const constructorProducer = createProducer(
     return {
       continuation: apiAccessor(ctor, funcName, ctx),
       declarations: [
-        Builders.struct(cApiName(modifierClassName(ctor) + 'Modifier'))
+        Builders.struct(modifierName(modifierClassName(ctor) + 'Modifier'))
           .field(funcName)
             .funcType()
             .parameters(makeParameters(ctx, ctor))
@@ -62,12 +62,8 @@ export const constructorProducer = createProducer(
   }
 )
 
-function modifierClassName(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor): string {
-  return idl.isInterface(node)
-    ? fqName(node)
-    : node.parent && idl.isInterface(node.parent)
-      ? fqName(node.parent)
-      : 'GlobalScope'
+function modifierClassName(method: idl.IDLMethod | idl.IDLConstructor): string {
+  return method.parent && idl.isInterface(method.parent) ? fqName(method.parent) : 'GlobalScope'
 }
 
 function apiAccessor(method: idl.IDLMethod | idl.IDLConstructor, name: string, ctx: OhosProducerContext): LWExpression {

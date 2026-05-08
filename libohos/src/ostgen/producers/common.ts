@@ -19,11 +19,21 @@ import { LWExpression, LWType, Ts, lw } from "@idlizer/ost"
 import { MakeSelector, OhosProducerContext, OhosSeed, OhosRole, OhosSeedData } from "../engine/index.js"
 import { producers } from "./index.js"
 
+/**
+ * Naming conventions:
+ * - prefixes determine file to which declarations go
+ *   (capi.* -> .h file, bridge.* -> .cpp file, managed.* -> .ts files)
+ * - infixes that start with @ designate synthetic declarations, are otherwise ignored
+ *   (e.g. capi.@modifier.XModifier is a modifier struct)
+ * - infixes that start with # designate declarations imported from special places
+ *   (managed.#handwritten.* are imported from '#handwritten')
+ */
 export const MANAGED_PREFIX = 'managed'
 export const C_API_PREFIX = 'capi'
 export const BRIDGE_PREFIX = 'bridge'
 export const IMPL_PREFIX = 'impl'
-const HANDWRITTEN_PREFIX = '#handwritten'
+const HANDWRITTEN_INFIX = '#handwritten'
+const MODIFIER_INFIX = '@modifier'
 
 export function managedName(name:string) {
     return MANAGED_PREFIX + '.' + name
@@ -38,7 +48,10 @@ export function implName(name:string) {
     return IMPL_PREFIX + '.' + name
 }
 export function handwrittenName(name: string) {
-    return managedName(HANDWRITTEN_PREFIX + '.' + name)
+    return managedName(HANDWRITTEN_INFIX + '.' + name)
+}
+export function modifierName(name: string) {
+    return cApiName(MODIFIER_INFIX + '.' + name)
 }
 
 function is(prefix:string, name:string) {
