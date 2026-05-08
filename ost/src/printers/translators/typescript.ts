@@ -344,6 +344,14 @@ export class TSPrinter {
         this.p.put(')')
         break
       }
+      case lw.LWKind.TernaryExpression: {
+        this.printExpression(expression.condition)
+        this.p.put(' ', '?', ' ')
+        this.printExpression(expression.thenExpr)
+        this.p.put(' ', ':', ' ')
+        this.printExpression(expression.elseExpr)
+        break
+      }
       case lw.LWKind.LambdaExpression: {
         this.p.put('(')
         expression.parameters.forEach((param, i) => {
