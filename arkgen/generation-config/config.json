@@ -915,10 +915,6 @@
             "childrenMainSize": {
                 "hookName": "hookListItemGroupChildrenMainSizeImpl",
                 "replaceImplementation": true
-            },
-            "setListItemGroupOptions": {
-                "hookName": "hookListItemGroupOptionsImpl",
-                "replaceImplementation": true
             }
         },
         "LoadingProgressAttribute": {
