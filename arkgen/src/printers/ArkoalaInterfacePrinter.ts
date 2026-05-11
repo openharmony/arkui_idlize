@@ -17,6 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { isExtendableComponent } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface } from "./PeersPrinter"
 
@@ -55,9 +56,11 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const collapsedMethods = groupOverloads(peer!.methods, this.peerLibrary.language)
             .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
         const parentMethods = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
-        // generate __get__commonStyles__Internal
+        const isCommon = idlInterface.name === 'CommonMethod'
+        const isExtendable = isExtendableComponent(component.name)
 
-        if (idlInterface.name === 'CommonMethod') {
+        // generate __is_CustomComponent__Internal
+        if (isCommon) {
             const isCustomComponentMethod = new Method(
                 '__is_CustomComponent__Internal',
                 new NamedMethodSignature(idl.IDLBooleanType, [], []),
@@ -75,21 +78,28 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                     method.method.signature,
                     method.method.modifiers?.filter(it => it !== MethodModifier.PUBLIC)
                 )
-                if (idlInterface.name === 'CommonMethod') {
+                if (isCommon || isExtendable) {
                     printer.writeMethodImplementation(nonPublic, w => {
                         w.print('const commonStyle: Array<(instance: CommonMethod) => void> | undefined = this.__get__commonStyles__Internal();');
                         w.print('if (commonStyle) {');
                         w.pushIndent();
                         const paramNames = method.sig.args.map(arg => arg.name).join(', ');
-                        //const paramNames = nonPublic.signature.argNames.length > 0 ? nonPublic.signature.argNames.join(', ') : '';
-                        w.print(`(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => instance.${nonPublic.name}(${paramNames}));`);
+                        if (isCommon) {
+                            w.print(`(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => instance.${nonPublic.name}(${paramNames}));`);
+                        } else {
+                            w.print(`(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => (instance as ${idlInterface.name}).${nonPublic.name}(${paramNames}));`);
+                        }
                         w.print('return this;');
                         w.popIndent();
                         w.print('} else {');
                         w.pushIndent();
                         w.print('if (this.__is_CustomComponent__Internal()) {');
                         w.pushIndent();
-                        w.writeStatement(w.makeThrowError(`Common method ${nonPublic.name} can only be set when creating a custom component.`))
+                        if (isCommon) {
+                            w.writeStatement(w.makeThrowError(`Common method ${nonPublic.name} can only be set when creating a custom component.`))
+                        } else {
+                            w.writeStatement(w.makeThrowError(`${component.name} attribute '${nonPublic.name}' can only be set when creating an extendable component.`))
+                        }
                         w.popIndent();
                         w.print('}');
                         w.popIndent();
@@ -108,7 +118,28 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
         if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has('attributeModifier')) {
-            if (idlInterface.name !== 'CommonMethod') {
+            if (isCommon) {
+                // CommonMethod: skip, handled in main loop
+            } else if (isExtendable) {
+                printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
+                    w.print('const commonStyle: Array<(instance: CommonMethod) => void> | undefined = this.__get__commonStyles__Internal();');
+                    w.print('if (commonStyle) {');
+                    w.pushIndent();
+                    w.print('(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => (instance as ' + idlInterface.name + ').attributeModifier(value));');
+                    w.print('return this;');
+                    w.popIndent();
+                    w.print('} else {');
+                    w.pushIndent();
+                    w.print('if (this.__is_CustomComponent__Internal()) {');
+                    w.pushIndent();
+                    w.writeStatement(w.makeThrowError(`${component.name} attribute 'attributeModifier' can only be set when creating an extendable component.`))
+                    w.popIndent();
+                    w.print('}');
+                    w.popIndent();
+                    w.print('}');
+                    w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
+                })
+            } else {
                 printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
                     w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
                 })
@@ -118,7 +149,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         const applyAttributesFinishSignature = new MethodSignature(idl.IDLVoidType, [])
         if (this.peerLibrary.language === Language.ARKTS) {
-            if (idlInterface.name === 'CommonMethod') {
+            if (isCommon) {
                 printer.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature), () => {})
             }
         }
@@ -127,8 +158,150 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         printer.popIndent()
         printer.print('}')
+
+        // Task 4: Generate ExtendableCommonMethod base class for CommonMethod
+        if (isCommon) {
+            printer.print('')
+            printer.print('export abstract class ExtendableCommonMethod implements CommonMethod {')
+            printer.pushIndent()
+            printer.writeMethodImplementation(new Method('__get__commonStyles__Internal', new NamedMethodSignature(idl.IDLAnyType, [], []), []), w => {
+                w.print('return undefined;')
+            })
+            printer.writeMethodImplementation(new Method('__set__commonStyles__Internal', new NamedMethodSignature(idl.IDLVoidType, [], []), []), w => {
+                w.print('')
+            })
+            printer.writeMethodImplementation(new Method('__is_CustomComponent__Internal', new NamedMethodSignature(idl.IDLBooleanType, [], []), []), w => {
+                w.print('return true;')
+            })
+            printer.popIndent()
+            printer.print('}')
+        }
+
+        // Task 5: Generate ExtendableXXX class for extendable components
+        if (isExtendable) {
+            printer.print('')
+            this.printExtendableClass(printer, component, peer, idlInterface)
+        }
+
         return printer.getOutput()
     }
+    private printExtendableClass(
+        printer: LanguageWriter,
+        component: { name: string; attributeDeclaration: idl.IDLInterface; interfaceDeclaration?: idl.IDLInterface },
+        peer: PeerClass,
+        idlInterface: idl.IDLInterface
+    ): void {
+        const className = `Extendable${component.name}`
+        const attrInterfaceName = component.attributeDeclaration.name
+
+        printer.print(`export abstract class ${className} extends ExtendableCommonMethod implements ${attrInterfaceName} {`)
+        printer.pushIndent()
+
+        this.printInstantiateImpl(printer, component, className)
+        this.printInstantiateOverloads(printer, component, className)
+        this.printSetOptionsMethods(printer, component, attrInterfaceName)
+
+        printer.popIndent()
+        printer.print('}')
+    }
+
+    private printInstantiateImpl(
+        printer: LanguageWriter,
+        component: { name: string },
+        className: string
+    ): void {
+        const implName = `${component.name}Impl`
+        printer.print('')
+        printer.print('    @memo')
+        printer.print(`    static _instantiateImpl<T extends ${className}>(`)
+        printer.print('        @memo @memo_skip')
+        printer.print('        styles: (instance: T) => void,')
+        printer.print('        factory: () => T,')
+        printer.print('        @memo @memo_skip')
+        printer.print('        _content: CustomBuilder): void')
+        printer.print('    {')
+        printer.print('        const instanceExtendable = remember(factory);')
+        printer.print('        @memo @memo_skip')
+        printer.print(`        const cb = (instance: ${component.name}Attribute): void => {`)
+        printer.print('            styles(instanceExtendable);')
+        printer.print('            let commonStyles = instanceExtendable.__get__commonStyles__Internal()')
+        printer.print('            if (commonStyles) {')
+        printer.print('                commonStyles.forEach((func) => {')
+        printer.print('                    func(instance);')
+        printer.print('                })')
+        printer.print('            }')
+        printer.print('            instanceExtendable.__set__commonStyles__Internal(new Array<(instance: CommonMethod) => void>);')
+        printer.print('        }')
+        printer.print(`        ${implName}(`)
+        printer.print('            cb,')
+        printer.print('            _content')
+        printer.print('        );')
+        printer.print('    }')
+    }
+
+    private printInstantiateOverloads(
+        printer: LanguageWriter,
+        component: { name: string; interfaceDeclaration?: idl.IDLInterface },
+        className: string
+    ): void {
+        if (!component.interfaceDeclaration) return
+
+        // Get call signatures from the interface declaration
+        const callables = component.interfaceDeclaration.methods.filter(
+            m => idl.hasExtAttribute(m, idl.IDLExtendedAttributes.CallSignature)
+        )
+        for (const callable of callables) {
+            printer.print('')
+            printer.print('    @ComponentBuilder')
+            const params = callable.parameters
+                .map(p => {
+                    const optional = p.isOptional ? '?' : ''
+                    const typeStr = this.convertType(p.type)
+                    return `${p.name}${optional}: ${typeStr}`
+                })
+                .join(', ')
+            printer.print(`    static $_instantiate<T extends ${className}>(factory: () => T${params ? ', ' + params : ''}): T {`)
+            printer.print('        throw Error("Illegal call of $_instantiate")')
+            printer.print('    }')
+        }
+    }
+
+    private printSetOptionsMethods(
+        printer: LanguageWriter,
+        component: { name: string; attributeDeclaration: idl.IDLInterface },
+        attrInterfaceName: string
+    ): void {
+        const setOptionsName = `set${component.name}Options`
+        const setOptionsMethods = component.attributeDeclaration.methods
+            .filter(m => m.name === setOptionsName)
+
+        for (const method of setOptionsMethods) {
+            printer.print('')
+            const params = method.parameters
+                .map(p => {
+                    const optional = p.isOptional ? '?' : ''
+                    const typeStr = this.convertType(p.type)
+                    return `${p.name}${optional}: ${typeStr}`
+                })
+                .join(', ')
+            printer.print(`    ${setOptionsName}(${params}): this {`)
+            printer.print('        const commonStyle: Array<(instance: CommonMethod) => void> | undefined = this.__get__commonStyles__Internal();')
+            printer.print('        if (commonStyle) {')
+            printer.print('            (commonStyle as Array<(instance: CommonMethod) => void>).push(')
+            const argNames = method.parameters.map(p => p.name).join(', ')
+            printer.print(`                (instance: CommonMethod): void => (instance as ${attrInterfaceName}).${setOptionsName}(${argNames})`)
+            printer.print('            );')
+            printer.print('            return this;')
+            printer.print('        } else {')
+            printer.print('            if (this.__is_CustomComponent__Internal()) {')
+            printer.print(`                throw new Error("${component.name} attribute '${setOptionsName}' can only be set when creating an extendable component.")`)
+            printer.print('            }')
+            printer.print('        }')
+            printer.print(`        throw new Error('Unimplemented method ${setOptionsName}')`)
+            printer.print('    }')
+        }
+    }
+
     private printNamedOverloadGroup(peer: PeerClass, printer: LanguageWriter): void {
         const overloads = new Map<string, string[]>()
         for (const method of peer.methods) {
