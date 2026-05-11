@@ -179,6 +179,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
 
         // Task 5: Generate ExtendableXXX class for extendable components
         if (isExtendable) {
+            this.writer.addFeature('ExtendableCommonMethod', './common')
             printer.print('')
             this.printExtendableClass(printer, component, peer, idlInterface)
         }
