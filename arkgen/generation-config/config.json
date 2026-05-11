@@ -27,6 +27,10 @@
         "ColorMetrics",
         "CustomSpan"
     ],
+    "extendableComponents": [
+        "arkui.component.button.ExtendableButton",
+        "arkui.component.column.ExtendableColumn"
+    ],
     "ignoreGenerics": [
         "arkui.component.common.AttributeModifier",
         "arkui.component.common.ContentModifier",

@@ -59,7 +59,9 @@ export const CoreConfigurationSchema = D.object({
     modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace'),
     libraryNameMapping: D.maybe(D.map(D.string(), D.map(D.string(), D.string())).onMerge('replace')),
 
-    globalPackages: T.stringArray()
+    globalPackages: T.stringArray(),
+
+    extendableComponents: T.stringArray()
 })
 
 export type CoreConfiguration = ConfigTypeInfer<typeof CoreConfigurationSchema>
@@ -85,7 +87,9 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     modules: new Map<string, ModuleConfiguration>(),
     libraryNameMapping: new Map<string, Map<string, string>>(),
 
-    globalPackages: []
+    globalPackages: [],
+
+    extendableComponents: []
 }
 
 let currentConfig: CoreConfiguration = defaultCoreConfiguration
@@ -105,6 +109,36 @@ export function generatorConfiguration<T extends CoreConfiguration>(): T {
 export function generatorTypePrefix() {
     const conf = generatorConfiguration()
     return `${conf.TypePrefix}${conf.LibraryPrefix}`
+}
+
+export function getExtendableComponentNames(): Set<string> {
+    const config = generatorConfiguration()
+    const names = new Set<string>()
+    for (const fqn of config.extendableComponents) {
+        const lastDot = fqn.lastIndexOf('.')
+        const declName = lastDot >= 0 ? fqn.substring(lastDot + 1) : fqn
+        if (declName.startsWith('Extendable')) {
+            names.add(declName.substring('Extendable'.length))
+        }
+    }
+    return names
+}
+
+export function getExtendableClassNames(): Set<string> {
+    const config = generatorConfiguration()
+    const names = new Set<string>()
+    for (const fqn of config.extendableComponents) {
+        const lastDot = fqn.lastIndexOf('.')
+        const declName = lastDot >= 0 ? fqn.substring(lastDot + 1) : fqn
+        if (declName.startsWith('Extendable')) {
+            names.add(declName)
+        }
+    }
+    return names
+}
+
+export function isExtendableComponent(componentName: string): boolean {
+    return getExtendableComponentNames().has(componentName)
 }
 
 interface HookMethod {
