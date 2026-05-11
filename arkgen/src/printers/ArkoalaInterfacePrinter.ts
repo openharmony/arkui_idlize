@@ -227,7 +227,6 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         className: string
     ): void {
         const implName = `${component.name}Impl`
-        printer.print('')
         printer.print('@memo')
         printer.print(`static _instantiateImpl<T extends ${className}>(`)
         printer.pushIndent()
