@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
-import { isExtendableComponent } from "@idlizer/core"
+import { getExtendableClassNames, isExtendableComponent } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface } from "./PeersPrinter"
 
@@ -199,10 +199,26 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
 
         this.printInstantiateImpl(printer, component, className)
         this.printInstantiateOverloads(printer, component, className)
-        this.printSetOptionsMethods(printer, component, attrInterfaceName)
+
+        // Find setXXXOptions methods from the ExtendableXXX IDL class declaration
+        const extendableClassDecl = this.findExtendableClassDeclaration(className)
+        if (extendableClassDecl) {
+            this.printSetOptionsMethodsFromIDL(printer, component, attrInterfaceName, extendableClassDecl)
+        }
 
         printer.popIndent()
         printer.print('}')
+    }
+
+    private findExtendableClassDeclaration(className: string): idl.IDLInterface | undefined {
+        for (const file of this.peerLibrary.files) {
+            for (const entry of file.entries) {
+                if (idl.isInterface(entry) && entry.name === className) {
+                    return entry
+                }
+            }
+        }
+        return undefined
     }
 
     private printInstantiateImpl(
@@ -247,9 +263,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         if (!component.interfaceDeclaration) return
 
         // Get call signatures from the interface declaration
-        const callables = component.interfaceDeclaration.methods.filter(
-            m => idl.hasExtAttribute(m, idl.IDLExtendedAttributes.CallSignature)
-        )
+        const callables = component.interfaceDeclaration.callables ?? []
         for (const callable of callables) {
             printer.print('')
             printer.print('    @ComponentBuilder')
@@ -266,13 +280,14 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
     }
 
-    private printSetOptionsMethods(
+    private printSetOptionsMethodsFromIDL(
         printer: LanguageWriter,
-        component: { name: string; attributeDeclaration: idl.IDLInterface },
-        attrInterfaceName: string
+        component: { name: string },
+        attrInterfaceName: string,
+        extendableClassDecl: idl.IDLInterface
     ): void {
         const setOptionsName = `set${component.name}Options`
-        const setOptionsMethods = component.attributeDeclaration.methods
+        const setOptionsMethods = extendableClassDecl.methods
             .filter(m => m.name === setOptionsName)
 
         for (const method of setOptionsMethods) {
@@ -318,6 +333,12 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
     convertInterface(node: idl.IDLInterface) {
         if (isComponentDeclaration(this.peerLibrary, node)) {
             this.writer.writeLines(this.printComponent(node).join("\n"))
+            return
+        }
+        if (getExtendableClassNames().has(node.name)) {
+            return
+        }
+        if (node.name === 'ExtendableCommonMethod') {
             return
         }
         return super.convertInterface(node)
