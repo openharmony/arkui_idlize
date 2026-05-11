@@ -39,6 +39,24 @@ function collectParentsPropertiesNames(int: idl.IDLInterface, resolver: Referenc
     return result
 }
 
+function collectInheritedMethodNames(int: idl.IDLInterface, resolver: ReferenceResolver): Set<string> {
+    const result = new Set<string>()
+    function go(int: idl.IDLInterface) {
+        int.inheritance.forEach(parent => {
+            const found = resolver.resolveTypeReference(parent)
+            if (found && idl.isInterface(found)) {
+                found.methods.forEach(method => {
+                    result.add(method.name)
+                })
+                go(found)
+            }
+        })
+    }
+
+    go(int)
+    return result
+}
+
 class ArkoalaTSDeclConvertor extends TSDeclConvertor {
     protected printComponent(idlInterface: idl.IDLInterface): stringOrNone[] {
         const component = findComponentByDeclaration(this.peerLibrary, idlInterface)
@@ -55,7 +73,9 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         printer.pushIndent()
         const collapsedMethods = groupOverloads(peer!.methods, this.peerLibrary.language)
             .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
-        const parentMethods = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
+        const parentMembers = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
+        const inheritedMethods = collectInheritedMethodNames(idlInterface, this.peerLibrary)
+        inheritedMethods.forEach(m => parentMembers.add(m))
         const isCommon = idlInterface.name === 'CommonMethod'
         const isExtendable = isExtendableComponent(component.name)
 
@@ -72,7 +92,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
 
         collapsedMethods.forEach(method => {
-            if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has(method.method.name)) {
+            if (this.peerLibrary.language === Language.ARKTS && !parentMembers.has(method.method.name)) {
                 const nonPublic = new Method(
                     method.uniqueOverloadName,
                     method.method.signature,
@@ -117,7 +137,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
             this.printNamedOverloadGroup(peer, printer)
         }
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
-        if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has('attributeModifier')) {
+        if (this.peerLibrary.language === Language.ARKTS && !parentMembers.has('attributeModifier')) {
             if (isCommon) {
                 // CommonMethod: skip, handled in main loop
             } else if (isExtendable) {
