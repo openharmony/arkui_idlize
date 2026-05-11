@@ -25,8 +25,7 @@
         "SectionOptions",
         "LengthMetrics",
         "ColorMetrics",
-        "CustomSpan",
-        "ExtendableCommonMethod"
+        "CustomSpan"
     ],
     "extendableComponents": [
         "arkui.component.button.ExtendableButton",
