@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, LayoutNodeRole, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { getExtendableClassNames, isExtendableComponent } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface } from "./PeersPrinter"
@@ -179,7 +179,16 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
 
         // Task 5: Generate ExtendableXXX class for extendable components
         if (isExtendable) {
-            this.writer.addFeature('ExtendableCommonMethod', './common')
+            const commonMethodDecl = this.peerLibrary.files
+                .flatMap(f => f.entries)
+                .find(e => idl.isInterface(e) && e.name === 'CommonMethod')
+            if (commonMethodDecl) {
+                const commonModule = this.peerLibrary.layout.resolve({
+                    node: commonMethodDecl,
+                    role: LayoutNodeRole.INTERFACE
+                })
+                this.writer.addFeature('ExtendableCommonMethod', `${commonModule}`)
+            }
             printer.print('')
             this.printExtendableClass(printer, component, peer, idlInterface)
         }
