@@ -207,7 +207,8 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         printer.print(`export abstract class ${className} extends ExtendableCommonMethod implements ${attrInterfaceName} {`)
         printer.pushIndent()
 
-        this.printInstantiateImpl(printer, component, className)
+        const hasContent = this.componentHasContentParam(component)
+        this.printInstantiateImpl(printer, component, className, hasContent)
         this.printInstantiateOverloads(printer, component, className)
 
         // Find setXXXOptions methods from the ExtendableXXX IDL class declaration
@@ -231,10 +232,21 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         return undefined
     }
 
+    private componentHasContentParam(
+        component: { name: string; interfaceDeclaration?: idl.IDLInterface }
+    ): boolean {
+        if (!component.interfaceDeclaration) return false
+        const callables = component.interfaceDeclaration.callables ?? []
+        return callables.some(c =>
+            c.parameters.some(p => p.name === 'content_')
+        )
+    }
+
     private printInstantiateImpl(
         printer: LanguageWriter,
         component: { name: string },
-        className: string
+        className: string,
+        hasContent: boolean
     ): void {
         const implName = `${component.name}Impl`
         printer.print('@memo')
@@ -242,9 +254,13 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         printer.pushIndent()
         printer.print('@memo @memo_skip')
         printer.print('styles: (instance: T) => void,')
-        printer.print('factory: () => T,')
-        printer.print('@memo @memo_skip')
-        printer.print('_content: CustomBuilder): void')
+        if (hasContent) {
+            printer.print('factory: () => T,')
+            printer.print('@memo @memo_skip')
+            printer.print('_content: CustomBuilder): void')
+        } else {
+            printer.print('factory: () => T): void')
+        }
         printer.popIndent()
         printer.print('{')
         printer.pushIndent()
@@ -266,12 +282,16 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         printer.print('instanceExtendable.__set__commonStyles__Internal(new Array<(instance: CommonMethod) => void>);')
         printer.popIndent()
         printer.print('}')
-        printer.print(`${implName}(`)
-        printer.pushIndent()
-        printer.print('cb,')
-        printer.print('_content')
-        printer.popIndent()
-        printer.print(');')
+        if (hasContent) {
+            printer.print(`${implName}(`)
+            printer.pushIndent()
+            printer.print('cb,')
+            printer.print('_content')
+            printer.popIndent()
+            printer.print(');')
+        } else {
+            printer.print(`${implName}(cb);`)
+        }
         printer.popIndent()
         printer.print('}')
     }
