@@ -98,7 +98,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                         if (isCommon) {
                             w.writeStatement(w.makeThrowError(`Common method ${nonPublic.name} can only be set when creating a custom component.`))
                         } else {
-                            w.writeStatement(w.makeThrowError(`${component.name} attribute '${nonPublic.name}' can only be set when creating an extendable component.`))
+                            w.writeStatement(w.makeThrowError(`${component.name} attribute ${nonPublic.name} can only be set when creating an extendable component.`))
                         }
                         w.popIndent();
                         w.print('}');
@@ -132,7 +132,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                     w.pushIndent();
                     w.print('if (this.__is_CustomComponent__Internal()) {');
                     w.pushIndent();
-                    w.writeStatement(w.makeThrowError(`${component.name} attribute 'attributeModifier' can only be set when creating an extendable component.`))
+                    w.writeStatement(w.makeThrowError(`${component.name} attribute attributeModifier can only be set when creating an extendable component.`))
                     w.popIndent();
                     w.print('}');
                     w.popIndent();
