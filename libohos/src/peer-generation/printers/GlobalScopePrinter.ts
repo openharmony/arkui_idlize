@@ -72,7 +72,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                 /* global scope export function */
                 LanguageWriter.relativeReferences(true, () => {
                     writer.writeFunctionImplementation(mangledGlobalScopeName(method.name, library.language), signature, w => {
-                        const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0], library.language),
+                        const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0] as idl.IDLMethod, library.language),
                             method.parameters.map(it => w.makeString(it.name)))
                         const statement = !idl.isPrimitiveType(method.returnType, 'void')
                             ? w.makeReturn(call)
