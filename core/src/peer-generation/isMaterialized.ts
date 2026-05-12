@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { generatorConfiguration } from '../config'
+import { generatorConfiguration, getExtendableClassNames } from '../config'
 import * as idl from '../idl'
 import { getSuper } from './getSuperType'
 import { ReferenceResolver } from './ReferenceResolver'
@@ -46,6 +46,10 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     }
 
     if (generatorConfiguration().ignoreMaterialized.includes(declaration.name)) {
+        return false
+    }
+
+    if (getExtendableClassNames().has(declaration.name)) {
         return false
     }
 

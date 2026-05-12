@@ -16,7 +16,8 @@
 import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, LayoutNodeRole, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { getExtendableClassNames, isExtendableComponent } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface } from "./PeersPrinter"
 
@@ -28,6 +29,24 @@ function collectParentsPropertiesNames(int: idl.IDLInterface, resolver: Referenc
             if (found && idl.isInterface(found)) {
                 found.properties.forEach(prop => {
                     result.add(prop.name)
+                })
+                go(found)
+            }
+        })
+    }
+
+    go(int)
+    return result
+}
+
+function collectInheritedMethodNames(int: idl.IDLInterface, resolver: ReferenceResolver): Set<string> {
+    const result = new Set<string>()
+    function go(int: idl.IDLInterface) {
+        int.inheritance.forEach(parent => {
+            const found = resolver.resolveTypeReference(parent)
+            if (found && idl.isInterface(found)) {
+                found.methods.forEach(method => {
+                    result.add(method.name)
                 })
                 go(found)
             }
@@ -54,10 +73,14 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         printer.pushIndent()
         const collapsedMethods = groupOverloads(peer!.methods, this.peerLibrary.language)
             .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
-        const parentMethods = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
-        // generate __get__commonStyles__Internal
+        const parentMembers = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
+        const inheritedMethods = collectInheritedMethodNames(idlInterface, this.peerLibrary)
+        inheritedMethods.forEach(m => parentMembers.add(m))
+        const isCommon = idlInterface.name === 'CommonMethod'
+        const isExtendable = isExtendableComponent(component.name)
 
-        if (idlInterface.name === 'CommonMethod') {
+        // generate __is_CustomComponent__Internal
+        if (isCommon) {
             const isCustomComponentMethod = new Method(
                 '__is_CustomComponent__Internal',
                 new NamedMethodSignature(idl.IDLBooleanType, [], []),
@@ -69,27 +92,34 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
 
         collapsedMethods.forEach(method => {
-            if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has(method.method.name)) {
+            if (this.peerLibrary.language === Language.ARKTS && !parentMembers.has(method.method.name)) {
                 const nonPublic = new Method(
                     method.uniqueOverloadName,
                     method.method.signature,
                     method.method.modifiers?.filter(it => it !== MethodModifier.PUBLIC)
                 )
-                if (idlInterface.name === 'CommonMethod') {
+                if (isCommon || isExtendable) {
                     printer.writeMethodImplementation(nonPublic, w => {
                         w.print('const commonStyle: Array<(instance: CommonMethod) => void> | undefined = this.__get__commonStyles__Internal();');
                         w.print('if (commonStyle) {');
                         w.pushIndent();
                         const paramNames = method.sig.args.map(arg => arg.name).join(', ');
-                        //const paramNames = nonPublic.signature.argNames.length > 0 ? nonPublic.signature.argNames.join(', ') : '';
-                        w.print(`(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => instance.${nonPublic.name}(${paramNames}));`);
+                        if (isCommon) {
+                            w.print(`(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => instance.${nonPublic.name}(${paramNames}));`);
+                        } else {
+                            w.print(`(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => (instance as ${idlInterface.name}).${nonPublic.name}(${paramNames}));`);
+                        }
                         w.print('return this;');
                         w.popIndent();
                         w.print('} else {');
                         w.pushIndent();
                         w.print('if (this.__is_CustomComponent__Internal()) {');
                         w.pushIndent();
-                        w.writeStatement(w.makeThrowError(`Common method ${nonPublic.name} can only be set when creating a custom component.`))
+                        if (isCommon) {
+                            w.writeStatement(w.makeThrowError(`Common method ${nonPublic.name} can only be set when creating a custom component.`))
+                        } else {
+                            w.writeStatement(w.makeThrowError(`${component.name} attribute ${nonPublic.name} can only be set when creating an extendable component.`))
+                        }
                         w.popIndent();
                         w.print('}');
                         w.popIndent();
@@ -107,8 +137,29 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
             this.printNamedOverloadGroup(peer, printer)
         }
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
-        if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has('attributeModifier')) {
-            if (idlInterface.name !== 'CommonMethod') {
+        if (this.peerLibrary.language === Language.ARKTS && !parentMembers.has('attributeModifier')) {
+            if (isCommon) {
+                // CommonMethod: skip, handled in main loop
+            } else if (isExtendable) {
+                printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
+                    w.print('const commonStyle: Array<(instance: CommonMethod) => void> | undefined = this.__get__commonStyles__Internal();');
+                    w.print('if (commonStyle) {');
+                    w.pushIndent();
+                    w.print('(commonStyle as Array<(instance: CommonMethod) => void>).push((instance: CommonMethod): void => (instance as ' + idlInterface.name + ').attributeModifier(value));');
+                    w.print('return this;');
+                    w.popIndent();
+                    w.print('} else {');
+                    w.pushIndent();
+                    w.print('if (this.__is_CustomComponent__Internal()) {');
+                    w.pushIndent();
+                    w.writeStatement(w.makeThrowError(`${component.name} attribute attributeModifier can only be set when creating an extendable component.`))
+                    w.popIndent();
+                    w.print('}');
+                    w.popIndent();
+                    w.print('}');
+                    w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
+                })
+            } else {
                 printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
                     w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
                 })
@@ -118,7 +169,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         const applyAttributesFinishSignature = new MethodSignature(idl.IDLVoidType, [])
         if (this.peerLibrary.language === Language.ARKTS) {
-            if (idlInterface.name === 'CommonMethod') {
+            if (isCommon) {
                 printer.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature), () => {})
             }
         }
@@ -127,8 +178,218 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         printer.popIndent()
         printer.print('}')
+
+        // Task 4: Generate ExtendableCommonMethod base class for CommonMethod
+        if (isCommon) {
+            printer.print('')
+            printer.print('export abstract class ExtendableCommonMethod implements CommonMethod {')
+            printer.pushIndent()
+            printer.writeMethodImplementation(new Method('__get__commonStyles__Internal', new NamedMethodSignature(idl.IDLAnyType, [], []), []), w => {
+                w.print('return undefined;')
+            })
+            printer.writeMethodImplementation(new Method('__set__commonStyles__Internal', new NamedMethodSignature(idl.IDLVoidType, [], []), []), w => {
+                w.print('')
+            })
+            printer.writeMethodImplementation(new Method('__is_CustomComponent__Internal', new NamedMethodSignature(idl.IDLBooleanType, [], []), []), w => {
+                w.print('return true;')
+            })
+            printer.popIndent()
+            printer.print('}')
+        }
+
+        // Task 5: Generate ExtendableXXX class for extendable components
+        if (isExtendable) {
+            const commonMethodDecl = this.peerLibrary.files
+                .flatMap(f => f.entries)
+                .find(e => idl.isInterface(e) && e.name === 'CommonMethod')
+            if (commonMethodDecl) {
+                const commonModule = this.peerLibrary.layout.resolve({
+                    node: commonMethodDecl,
+                    role: LayoutNodeRole.INTERFACE
+                })
+                this.writer.addFeature('ExtendableCommonMethod', `${commonModule}`)
+            }
+            printer.print('')
+            this.printExtendableClass(printer, component, peer, idlInterface)
+        }
+
         return printer.getOutput()
     }
+    private printExtendableClass(
+        printer: LanguageWriter,
+        component: { name: string; attributeDeclaration: idl.IDLInterface; interfaceDeclaration?: idl.IDLInterface },
+        peer: PeerClass,
+        idlInterface: idl.IDLInterface
+    ): void {
+        const className = `Extendable${component.name}`
+        const attrInterfaceName = component.attributeDeclaration.name
+
+        printer.print(`export abstract class ${className} extends ExtendableCommonMethod implements ${attrInterfaceName} {`)
+        printer.pushIndent()
+
+        const hasContent = this.componentHasContentParam(component)
+        this.printInstantiateImpl(printer, component, className, hasContent)
+        this.printInstantiateOverloads(printer, component, className)
+
+        // Find setXXXOptions methods from the ExtendableXXX IDL class declaration
+        const extendableClassDecl = this.findExtendableClassDeclaration(className)
+        if (extendableClassDecl) {
+            this.printSetOptionsMethodsFromIDL(printer, component, attrInterfaceName, extendableClassDecl)
+        }
+
+        printer.popIndent()
+        printer.print('}')
+    }
+
+    private findExtendableClassDeclaration(className: string): idl.IDLInterface | undefined {
+        for (const file of this.peerLibrary.files) {
+            for (const entry of file.entries) {
+                if (idl.isInterface(entry) && entry.name === className) {
+                    return entry
+                }
+            }
+        }
+        return undefined
+    }
+
+    private componentHasContentParam(
+        component: { name: string; interfaceDeclaration?: idl.IDLInterface }
+    ): boolean {
+        if (!component.interfaceDeclaration) return false
+        const callables = component.interfaceDeclaration.callables ?? []
+        return callables.some(c =>
+            c.parameters.some(p => p.name === 'content_')
+        )
+    }
+
+    private printInstantiateImpl(
+        printer: LanguageWriter,
+        component: { name: string },
+        className: string,
+        hasContent: boolean
+    ): void {
+        const implName = `${component.name}Impl`
+        printer.print('@memo')
+        printer.print(`static _instantiateImpl<T extends ${className}>(`)
+        printer.pushIndent()
+        printer.print('@memo @memo_skip')
+        printer.print('styles: (instance: T) => void,')
+        if (hasContent) {
+            printer.print('factory: () => T,')
+            printer.print('@memo @memo_skip')
+            printer.print('_content: CustomBuilder): void')
+        } else {
+            printer.print('factory: () => T): void')
+        }
+        printer.popIndent()
+        printer.print('{')
+        printer.pushIndent()
+        printer.print('const instanceExtendable = remember(factory);')
+        printer.print('@memo @memo_skip')
+        printer.print(`const cb = (instance: ${component.name}Attribute): void => {`)
+        printer.pushIndent()
+        printer.print('styles(instanceExtendable);')
+        printer.print('let commonStyles = instanceExtendable.__get__commonStyles__Internal()')
+        printer.print('if (commonStyles) {')
+        printer.pushIndent()
+        printer.print('commonStyles.forEach((func) => {')
+        printer.pushIndent()
+        printer.print('func(instance);')
+        printer.popIndent()
+        printer.print('})')
+        printer.popIndent()
+        printer.print('}')
+        printer.print('instanceExtendable.__set__commonStyles__Internal(new Array<(instance: CommonMethod) => void>);')
+        printer.popIndent()
+        printer.print('}')
+        if (hasContent) {
+            printer.print(`${implName}(`)
+            printer.pushIndent()
+            printer.print('cb,')
+            printer.print('_content')
+            printer.popIndent()
+            printer.print(');')
+        } else {
+            printer.print(`${implName}(cb);`)
+        }
+        printer.popIndent()
+        printer.print('}')
+    }
+
+    private printInstantiateOverloads(
+        printer: LanguageWriter,
+        component: { name: string; interfaceDeclaration?: idl.IDLInterface },
+        className: string
+    ): void {
+        if (!component.interfaceDeclaration) return
+
+        // Get call signatures from the interface declaration
+        const callables = component.interfaceDeclaration.callables ?? []
+        for (const callable of callables) {
+            printer.print('')
+            printer.print('@ComponentBuilder')
+            const params = callable.parameters
+                .map(p => {
+                    const optional = p.isOptional ? '?' : ''
+                    const typeStr = this.convertType(p.type)
+                    return `${p.name}${optional}: ${typeStr}`
+                })
+                .join(', ')
+            printer.print(`static $_instantiate<T extends ${className}>(factory: () => T${params ? ', ' + params : ''}): T {`)
+            printer.pushIndent()
+            printer.print('throw Error("Illegal call of $_instantiate")')
+            printer.popIndent()
+            printer.print('}')
+        }
+    }
+
+    private printSetOptionsMethodsFromIDL(
+        printer: LanguageWriter,
+        component: { name: string },
+        attrInterfaceName: string,
+        extendableClassDecl: idl.IDLInterface
+    ): void {
+        const setOptionsName = `set${component.name}Options`
+        const setOptionsMethods = extendableClassDecl.methods
+            .filter(m => m.name === setOptionsName)
+
+        for (const method of setOptionsMethods) {
+            printer.print('')
+            const params = method.parameters
+                .map(p => {
+                    const optional = p.isOptional ? '?' : ''
+                    const typeStr = this.convertType(p.type)
+                    return `${p.name}${optional}: ${typeStr}`
+                })
+                .join(', ')
+            printer.print(`${setOptionsName}(${params}): this {`)
+            printer.pushIndent()
+            printer.print('const commonStyle: Array<(instance: CommonMethod) => void> | undefined = this.__get__commonStyles__Internal();')
+            printer.print('if (commonStyle) {')
+            printer.pushIndent()
+            printer.print('(commonStyle as Array<(instance: CommonMethod) => void>).push(')
+            const argNames = method.parameters.map(p => p.name).join(', ')
+            printer.pushIndent()
+            printer.print(`(instance: CommonMethod): void => (instance as ${attrInterfaceName}).${setOptionsName}(${argNames})`)
+            printer.popIndent()
+            printer.print(');')
+            printer.print('return this;')
+            printer.popIndent()
+            printer.print('} else {')
+            printer.pushIndent()
+            printer.print('if (this.__is_CustomComponent__Internal()) {')
+            printer.pushIndent()
+            printer.print(`throw new Error("${component.name} attribute '${setOptionsName}' can only be set when creating an extendable component.")`)
+            printer.popIndent()
+            printer.print('}')
+            printer.popIndent()
+            printer.print('}')
+            printer.print(`throw new Error('Unimplemented method ${setOptionsName}')`)
+            printer.popIndent()
+            printer.print('}')
+        }
+    }
+
     private printNamedOverloadGroup(peer: PeerClass, printer: LanguageWriter): void {
         const overloads = new Map<string, string[]>()
         for (const method of peer.methods) {
@@ -145,6 +406,12 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
     convertInterface(node: idl.IDLInterface) {
         if (isComponentDeclaration(this.peerLibrary, node)) {
             this.writer.writeLines(this.printComponent(node).join("\n"))
+            return
+        }
+        if (getExtendableClassNames().has(node.name)) {
+            return
+        }
+        if (node.name === 'ExtendableCommonMethod') {
             return
         }
         return super.convertInterface(node)
