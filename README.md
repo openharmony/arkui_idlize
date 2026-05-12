@@ -61,9 +61,7 @@ cd runner && npm run compile && cd ..
 bash generate.sh
 ```
 
-The generated code will be in `./out`. For full setup details including
-libarkts preparation and SDK download, see the
-[Setup Guide](INSTRUCTION.md).
+The generated code will be in `./out`.
 
 ## Tools
 
@@ -97,7 +95,6 @@ definitions (the reverse direction of `etsgen`).
 | [Developer Guide](doc/en/DEVELOPER_GUIDE.md) | ArkUI developer workflow: initial dev, new interfaces, parameter changes |
 | [CLI Reference](doc/en/CLI_REFERENCE.md) | Parameters and usage for runner, arkgen, etsgen |
 | [IDL Specification](doc/en/IDL_SPEC.md) | IDL language syntax, types, extended attributes |
-| [Setup Guide](INSTRUCTION.md) | Environment setup and regeneration commands |
 
 ### For Tool Developers
 

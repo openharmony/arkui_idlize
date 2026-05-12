@@ -59,8 +59,7 @@ cd runner && npm run compile && cd ..
 bash generate.sh
 ```
 
-生成的代码将位于 `./out` 目录。完整的环境搭建说明（包括 libarkts 准备和
-SDK 下载），请参阅[安装指南](INSTRUCTION.md)。
+生成的代码将位于 `./out` 目录。
 
 ## 工具
 
@@ -91,7 +90,6 @@ SDK 准备、IDL 转换、抓取、peer 生成和输出安装。参见
 | [开发者指南](doc/zh-cn/DEVELOPER_GUIDE.md) | ArkUI 开发者工作流：初始开发、新接口、参数变更 |
 | [CLI 参考](doc/zh-cn/CLI_REFERENCE.md) | runner、arkgen、etsgen 的参数和用法 |
 | [IDL 规范](doc/zh-cn/IDL_SPEC.md) | IDL 语言语法、类型、扩展属性 |
-| [安装指南](INSTRUCTION.md) | 环境搭建与重新生成命令 |
 
 ### 工具开发者文档
 

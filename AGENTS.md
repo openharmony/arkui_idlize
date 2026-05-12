@@ -33,7 +33,7 @@ When a generated file looks wrong, work backwards through these dirs
 to find which stage diverged. Authoritative paths live in
 `runner/src/shared.ts`.
 
-For setup, read `INSTRUCTION.md`.
+For setup, read `.claude/skills/INSTRUCTION.md`.
 For architecture deep-dives, see §Setup & deeper docs.
 
 ## Common tasks → where to start
@@ -136,7 +136,7 @@ Terms marked (*) appear in source code, config files, or IDL files.
   `arkoala-kotlin`) live under `external/` and consume generated peers.
 - `libace` — ArkUI native engine; C++ modifiers plug into it.
 - `panda SDK` — pinned native VM/runtime toolchain; see
-  `INSTRUCTION.md` for `PANDA_SDK_VERSION` and install steps.
+  `.claude/skills/INSTRUCTION.md` for `PANDA_SDK_VERSION` and install steps.
 - `koalaui` (*) — upstream UI runtime library imported as `@koalaui/*`
   by generated peers and `libohos/templates/`.
 
@@ -179,7 +179,7 @@ Terms marked (*) appear in source code, config files, or IDL files.
   (when adjacent to a `src/`), `*.tgz` — these are pipeline products.
 - **Do not hand-edit `interface_sdk-js/`** — it is a vendored upstream
   submodule; patch via `sdk-patched/` or `sdk-patched-arkts/` instead.
-- **Regenerate via `runner m3`** (see `INSTRUCTION.md`) after any
+- **Regenerate via `runner m3`** (see `.claude/skills/INSTRUCTION.md`) after any
   pipeline-affecting change; do not claim done from code review of
   generators alone — verify generated output.
 - **For architecture deep-dives**, read `doc/DESIGN.md`,
@@ -189,7 +189,7 @@ Terms marked (*) appear in source code, config files, or IDL files.
 ## Setup & deeper docs
 
 For environment setup, regeneration commands, and bundle publishing,
-read `INSTRUCTION.md` and `README.md` — those details are not duplicated
+read `.claude/skills/INSTRUCTION.md` — setup details are not duplicated
 here.
 
 For architecture deep-dives, read the relevant file under `doc/`:

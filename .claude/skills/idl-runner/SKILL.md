@@ -45,7 +45,7 @@ To regenerate after editing runner (or any pipeline workspace), run:
 bash generate.sh
 ```
 
-(see `INSTRUCTION.md`). This is the only supported entry point — do
+(see `.claude/skills/INSTRUCTION.md`). This is the only supported entry point — do
 not invoke `runner` subcommands directly. Output lands under `./out`.
 
 ## CLI Commands (reference)
