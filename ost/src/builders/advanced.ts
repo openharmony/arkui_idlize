@@ -708,6 +708,15 @@ class ExpressionBuilder<P> {
         return new UnaryBuilder(saveInto(this, '_expr'), op)
     }
     /**
+     * Create a ternary expression.
+     * Returns a TernaryBuilder.
+     *
+     * @returns TernaryBuilder for deferred construction
+     */
+    ternary(): TernaryBuilder<this> {
+        return new TernaryBuilder(saveInto(this, '_expr'))
+    }
+    /**
      * Create a function call expression.
      * Returns a CallBuilder for specifying function, receiver, and arguments.
      *
