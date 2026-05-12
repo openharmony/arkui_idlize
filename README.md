@@ -1,114 +1,110 @@
 # <p> <img align="bottom" src="artwork/logo.svg" alt="logo" width="100"/> IDLize <p/>
 
-## Description
+[中文文档](README_zh.md)
 
-This folder contains collection of tools for analyzing and transformation of
-.d.ts and idl files, with aim of exposing native interfaces to managed languages and runtimes.
+## What is IDLize
 
-## Tools available
+IDLize is a compiler toolchain for the OpenHarmony/ArkUI ecosystem that
+ingests interface declarations (`.d.ts`, `.d.ets`, `.idl`) and generates
+native bindings. Generated artifacts include ArkTS peer classes, C++
+libace modifiers, and serialization code for the ArkUI component
+framework. The target audience is ArkUI developers who need to define or
+process component interfaces for the OpenHarmony platform.
 
-### Peer generator
+## Architecture
 
-Using:
+```mermaid
+graph TD
+    subgraph "1. IDL Core"
+        etsgen["etsgen<br/>.d.ts / .d.ets → .idl"]
+        parser["IDL Parser<br/>core/"]
+        etsgen -->|"generates .idl"| parser
+    end
+
+    subgraph "2. ArkUI Generator"
+        arkgen["arkgen<br/>Component peer generation"]
+    end
+
+    subgraph "3. Generator Core"
+        libohos["libohos<br/>Printers, Serializers"]
+        writer["Language Writers<br/>ArkTS / C++ / Kotlin"]
+        libohos --> writer
+    end
+
+    input[".d.ts / .d.ets / .idl"] --> etsgen
+    parser -->|"IDL AST"| arkgen
+    arkgen --> libohos
+    writer --> peers["ArkTS Peers"]
+    writer --> modifiers["C++ Modifiers"]
+    writer --> serializers["Serializers"]
 ```
-npx @idlizer/arkgen@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala --only-integrated
-```
 
-Run:
+## Quick Start
+
+**Step 1: Clone and install**
+
 ```bash
-cd idlize
 git submodule update --init
-git submodule update --remote
 npm i
-cd arkgen
-npm run compile
+cd external && npm i && cd ..
 ```
 
-#### Generating libace interface files:
-
-Given interface definitions it will produce for libace
-  * For libace interface
-    * arkoala_api_generated.h header
-    * api discovery code
-    * component modifiers
-    * etc
+**Step 2: Compile**
 
 ```bash
-node . --dts2peer --input-dir sdk/component --generator-target libace --api-version 140
+cd runner && npm run compile && cd ..
 ```
 
-#### Generating high level language peer files:
-
-Given interface definitions it will produce for Arkoala
-  * For high language bindings (arkoala)
-    * C++ glue code
-    * high level language peer classes (TS, ArkTS, Java, etc)
-    * etc
-
+**Step 3: Generate**
 
 ```bash
-node . --dts2peer --input-dir sdk/component --generator-target arkoala --api-version 140
+bash generate.sh
 ```
 
+The generated code will be in `./out`. For full setup details including
+libarkts preparation and SDK download, see the
+[Setup Guide](INSTRUCTION.md).
 
-#### To test for full sdk
+## Tools
 
-```bash
-cd idlize
-npm i
-npm run check:peers:run
-```
+**Peer Generator** (`arkgen`) -- Generates ArkTS peers, C++ libace
+modifiers, and Arkoala bindings from IDL definitions. Primary mode:
+`--idl2peer`. See [Developer Guide](doc/en/DEVELOPER_GUIDE.md) and
+[CLI Reference](doc/en/CLI_REFERENCE.md).
 
-The output is in `out/ts-peers` directory
+**IDL Converter** (`etsgen`) -- Converts `.d.ts` and `.d.ets`
+declarations to IDL format. Primary mode: `--ets2idl`. See
+[CLI Reference](doc/en/CLI_REFERENCE.md).
 
-#### To test with a simple subset sdk
+**Pipeline Runner** (`runner`) -- Orchestrates the end-to-end generation
+pipeline via the `m3` command, which chains SDK preparation, IDL
+conversion, scraping, peer generation, and output installation. See
+[CLI Reference](doc/en/CLI_REFERENCE.md).
 
-```bash
-cd idlize
-npm i
-npm run check:subset:run
-```
+**Linters** -- The `.d.ts` linter (`@idlizer/linter`) and the `.idl`
+linter (`@idlizer/idlinter`) validate interface declarations for quality
+and correctness.
 
-The output is in `out/ts-subset` directory
+**IDL Generator** (`dtsgen`) -- Generates `.d.ts` declarations from IDL
+definitions (the reverse direction of `etsgen`).
 
-### .d.ts linter
+## Documentation
 
- Tool checking that given folder (ArkUI interface declarations downloaded by Arkoala build by default) only contains reasonable set of TypeScript features allowed for usage in public interfaces.
+### For Tool Users
 
-To run
+| Document | Description |
+|----------|-------------|
+| [Developer Guide](doc/en/DEVELOPER_GUIDE.md) | ArkUI developer workflow: initial dev, new interfaces, parameter changes |
+| [CLI Reference](doc/en/CLI_REFERENCE.md) | Parameters and usage for runner, arkgen, etsgen |
+| [IDL Specification](doc/en/IDL_SPEC.md) | IDL language syntax, types, extended attributes |
+| [Setup Guide](INSTRUCTION.md) | Environment setup and regeneration commands |
 
-```bash
-cd idlize/linter
-npm i
-npm run compile
-node . --input-dir ../interface_sdk-js/api/@internal/component/ets/
-```
+### For Tool Developers
 
-Results are in `./<outputDir>/linter.txt` if  `--output-dir` parameter specified, otherwise printed to stdout.
-If there are no unsuppressed errors - exit code is 1, otherwise it is 0.
-
-Linter support whitelist files in JSON:
-```json
-{
-    "suppressErrors": ["TYPE_ELEMENT_TYPE", "INDEX_SIGNATURE"],
-    "suppressIdentifiers": {
-        "cursorControl": ["NAMESPACE"]
-    }
-}
-```
-can be passed with `--whitelist whitelist.json`.
-
-### IDL generator
-
- Tool producing set of WebIDL-compatible interface definitions from .d.ts interface definitions.
- Still in progress, may produce incorrect IDL.
-
-```bash
-cd idlize
-npm i
-cd arkgen
-npm run compile
-node . --dts2idl --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/component --output-dir ./idl
-```
-
-Results are in `./idl/` folder.
+| Document | Description |
+|----------|-------------|
+| [Architecture](doc/en/ARCHITECTURE.md) | Tool developer concepts, core modules, UML diagrams |
+| [Serialization](doc/en/SERIALIZATION.md) | Types serialization protocol |
+| [Callbacks](doc/en/CALLBACKS.md) | Callback and event binding patterns |
+| [Limitations](doc/en/LIMITATIONS.md) | Processing pipeline limitations |
+| [Performance](doc/en/PERFORMANCE.md) | Performance considerations |

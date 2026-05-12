@@ -2,27 +2,27 @@
 
 ## Understanding of Callbacks
 
-Here you can find examples of callbacks usage in CAPI with simple examples and list of common problems.
+This section provides examples of callback usage in CAPI along with a list of common problems.
 
 ### Terms
 
-**Resource** (or **CallbackResource**) - set of numeric identifier `resourceId` (currently int32), `hold` and `release` functional pointers with signature `void(int32)`.
+**Resource** (or **CallbackResource**) - a set comprising a numeric identifier `resourceId` (currently int32), and `hold` and `release` function pointers with the signature `void(int32)`.
 
-* resourceId - unique identifier of resource, purpose of which is defined by the Resource creator. For example, for managed side callbacks resourceId might be a key in a map `Map<int, () => void>`, where each resourceId corresponds to on closure.
-* hold - function, that is being called to increment references count to the Resource.
-* release - function, that is being called to decrement references count to the Resource.
+* `resourceId` - a unique identifier of a resource, the purpose of which is defined by the Resource creator. For example, for managed-side callbacks, `resourceId` might be a key in a map `Map<int, () => void>`, where each `resourceId` corresponds to one closure.
+* `hold` - a function that is called to increment the reference count of the Resource.
+* `release` - a function that is called to decrement the reference count of the Resource.
 
-Exact implementation of hold and release is specific for the one who creates Resource.
+The exact implementation of hold and release is specific to whoever creates the Resource.
 
-**Callback** - set of Resource, `call` and `callSync` functional pointers. Signature of `callSync` is `void (VMContext vmContext, int32 resourceId, [callbackArg0, ..., callbackArgN] [ContinuationType continuation])`. Signature of `callSync` is exact `call` without vmContext argument.
+**Callback** - a set of Resource, `call`, and `callSync` function pointers. The signature of `call` is `void (int32 resourceId, [callbackArg0, ..., callbackArgN] [ContinuationType continuation])`. The signature of `callSync` is the same as `call` but with a `VMContext` argument prepended.
 
-**VMContext** - context of virtual machine, that comes in some API calls. Used for calls to VM through napi/ani/ets_napi/etc (depending on kind of virtial machine). CAPI does not provides any information about what VMContext is exactly.
+**VMContext** - the context of a virtual machine, which is provided in certain API calls. It is used for calls to the VM through napi/ani/ets_napi/etc (depending on the kind of virtual machine). CAPI does not provide any information about what VMContext is exactly.
 
-**continuation** - callback, that will be called to provide result of parent's Callback execution in reactive style.
+**continuation** - a callback that will be called to provide the result of the parent Callback's execution in a reactive style.
 
 ### Hold, Release and call context <a id='hold-release-and-call-context'></a>
 
-C language does not have builtin ways to track references count for data, just functions with pure data. Because of that you must always carefully control, have you incremented references with `hold` function or not. <a id='callback-context-convention'></a>By the convention, if structure with Resource is passed in function arguments, references counter will always be not zero to give you a change to control a Resource. But if you want to keep resource out of function context, you must manually call `hold` function.
+C does not have built-in ways to track reference counts for data, only functions with raw data. Because of this, you must always carefully track whether you have incremented references with the `hold` function. <a id='callback-context-convention'></a>By convention, if a structure with a Resource is passed in function arguments, the reference counter will always be non-zero to give you a chance to control the Resource. But if you want to keep the resource outside the function context, you must manually call the `hold` function.
 
 Correct usage (callback was called inside `foo` context, where refs count was not zero):
 
@@ -39,7 +39,7 @@ void foo(const Callback_Void *cb) {
 }
 ```
 
-Correct usage - callback was called out of `subscribe` context, but hold has been called. After callback is no more needed, release has been called:
+Correct usage - callback was called outside the `subscribe` context, but `hold` has been called. After the callback is no longer needed, `release` has been called:
 
 ```c++
 bool g_isValid = false;
@@ -54,7 +54,7 @@ void emit() {
         g_cb.call(g_cb.resource.resourceId); // holding
     }
 }
-void unsibscribe(const Callback_Void *cb) {
+void unsubscribe(const Callback_Void *cb) {
     if (g_isValid) {
         g_isValid = false; // holding
         g_cb.resource.release(g_cb.resource.resourceId) // released, refs count unspecified
@@ -62,7 +62,7 @@ void unsibscribe(const Callback_Void *cb) {
 }
 ```
 
-Incorrect usage - pointer to the resource was saved instead of structure data. Remember, that pointers in CAPI arguments are used just to optimize size of passed data:
+Incorrect usage - a pointer to the resource was saved instead of the structure data. Remember that pointers in CAPI arguments are used only to optimize the size of the passed data:
 
 ```c++
 bool g_isValid = false;
@@ -74,7 +74,7 @@ void subscribe(const Callback_Void *cb) {
 }
 void emit() {
     if (g_isValid) {
-        g_cb->call(g_cb->resource.resourceId); // g_cb points to a memory, that is not guaranteed to be valid
+        g_cb->call(g_cb->resource.resourceId); // g_cb points to memory that is not guaranteed to be valid
     }
 }
 ```
@@ -259,7 +259,7 @@ void boo(VMContext vmContext) {
 
 ### Overview
 
-There is presented general callback pipelines - how callbacks are transferred between managed and native, how transferred their calls and so on.
+This section presents the general callback pipelines — how callbacks are transferred between managed and native code, and how their calls are dispatched.
 
 Traversing managed closure to native CAPI structure.
 
@@ -276,7 +276,7 @@ Converting native CAPI structure to managed closure.
 
 Calling callback in CAPI, that was created from managed closure.
 
-1. Have CAPI structure describing callback, that came from managed side. `call` or `callSync` has beed invoked.
+1. Have CAPI structure describing callback, that came from managed side. `call` or `callSync` has been invoked.
 2. `callManagedSmth` or `callManagedSmthSync` (that call or callSync essentially is, see [Bridges: call and callSync](#bridges-call-callSync)) is invoked. 
 3. Callback arguments are serialized. Depending on synchronous or asynchronous call managed function is invoked or callback is put into queue and called later (see [Bridges: general events](#bridges-general-events)).
 4. After receiving callback arguments in managed side, they are deserialized, closure instance is got from ResourceHolder and called (see [Managed: deserialize arguments and call closure](#managed-deserialize-and-call)). If there is not void return type in closure, continuation callback is called with received result (see [Continuations](#continuations)).
@@ -350,13 +350,13 @@ export class ResourceHolder {
 
     public hold(resourceId: ResourceId) {
         if (!this.resources.has(resourceId))
-            throw new Error(`Resource ${resourceId} does not exists, can not hold`)
+            throw new Error(`Resource ${resourceId} does not exist, can not hold`)
         this.resources.get(resourceId)!.holdersCount++
     }
 
     public release(resourceId: ResourceId) {
         if (!this.resources.has(resourceId))
-            throw new Error(`Resource ${resourceId} does not exists, can not release`)
+            throw new Error(`Resource ${resourceId} does not exist, can not release`)
         const resource = this.resources.get(resourceId)!
         resource.holdersCount--
         if (resource.holdersCount <= 0)
@@ -374,7 +374,7 @@ export class ResourceHolder {
 
     public get(resourceId: ResourceId): object {
         if (!this.resources.has(resourceId))
-            throw new Error(`Resource ${resourceId} does not exists`)
+            throw new Error(`Resource ${resourceId} does not exist`)
         return this.resources.get(resourceId)!.resource
     }
 
@@ -611,7 +611,7 @@ typedef enum CallbackKind {
 
 ![Visualization of upper paragraph](./native_queue_resources.png)
 
-That was asynchronous variant, so the next is `callSync` implemenetation.
+That was the asynchronous variant, so the next is the `callSync` implementation.
 
 ```c++
 void callManagedFooSync(OH_OHOS_VMContext vmContext, OH_Int32 resourceId)
@@ -632,7 +632,7 @@ OH_NativePointer getManagedCallbackCallerSync(CallbackKind kind)
 }
 ```
 
-The implementation is much simpler, because validity of resources is guaranteed by call context. Data must be just serialized to buffer and passed to the direct managed call with `KOALA_INTEROP_CALL_VOID` macros.
+The implementation is simpler because the validity of resources is guaranteed by the call context. Data is serialized to a buffer and passed to the direct managed call with the `KOALA_INTEROP_CALL_VOID` macros.
 
 `KOALA_INTEROP_CALL_VOID` - is a special macros, that makes direct calls to VM is VMContext is provided. Static function `InteropNativeModule.callCallbackFromNative` is being called and makes magic of deserializing data, retrieving a callback from ResourceHolder by id and calling an exact closure.
 
