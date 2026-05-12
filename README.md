@@ -27,7 +27,7 @@ graph TD
 
     subgraph "3. Generator Core"
         libohos["libohos<br/>Printers, Serializers"]
-        writer["Language Writers<br/>ArkTS / C++ / Kotlin"]
+        writer["Language Writers<br/>ArkTS / C++ / CangJie"]
         libohos --> writer
     end
 
