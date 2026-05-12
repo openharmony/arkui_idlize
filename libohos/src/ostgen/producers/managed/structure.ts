@@ -14,13 +14,14 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { capitalize, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized, isStaticMaterialized } from "@idlizer/core"
-import { Builders, Md, T, Ts } from "@idlizer/ost"
+import { capitalize, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized, isStaticMaterialized, PeerMethodSignature } from "@idlizer/core"
+import { Builders, E, lw, Md, std, T, Ts } from "@idlizer/ost"
 import { ProducerResult } from "@idlizer/kit"
 import { expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext, OhosRole, OhosSeed } from "../../engine/index.js"
 import { createProducer } from "../../engine/index.js"
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
+import { allowsOverloads, collapseSameMethodsIDL } from "../../../peer-generation/printers/OverloadsPrinter.js"
 
 export const structureProducer = createProducer<idl.IDLInterface, OhosRole<idl.IDLInterface>>(
   { is: idl.isInterface, role: 'managed' },
@@ -142,15 +143,7 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
   const matClass = Builders.class(name)
     .extends(superType ? expectType(ctx, superType, 'managed') : undefined)
     .implements(T.c('MaterializedBase'))
-    .ctor().param('tag').type(T.c('MaterializedBaseTag')).$().param('ptr').type(Ts.prim.pointer).$()
-      .block().statements([superIsMaterialized
-        ? Builders.stmt().call('super').arg('tag').arg('ptr').$().$()
-        : Builders.stmt().binary('=')
-            .left().access('peer').receiver('this').$().$()
-            .right().ctor('Finalizable')
-              .arg('ptr')
-              .arg().call('getFinalizer').receiver(name).$().$().$().$().$().$()
-      ]).$().$().$()
+    .methods(mergeConstructors(name, superIsMaterialized, node.constructors, ctx)).$()
   // peer field and getPeer() only when no superclass
   if (!superType) {
     matClass.fields.unshift(Builders.field('peer').type(peerType).$())
@@ -194,4 +187,48 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
       ...syntheticMethods
     ].map(it => new OhosSeed(it, 'managed'))
   }
+}
+
+function mergeConstructors(
+  name: string,
+  superIsMaterialized: boolean,
+  ctors: idl.IDLConstructor[],
+  ctx: OhosProducerContext,
+): lw.FunctionDeclaration[] {
+  const setPeer = Builders.stmt().binary('=')
+          .left().access('peer').receiver('this').$().$()
+          .right().ctor('Finalizable')
+          .arg('ptr')
+          .arg().call('getFinalizer').receiver(name).$().$().$().$().$().$()
+  if (allowsOverloads(ctx.library.language)) return [
+    Builders.func(std.names.members.ctor).param('tag').type(T.c('MaterializedBaseTag')).$().param('ptr').type(Ts.prim.pointer).$()
+      .block().statements([superIsMaterialized
+        ? Builders.stmt().call('super').arg('tag').arg('ptr').$().$()
+        : setPeer
+      ]).$().$()
+  ]
+  const collapsed = collapseSameMethodsIDL(ctors)
+  const params = [
+    ...collapsed.parameters.map(it =>
+      ({ name: it.name, type: expectType(ctx, it.type, 'managed'), modifiers: it.isOptional ? [Md.optional()] : [] })),
+    { name: "peerPtr", type: Ts.prim.pointer, modifiers: [Md.optional()] }
+  ]
+  return [
+    Builders.func(std.names.members.ctor)
+      .parameters(params)
+      .block().statements(
+        [
+          Builders.decl('ptr', Ts.prim.pointer).value()
+          .ternary()
+          .cond().var('(peerPtr != undefined)').$()
+          .then().const('peerPtr').$()
+          .else()
+          .call(`_construct`).args(params.map(it => Builders.expr().const(it.name).$())).receiver(name).$().$().$().$()
+          .$(),
+          setPeer,
+          Builders.stmt().call('callHolder').receiver('this').$().$(),
+        ]
+      )
+      .$().$(),
+  ]
 }
