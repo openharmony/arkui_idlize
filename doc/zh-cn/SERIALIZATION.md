@@ -9,7 +9,7 @@
 每个具体化类/接口提供：
 
 - `getFinalizer(): KPointer` — 返回指向原生销毁方法的函数指针的静态方法。
-- `getPeer(): Finalizable | undefined` — 返回持有原生指针的 peer（由序列化器使用）。
+- `getPeer(): Finalizable | undefined` — 返回持有原生指针的 peer（由 Serializer 使用）。
 - `fromPtr(ptr: KPointer): ClassName` — 从原生指针构造实例的静态工厂方法。
 
 ### 具体化接口

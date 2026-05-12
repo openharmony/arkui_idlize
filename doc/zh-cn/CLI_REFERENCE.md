@@ -206,7 +206,7 @@ node runner -- transform-builder-functions <api-path>
 
 ## 2. arkgen
 
-ArkUI 组件生成器。从 IDL 定义生成 ArkTS peer、C++ libace modifier
+ArkUI Component Generator。从 IDL 定义生成 ArkTS peer、C++ libace modifier
 和 Arkoala 绑定。调用方式如下：
 
 ```bash
@@ -352,7 +352,7 @@ arkgen --idl2peer \
 
 ## 3. etsgen
 
-`.d.ts` / `.d.ets` 到 IDL 转换器。将 TypeScript 和 ArkTS 声明文件转换为 IDL 定义。
+`.d.ts` / `.d.ets` 到 IDL Converter。将 TypeScript 和 ArkTS 声明文件转换为 IDL 定义。
 调用方式如下：
 
 ```bash

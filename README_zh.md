@@ -5,8 +5,8 @@
 ## IDLize 是什么
 
 IDLize 是面向 OpenHarmony/ArkUI 生态的编译器工具链，用于读取接口声明文件
-（`.d.ts`、`.d.ets`、`.idl`）并生成原生绑定。生成的产物包括 ArkTS peer 类、
-C++ libace 修饰符，以及 ArkUI 组件框架的序列化代码。目标用户是需要在
+（`.d.ts`、`.d.ets`、`.idl`）并生成 native bindings。生成的产物包括 ArkTS peer 类、
+C++ libace Modifiers，以及 ArkUI 组件框架的序列化代码。目标用户是需要在
 OpenHarmony 平台上定义或处理组件接口的 ArkUI 开发者。
 
 ## 架构
@@ -24,7 +24,7 @@ graph TD
     end
 
     subgraph "3. Generator Core"
-        libohos["libohos<br/>打印机、序列化器"]
+        libohos["libohos<br/>Printer、Serializer"]
         writer["Language Writers<br/>ArkTS / C++ / CangJie"]
         libohos --> writer
     end
@@ -33,8 +33,8 @@ graph TD
     parser -->|"IDL AST"| arkgen
     arkgen --> libohos
     writer --> peers["ArkTS Peers"]
-    writer --> modifiers["C++ 修饰符"]
-    writer --> serializers["序列化器"]
+    writer --> modifiers["C++ Modifiers"]
+    writer --> serializers["Serializer"]
 ```
 
 ## 快速开始
@@ -63,22 +63,22 @@ bash generate.sh
 
 ## 工具
 
-**Peer 生成器**（`arkgen`）-- 从 IDL 定义生成 ArkTS peer、C++ libace 修饰符
+**Peer Generator**（`arkgen`）-- 从 IDL 定义生成 ArkTS peer、C++ libace Modifiers
 和 Arkoala 绑定。主要模式：`--idl2peer`。参见
 [开发者指南](doc/zh-cn/DEVELOPER_GUIDE.md)和
 [CLI 参考](doc/zh-cn/CLI_REFERENCE.md)。
 
-**IDL 转换器**（`etsgen`）-- 将 `.d.ts` 和 `.d.ets` 声明转换为 IDL 格式。
+**IDL Converter**（`etsgen`）-- 将 `.d.ts` 和 `.d.ets` 声明转换为 IDL 格式。
 主要模式：`--ets2idl`。参见[CLI 参考](doc/zh-cn/CLI_REFERENCE.md)。
 
-**管线运行器**（`runner`）-- 通过 `m3` 命令编排端到端生成管线，依次执行
+**Pipeline Runner**（`runner`）-- 通过 `m3` 命令编排端到端生成管线，依次执行
 SDK 准备、IDL 转换、抓取、peer 生成和输出安装。参见
 [CLI 参考](doc/zh-cn/CLI_REFERENCE.md)。
 
 **代码检查工具** -- `.d.ts` 检查工具（`@idlizer/linter`）和 `.idl` 检查工具
 （`@idlizer/idlinter`）用于验证接口声明的质量和正确性。
 
-**IDL 生成器**（`dtsgen`）-- 从 IDL 定义生成 `.d.ts` 声明（与 `etsgen`
+**IDL Generator**（`dtsgen`）-- 从 IDL 定义生成 `.d.ts` 声明（与 `etsgen`
 相反的方向）。
 
 ## 文档

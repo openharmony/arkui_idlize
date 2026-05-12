@@ -3,7 +3,7 @@
 ## 1. 概述
 
 IDLize 是一个编译器工具链，用于接收接口声明文件（`.d.ts`、`.d.ets`、`.idl`），
-并为 OpenHarmony / ArkUI 生态系统生成原生绑定代码。生成的产物包括 ArkTS peer 类、
+并为 OpenHarmony / ArkUI 生态系统生成 native bindings 代码。生成的产物包括 ArkTS peer 类、
 C++ libace modifier，以及被 Arkoala 运行时消费的序列化胶水代码。
 
 该工具链遵循经典的编译器管线：
@@ -50,14 +50,14 @@ hook 在 `generation-config/config.json` 中配置。
 它定义了被生成的 peer 和原生引擎共同使用的运行时类型枚举和值表示。
 
 **LanguageWriter**
-一个语言无关的发射器接口。`LanguageWriter` 定义了诸如 `writeMethod`、
+一个语言无关的 Writer 接口。`LanguageWriter` 定义了诸如 `writeMethod`、
 `writeProperty`、`writeClass` 和 `writeInterface` 等抽象操作。
 具体子类（`TsLanguageWriter`、`CppLanguageWriter`、`ETSLanguageWriter`、
 `CJLanguageWriter`）为各自的目标语言实现这些操作。
 Writer 通过 `IndentedPrinter` 生成代码，并自动跟踪所需的导入。
 
 **TypeConvertor**（ArgConvertor）
-一个策略对象，将 IDL 类型转换为目标语言类型并生成相应的编组代码。
+一个策略对象，将 IDL 类型转换为目标语言类型并生成相应的 marshalling 代码。
 每种语言都有自己的转换器（如 `CppConvertor`、`ETSConvertor`、`TSConvertor`）。
 转换器实现 `ArgConvertor` 接口，该接口定义了参数在调用处如何转换、
 发出什么运行时类型标签，以及转换是基于作用域还是基于数组。
@@ -157,7 +157,7 @@ flowchart LR
 | `IDLTypeParameterType` | `TypeParameterType` | 泛型类型参数 |
 | `IDLOptionalType` | `OptionalType` | 围绕另一种类型的可选包装 |
 
-### 4.2 arkgen/ -- ArkUI 组件生成器
+### 4.2 arkgen/ -- ArkUI Component Generator
 
 **职责：** 从 IDL AST 生成 ArkUI 组件 peer、C++ libace modifier
 和 Arkoala 接口绑定。这是主要的代码生成工作区。
@@ -509,7 +509,7 @@ classDiagram
 | 目录 | 内容 |
 |---|---|
 | `sig/` | TypeScript / ArkTS peer 签名和组件类 |
-| `libace/` | C++ libace modifier、serializer 和原生绑定代码 |
+| `libace/` | C++ libace modifier、serializer 和 native bindings 代码 |
 
 ### 阶段 5：格式化和安装
 
