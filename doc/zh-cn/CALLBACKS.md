@@ -225,7 +225,7 @@ void foo(VMContext vmContext) {
 }
 ```
 
-![同步调用栈](sync_call.png)
+![同步调用栈](../img/sync_call.png)
 
 全局存储 VMContext 然后使用它可能导致不可预测的行为，请谨慎使用。
 
@@ -610,7 +610,7 @@ typedef enum CallbackKind {
 
 `callManagedFoo` 本质上是一个代理，接收回调数据，将其序列化到 CallbackBuffer 缓冲区，并使用 [enqueueCallback](#bridges-general-events) 函数推送到队列。数据序列化与托管侧有一个重要区别。如你所知，回调是必须被持有才能保持有效的资源。为此，对于回调数据中的每个 Resource，包括回调本身，都会调用 `hold` 函数。持有的资源列表被推送到 `CallbackBuffer.resourceHolder` 存储。从队列读取事件后，所有持有的资源都会被释放。
 
-![上段内容的可视化](./native_queue_resources.png)
+![上段内容的可视化](../img/native_queue_resources.png)
 
 以上就是异步变体，接下来是 `callSync` 的实现。
 

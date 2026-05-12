@@ -239,7 +239,7 @@ node /path/to/arkgen [options]
 
 | 选项 | 类型 | 默认值 | 描述 |
 |--------|------|---------|-------------|
-| `--language <lang>` | `ts \| arkts \| cangjie \| kotlin` | `ts` | 输出语言 |
+| `--language <lang>` | `ts \| arkts \| cangjie` | `ts` | 输出语言 |
 | `--arkts-extension <ext>` | string | `.ts` | 生成的 ArkTS 文件的扩展名 |
 
 ### 代码生成

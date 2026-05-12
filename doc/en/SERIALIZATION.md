@@ -76,7 +76,7 @@ class CanvasRenderingContext2D extends CanvasRenderer {
 
 For languages that support constructor overloading (TypeScript, ArkTS), each
 original constructor is emitted alongside the base constructor that accepts a
-pointer. For languages without overloads (CangJie, Kotlin), constructors are
+pointer. For languages without overloads (CangJie), constructors are
 collapsed into a single constructor with optional parameters.
 
 ### Naming conventions

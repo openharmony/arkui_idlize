@@ -53,7 +53,7 @@ hook 在 `generation-config/config.json` 中配置。
 一个语言无关的发射器接口。`LanguageWriter` 定义了诸如 `writeMethod`、
 `writeProperty`、`writeClass` 和 `writeInterface` 等抽象操作。
 具体子类（`TsLanguageWriter`、`CppLanguageWriter`、`ETSLanguageWriter`、
-`CJLanguageWriter`、`KotlinLanguageWriter`）为各自的目标语言实现这些操作。
+`CJLanguageWriter`）为各自的目标语言实现这些操作。
 Writer 通过 `IndentedPrinter` 生成代码，并自动跟踪所需的导入。
 
 **TypeConvertor**（ArgConvertor）
@@ -115,7 +115,7 @@ flowchart LR
 | `core/src/LanguageWriters/LanguageWriter.ts` | 抽象 `LanguageWriter` 基类，包含表达式和语句 IR |
 | `core/src/LanguageWriters/writers/` | 具体 writer 实现（`TsLanguageWriter`、`CppLanguageWriter`、`ETSLanguageWriter` 等） |
 | `core/src/LanguageWriters/convertors/` | 语言特定的类型转换器（`CppConvertor`、`ETSConvertor` 等） |
-| `core/src/Language.ts` | `Language` 类，枚举支持的目标语言（TS、ArkTS、C++、CangJie、Kotlin） |
+| `core/src/Language.ts` | `Language` 类，枚举支持的目标语言（TS、ArkTS、C++、CangJie） |
 | `core/src/config.ts` | 配置加载和模式 |
 | `core/src/configMerge.ts` | 配置合并逻辑 |
 | `core/src/diagnostictypes.ts` | 诊断和错误报告类型 |
@@ -145,7 +145,6 @@ flowchart LR
 | ArkTS | `.ts` | OpenHarmony TypeScript 方言 |
 | C++ | `.cc` | 原生 libace modifier |
 | CangJie | `.cj` | CangJie 语言目标 |
-| Kotlin | `.kt` | Kotlin 目标 |
 
 **类型节点：**
 
@@ -401,16 +400,10 @@ classDiagram
         +writeProperty(property)
         +getNodeName(type) string
     }
-    class KotlinLanguageWriter {
-        +writeMethod(method, body)
-        +writeProperty(property)
-        +getNodeName(type) string
-    }
     LanguageWriter <|-- TsLanguageWriter
     LanguageWriter <|-- ETSLanguageWriter
     LanguageWriter <|-- CppLanguageWriter
     LanguageWriter <|-- CJLanguageWriter
-    LanguageWriter <|-- KotlinLanguageWriter
 ```
 
 ### 5.4 类型节点层次结构

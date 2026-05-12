@@ -224,7 +224,7 @@ void foo(VMContext vmContext) {
 }
 ```
 
-![sync call stack](sync_call.png)
+![sync call stack](../img/sync_call.png)
 
 Storing VMContext globally and then using it can result with unpredictable behaviour, so be careful with that. 
 
@@ -609,7 +609,7 @@ typedef enum CallbackKind {
 
 `callManagedFoo` is essentially a proxy that receives callback data, serializes it to CallbackBuffer buffer and pushes into queue with [enqueueCallback](#bridges-general-events) function. Data serialization has single important difference from the managed side. As you know, callbacks are resources that must be held to keep them actual. To do that, for each Resource inside callback data, including callback itself, `hold` functions are being called. The list of held resources pushed to `CallbackBuffer.resourceHolder` storage. After reading event from queue all held resources are being released.
 
-![Visualization of upper paragraph](./native_queue_resources.png)
+![Visualization of upper paragraph](../img/native_queue_resources.png)
 
 That was the asynchronous variant, so the next is the `callSync` implementation.
 

@@ -74,7 +74,7 @@ class CanvasRenderingContext2D extends CanvasRenderer {
 ```
 
 对于支持构造函数重载的语言（TypeScript、ArkTS），每个原始构造函数与接受
-指针的基础构造函数一起发射。对于不支持重载的语言（CangJie、Kotlin），
+指针的基础构造函数一起发射。对于不支持重载的语言（CangJie），
 构造函数被合并为带有可选参数的单个构造函数。
 
 ### 命名约定

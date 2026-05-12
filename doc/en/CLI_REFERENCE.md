@@ -243,7 +243,7 @@ node /path/to/arkgen [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--language <lang>` | `ts \| arkts \| cangjie \| kotlin` | `ts` | Output language |
+| `--language <lang>` | `ts \| arkts \| cangjie` | `ts` | Output language |
 | `--arkts-extension <ext>` | string | `.ts` | File extension for generated ArkTS files |
 
 ### Code Generation

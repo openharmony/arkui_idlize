@@ -67,8 +67,7 @@ by both the generated peers and the native engine.
 A language-agnostic emitter interface. `LanguageWriter` defines abstract
 operations such as `writeMethod`, `writeProperty`, `writeClass`, and
 `writeInterface`. Concrete subclasses (`TsLanguageWriter`,
-`CppLanguageWriter`, `ETSLanguageWriter`, `CJLanguageWriter`,
-`KotlinLanguageWriter`) implement these operations for their respective
+`CppLanguageWriter`, `ETSLanguageWriter`, `CJLanguageWriter`) implement these operations for their respective
 target languages. Writers produce code via an `IndentedPrinter` and
 track required imports automatically.
 
@@ -142,7 +141,7 @@ parser that reads `.idl` files into AST form, and implements the
 | `core/src/LanguageWriters/LanguageWriter.ts` | Abstract `LanguageWriter` base class with expression and statement IR |
 | `core/src/LanguageWriters/writers/` | Concrete writer implementations (`TsLanguageWriter`, `CppLanguageWriter`, `ETSLanguageWriter`, etc.) |
 | `core/src/LanguageWriters/convertors/` | Language-specific type convertors (`CppConvertor`, `ETSConvertor`, etc.) |
-| `core/src/Language.ts` | `Language` class enumerating supported target languages (TS, ArkTS, C++, CangJie, Kotlin) |
+| `core/src/Language.ts` | `Language` class enumerating supported target languages (TS, ArkTS, C++, CangJie) |
 | `core/src/config.ts` | Configuration loading and schema |
 | `core/src/configMerge.ts` | Configuration merging logic |
 | `core/src/diagnostictypes.ts` | Diagnostic and error reporting types |
@@ -172,7 +171,6 @@ parser that reads `.idl` files into AST form, and implements the
 | ArkTS | `.ts` | OpenHarmony TypeScript dialect |
 | C++ | `.cc` | Native libace modifiers |
 | CangJie | `.cj` | CangJie language target |
-| Kotlin | `.kt` | Kotlin target |
 
 **Type node types:**
 
@@ -439,16 +437,10 @@ classDiagram
         +writeProperty(property)
         +getNodeName(type) string
     }
-    class KotlinLanguageWriter {
-        +writeMethod(method, body)
-        +writeProperty(property)
-        +getNodeName(type) string
-    }
     LanguageWriter <|-- TsLanguageWriter
     LanguageWriter <|-- ETSLanguageWriter
     LanguageWriter <|-- CppLanguageWriter
     LanguageWriter <|-- CJLanguageWriter
-    LanguageWriter <|-- KotlinLanguageWriter
 ```
 
 ### 5.4 Type Node Hierarchy
