@@ -220,6 +220,12 @@ interface CollapsedMethod {
 }
 
 export function collapseSameMethodsIDL(methods: (idl.IDLMethod | idl.IDLConstructor)[], language?: Language): CollapsedMethod {
+    if (methods.length == 0) return {
+        methods: [],
+        name: "",
+        parameters: [],
+        returnType: idl.createPrimitiveType('void')
+    }
     const parameters = zipMany(...methods.map(it => it.parameters))
         .map(it => {
             let defined: idl.IDLParameter | undefined = undefined
