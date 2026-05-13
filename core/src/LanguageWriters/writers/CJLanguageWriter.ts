@@ -302,7 +302,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], options: { isExport: boolean, isDeclare?: boolean, baseType?: string }, op: (writer: LanguageWriter) => void): void {
+    writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], options: { isExport: boolean, isDeclare?: boolean }, op: (writer: LanguageWriter) => void): void {
         this.printer.print(`public enum ${name}{`)
         this.pushIndent()
         for (const member of members) {
