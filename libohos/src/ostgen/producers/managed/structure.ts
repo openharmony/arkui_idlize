@@ -249,7 +249,8 @@ function mergeConstructors(
                   .receiver(name).$().$().$().$()
             ))
             .statements([
-              Builders.throw().err().const('Suatable construct function not found').$().$()
+              // TypeScript only
+              Builders.throw().err().ctor('Error').arg('"Suitable construct function not found"').$().$().$()
             ])
             .$().$()
       ] : [])
