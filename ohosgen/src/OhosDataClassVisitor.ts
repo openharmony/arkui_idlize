@@ -108,7 +108,7 @@ function printCollapsedOverloads(library: PeerLibrary, methods: IDLMethod[], pri
         method.parameters
             .map(it => ({ name: it.name, type: maybeOptional(it.type, it.isOptional) }))
     )
-    printer.writeMethodDeclaration(method.name, signature, toMethodModifiers(method.methods[0]))
+    printer.writeMethodDeclaration(method.name, signature, toMethodModifiers(method.methods[0] as IDLMethod))
 }
 
 
