@@ -180,6 +180,23 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeArrayResize(array: string, arrayType: string, length: string, deserializer: string): LanguageStatement {
         throw new Error("Resizing arrays is not supported in ETS")
     }
+    override writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean }): void {
+        const needsLong = members.some(m => m.stringId === undefined && (m.numberId > 0x7FFFFFFF || m.numberId < -0x80000000))
+        this.printer.print(`${options.isExport ? "export " : ""}${options.isDeclare ? "declare " : ""}enum ${name}${needsLong ? ": long" : ""} {`)
+        this.printer.pushIndent()
+        for (const [index, member] of members.entries()) {
+            let value
+            if (member.alias !== undefined) {
+                value = member.alias
+            } else {
+                value = `${member.stringId != undefined ? `'${member.stringId}'` : `${member.numberId}`}`
+            }
+            const maybeComma = index < members.length - 1 ? "," : ""
+            this.printer.print(`${member.name} = ${value}${maybeComma}`)
+        }
+        this.printer.popIndent()
+        this.printer.print("}")
+    }
     makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, body)
     }
