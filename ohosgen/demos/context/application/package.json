@@ -3,8 +3,8 @@
     "private": true,
     "dependencies": {
         "@idlizer/ohosgen-demos-context-bundleManager": "file:../bundleManager",
-        "@koalaui/compat": "1.5.0-dev.70044-9140",
-        "@koalaui/common": "1.5.0-dev.70044-9140",
-        "@koalaui/interop": "1.5.0-dev.70044-9140"
+        "@koalaui/compat": "1.5.0-dev.72071-9166",
+        "@koalaui/common": "1.5.0-dev.72071-9166",
+        "@koalaui/interop": "1.5.0-dev.72071-9166"
     }
 }

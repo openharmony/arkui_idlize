@@ -2,12 +2,12 @@
     "name": "demo-huks",
     "private": true,
     "dependencies": {
-        "@koalaui/common": "1.5.0-dev.70044-9140",
-        "@koalaui/compat": "1.5.0-dev.70044-9140",
-        "@koalaui/interop": "1.5.0-dev.70044-9140"
+        "@koalaui/common": "1.5.0-dev.72071-9166",
+        "@koalaui/compat": "1.5.0-dev.72071-9166",
+        "@koalaui/interop": "1.5.0-dev.72071-9166"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.70044-9140"
+        "@koalaui/smart-arkts": "1.5.0-dev.72071-9166"
     },
     "scripts": {
         "clean:ts": "rm -rf generated/ts",

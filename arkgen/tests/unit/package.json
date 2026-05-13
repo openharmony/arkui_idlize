@@ -6,14 +6,14 @@
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.70044-9140",
-        "@koalaui/common": "1.5.0-dev.70044-9140",
-        "@koalaui/interop": "1.5.0-dev.70044-9140",
+        "@koalaui/compat": "1.5.0-dev.72071-9166",
+        "@koalaui/common": "1.5.0-dev.72071-9166",
+        "@koalaui/interop": "1.5.0-dev.72071-9166",
         "@idlizer/arkgen-tests-template-arkts": "file:../../tests-template/arkts",
         "commander": "^10.0.0"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.70044-9140"
+        "@koalaui/smart-arkts": "1.5.0-dev.72071-9166"
     },
     "scripts": {
         "gen": "node ../../ --api-version 99 --idl2peer --reference-names  ./conf/ets-sdk.refs.json --use-memo-m3 --arkts-extension .ets --input-files $(find ./idl -type f | tr '\\n' ' ')  --output-dir ./generated --language $LANG --ignore-default-config --options-file ./conf/config-arkui.json",
