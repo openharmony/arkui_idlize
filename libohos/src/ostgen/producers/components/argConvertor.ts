@@ -440,31 +440,36 @@ class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
             .call('readInt32').receiver(serializerName).$().$().$()
         const elemType = this.convertType(this.type.elementType[0], native);
         const nativeArrayType = expectType(this.ctx, this.type, 'capi')
-        const bufferDecl = native
-            ? Builders.decl(name).type(nativeArrayType).mutable()
-                .value().ctor().asStruct().$().$().$()
-            : Builders.decl(name).value()
-                .ctor(std.names.types.array).typeArgs([elemType]).arg(name + 'Length').$().$().$()
         const [reads, readValue] = argConvertor(this.ctx, this.type.elementType[0])
             .read(name + 'Element', serializerName, native);
-        const arrayAccess = native
-            ? Builders.access().receiver(name).member(`array`).$()
-            : name
-        const resizeArray = native
-            ? Builders.stmt().call("resizeArray").typeArgs([nativeArrayType, elemType]).receiver(serializerName)
+        if (native) {
+            const bufferDecl = Builders.decl(name).type(nativeArrayType).mutable()
+                .value().ctor().asStruct().$().$().$()
+            const arrayAccess = Builders.access().receiver(name).member(`array`).$()
+            const resizeArray = Builders.stmt().call("resizeArray").typeArgs([nativeArrayType, elemType]).receiver(serializerName)
                 .arg().unary(Op.ref).value(name).$().$()
                 .arg(`${name}Length`).$().$()
-            : Builders.none().$()
+            const loop = Builders.loop()
+                .init().decl('i').mutable().value(0).$().$()
+                .cond().binary(Op.lt).left('i').right(name + 'Length').$().$()
+                .step().unary(Op.postinc).value('i').$().$()
+                .body().block()
+                    .statements(reads)
+                    .binary('=')
+                        .left().access().receiver(arrayAccess).index('i').$().$()
+                        .right(readValue).$().$().$().$()
+            return [[lengthDecl, bufferDecl, resizeArray, loop], E.v(name)]
+        }
+        const bufferDecl = Builders.decl(name, T.c('Array', elemType)).value()
+            .ctor().array().$().$().$()
         const loop = Builders.loop()
             .init().decl('i').mutable().value(0).$().$()
             .cond().binary(Op.lt).left('i').right(name + 'Length').$().$()
             .step().unary(Op.postinc).value('i').$().$()
             .body().block()
                 .statements(reads)
-                .binary('=')
-                    .left().access().receiver(arrayAccess).index('i').$().$()
-                    .right(readValue).$().$().$().$()
-        return [[lengthDecl, bufferDecl, resizeArray, loop], E.v(name)]
+                .call('push').receiver(name).arg(readValue).$().$().$().$()
+        return [[lengthDecl, bufferDecl, loop], E.v(name)]
     }
 }
 
