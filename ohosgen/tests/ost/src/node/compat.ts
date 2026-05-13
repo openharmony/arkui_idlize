@@ -13,7 +13,6 @@ export {
     checkLongEnum,
     checkLegacyEnum,
     checkStringEnum,
-    getCallbackBooleanIntString,
 } from '../../generated/ts'
 
 export {

@@ -213,13 +213,19 @@ export function groupOverloadsIDL<T extends idl.IDLSignature>(methods: T[], lang
 }
 
 interface CollapsedMethod {
-    methods: idl.IDLMethod[]
+    methods: (idl.IDLMethod | idl.IDLConstructor)[]
     name: string
     parameters: idl.IDLParameter[]
     returnType: idl.IDLType
 }
 
-export function collapseSameMethodsIDL(methods:idl.IDLMethod[], language?: Language): CollapsedMethod {
+export function collapseSameMethodsIDL(methods: (idl.IDLMethod | idl.IDLConstructor)[], language?: Language): CollapsedMethod {
+    if (methods.length == 0) return {
+        methods: [],
+        name: "",
+        parameters: [],
+        returnType: idl.createPrimitiveType('void')
+    }
     const parameters = zipMany(...methods.map(it => it.parameters))
         .map(it => {
             let defined: idl.IDLParameter | undefined = undefined
@@ -250,7 +256,8 @@ export function collapseSameMethodsIDL(methods:idl.IDLMethod[], language?: Langu
             )
         })
 
-        const returnType = collapseReturnTypes(methods.map(it => it.returnType), language)
+    const returnType = collapseReturnTypes(methods.map(it =>
+        idl.isMethod(it) ? it.returnType : idl.createPrimitiveType('void')), language)
         return {
             methods,
             parameters,

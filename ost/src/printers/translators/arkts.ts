@@ -38,12 +38,28 @@ export class ConvertArkTSTypes extends ConvertTSTypes {
 
 export class ArkTSPrinter extends TSPrinter {
   printDeclaration(declaration: lw.LWDeclaration): void {
-    if (declaration.kind === lw.LWKind.FunctionDeclaration && declaration.name === std.names.members.staticCtor) {
-      this.p.put('static', ' ')
-      if (declaration.body) {
-        this.printStatement(declaration.body)
+    if (declaration.kind === lw.LWKind.FunctionDeclaration) {
+      declaration.annotations.forEach(ann => {
+        if (ann.kind === lw.DecoratorKind.SimpleAnnotation) {
+          this.p.put('@', ann.name)
+          this.p.newline()
+        }
+      })
+      if (declaration.name === std.names.members.staticCtor) {
+        this.p.put('static', ' ')
+        if (declaration.body) {
+          this.printStatement(declaration.body)
+        }
+        return
       }
-      return
+      if (this.isNative(declaration)) {
+        declaration.modifiers.forEach(mod => this.p.put(mod.name, ' '))
+        this.p.put(declaration.name)
+        this.printParameters(declaration.parameters)
+        this.p.put(':', ' ')
+        this.printType(declaration.returnType)
+        return
+      }
     }
     return super.printDeclaration(declaration)
   }

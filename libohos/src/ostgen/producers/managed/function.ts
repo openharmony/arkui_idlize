@@ -19,6 +19,7 @@ import { expectExpr, expectType, managedName } from "../common.js"
 import { argConvertor } from "../components/argConvertor.js"
 import { createProducer } from "../../engine/index.js"
 import { maybeRestoreThrows, PeerMethodSignature } from "@idlizer/core"
+import { allowsOverloads } from "../../../peer-generation/printers/OverloadsPrinter.js"
 
 export const functionProducer = createProducer(
   { is: idl.isMethod, role: 'managed' },
@@ -79,7 +80,8 @@ export const constructorProducer = createProducer(
   (ctor, ctx) => {
     const className = managedName(idl.getFQName(ctor.parent!))
     const serializerName = 'serializer'
-    const nativeModuleCall = Builders.call(expectExpr(ctx, maybeOverload(ctor), 'native-module'))
+    const maybeOverloadCtor = maybeOverload(ctor)
+    const nativeModuleCall = Builders.call(expectExpr(ctx, maybeOverloadCtor, 'native-module'))
       .arg().call('asBuffer').receiver(serializerName).$().$()
       .arg().call('length').receiver(serializerName).$().$().$()
     const body: LWStatement[] = [
@@ -92,7 +94,8 @@ export const constructorProducer = createProducer(
     ]
     return {
       continuation: E.v(className),
-      declarations: [
+      declarations: allowsOverloads(ctx.library.language)
+       ? [
         Builders.class(className).ctor()
           .parameters(ctor.parameters.map(it =>
             ({ name: it.name, type: expectType(ctx, it.type, 'managed'), modifiers: it.isOptional ? [Md.optional()] : [] })))
@@ -101,6 +104,26 @@ export const constructorProducer = createProducer(
             .call('this')
               .arg().access('NOP').receiver('MaterializedBaseTag').$().$()
               .arg('peerPtr').$().$().$().$()
+          ]
+      : [
+        Builders.class(className).method(maybeOverloadCtor.name)
+          .private()
+          .static()
+          .parameters(ctor.parameters.map(it =>
+            ({ name: it.name, type: expectType(ctx, it.type, 'managed'), modifiers: it.isOptional ? [Md.optional()] : [] })))
+          .block()
+            .statements(
+            [
+                Builders.decl(serializerName, T.c('SerializerBase'))
+                  .value().call('hold').receiver('SerializerBase').$().$().$(),
+                ...ctor.parameters.flatMap(param =>
+                  argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
+                Builders.decl('peerPtr').value(nativeModuleCall).$(),
+                Builders.stmt().call('release').receiver(serializerName).$().$(),
+                Builders.return().value('peerPtr').$(),
+              ]
+            )
+            .$().$().$()
       ]
     }
   }

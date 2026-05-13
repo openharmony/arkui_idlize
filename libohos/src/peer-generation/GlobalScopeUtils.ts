@@ -14,13 +14,13 @@
  */
 
 import { Language, MaterializedClass, MaterializedMethod, Method, MethodModifier, NamedMethodSignature, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature } from "@idlizer/core";
-import { createInterface, createMethod, getFQName, getNamespacesPathFor, IDLInterface, IDLInterfaceSubkind, IDLMethod, maybeOptional } from "@idlizer/core/idl";
+import { createInterface, createMethod, getFQName, getNamespacesPathFor, IDLConstructor, IDLInterface, IDLInterfaceSubkind, IDLMethod, maybeOptional } from "@idlizer/core/idl";
 import { groupOverloadsIDL } from "./printers/OverloadsPrinter.js";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration.js";
 
 export const GlobalScopePeerName = 'GlobalScope'
 
-export function mangledGlobalScopeName(method: IDLMethod | string, language?: Language): string {
+export function mangledGlobalScopeName(method: IDLMethod | IDLConstructor | string, language?: Language): string {
     let result: string
     if (typeof method === "string") {
         result = method

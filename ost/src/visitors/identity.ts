@@ -287,6 +287,15 @@ export class IdentityTransformer {
       hints: expr.hints,
     }
   }
+  goTernaryExpression(expr: lw.TernaryExpression): lw.TernaryExpression {
+    return {
+      kind: expr.kind,
+      condition: this.goExpression(expr.condition),
+      thenExpr: this.goExpression(expr.thenExpr),
+      elseExpr: this.goExpression(expr.elseExpr),
+      hints: expr.hints,
+    }
+  }
   goLambdaExpression(expr: lw.LambdaExpression): lw.LambdaExpression {
     return {
       kind: expr.kind,
@@ -324,6 +333,7 @@ export class IdentityTransformer {
       case lw.LWKind.AccessorExpression: return this.goAccessorExpression(expr)
       case lw.LWKind.ConstructorExpression: return this.goConstructorExpression(expr)
       case lw.LWKind.CheckCastExpression: return this.goCastExpression(expr)
+      case lw.LWKind.TernaryExpression: return this.goTernaryExpression(expr)
       case lw.LWKind.LambdaExpression: return this.goLambdaExpression(expr)
       case lw.LWKind.TypeExpression: return this.goTypeExpression(expr)
       case lw.LWKind.HoleExpression: return this.goHoleExpression(expr)
