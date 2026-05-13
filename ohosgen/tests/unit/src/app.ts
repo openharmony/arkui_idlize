@@ -243,11 +243,11 @@ function checkEnum() {
 
   assertEQ(0, BigHexEnum.E0)
   assertEQ(1, BigHexEnum.E1)
-  assertEQ(0x7FFFFFFF, BigHexEnum.E7FFFFFFF)
-  assertEQ(0xFFFF, BigHexEnum.EFFFF)
-  assertEQ(0xFFFFFFF, BigHexEnum.EFFFFFFF)
-  assertEQ(0x7FFFFFF, BigHexEnum.E7FFFFFF)
-  assertEQ(BigHexEnum.E7FFFFFFF, checkBigHexEnums(BigHexEnum.EFFFF, BigHexEnum.E7FFFFFF))
+  assertEQ(0xFFFFFFFF, BigHexEnum.EFFFFFFFF)
+  assertEQ(0xFFFFFFFFAB, BigHexEnum.EFFFFFFFFAB)
+  assertEQ(0xFFFFFFFFFF, BigHexEnum.EFFFFFFFFFF)
+  assertEQ(0xFFFFFFFFFFCD, BigHexEnum.EFFFFFFFFFFCD)
+  assertEQ(BigHexEnum.EFFFFFFFFAB, checkBigHexEnums(BigHexEnum.EFFFFFFFFFFCD, BigHexEnum.EFFFFFFFFFF))
 
   assertEQ(DuplicateIntEnum.THIRD, checkDuplicateIntEnums(DuplicateIntEnum.FIRST, DuplicateIntEnum.SECOND))
   assertEQ(DuplicateIntEnum.third.valueOf(),

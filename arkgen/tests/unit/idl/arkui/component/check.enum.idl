@@ -37,7 +37,7 @@ enum EnumInt {
 
 enum EnumLong {
     number E0 = 0;
-    number E7FFFFFFA = 0x7FFFFFFA;
+    number EFFFFFFFFA = 0xFFFFFFFFA;
 };
 
 enum EnumString {

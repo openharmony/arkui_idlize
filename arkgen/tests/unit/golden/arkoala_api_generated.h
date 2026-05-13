@@ -432,7 +432,7 @@ typedef struct Opt_EnumInt {
 } Opt_EnumInt;
 typedef enum Ark_EnumLong {
     ARK_ENUM_LONG_E0 = 0,
-    ARK_ENUM_LONG_E7FFFFFFA = 2147483642,
+    ARK_ENUM_LONG_EFFFFFFFFA = 68719476730,
 } Ark_EnumLong;
 typedef struct Opt_EnumLong {
     Ark_Tag tag;
