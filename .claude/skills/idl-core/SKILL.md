@@ -7,7 +7,7 @@ description: Use when working with the idlize core module - parsing IDL files, u
 
 ## Overview
 
-The `core` module is an IDL (Interface Definition Language) compiler that parses `.idl` files and generates code for multiple target languages (TypeScript, ArkTS, C++, CangJie, Kotlin).
+The `core` module is an IDL (Interface Definition Language) compiler that parses `.idl` files and generates code for multiple target languages (TypeScript, ArkTS, C++, CangJie).
 
 **Core principle:** IDL source → AST (Abstract Syntax Tree) → Language-specific code generation
 
@@ -82,7 +82,6 @@ interface IDLInterface extends IDLEntry {
 | `Language.ARKTS` | `.ts` | ArkTS (HarmonyOS) |
 | `Language.CPP` | `.cc` | C++ |
 | `Language.CJ` | `.cj` | CangJie |
-| `Language.KOTLIN` | `.kt` | Kotlin |
 
 ## Code Generation
 
@@ -115,7 +114,6 @@ Located in `LanguageWriters/writers/`:
 - `ETSLanguageWriter.ts` - ArkTS
 - `CppLanguageWriter.ts` - C++
 - `CJLanguageWriter.ts` - CangJie
-- `KotlinLanguageWriter.ts` - Kotlin
 
 ## Type Convertors
 

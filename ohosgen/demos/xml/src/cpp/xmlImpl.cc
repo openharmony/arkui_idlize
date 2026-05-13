@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "ohos_xml.h"
 #include "parser_impl.h"
@@ -118,8 +118,8 @@ void xml_XmlPullParser_destructImpl(OH_OHOS_XML_xml_XmlPullParserHandle thiz) {
     delete parser;
 }
 
-void temp_hold(int resId) {}
-void temp_release(int resId) {}
+void temp_hold(int /*resId*/) {}
+void temp_release(int /*resId*/) {}
 void temp_call(const OH_Int32 resourceId, const OH_Boolean value) {}
 void temp_call_sync(const OH_OHOS_XML_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean value) {}
 
@@ -157,7 +157,7 @@ void xml_XmlPullParser_parseImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePoint
             });
         });
     }
-    // TODO handle other properties from ParseOptions
+    // handle other properties from ParseOptions
     parser->parse();
     parser->reset();
 }
@@ -168,7 +168,7 @@ private:
     OHOS_XML_Callback_Opt_Number_Opt_Array_String_Void callback;
     int result = 0;
 public:
-    TestPromiseHandler(OHOS_XML_Callback_Opt_Number_Opt_Array_String_Void callback): callback(callback) {
+    explicit TestPromiseHandler(OHOS_XML_Callback_Opt_Number_Opt_Array_String_Void callback): callback(callback) {
         callback.resource.hold(callback.resource.resourceId);
     }
 

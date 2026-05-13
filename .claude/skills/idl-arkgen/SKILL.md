@@ -41,7 +41,7 @@ To regenerate after editing arkgen sources, run:
 bash generate.sh
 ```
 
-(see `INSTRUCTION.md`). This is the only supported entry point — do not
+(see `.claude/skills/INSTRUCTION.md`). This is the only supported entry point — do not
 invoke `arkgen` directly. Output lands under `./out`.
 
 ## ArkoalaPeerLibrary

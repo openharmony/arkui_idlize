@@ -1,24 +1,23 @@
-📂 IDL-spec  
-├── 📄 [package/namespace](#packagenamespace)  
-├── 📄 [import/typedef](#importtypedef)  
-├── 📂 [literal types](#literal-types)  
-│   ├── 📄 [primitives](#primitives)  
-│   ├── 📂 [containers](#containers)  
-│   │   ├── 📄 [optional](#optional)  
-│   │   ├── 📄 [sequence](#sequence)  
-│   │   ├── 📄 [union](#union)  
-│   │   ├── 📄 [record](#record)  
-├── 📂 [declarations](#declarations)  
-│   ├── 📄 [enumeration (using dictionary syntax)](#enumeration-using-dictionary-syntax)  
-│   ├── 📄 [constant](#constant)  
-│   ├── 📄 [function](#function)  
-│   ├── 📄 [callback](#callback)  
-│   ├── 📄 [interface](#interface)  
-├── 📄 [extended attributes](#extended-attributes)  
-└── 📄 [version](#version)  
+- [package/namespace](#packagenamespace)
+- [import/typedef](#importtypedef)
+- [literal types](#literal-types)
+  - [primitives](#primitives)
+  - [containers](#containers)
+    - [optional](#optional)
+    - [sequence](#sequence)
+    - [union](#union)
+    - [record](#record)
+- [declarations](#declarations)
+  - [enumeration (using dictionary syntax)](#enumeration-using-dictionary-syntax)
+  - [constant](#constant)
+  - [function](#function)
+  - [callback](#callback)
+  - [interface](#interface)
+- [extended attributes](#extended-attributes)
+- [version](#version)
 
 
-#  **package/namespace** 
+# **package/namespace** 
 
 The *package* directive and the *namespace* container are designed to semantically structure a set of declarations into named scopes, allowing complexity to be managed through localization. The *package* directive specifies the root scope of the current module, while the namespace container enables the creation of nested scopes.
 
@@ -34,7 +33,7 @@ namespace gatt {
 
 # import/typedef
 
-The *import* directive is intended to map the specified scope onto the current one.
+The *import* directive maps the specified scope onto the current one.
 
  **Example:** 
 
@@ -78,7 +77,7 @@ Primitive types and the most common generic containers are available in their li
 
 ### optional
 
-Such semantics are not defined for types themselves but only for aggregate elements, using a special syntax. 
+These semantics are not defined for types themselves, but only for aggregate elements, using a special syntax. 
 
  **Example:** 
 
