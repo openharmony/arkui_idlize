@@ -301,7 +301,8 @@ export class TsEnumEntityStatement implements LanguageStatement {
         let enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
         enumName = enumName.split('.').at(-1)!
         const members = this.getMembers()
-        writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
+        const baseType = idl.enumBinaryRepresentation(this.enumEntity).name
+        writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare, baseType })
     }
     protected getMembers(): EnumMember[] {
         const originalStyleNames: EnumMember[] = []
@@ -564,7 +565,7 @@ export abstract class LanguageWriter {
     abstract get interopModule(): string
 
     abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isAbstract?: boolean): void
-    abstract writeEnum(name: string, members: EnumMember[], options: { isExport: boolean, isDeclare?: boolean }, op?: (writer: this) => void): void
+    abstract writeEnum(name: string, members: EnumMember[], options: { isExport: boolean, isDeclare?: boolean, baseType?: string }, op?: (writer: this) => void): void
     abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature, generics?:string[]): void

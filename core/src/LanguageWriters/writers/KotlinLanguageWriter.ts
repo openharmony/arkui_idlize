@@ -313,7 +313,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const args = signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`)
         return `public fun ${name}(${args.join(", ")}): ${this.getNodeName(signature.returnType)}`
     }
-    writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean }): void {
+    writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean, baseType?: string }): void {
         throw new Error("Try to avoid writeEnum")
     }
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {

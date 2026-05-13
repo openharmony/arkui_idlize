@@ -250,8 +250,9 @@ export class TSLanguageWriter extends LanguageWriter {
         const typeParams = generics && generics.length ? '<' + generics?.join(', ') + '>' : ''
         return `export function ${name}${typeParams}(${args.join(", ")}): ${returnType}`
     }
-    writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean }): void {
-        this.printer.print(`${options.isExport ? "export " : ""}${options.isDeclare ? "declare " : ""}enum ${name} {`)
+    writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean, baseType?: string }): void {
+        const baseTypeAnnotation = options.baseType === 'i64' && this.language === Language.ARKTS ? ': long' : ''
+        this.printer.print(`${options.isExport ? "export " : ""}${options.isDeclare ? "declare " : ""}enum ${name}${baseTypeAnnotation} {`)
         this.printer.pushIndent()
         for (const [index, member] of members.entries()) {
             let value
