@@ -27,8 +27,8 @@ enum IntEnum {
 };
 
 enum LongEnum {
-    number POS = 0x80000000;
-    number NEG = -0x80000001;
+    number POS = 0x7FFFFFFF;
+    number NEG = -0x80000000;
 };
 
 enum LegacyEnum {

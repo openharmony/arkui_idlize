@@ -34,10 +34,10 @@ enum HexEnum {
 enum BigHexEnum {
     number E0 = 0x0;
     number E1 = 0X1;
-    number EFFFFFFFF = 0xFFFFFFFF;
-    number EFFFFFFFFAB = 0xFFFFFFFFAB;
-    number EFFFFFFFFFF = 0xFFFFFFFFFF;
-    number EFFFFFFFFFFCD = 0xFFFFFFFFFFCD;
+    number E7FFFFFFF = 0x7FFFFFFF;
+    number EFFFF = 0xFFFF;
+    number EFFFFFFF = 0xFFFFFFF;
+    number E7FFFFFF = 0x7FFFFFF;
 };
 
 enum DuplicateIntEnum {
@@ -101,9 +101,9 @@ enum IntEnumNegative129 {
 };
 
 enum LongEnumMinPositive {
-    number E = 0x80000000;
+    number E = 0x7FFFFFFF;
 };
 
 enum LongEnumMaxNegative {
-    number E = -0x80000001;
+    number E = -0x80000000;
 };

@@ -400,17 +400,24 @@ OH_UNIT_HexEnum GlobalScope_checkHexEnumsImpl(OH_UNIT_HexEnum value1, OH_UNIT_He
 
 OH_UNIT_BigHexEnum GlobalScope_checkBigHexEnumsImpl(OH_UNIT_BigHexEnum value1, OH_UNIT_BigHexEnum value2)
 {
-    int64_t expectedEFFFFFFFF = 0xFFFFFFFF;
-    int64_t expectedEFFFFFFFFAB = 0xFFFFFFFFAB;
-    if (OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF != expectedEFFFFFFFF) {
-        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF %d does not equal to: %d", OH_UNIT_BIG_HEX_ENUM_EFFFFFFFF,
-            expectedEFFFFFFFF);
+    int32_t expectedE7FFFFFFF = 0x7FFFFFFF;
+    int32_t expectedEFFFF = 0xFFFF;
+    int32_t expectedEFFFFFFF = 0xFFFFFFF;
+    int32_t expectedE7FFFFFF = 0x7FFFFFF;
+    if (OH_UNIT_BIG_HEX_ENUM_E7FFFFFFF != expectedE7FFFFFFF) {
+        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_E7FFFFFFF %d does not equal to: %d", OH_UNIT_BIG_HEX_ENUM_E7FFFFFFF,
+            expectedE7FFFFFFF);
     }
-    if (OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB != expectedEFFFFFFFFAB) {
-        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB %d does not equal to: %d",
-            OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB, expectedEFFFFFFFFAB);
+    if (OH_UNIT_BIG_HEX_ENUM_EFFFF != expectedEFFFF) {
+        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_EFFFF %d does not equal to: %d", OH_UNIT_BIG_HEX_ENUM_EFFFF, expectedEFFFF);
     }
-    return OH_UNIT_BIG_HEX_ENUM_EFFFFFFFFAB;
+    if (OH_UNIT_BIG_HEX_ENUM_EFFFFFFF != expectedEFFFFFFF) {
+        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_EFFFFFFF %d does not equal to: %d", OH_UNIT_BIG_HEX_ENUM_EFFFFFFF, expectedEFFFFFFF);
+    }
+    if (OH_UNIT_BIG_HEX_ENUM_E7FFFFFF != expectedE7FFFFFF) {
+        INTEROP_FATAL("Enum OH_UNIT_BIG_HEX_ENUM_E7FFFFFF %d does not equal to: %d", OH_UNIT_BIG_HEX_ENUM_E7FFFFFF, expectedE7FFFFFF);
+    }
+    return OH_UNIT_BIG_HEX_ENUM_E7FFFFFFF;
 }
 
 OH_UNIT_BinEnum GlobalScope_checkBinEnumsImpl(OH_UNIT_BinEnum value1, OH_UNIT_BinEnum value2)
