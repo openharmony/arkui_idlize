@@ -326,3 +326,13 @@ function produceGenericTypeCheck(
     const methodExpr = Builders.access(methodName).receiver(TYPE_CHECKER_CLASS).$()
     return [methodExpr, [classDecl, ...allDecls]]
 }
+
+export function typeCheckCondition(params: idl.IDLParameter[], ctx: OhosProducerContext): lw.LWExpression {
+    const conds = params.map(param =>
+        Builders.expr()
+            .call(typeCheckMethodName(param.type, ctx))
+            .arg(param.name)
+            .receiver(TYPE_CHECKER_CLASS).$().$())
+    return conds.reduce((accum, curr) => Builders.binary('&&').left(curr).right(accum).$())
+}
+

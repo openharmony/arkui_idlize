@@ -344,6 +344,14 @@ export class TSPrinter {
         this.p.put(')')
         break
       }
+      case lw.LWKind.TernaryExpression: {
+        this.printExpression(expression.condition)
+        this.p.put(' ', '?', ' ')
+        this.printExpression(expression.thenExpr)
+        this.p.put(' ', ':', ' ')
+        this.printExpression(expression.elseExpr)
+        break
+      }
       case lw.LWKind.LambdaExpression: {
         this.p.put('(')
         expression.parameters.forEach((param, i) => {
@@ -514,6 +522,32 @@ export class TSPrinter {
       this.p.put('>')
     }
   }
+  isNative(declaration: lw.FunctionDeclaration): boolean {
+    return declaration.modifiers
+      .map(it => it.name)
+      .includes(std.names.modifiers.native)
+  }
+  printParameters(parameters: lw.FunctionDeclaration["parameters"]) {
+    this.p.put('(')
+    parameters.forEach((param, i) => {
+      if (i > 0) {
+        this.p.put(',', ' ')
+      }
+      param.modifiers
+        ?.filter(mod => mod.name !== std.names.modifiers.optional)
+        .forEach(mod => this.p.put(mod.name, ' '))
+      this.p.put(param.name)
+      if (param.modifiers?.find(mod => mod.name === std.names.modifiers.optional))
+        this.p.put('?')
+      this.p.put(':', ' ')
+      this.printType(param.type)
+      if (param.expression) {
+        this.p.put(' ', '=', ' ')
+        this.printExpression(param.expression)
+      }
+    })
+    this.p.put(')')
+  }
   printDeclaration(declaration: lw.LWDeclaration) {
     switch (declaration.kind) {
       case lw.LWKind.EnumDeclaration: {
@@ -624,54 +658,41 @@ export class TSPrinter {
         break
       }
       case lw.LWKind.FunctionDeclaration: {
-        declaration.annotations.forEach(ann => {
-          if (ann.kind === lw.DecoratorKind.SimpleAnnotation) {
-            this.p.put('@', ann.name)
-            this.p.newline()
-          }
-        })
         if (declaration.name) {
           if (this.scope.at(-1) !== 'member') {
             this.p.put('export', ' ')
           }
-          declaration.modifiers.forEach(mod => this.p.put(mod.name, ' '))
+          declaration.modifiers
+            .filter(mod => mod.name != std.names.modifiers.native)
+            .forEach(mod => this.p.put(mod.name, ' '))
           if (this.scope.at(-1) !== 'member') {
             this.p.put('function', ' ')
           }
-          const isCtor = std.names.members.ctor === declaration.name
-          if (isCtor) {
-            this.p.put('constructor')
-          } else {
-            this.p.put(declaration.name)
-          }
-          this.printGenerics(declaration.generics)
-          this.p.put('(')
-          declaration.parameters.forEach((param, i) => {
-            if (i > 0) {
-              this.p.put(',', ' ')
+          const isStaticCtor = std.names.members.staticCtor === declaration.name
+          if (!isStaticCtor) {
+            const isCtor = std.names.members.ctor === declaration.name
+            if (isCtor) {
+              this.p.put('constructor')
+            } else {
+              this.p.put(declaration.name)
             }
-            param.modifiers
-              ?.filter(mod => mod.name !== std.names.modifiers.optional)
-              .forEach(mod => this.p.put(mod.name, ' '))
-            this.p.put(param.name)
-            if (param.modifiers?.find(mod => mod.name === std.names.modifiers.optional))
-              this.p.put('?')
-            this.p.put(':', ' ')
-            this.printType(param.type)
-            if (param.expression) {
-              this.p.put(' ', '=', ' ')
-              this.printExpression(param.expression)
+            this.printGenerics(declaration.generics)
+            this.printParameters(declaration.parameters)
+            if (!isCtor && !declaration.modifiers.find(it => it.name === std.names.modifiers.setter)) {
+              this.p.put(':', ' ')
+              this.printType(declaration.returnType)
             }
-          })
-          this.p.put(')')
-          if (!isCtor && !declaration.modifiers.find(it => it.name === std.names.modifiers.setter)) {
-            this.p.put(':', ' ')
-            this.printType(declaration.returnType)
           }
         }
         if (declaration.body) {
           this.p.put(' ')
           this.printStatement(declaration.body)
+        } else if (this.isNative(declaration)) {
+          this.p.put(' ').put(`{`)
+          this.p.inc().newline()
+          this.p.put('throw new Error("Not implemented")')
+          this.p.dec().newline()
+          this.p.put(`}`)
         }
         break
       }

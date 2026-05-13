@@ -16,7 +16,7 @@ else
     external_interop_dir = '../../../node_modules/@koalaui/interop/src/cpp'
 endif
 
-cflags = ['-DKOALA_LIBACE_LINKED']
+cflags = ['-DKOALA_LIBACE_LINKED', '-DKOALA_INTEROP_MODULE=NativeModule']
 ldflags = []
 deps = []
 

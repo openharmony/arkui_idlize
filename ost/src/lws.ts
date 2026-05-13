@@ -76,6 +76,8 @@ export enum LWKind {
   ConstructorExpression,
   /** Type cast or instanceof check expression */
   CheckCastExpression,
+  /** Ternary "(expr) ? expr1 : expr2" expression */
+  TernaryExpression,
   /** Lambda/arrow function expression */
   LambdaExpression,
   /** Type expression (type as value) */
@@ -1016,6 +1018,17 @@ export interface CheckCastExpression {
   /** Hints providing metadata about the cast/check */
   hints: Hint[]
 }
+export interface TernaryExpression {
+  kind: LWKind.TernaryExpression
+  /** Condition expression */
+  condition: LWExpression
+  /** Expression to execute if the condition is true */
+  thenExpr: LWExpression
+  /** Expression to execute if the condition is false */
+  elseExpr: LWExpression
+  /** Hints providing metadata about the expression */
+  hints: Hint[]
+}
 /**
  * Lambda/arrow function expression AST node.
  * Represents an anonymous function expression.
@@ -1114,6 +1127,7 @@ export type LWExpression =
   | AccessorExpression
   | ConstructorExpression
   | CheckCastExpression
+  | TernaryExpression
   | LambdaExpression
   | TypeExpression
   | HoleExpression

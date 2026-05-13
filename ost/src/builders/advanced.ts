@@ -23,6 +23,7 @@ import {
     UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
     EnumDeclaration, SwitchStatement, ConstantExpression, GenericDescriptor, TopLevelExpression,
     ThrowStatement,
+    TernaryExpression,
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -524,7 +525,61 @@ class CheckCastBuilder<P> {
         })
     }
 }
+class TernaryBuilder<P> {
+    /**
+     * @param _cont - Continuation function that receives the built expression
+     */
+    constructor(
+        private _cont: (expr: TernaryExpression) => P
+    ) {}
+    private _cond?: LWExpression
+    private _then?: LWExpression
+    private _else?: LWExpression
+    /**
+     * Set the condition expression directly.
+     *
+     * @param cond - Condition expression
+     * @returns This builder for chaining
+     */
+    cond(): ExpressionBuilder<this> {
+        return new ExpressionBuilder(saveInto(this, '_cond'))
+    }
+    /**
+     * Set the then branch using a deferred statement builder.
+     * Returns a ExpressionBuilder for specifying the then branch.
+     *
+     * @returns ExpressionBuilder for deferred then branch specification
+     */
+    then(): ExpressionBuilder<this> {
+        return new ExpressionBuilder(saveInto(this, '_then'))
+    }
+    /**
+     * Set the else branch using a deferred statement builder.
+     * Returns a ExpressionBuilder for specifying the else branch.
+     *
+     * @returns ExpressionBuilder for deferred else branch specification
+     */
+    else(): ExpressionBuilder<this> {
+        return new ExpressionBuilder(saveInto(this, '_else'))
+    }
 
+    /**
+     * Finalize the builder and return the ternary expression.
+     *
+     * @returns The built TernaryBuilder
+     * @throws Error if condition, then, or else expression is not specified
+     */
+    $(): P {
+        check("Ternary", this._cond, this._then, this._else)
+        return this._cont({
+            kind: LWKind.TernaryExpression,
+            condition: this._cond!,
+            thenExpr: this._then!,
+            elseExpr: this._else!,
+            hints: []
+        })
+    }
+}
 /**
  * Builder for creating lambda expressions (anonymous functions).
  *
@@ -651,6 +706,15 @@ class ExpressionBuilder<P> {
      */
     unary(op: string): UnaryBuilder<this> {
         return new UnaryBuilder(saveInto(this, '_expr'), op)
+    }
+    /**
+     * Create a ternary expression.
+     * Returns a TernaryBuilder.
+     *
+     * @returns TernaryBuilder for deferred construction
+     */
+    ternary(): TernaryBuilder<this> {
+        return new TernaryBuilder(saveInto(this, '_expr'))
     }
     /**
      * Create a function call expression.
@@ -2553,6 +2617,7 @@ export class Builders {
     static ctor(name?: string): ConstructorBuilder<ConstructorExpression> { return new ConstructorBuilder(id, name) }
     static cast(type: LWType): CheckCastBuilder<CheckCastExpression> { return new CheckCastBuilder(id, 'cast', type) }
     static instanceof(type: LWType): CheckCastBuilder<CheckCastExpression> { return new CheckCastBuilder(id, 'instanceof', type) }
+    static ternary(): TernaryBuilder<TernaryExpression> { return new TernaryBuilder(id) }
     static lambda(): LambdaBuilder<LambdaExpression> { return new LambdaBuilder(id) }
 
     static block(): BlockBuilder<LWStatement> { return new BlockBuilder(S.block) }

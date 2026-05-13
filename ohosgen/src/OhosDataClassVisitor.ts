@@ -98,7 +98,7 @@ function printInterfaceBody(library: PeerLibrary, entry: IDLInterface, printer: 
     // }
 }
 
-
+/*
 function printCollapsedOverloads(library: PeerLibrary, methods: IDLMethod[], printer: LanguageWriter) {
     if (methods.some(it => it.isStatic))
         return
@@ -110,7 +110,7 @@ function printCollapsedOverloads(library: PeerLibrary, methods: IDLMethod[], pri
     )
     printer.writeMethodDeclaration(method.name, signature, toMethodModifiers(method.methods[0]))
 }
-
+*/
 
 /////////////////////////////////////////////////
 
