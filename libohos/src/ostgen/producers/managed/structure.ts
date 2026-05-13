@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { capitalize, getSuper, getSuperType, isDefined, isInExternalModule, isMaterialized, isStaticMaterialized, PeerMethodSignature } from "@idlizer/core"
-import { Builders, E, lw, Md, std, T, Ts } from "@idlizer/ost"
+import { Builders, E, lw, Md, std, T, Ts, Vs } from "@idlizer/ost"
 import { ProducerResult } from "@idlizer/kit"
 import { expectExpr, expectType, managedName } from "../common.js"
 import { OhosProducerContext, OhosRole, OhosSeed } from "../../engine/index.js"
@@ -134,7 +134,9 @@ function materializedInterface(node: idl.IDLInterface, name: string, ctx: OhosPr
       .receiver(managedName('#handwritten.extractors'))
       .arg('ptr').$()
     : Builders.ctor(name)
-      .arg().access('NOP').receiver('MaterializedBaseTag').$().$()
+      .args(allowsOverloads(ctx.library.language)
+        ? [Builders.access('NOP').receiver('MaterializedBaseTag').$()]
+        : collapseSameMethodsIDL(node.constructors).parameters.map(it => Vs.undef))
       .arg('ptr').$()
   const intClass = Builders.class(name + 'Internal')
     .method('fromPtr').static()
