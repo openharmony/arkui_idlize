@@ -14,6 +14,7 @@ export function init() {
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
     wrapSystemApiHandlerCallback()
+    registerOhosXmlApiHandler()
 }
 
 export function encodeText(text:string): ArrayBuffer {
