@@ -22,6 +22,7 @@ import { OhosProducerContext, OhosRole, OhosSeed } from "../../engine/index.js"
 import { createProducer } from "../../engine/index.js"
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration.js"
 import { allowsOverloads, collapseSameMethodsIDL } from "../../../peer-generation/printers/OverloadsPrinter.js"
+import { typeCheckCondition } from "./typecheck.js"
 
 export const structureProducer = createProducer<idl.IDLInterface, OhosRole<idl.IDLInterface>>(
   { is: idl.isInterface, role: 'managed' },
@@ -213,6 +214,7 @@ function mergeConstructors(
       ({ name: it.name, type: expectType(ctx, it.type, 'managed'), modifiers: it.isOptional ? [Md.optional()] : [] })),
     { name: "peerPtr", type: Ts.prim.pointer, modifiers: [Md.optional()] }
   ]
+  const base_construct = `${ctors.length > 1 ? 'base' : ''}_construct`
   return [
     Builders.func(std.names.members.ctor)
       .parameters(params)
@@ -221,14 +223,35 @@ function mergeConstructors(
           Builders.decl('ptr', Ts.prim.pointer).value()
           .ternary()
           .cond().var('(peerPtr != undefined)').$()
-          .then().const('peerPtr').$()
+            .then().const('peerPtr').$()
           .else()
-          .call(`_construct`).args(params.map(it => Builders.expr().const(it.name).$())).receiver(name).$().$().$().$()
-          .$(),
+            .call(base_construct)
+              .args(params.map(it => Builders.expr().const(it.name).$()))
+              .receiver(name).$().$().$().$().$(),
           setPeer,
           Builders.stmt().call('callHolder').receiver('this').$().$(),
         ]
       )
       .$().$(),
+    ...(ctors.length > 1 ?
+      [
+        Builders.func('base_construct')
+          .private()
+          .static()
+          .parameters(params)
+          .block().statements(
+            ctors.slice().reverse().map((ctor, index) =>
+              Builders.if()
+                .condition(typeCheckCondition(ctor.parameters, ctx))
+                .then().return()
+                  .call(`_construct${ctors.length - index - 1}`)
+                  .args(ctor.parameters.map(it => Builders.expr().const(it.name).$()))
+                  .receiver(name).$().$().$().$()
+            ))
+            .statements([
+              Builders.throw().err().const('Suatable construct function not found').$().$()
+            ])
+            .$().$()
+      ] : [])
   ]
 }
