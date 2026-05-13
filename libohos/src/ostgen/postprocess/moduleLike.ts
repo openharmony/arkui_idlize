@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { snakeCaseToCamelCase, moduleName } from "@idlizer/core";
+import { snakeCaseToCamelCase, moduleName, Language } from "@idlizer/core";
 import { Builders, E, Hs, lw, std } from "@idlizer/ost"
 import { managedName } from "../producers/common.js";
 import { callbackKindDeclaration } from "./postprocess.js";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
 import { moduleLike } from "@idlizer/kit";
-export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string, callbacks: string[]): lw.LWDeclaration[] {
+export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string, callbacks: string[], language: Language): lw.LWDeclaration[] {
     decls = moduleLike.postprocess(decls)
     decls = introduceCallbackCaller(decls, callbacks)
-    decls = loadNativeModule(decls, nativeModuleName)
+    decls = loadNativeModule(decls, nativeModuleName, language)
     return decls
 }
 
@@ -51,10 +51,15 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
     return decls
 }
 
-function loadNativeModule(decls: lw.LWDeclaration[], nativeModuleName: string): lw.LWDeclaration[] {
+function loadNativeModule(decls: lw.LWDeclaration[], nativeModuleName: string, language: Language): lw.LWDeclaration[] {
     const nativeModule = decls.find(it => it.name == nativeModuleName) as lw.ClassDeclaration
+    const args = [`"${moduleName('NativeModule')}"`]
+    if (language == Language.TS)
+        args.push(`${moduleName('NativeModule')}`)
     nativeModule.methods.unshift(
         Builders.func(std.names.members.staticCtor).static().block()
-            .call('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$())
+            .call('loadNativeModuleLibrary')
+            .args(args.map(it => E.c(it)))
+            .$().$().$())
     return decls
 }

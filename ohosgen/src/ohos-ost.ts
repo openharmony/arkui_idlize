@@ -171,7 +171,7 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
 function dumpTsLike(decls: LWDeclaration[], effect: OhosEffect, language: Language,
     packages: Set<string>, onUnknownImport?: moduleLike.OnUnknownImport
 ): Map<string, OutputFile> {
-    decls = libohosModuleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks)
+    decls = libohosModuleLike.postprocess(decls, effect.nativeModuleName, effect.callbacks, language)
     const files = moduleLike.formFiles(packages, decls, {knownReference: new Map(), defaultNamespaces: effect.defaultNamespaces, knownImports: new Map(), defaultImports, onUnknownImport})
     const result: Map<string, OutputFile> = new Map()
     const printer = language === Language.ARKTS ? processNPrintArkTS : processNPrintTS
