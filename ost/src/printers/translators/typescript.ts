@@ -694,11 +694,7 @@ export class TSPrinter {
           this.p.put(' ')
           this.printStatement(declaration.body)
         } else if (this.isNative(declaration)) {
-          this.p.put(' ').put(`{`)
-          this.p.inc().newline()
-          this.p.put('throw new Error("Not implemented")')
-          this.p.dec().newline()
-          this.p.put(`}`)
+          throw new Error(`TypeScript does not support native functions: ${declaration.name}`)
         }
         break
       }
