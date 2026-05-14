@@ -770,13 +770,31 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return false
     }
 
+    private isBuilderFuncWrapper(decl:arkts.FunctionDeclaration): boolean {
+        if (this.mode !== 'arkoala') {
+            return false
+        }
+        const func = decl.function!
+        // Check for @Builder annotation
+        const hasBuilder = decl.annotations.some(a => arkts.isIdentifier(a.expr) && a.expr.name === 'Builder')
+        if (!hasBuilder) {
+            return false
+        }
+        // Check if return type name ends with 'Attribute'
+        if (func.returnTypeAnnotation && arkts.isETSTypeReference(func.returnTypeAnnotation)) {
+            const returnTypeName = (func.returnTypeAnnotation as arkts.ETSTypeReference).baseName!.name
+            return returnTypeName.endsWith('Attribute')
+        }
+        return false
+    }
+
     visitFunctionDeclaration(node: arkts.FunctionDeclaration): arkts.FunctionDeclaration {
         const func = node.function!
         if (func.id?.name && this.config.DeletedDeclarations.includes(func.id.name)) {
             this.traceDeleted('DeletedDeclarations')
             return node
         }
-        if (this.isBuilderFuncImpl(node)) {
+        if (this.isBuilderFuncImpl(node) || this.isBuilderFuncWrapper(node)) {
             return node
         }
         const { set: paramsSet, attrs: typeParametersAttrs, parameters } = this.extractTypeParameters(func.typeParams)
