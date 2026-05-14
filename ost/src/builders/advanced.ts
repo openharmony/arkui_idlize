@@ -1430,6 +1430,15 @@ class StatementBuilder<P> {
         return new ReturnBuilder(morphInto(this, '_stmt', id), type)
     }
     /**
+     * Create an throw statement.
+     * Returns an ThrowBuilder for specifying condition and branches.
+     *
+     * @returns ThrowBuilder for deferred construction
+     */
+    throw(): ThrowBuilder<StatementBuilder<P>> {
+        return new ThrowBuilder(morphInto(this, '_stmt', id))
+    }
+    /**
      * Create none statement.
      * Returns an NoneBuilder for specifying condition and branches.
      *
@@ -1611,6 +1620,18 @@ class BlockBuilder<P> {
             this._body.push(stmt)
             return this
         }, type)
+    }
+    /**
+     * Create an throw statement.
+     * Returns an ThrowBuilder for specifying condition and branches.
+     *
+     * @returns ThrowBuilder for deferred construction
+     */
+    throw(): ThrowBuilder<BlockBuilder<P>> {
+        return new ThrowBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        })
     }
     /**
      * Add a break statement to the block.
