@@ -425,6 +425,12 @@ export class TSPrinter {
         }
         break
       }
+      case lw.LWKind.AssignStatement: {
+        this.p.put(statement.varName)
+        this.p.put(' ', '=', ' ')
+        this.printExpression(statement.expression)
+        break
+      }
       case lw.LWKind.IfStatement: {
         this.p.put('if', ' ', '(')
         this.printExpression(statement.condition)

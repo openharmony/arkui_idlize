@@ -388,6 +388,27 @@ export const S = {
     expression,
   }),
   /**
+   * Create a variable declaration statement.
+   *
+   * @param varName - Variable name
+   * @param varType - Variable type
+   * @param mutable - Whether the variable is mutable (true for let/var, false for const)
+   * @param expression - Optional initializer expression
+   * @param isStatic - Whether the variable is static (class-level)
+   * @returns DeclarationStatement node
+   *
+   * @example
+   * ```typescript
+   * // x = 42
+   * const assginStmt = S.declaration('x', E.c(42));
+   * ```
+   */
+  assign: (varName: string, expression: lw.LWExpression): lw.AssignStatement => ({
+    kind: lw.LWKind.AssignStatement,
+    varName,
+    expression,
+  }),
+  /**
    * Create a compound/block statement.
    *
    * @param statements - Array of statements in the block
