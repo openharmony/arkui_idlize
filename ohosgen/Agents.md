@@ -4,6 +4,28 @@
 
 The `ohosgen` code generator transforms IDL interface definitions into TypeScript/ArkTS code using a **producer** system that maps IDL nodes to LW (Lightweight) AST declarations, which are then printed by language-specific printers.
 
+## Features
+
+Features determine:
+- which producers are used for code generation
+- initial set of IDL declarations to produce from
+- import sources for unknown entities
+
+There are currently two features:
+- `--feature=ost` turns on OST based generation
+- `--feature=arkui` adds ArkUI-specific producers that generate ArkUI components, peers, modifiers
+
+### OST Feature
+
+There are unit tests in `ohosgen/tests/ost`, use `npm run all:arkts` to run them.
+
+### ArkUI Feature
+
+There is minimal SDK subset (Blank component + CommonMethod + a few supporting files) in `ohosgen/arkui/subset`. Use:
+- `npm run gen:subset` to generate ArkTS peers
+- `npm run cc:subset` to compile native code (succeeds)
+- `npm run compile:subset` to compile ArkTS code (currently fails)
+
 ## Builder Style Guidelines
 
 ### Always prefer fluent APIs
