@@ -40,6 +40,7 @@ import {
     OhosEffect,
     createOhosEffect,
     managedName,
+    MANAGED_PREFIX,
 } from "@idlizer/libohos"
 import { continueWith, moduleLike, onlyFor } from '@idlizer/kit'
 import { ArkUIRole, registerArkUIProducers } from "./arkui/index.js"
@@ -104,7 +105,14 @@ const ArkUIFeature: Feature = {
             idl.hasExtAttribute(e, idl.IDLExtendedAttributes.ComponentInterface))
         .map(e => new OhosSeed(e, 'managed')),
     importHook: (name: string) => {
+        if (name.startsWith(MANAGED_PREFIX + '.#')) {
+            const parts = name.split('.')
+            const baseName = parts.pop()!
+            return {result: baseName, name: baseName, source: parts[1]}
+        }
         switch (name) {
+            case 'managed.arkui.component.common.AttributeModifier':
+                return {result: 'AttributeModifier', name: 'AttributeModifier', source: '#handwritten'}
             case 'PeerNode':
             case 'ComponentBase': return {result: name, name, source: '@arkui.base'}
             case 'memo':
@@ -147,11 +155,10 @@ export function printOstFiles(library: PeerLibrary, featureName: string): [Map<s
     const files = library.files.filter(file =>
         file.packageClause.length &&
         !['idlize', 'synthetic'].includes(file.packageClause[0]))
-    const seeds = feature.seeds(files)
     const {effect, declarations } = continueWith<PeerLibrary, OhosEffect>({
         createEffect: createOhosEffect,
         library,
-        roots: { seeds }},
+        roots: { seeds: feature.seeds(files) }},
         onlyFor(OhosSeed<idl.IDLNode, ArkUIRole<idl.IDLNode>>, (seed, ctx) => selector.select(seed)(seed.node, ctx, seed.role, seed.data)))
     const knownPackages = [
         ...files.map(file => file.packageClause.length ? file.packageClause.join('.') : library.name.toLowerCase()),

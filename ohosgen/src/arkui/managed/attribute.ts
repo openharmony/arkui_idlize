@@ -14,25 +14,12 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { isDefined, isRoot, capitalize } from "@idlizer/core"
+import { isDefined, capitalize, isCommonMethod } from "@idlizer/core"
 import { T, Ts, E, S, Hs, LWType, Builders, FunctionDeclaration,
   ClassDeclaration, managedName, createProducer, expectExpr, expectType,
   OhosSeed, OhosProducerContext
 } from "@idlizer/libohos"
-import { ArkUIRole } from "../index.js"
-
-function isComponentAttribute(node: idl.IDLInterface) {
-  return isRoot(node.name) ||
-    idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Component)
-}
-
-function isCommonMethodProperty(prop: idl.IDLProperty) {
-  return idl.hasExtAttribute(prop, idl.IDLExtendedAttributes.CommonMethod)
-}
-
-function isAttributeModifier(prop: idl.IDLProperty) {
-  return prop.name === 'attributeModifier'
-}
+import { ArkUIRole, isAttributeModifier, isComponentAttribute } from "../index.js"
 
 function superClassForRole(node: idl.IDLInterface, role: 'peer' | 'component', ctx: OhosProducerContext): LWType | undefined {
   return node.name === 'CommonMethod'
@@ -57,10 +44,7 @@ export const attributeProducer = createProducer(
         createImpl(ctx, node, attrName),
         createModifier(ctx, node, attrName)
       ].filter(isDefined),
-      trigger: node.properties
-        .filter(it => !isAttributeModifier(it))
-        .map(it => new OhosSeed(it, 'peer'))
-        ///add attrModifier()
+      trigger: node.properties.map(it => new OhosSeed(it, 'peer'))
     }
   }
 )
@@ -75,7 +59,7 @@ export const peerProducer = createProducer<idl.IDLInterface, ArkUIRole<idl.IDLIn
         idl.createParameter('peerPtr', idl.createPrimitiveType('i32')),
         idl.createParameter('id', idl.createPrimitiveType('i32')),
       ], undefined)
-    ctor.parent = node ///parent should in fact be peer, not attribute
+    ctor.parent = node  // parent should in fact be peer, not attribute
     const nativeModuleCall = expectExpr(ctx, ctor, 'native-module')
     return {
       continuation: T.c(peerName),
@@ -132,40 +116,29 @@ function createImpl(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrNa
   const name = attrName.replace(/Attribute$/, '')
   const peerType = expectType(ctx, attrNode, 'peer')
   const componentType = expectType(ctx, attrNode, 'component')
-  const rememberCall = E.call(
-    E.v('remember'),
-    [Builders.lambda().body().block().return().ctor(name + 'Component').$().$().$().$().$()],
-    [componentType]
-  )
-  const nodeAttachCall = E.call(
-    E.v('NodeAttach'),
-    [
-      Builders.lambda().body()
-        .call('create')
-          .receiver(E.v(name + 'Peer', [Hs.isType()]))
-          .arg('receiver').$().$().$(),
-      Builders.lambda().param('_').type(peerType).$().body().block()
-        .call('style').arg('receiver').$()
-        .call('content_').$().$().$().$()
-    ],
-    [peerType]
-  )
   return Builders.func(name + 'Impl')
     .param('style').type(Ts.optional(T.fn([{ name: 'attributes', type: T.c(attrName)}], Ts.prim.void))).$()
-    .param('content_').type(Ts.optional(T.fn([], Ts.prim.void))).$()
+    .param('content').type(Ts.optional(T.fn([], Ts.prim.void))).$()
     .returns(Ts.prim.void)
     .annotation('memo')
     .block()
-      .decl('receiver').value(rememberCall).$()
-      .call(nodeAttachCall).$().$().$()
+      .decl('receiver').value().call('remember').typeArgs([componentType])
+        .arg().lambda().body().block().return().ctor(name + 'Component').$().$().$().$().$().$().$().$().$()
+      .call('NodeAttach').typeArgs([peerType])
+        .arg().lambda().body().call('create')
+          .receiver(E.v(name + 'Peer', [Hs.isType()]))
+          .arg('receiver').$().$().$().$()
+        .arg().lambda().param('_').type(peerType).$().body().block()
+          .call('style').arg('receiver').questionMark().$()
+          .call('content').questionMark().$().$().$().$().$().$().$().$()
 }
 
 function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, attrName: string): ClassDeclaration {
   const baseName = attrName.replace(/Attribute$/, '')
   const modifierName = baseName + 'Modifier'
-  const parentModifierName = attrNode.inheritance.length
-    ? managedName((attrNode.inheritance[0] as idl.IDLReferenceType).name.replace(/(Attribute)?$/, 'Modifier'))
-    : modifierName /// fallback, e.g. CommonMethod extends itself
+  const parentModifier = attrNode.inheritance.length
+    ? T.c(managedName((attrNode.inheritance[0] as idl.IDLReferenceType).name.replace(/(Attribute)?$/, 'Modifier')))
+    : undefined
   const valueFieldName = (propName: string, index: number) => `_${propName}_${index}_value`
 
   // Separate regular properties from attributeModifier
@@ -173,14 +146,12 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
   const attrModProps = attrNode.properties.filter(it => isAttributeModifier(it))
   const applyMethods = ['applyNormalAttribute', 'applyPressedAttribute', 'applyFocusedAttribute', 'applyDisabledAttribute', 'applySelectedAttribute']
 
-  return Builders.class(modifierName)
-    .extends(T.c(parentModifierName))
+  const modifierClass = Builders.class(modifierName)
+    .extends(parentModifier)
     .implements(T.c(attrName))
     .implements(T.c('AttributeModifier', T.c(attrName)))
-    .field('_instanceId').type(Ts.prim.number).value(-1).$()
-    .field('_state').type(T.c('ModifierState')).value().ctor('ModifierState').$().$().$()
-    .field('_addr').type(T.c('ArrayBuffer')).value().ctor('ArrayBuffer').arg(4096).$().$().$()
-    .field('_flagArray').type(T.c('Uint8Array')).value().ctor('Uint8Array').arg().access('_addr').receiver('this').$().$().$().$().$()
+    .field('_addr').private().type(T.c('ArrayBuffer')).value().ctor('ArrayBuffer').arg(4096).$().$().$()
+    .field('_flagArray').private().type(T.c('Uint8Array')).value().ctor('Uint8Array').arg().access('_addr').receiver('this').$().$().$().$().$()
     // per-property value fields
     .fields(regularProps.map((prop, i) =>
       Builders.field(valueFieldName(prop.name, i)).type(Ts.optional(expectType(ctx, prop.type, 'managed'))).$()))
@@ -189,13 +160,8 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
 
     // Constructor: super() + fill flagArray with 0
     .ctor().block()
-      .call('super').$()
+      .statements(isCommonMethod(attrNode.name) ? [] : [Builders.stmt().call('super').$().$()])
       .call('fill').receiver().access('_flagArray').receiver('this').$().$().arg(E.c(0)).$().$().$()
-    // setInstanceId method
-    .method('setInstanceId')
-      .param('instanceId').type(Ts.prim.number).$()
-      .returns(Ts.prim.void)
-      .block().binary('=').left(E.get(E.v('this'), '_instanceId')).right(E.v('instanceId')).$().$().$()
     // apply*Attribute methods
     .methods(applyMethods.map(it =>
       Builders.func(it)
@@ -285,11 +251,25 @@ function createModifier(ctx: OhosProducerContext, attrNode: idl.IDLInterface, at
           .return().value('this').$()
           .$().$()))
 
-    /// attributeModifier stub methods
-    // .methods(attrModProps.map(prop =>
-    //   Builders.func(prop.name)
-    //     .param('value').type(expectType(ctx, prop.type, 'managed')).$()
-    //     .returns(Ts.prim.self)
-    //     .block().unimplemented().$().$()))
+    // attributeModifier stub methods
+    .methods(attrModProps.map(prop =>
+      Builders.func(prop.name)
+        .param('value').type(expectType(ctx, prop.type, 'managed')).$()
+        .returns(Ts.prim.self)
+        .block().unimplemented().$().$()))
     .$()
+
+    if (isCommonMethod(attrNode.name)) {
+      modifierClass.fields.unshift(
+        Builders.field('_instanceId').type(Ts.prim.number).value(-1).$(),
+        Builders.field('_state').type(T.c('ModifierState')).value().ctor('ModifierState').$().$().$()
+      )
+      modifierClass.methods.unshift(
+        Builders.func('setInstanceId')
+          .param('instanceId').type(Ts.prim.number).$()
+          .returns(Ts.prim.void)
+          .block().binary('=').left(E.get(E.v('this'), '_instanceId')).right(E.v('instanceId')).$().$().$()
+      )
+    }
+    return modifierClass
 }

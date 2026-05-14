@@ -14,6 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
+import { isRoot } from "@idlizer/core"
 import { MakeSelector, OhosSeed, OhosRole } from "@idlizer/libohos"
 import { attributeProducer, componentProducer, peerProducer } from "./managed/attribute.js"
 import { propertyProducer } from "./managed/property.js"
@@ -23,7 +24,7 @@ import { optionsProducer } from "./managed/callable.js"
 type ArkUISpecificRole<N extends idl.IDLNode> =
   N extends idl.IDLInterface ? 'component' | 'peer' :
   N extends idl.IDLProperty ? 'peer' :
-  N extends idl.IDLCallable ? 'peer' : ///better names?
+  N extends idl.IDLCallable ? 'peer' :
   never
 
 export type ArkUIRole<N extends idl.IDLNode> = OhosRole<N> | ArkUISpecificRole<N>
@@ -43,4 +44,13 @@ export function registerArkUIProducers(selector: MakeSelector) {
   for (const producer of producers) {
     selector.register(producer as any)
   }
+}
+
+export function isComponentAttribute(node: idl.IDLInterface) {
+  return isRoot(node.name) ||
+    idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Component)
+}
+
+export function isAttributeModifier(prop: idl.IDLProperty) {
+  return prop.name === 'attributeModifier'
 }

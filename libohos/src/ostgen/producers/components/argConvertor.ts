@@ -23,7 +23,7 @@ function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type.name) {
         case 'any': return 'Object'
         case 'boolean': return 'Boolean'
-        case 'bigint': return 'Int64' ///really?
+        case 'bigint': return 'Int64'
         case 'buffer':
         case 'SerializerBuffer': return 'Buffer'
         case 'date': return 'Int64'
@@ -608,13 +608,12 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     value = Builders.access('value' + i).receiver(accessor).$()
                 } else {
                     cond = Builders.call(expectExpr(this.ctx, type, 'typecheck')).arg(accessor).$()
-                    const castedName = accessor.kind === lw.LWKind.VariableExpression
-                        ? accessor.name + 'Casted'
-                        : 'valueCasted'
+                    const castValue = 'typed' +
+                        (accessor.kind === lw.LWKind.VariableExpression ? capitalize(accessor.name) : 'Value')
                     maybeCast.push(
-                        Builders.decl(castedName).value()
+                        Builders.decl(castValue).value()
                             .cast(expectType(this.ctx, type, 'managed')).value(accessor).$().$().$())
-                    value = E.v(castedName)
+                    value = E.v(castValue)
                 }
                 return Builders.if()
                     .condition(cond)
@@ -673,7 +672,7 @@ class OptionalConvertor extends StructConvertor<idl.IDLOptionalType> {
             : Builders.binary(Op.eq).left(accessor).right('undefined').$()
         const definedValue = native
             ? Builders.access('value').receiver(accessor).$()
-            : Builders.unary(Op.assert).value(accessor).$()
+            : accessor
         return [
             Builders.if()
                 .condition(isUndefinedCondition)
@@ -751,7 +750,7 @@ class CallbackConvertor extends StructConvertor<idl.IDLReferenceType> {
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         if (native) {
             const callbackParams = this.decl.parameters.map(p => ({ name: p.name, type: this.convertType(p.type, native) }))
-            const callbackName = this.decl.name ///monoName(this.convertType(this.type, native))
+            const callbackName = this.decl.name
             const asyncParams = [{ name: 'resourceId', type: Ts.prim.i32 }, ...callbackParams]
             if (!idl.isVoidType(this.decl.returnType)) {
                 const ref = this.ctx.library.createContinuationCallbackReference(this.decl.returnType)!

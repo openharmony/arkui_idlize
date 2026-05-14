@@ -261,7 +261,7 @@ export class TSPrinter {
       }
       case lw.LWKind.CallExpression: {
         this.maybeUseParen([lw.LWKind.BinaryExpression, lw.LWKind.UnaryExpression].includes(expression.callee.kind), () => this.printExpression(expression.callee))
-        if (expression.typeArgs && expression.typeArgs.length > 0) {
+        if (expression.typeArgs?.length) {
           this.p.put('<')
           expression.typeArgs.forEach((type, i) => {
             if (i > 0) {
@@ -270,6 +270,9 @@ export class TSPrinter {
             this.printType(type)
           })
           this.p.put('>')
+        }
+        if (utils.hasHint(expression, std.names.hints.questionMark)) {
+          this.p.put('?.')
         }
         this.p.put('(')
         expression.args.forEach((arg, i) => {
@@ -537,7 +540,7 @@ export class TSPrinter {
         ?.filter(mod => mod.name !== std.names.modifiers.optional)
         .forEach(mod => this.p.put(mod.name, ' '))
       this.p.put(param.name)
-      if (param.modifiers?.find(mod => mod.name === std.names.modifiers.optional))
+      if (utils.hasModifier(param, std.names.modifiers.optional))
         this.p.put('?')
       this.p.put(':', ' ')
       this.printType(param.type)
@@ -586,7 +589,7 @@ export class TSPrinter {
           ? 'interface'
           : 'class'
         this.p.put('export', ' ')
-        if (declaration.modifiers.find(m => m.name === std.names.modifiers.declare)) {
+        if (utils.hasModifier(declaration, std.names.modifiers.declare)) {
           this.p.put('declare', ' ')
         }
         this.p.put(specifier, ' ', declaration.name)
@@ -678,7 +681,7 @@ export class TSPrinter {
             }
             this.printGenerics(declaration.generics)
             this.printParameters(declaration.parameters)
-            if (!isCtor && !declaration.modifiers.find(it => it.name === std.names.modifiers.setter)) {
+            if (!isCtor && !utils.hasModifier(declaration, std.names.modifiers.setter)) {
               this.p.put(':', ' ')
               this.printType(declaration.returnType)
             }

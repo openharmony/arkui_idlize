@@ -848,6 +848,12 @@ export const D = DD({})
 export const utils = {
   /**
    * Check if an expression has a specific hint.
+   */
+  hasModifier(node: { modifiers?: lw.Modifier[] }, modifier: string) {
+    return node.modifiers?.find(it => it.name === modifier)
+  },
+  /**
+   * Check if an expression has a specific hint.
    *
    * @param node - Expression node
    * @param hint - Hint name to check for
