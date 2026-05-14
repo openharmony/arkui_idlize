@@ -624,6 +624,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
                     idl.isNamespace(entry) ||
                     idl.isInIdlize(entry) ||
                     this.peerLibrary.isHandwritten(entry) ||
+                    idl.isNativeOnly(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses
                 )
@@ -713,7 +714,7 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
     }
 
     convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
-        if (idl.isHandwritten(decl))
+        if (idl.isHandwritten(decl) || idl.isNativeOnly(decl))
             return super.convertInterface(decl)
         // idl.forEachFunction(decl, function_ => {
         //     const promise = idl.asPromise(function_.returnType)
@@ -772,6 +773,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                     idl.isImport(entry) ||
                     idl.isInIdlize(entry) ||
                     this.peerLibrary.isHandwritten(entry) ||
+                    idl.isNativeOnly(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier) && !this.isDeclarationFile
@@ -859,6 +861,7 @@ export class CJInterfacesVisitor implements InterfacesVisitor {
                     idl.isNamespace(entry) ||
                     idl.isInIdlize(entry) ||
                     this.peerLibrary.isHandwritten(entry) ||
+                    idl.isNativeOnly(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
                 syntheticGenerator.convert(entry)
@@ -1251,6 +1254,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
                     idl.isImport(entry) ||
                     idl.isInIdlize(entry) ||
                     this.peerLibrary.isHandwritten(entry) ||
+                    idl.isNativeOnly(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language)
                 ) {
                     continue

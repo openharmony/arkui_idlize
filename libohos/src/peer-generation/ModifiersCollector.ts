@@ -90,6 +90,7 @@ class ModifierCollector {
                 if (!idl.isInterface(entry) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component) ||
                     idl.isHandwritten(entry) ||
+                    idl.isNativeOnly(entry) ||
  	                peerGeneratorConfiguration().isHandWritten(entry.name)) {
                     continue
                 }

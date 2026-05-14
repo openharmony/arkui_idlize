@@ -91,6 +91,7 @@ export enum IDLExtendedAttributes {
     OverloadAlias = "OverloadAlias",
     OverloadPriority = "OverloadPriority",
     TransformOnSerialize = "TransformOnSerialize",
+    NativeOnly = "NativeOnly",
 }
 
 export enum IDLAccessorAttribute {
