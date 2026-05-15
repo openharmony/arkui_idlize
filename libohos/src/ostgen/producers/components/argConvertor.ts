@@ -227,7 +227,7 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
         const enumTypeNameExpr = E.type(expectType(this.ctx, this.decl, 'managed'))
         return this.type.name === 'String'
             ? Builders.access(valueExpr).receiver().call('values').receiver(enumTypeNameExpr).$().$().$()
-            : Builders.call('fromValue').receiver(enumTypeNameExpr).arg(valueExpr).$()
+            : Builders.call('@Enum.fromOrdinal').receiver(enumTypeNameExpr).arg(valueExpr).$()
     }
 }
 
