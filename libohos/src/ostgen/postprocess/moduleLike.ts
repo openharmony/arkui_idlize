@@ -21,19 +21,25 @@ import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
 import { moduleLike } from "@idlizer/kit";
 export function postprocess(decls: lw.LWDeclaration[], nativeModuleName: string, callbacks: string[], language: Language): lw.LWDeclaration[] {
     decls = moduleLike.postprocess(decls)
-    decls = introduceCallbackCaller(decls, callbacks)
+    decls = introduceCallbackCaller(decls, callbacks, language)
     decls = loadNativeModule(decls, nativeModuleName, language)
     return decls
 }
 
-function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[]): lw.LWDeclaration[] {
+function ordinalToEnum(value: string, enumType: string, language: Language): lw.LWExpression {
+    return language == Language.TS
+        ? E.c(value)
+        : Builders.call('fromValue').receiver('CallbackKind').arg('kind').$()
+}
+
+function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[], language: Language): lw.LWDeclaration[] {
     const callbackKindEnum = callbackKindDeclaration(callbacks, s => managedName('engine.' + s))
     const caller = Builders.func(managedName('engine.deserializeAndCallCallback'))
         .param('deserializer').type('DeserializerBase').$()
         .block()
             .decl('kind').value().call('readInt32').receiver('deserializer').$().$().$()
             .switch()
-                .selector().call('fromValue').receiver('CallbackKind').arg('kind').$().$()
+                .select(ordinalToEnum('kind', 'CallbackKind', language))
                 .cases(callbacks.map(it => { return {
                     value: E.c('CallbackKind.' + it.toUpperCase()),
                     body: [
