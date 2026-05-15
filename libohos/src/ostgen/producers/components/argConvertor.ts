@@ -205,9 +205,13 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
         return [Builders.return().value(this.valueToEnum(E.v(resultVarName))).$()]
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        const enumIntrinsic = this.type.name === 'String'
+            ? std.names.intrinsics.stringEnumToOrdinal
+            : std.names.intrinsics.enumToOrdinal
+        const enumTypeNameExpr = E.type(expectType(this.ctx, this.decl, 'managed'))
         const enumValue = native
             ? accessor
-            : Builders.call(this.type.name === 'String' ? 'getOrdinal' : 'valueOf').receiver(accessor).$()
+            : Builders.call(enumIntrinsic).receiver(enumTypeNameExpr).arg(accessor).$()
         return [
             Builders.stmt().call('writeInt' + this.arity).receiver(serializerName).arg(enumValue).$().$()
         ]
@@ -227,7 +231,7 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
         const enumTypeNameExpr = E.type(expectType(this.ctx, this.decl, 'managed'))
         return this.type.name === 'String'
             ? Builders.access(valueExpr).receiver().call('values').receiver(enumTypeNameExpr).$().$().$()
-            : Builders.call('fromValue').receiver(enumTypeNameExpr).arg(valueExpr).$()
+            : Builders.call(std.names.intrinsics.enumFromOrdinal).receiver(enumTypeNameExpr).arg(valueExpr).$()
     }
 }
 

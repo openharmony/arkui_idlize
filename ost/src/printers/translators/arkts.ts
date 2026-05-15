@@ -37,6 +37,30 @@ export class ConvertArkTSTypes extends ConvertTSTypes {
 }
 
 export class ArkTSPrinter extends TSPrinter {
+  printExpression(expression: lw.LWExpression): void {
+    switch (expression.kind) {
+      case lw.LWKind.CallExpression: {
+        if (expression.callee.kind == lw.LWKind.AccessorExpression) {
+          if (expression.callee.accessor == std.names.intrinsics.enumFromOrdinal) {
+            this.printExpression(expression.callee.base)
+            this.p.put('.').put('fromValue').put('(')
+            this.printExpression(expression.args[0])
+            this.p.put(')')
+            break
+          } else if (expression.callee.accessor == std.names.intrinsics.enumToOrdinal) {
+            this.printExpression(expression.args[0])
+            this.p.put('.').put('valueOf').put('(').put(')')
+            break
+          } else if (expression.callee.accessor == std.names.intrinsics.stringEnumToOrdinal) {
+            this.printExpression(expression.args[0])
+            this.p.put('.').put('getOrdinal').put('(').put(')')
+            break
+          }
+        }
+      }
+      default: super.printExpression(expression)
+    }
+  }
   printDeclaration(declaration: lw.LWDeclaration): void {
     if (declaration.kind === lw.LWKind.FunctionDeclaration) {
       declaration.annotations.forEach(ann => {

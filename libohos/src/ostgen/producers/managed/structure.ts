@@ -235,7 +235,8 @@ function mergeConstructors(
               .args(params.map(it => Builders.expr().const(it.name).$()))
               .receiver(name).$().$().$().$().$(),
           setPeer,
-          Builders.stmt().call('callHolder').receiver('this').$().$(),
+          // TBD: Add callHolder methods to the materialized class
+          // Builders.stmt().call('callHolder').receiver('this').$().$(),
         ]
       )
       .$().$(),

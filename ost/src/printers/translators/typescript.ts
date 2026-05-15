@@ -260,6 +260,24 @@ export class TSPrinter {
         break
       }
       case lw.LWKind.CallExpression: {
+        if (expression.callee.kind == lw.LWKind.AccessorExpression) {
+          if (expression.callee.accessor == std.names.intrinsics.enumFromOrdinal) {
+            this.printExpression(expression.args[0])
+            break
+          } else if (expression.callee.accessor == std.names.intrinsics.enumToOrdinal) {
+            this.printExpression(expression.args[0])
+            break
+          } else if (expression.callee.accessor == std.names.intrinsics.stringEnumToOrdinal) {
+            // Object.values(StringEnum).indexOf(value)
+            this.p.put('Object.values(')
+            this.printExpression(expression.callee.base)
+            this.p.put(')')
+            this.p.put('.indexOf(')
+            this.printExpression(expression.args[0])
+            this.p.put(')')
+            break
+          }
+        }
         this.maybeUseParen([lw.LWKind.BinaryExpression, lw.LWKind.UnaryExpression].includes(expression.callee.kind), () => this.printExpression(expression.callee))
         if (expression.typeArgs?.length) {
           this.p.put('<')
