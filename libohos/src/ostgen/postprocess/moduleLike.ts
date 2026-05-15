@@ -14,7 +14,7 @@
  */
 
 import { snakeCaseToCamelCase, moduleName, Language } from "@idlizer/core";
-import { Builders, E, Hs, lw, std } from "@idlizer/ost"
+import { Builders, E, Hs, lw, Md, Op, std, Ts } from "@idlizer/ost"
 import { managedName } from "../producers/common.js";
 import { callbackKindDeclaration } from "./postprocess.js";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration.js";
@@ -54,12 +54,27 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
 function loadNativeModule(decls: lw.LWDeclaration[], nativeModuleName: string, language: Language): lw.LWDeclaration[] {
     const nativeModule = decls.find(it => it.name == nativeModuleName) as lw.ClassDeclaration
     const args = [`"${moduleName('NativeModule')}"`]
-    if (language == Language.TS)
-        args.push(`${moduleName('NativeModule')}`)
+    if (language != Language.TS) {
+        nativeModule.methods.unshift(
+            Builders.func(std.names.members.staticCtor).static().block()
+                .call('loadNativeModuleLibrary')
+                .args(args.map(it => E.c(it)))
+                .$().$().$())
+        return decls
+    }
+    args.push(`${moduleName('NativeModule')}`)
+    nativeModule.fields.unshift(
+        { name: '_isLoaded', type: Ts.prim.boolean, modifiers: [Md.static()], expression: E.c('false') })
     nativeModule.methods.unshift(
-        Builders.func(std.names.members.staticCtor).static().block()
-            .call('loadNativeModuleLibrary')
-            .args(args.map(it => E.c(it)))
-            .$().$().$())
+        Builders.func('_LoadOnce').static().returns(Ts.prim.boolean).block()
+            .if().condition(E.unary(Op.not, E.c('this._isLoaded')))
+            .then().block()
+                .assign('this._isLoaded').value(E.c('true')).$()
+                .call('loadNativeModuleLibrary').args(args.map(it => E.c(it))).$()
+                .return().value(E.c('true')).$()
+            .$().$().$()
+            .return().value(E.c('false')).$()
+            .$().$()
+        )
     return decls
 }

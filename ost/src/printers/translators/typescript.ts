@@ -428,6 +428,12 @@ export class TSPrinter {
         }
         break
       }
+      case lw.LWKind.AssignStatement: {
+        this.p.put(statement.varName)
+        this.p.put(' ', '=', ' ')
+        this.printExpression(statement.expression)
+        break
+      }
       case lw.LWKind.IfStatement: {
         this.p.put('if', ' ', '(')
         this.printExpression(statement.condition)
@@ -691,11 +697,7 @@ export class TSPrinter {
           this.p.put(' ')
           this.printStatement(declaration.body)
         } else if (this.isNative(declaration)) {
-          this.p.put(' ').put(`{`)
-          this.p.inc().newline()
-          this.p.put('throw new Error("Not implemented")')
-          this.p.dec().newline()
-          this.p.put(`}`)
+          throw new Error(`TypeScript does not support native functions: ${declaration.name}`)
         }
         break
       }

@@ -133,6 +133,13 @@ export class IdentityTransformer {
       expression: over(stmt.expression, e => this.goExpression(e))
     }
   }
+  goAssignStatement(stmt: lw.AssignStatement): lw.AssignStatement {
+    return {
+      kind: stmt.kind,
+      varName: stmt.varName,
+      expression: over(stmt.expression, e => this.goExpression(e))!
+    }
+  }
   goCompoundStatement(stmt: lw.CompoundStatement): lw.CompoundStatement {
     return {
       kind: stmt.kind,
@@ -198,6 +205,7 @@ export class IdentityTransformer {
   goStatement(stmt: lw.LWStatement): lw.LWStatement {
     switch (stmt.kind) {
       case lw.LWKind.DeclarationStatement: return this.goDeclarationStatement(stmt)
+      case lw.LWKind.AssignStatement: return this.goAssignStatement(stmt)
       case lw.LWKind.CompoundStatement: return this.goCompoundStatement(stmt)
       case lw.LWKind.ExpressionStatement: return this.goExpressionStatement(stmt)
       case lw.LWKind.ReturnStatement: return this.goReturnStatement(stmt)

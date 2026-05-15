@@ -24,6 +24,7 @@ import {
     EnumDeclaration, SwitchStatement, ConstantExpression, GenericDescriptor, TopLevelExpression,
     ThrowStatement,
     TernaryExpression,
+    AssignStatement,
 } from "../lws.js"
 import { Hs, Md, std, Ts } from "../stdlib.js";
 
@@ -859,6 +860,41 @@ class DeclarationBuilder<P> {
 }
 
 /**
+ * Builder for assign an expression to the variable.
+ *
+ * @typeParam P - The type returned by the continuation function (usually AssignStatement or a parent builder)
+ */
+class AssignBuilder<P> {
+    /**
+     * @param _cont - Continuation function that receives the built statement
+     * @param _name - Variable name
+     */
+    constructor(private _cont: (stmt: AssignStatement) => P, private _name: string) {}
+    private _value?: LWExpression
+    /**
+     * Set the value for the variable.
+     * If called with an argument, sets the value directly and returns this builder.
+     * If called without arguments, returns an ExpressionBuilder for deferred value specification.
+     *
+     * @param value - Value expression
+     * @returns This builder or ExpressionBuilder for deferred construction
+     */
+    value(value: ExpressionLike): this
+    value(): ExpressionBuilder<this>
+    value(value?: ExpressionLike): this | ExpressionBuilder<this> {
+        return assign(this, '_value', value)
+    }
+    /**
+     * Finalize the builder and return the constructed declaration statement.
+     *
+     * @returns The built DeclarationStatement
+     */
+    $(): P {
+        return this._cont(S.assign(this._name, this._value!))
+    }
+}
+
+/**
  * Builder for creating return statements or expression statements based on context.
  *
  * @typeParam P - The type returned by the continuation function (usually LWStatement or a parent builder)
@@ -1400,6 +1436,15 @@ class StatementBuilder<P> {
         return new ReturnBuilder(morphInto(this, '_stmt', id), type)
     }
     /**
+     * Create an throw statement.
+     * Returns an ThrowBuilder for specifying condition and branches.
+     *
+     * @returns ThrowBuilder for deferred construction
+     */
+    throw(): ThrowBuilder<StatementBuilder<P>> {
+        return new ThrowBuilder(morphInto(this, '_stmt', id))
+    }
+    /**
      * Create none statement.
      * Returns an NoneBuilder for specifying condition and branches.
      *
@@ -1521,6 +1566,19 @@ class BlockBuilder<P> {
         }, name, type)
     }
     /**
+     * Create a variable assign statement and add it to the block.
+     * Returns a AssignBuilder for specifying variable properties and initial value.
+     *
+     * @param name - Variable name
+     * @returns AssignBuilder for deferred construction
+     */
+    assign(name: string): AssignBuilder<BlockBuilder<P>> {
+        return new AssignBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        }, name)
+    }
+    /**
      * Create an if statement and add it to the block.
      * Returns an IfBuilder for specifying condition and branches.
      *
@@ -1568,6 +1626,18 @@ class BlockBuilder<P> {
             this._body.push(stmt)
             return this
         }, type)
+    }
+    /**
+     * Create an throw statement.
+     * Returns an ThrowBuilder for specifying condition and branches.
+     *
+     * @returns ThrowBuilder for deferred construction
+     */
+    throw(): ThrowBuilder<BlockBuilder<P>> {
+        return new ThrowBuilder(stmt => {
+            this._body.push(stmt)
+            return this
+        })
     }
     /**
      * Add a break statement to the block.

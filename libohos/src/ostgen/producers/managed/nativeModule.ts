@@ -14,10 +14,11 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Builders, D, E, FunctionDeclaration, Hs, LWDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
+import { Builders, D, E, FunctionDeclaration, LWExpression, LWStatement, LWType, Op, T, Ts } from "@idlizer/ost"
 import { bridgeName, cApiName, expectExpr, expectType, isDirectInteropType } from "../common.js"
 import { cppParamName, createProducer, fqName, OhosProducerContext } from "../../engine/index.js"
 import { argConvertor } from "../components/argConvertor.js"
+import { Language } from "@idlizer/core"
 
 export const nativeModuleMaterializedProducer = createProducer(
   { is: idl.isInterface, role: 'native-module' },
@@ -47,13 +48,26 @@ export const nativeModuleFunctionProducer = createProducer(
     return {
       continuation: E.get(E.v(className), '_' + funcName),
       declarations: [
-        Builders.class(className)
+        ctx.library.language != Language.TS
+        ? Builders.class(className)
           .method('_' + funcName)
             .native().static()
             ///no annotation for vmContext methods, see MethodUtils
             .annotation(!isPromise && isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
             .parameters(params)
-            .returns(returnType).$().$(),
+            .returns(returnType).$().$()
+        : Builders.class(className)
+          .method('_' + funcName)
+            .static()
+            .parameters(params)
+            .returns(returnType)
+            .block()
+            .if()
+              .condition(E.c('this._LoadOnce()'))
+              .then()
+                .return().call(`_${funcName}`).args(params.map(it => E.c(it.name))).receiver(E.c('this'))
+              .$().$().$().$()
+            .throw().err().ctor('Error').arg('"Not implemented"').$().$().$().$().$().$(),
         makeBridge(funcName, method, ctx)
       ]
     }

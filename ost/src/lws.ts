@@ -38,6 +38,8 @@ export enum LWKind {
   // Statement node kinds
   /** Variable declaration statement (let/var/const) */
   DeclarationStatement,
+  /** Variable assign statement (let/var/const) */
+  AssignStatement,
   /** Block/compound statement (sequence of statements) */
   CompoundStatement,
   /** Expression evaluated as a statement */
@@ -527,6 +529,27 @@ export interface DeclarationStatement {
   expression?: LWExpression
 }
 /**
+ * Variable assign statement AST node.
+ * Represents a variable assignment.
+ *
+ * @example
+ * ```typescript
+ * // x = 42
+ * const assignStatement: assignStatement = {
+ *   kind: LWKind.AssignStatement,
+ *   varName: "x",
+ *   expression: E.c(42)
+ * };
+ * ```
+ */
+export interface AssignStatement {
+  kind: LWKind.AssignStatement
+  /** Variable name */
+  varName: string
+  /** Initializer expression */
+  expression: LWExpression
+}
+/**
  * Compound/block statement AST node.
  * Represents a sequence of statements enclosed in braces {}.
  *
@@ -715,6 +738,7 @@ export interface NoneStatement {
  */
 export type LWStatement =
   DeclarationStatement
+  | AssignStatement
   | CompoundStatement
   | ExpressionStatement
   | ReturnStatement
