@@ -261,8 +261,20 @@ export class TSPrinter {
       }
       case lw.LWKind.CallExpression: {
         if (expression.callee.kind == lw.LWKind.AccessorExpression) {
-          if (expression.callee.accessor == "@Enum.fromOrdinal") {
+          if (expression.callee.accessor == '@Enum.fromOrdinal') {
             this.printExpression(expression.args[0])
+            break
+          } else if (expression.callee.accessor == '@Enum.toOrdinal') {
+            this.printExpression(expression.args[0])
+            break
+          } else if (expression.callee.accessor == '@StringEnum.toOrdinal') {
+            // Object.values(StringEnum).indexOf(value)
+            this.p.put('Object.values(')
+            this.printExpression(expression.callee.base)
+            this.p.put(')')
+            this.p.put('.indexOf(')
+            this.printExpression(expression.args[0])
+            this.p.put(')')
             break
           }
         }

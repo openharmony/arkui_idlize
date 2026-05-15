@@ -205,10 +205,11 @@ class EnumConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
         return [Builders.return().value(this.valueToEnum(E.v(resultVarName))).$()]
     }
     write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        const enumTypeNameExpr = E.type(expectType(this.ctx, this.decl, 'managed'))
         const enumType = this.type.name === 'String' ? 'String' : ''
         const enumValue = native
             ? accessor
-            : Builders.call(`@${enumType}Enum.toOrdinal`).receiver(accessor).$()
+            : Builders.call(`@${enumType}Enum.toOrdinal`).receiver(enumTypeNameExpr).arg(accessor).$()
         return [
             Builders.stmt().call('writeInt' + this.arity).receiver(serializerName).arg(enumValue).$().$()
         ]

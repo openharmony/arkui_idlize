@@ -41,18 +41,18 @@ export class ArkTSPrinter extends TSPrinter {
     switch (expression.kind) {
       case lw.LWKind.CallExpression: {
         if (expression.callee.kind == lw.LWKind.AccessorExpression) {
-          if (expression.callee.accessor == "@Enum.fromOrdinal") {
+          if (expression.callee.accessor == '@Enum.fromOrdinal') {
             this.printExpression(expression.callee.base)
             this.p.put('.').put('fromValue').put('(')
             this.printExpression(expression.args[0])
             this.p.put(')')
             break
-          } else if (expression.callee.accessor == "@Enum.toOrdinal") {
-            this.printExpression(expression.callee.base)
+          } else if (expression.callee.accessor == '@Enum.toOrdinal') {
+            this.printExpression(expression.args[0])
             this.p.put('.').put('valueOf').put('(').put(')')
             break
-          } else if (expression.callee.accessor == "@StringEnum.toOrdinal") {
-            this.printExpression(expression.callee.base)
+          } else if (expression.callee.accessor == '@StringEnum.toOrdinal') {
+            this.printExpression(expression.args[0])
             this.p.put('.').put('getOrdinal').put('(').put(')')
             break
           }
