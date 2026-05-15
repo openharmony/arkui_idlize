@@ -1136,6 +1136,16 @@ class SwitchBuilder<P> {
         return new ExpressionBuilder(saveInto(this, '_selector'))
     }
     /**
+     * Set the selector expression.
+     * Returns a SwitchBuilder for specifying selector, cases, and default clause.
+     *
+     * @returns SwitchBuilder for deferred construction
+     */
+    select(expr: LWExpression) {
+        this._selector = expr
+        return this
+    }
+    /**
      * Add multiple case clauses to the switch statement.
      *
      * @param cases - Array of case clauses (case expression and body statements)
