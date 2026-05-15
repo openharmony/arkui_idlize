@@ -16,5 +16,6 @@
 package langlib;
 
 // renamed from DataView, because that is builtin type in arkts that is not supported by generator
+[Entity=Class]
 interface DataView_ {};
 
