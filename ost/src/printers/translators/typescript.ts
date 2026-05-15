@@ -260,6 +260,12 @@ export class TSPrinter {
         break
       }
       case lw.LWKind.CallExpression: {
+        if (expression.callee.kind == lw.LWKind.AccessorExpression) {
+          if (expression.callee.accessor == "@Enum.fromOrdinal") {
+            this.printExpression(expression.args[0])
+            break
+          }
+        }
         this.maybeUseParen([lw.LWKind.BinaryExpression, lw.LWKind.UnaryExpression].includes(expression.callee.kind), () => this.printExpression(expression.callee))
         if (expression.typeArgs?.length) {
           this.p.put('<')
