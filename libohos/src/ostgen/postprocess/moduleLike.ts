@@ -33,7 +33,7 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[], callbacks: string[])
         .block()
             .decl('kind').value().call('readInt32').receiver('deserializer').$().$().$()
             .switch()
-                .selector().call('@Enum.fromOrdinal').receiver('CallbackKind').arg('kind').$().$()
+                .selector().call(std.names.intrinsics.enumFromOrdinal).receiver('CallbackKind').arg('kind').$().$()
                 .cases(callbacks.map(it => { return {
                     value: E.c('CallbackKind.' + it.toUpperCase()),
                     body: [

@@ -261,13 +261,13 @@ export class TSPrinter {
       }
       case lw.LWKind.CallExpression: {
         if (expression.callee.kind == lw.LWKind.AccessorExpression) {
-          if (expression.callee.accessor == '@Enum.fromOrdinal') {
+          if (expression.callee.accessor == std.names.intrinsics.enumFromOrdinal) {
             this.printExpression(expression.args[0])
             break
-          } else if (expression.callee.accessor == '@Enum.toOrdinal') {
+          } else if (expression.callee.accessor == std.names.intrinsics.enumToOrdinal) {
             this.printExpression(expression.args[0])
             break
-          } else if (expression.callee.accessor == '@StringEnum.toOrdinal') {
+          } else if (expression.callee.accessor == std.names.intrinsics.stringEnumToOrdinal) {
             // Object.values(StringEnum).indexOf(value)
             this.p.put('Object.values(')
             this.printExpression(expression.callee.base)

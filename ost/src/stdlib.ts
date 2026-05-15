@@ -44,6 +44,13 @@ const knownModifiers = {
     externC: 'externC',
 }
 
+const knownIntrinsics = {
+    enumToOrdinal: '@Enum.toOrdinal',
+    enumFromOrdinal: '@Enum.fromOrdinal',
+    stringEnumToOrdinal: '@StringEnum.toOrdinal',
+    stringEnumFromOrdinal: '@StringEnum.fromOrdinal',
+}
+
 const specialMemberNames = {
     ctor: '@constructor',
     deCtor: '@destructor',
@@ -111,6 +118,7 @@ export const std = {
         types: specialTypeNames,
         hints: knownHints,
         modifiers: knownModifiers,
+        intrinsics: knownIntrinsics
     }
 }
 
