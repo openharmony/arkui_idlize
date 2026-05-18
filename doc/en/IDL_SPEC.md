@@ -48,7 +48,7 @@ A  *typedef*  declaration is used to assign a new name to an existing type withi
  **Example:** 
 
 ```
-typedef ohos.bluetooth.Server MySrv;
+typedef MySrv = ohos.bluetooth.Server;
 // MySrv alias for ohos.bluetooth.Server
 ```
 
@@ -96,7 +96,7 @@ If it is necessary to make a type optional, you can use `?` suffix.
  **Example:**
 
 ```
-typedef number? OptNumber;
+typedef OptNumber = number?;
 ```
 
 ### sequence
@@ -247,7 +247,7 @@ Interfaces are types. An interface instance (value) is a small identifier that l
 interface File {
     attribute String name;
     attribute u32 size;
-    optional attribute String lastError;
+    [Optional] attribute String lastError;
 
     void seek(u32 offset);
     u32 pos();

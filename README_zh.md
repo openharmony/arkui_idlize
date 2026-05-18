@@ -5,8 +5,8 @@
 ## IDLize 是什么
 
 IDLize 是面向 OpenHarmony/ArkUI 生态的编译器工具链，用于读取接口声明文件
-（`.d.ts`、`.d.ets`、`.idl`）并生成 native bindings。生成的产物包括 ArkTS peer 类、
-C++ libace Modifiers，以及 ArkUI 组件框架的序列化代码。目标用户是需要在
+（`.d.ts`、`.d.ets`、`.idl`）并生成原生绑定代码。生成的产物包括 ArkTS peer 类、
+C++ libace modifier，以及 ArkUI 组件框架的序列化代码。目标用户是需要在
 OpenHarmony 平台上定义或处理组件接口的 ArkUI 开发者。
 
 ## 架构
@@ -24,8 +24,8 @@ graph TD
     end
 
     subgraph "3. Generator Core"
-        libohos["libohos<br/>Printer、Serializer"]
-        writer["Language Writers<br/>ArkTS / C++ / CangJie"]
+        libohos["libohos<br/>printer、serializer"]
+        writer["language writer<br/>ArkTS / C++ / CangJie"]
         libohos --> writer
     end
 
@@ -33,8 +33,8 @@ graph TD
     parser -->|"IDL AST"| arkgen
     arkgen --> libohos
     writer --> peers["ArkTS Peers"]
-    writer --> modifiers["C++ Modifiers"]
-    writer --> serializers["Serializer"]
+    writer --> modifiers["C++ modifier"]
+    writer --> serializers["serializer"]
 ```
 
 ## 快速开始
@@ -47,23 +47,38 @@ npm i
 cd external && npm i && cd ..
 ```
 
-**步骤 2：编译**
+**步骤 2：准备 libarkts**
+
+```bash
+cd external/libarkts
+PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
+npm run compile
+cd ../..
+```
+
+**步骤 3：编译管线**
 
 ```bash
 cd runner && npm run compile && cd ..
 ```
 
-**步骤 3：生成**
+**步骤 4：下载并准备 SDK**
+
+```bash
+npm run download:sdk
+```
+
+**步骤 5：生成**
 
 ```bash
 bash generate.sh
 ```
 
-生成的代码将位于 `./out` 目录。
+安装后的生成输出位于 `./out` 目录；管线中间产物位于 `runner/out`。
 
 ## 工具
 
-**Peer Generator**（`arkgen`）-- 从 IDL 定义生成 ArkTS peer、C++ libace Modifiers
+**Peer Generator**（`arkgen`）-- 从 IDL 定义生成 ArkTS peer、C++ libace modifier
 和 Arkoala 绑定。主要模式：`--idl2peer`。参见
 [开发者指南](doc/zh-cn/DEVELOPER_GUIDE.md)和
 [CLI 参考](doc/zh-cn/CLI_REFERENCE.md)。
