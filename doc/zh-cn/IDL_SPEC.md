@@ -19,7 +19,7 @@
 
 # **package/namespace**
 
-*package* 指令和 *namespace* 容器旨在通过命名作用域将一组声明进行语义结构化，允许通过局部化管理复杂性。*package* 指令指定当前模块的根作用域，而 namespace 容器允许创建嵌套作用域。
+*package* 指令和 *namespace* 容器用于把一组声明组织到命名作用域中，便于按模块管理复杂接口。*package* 指令指定当前模块的根作用域，namespace 容器用于创建嵌套作用域。
 
 **示例：**
 
@@ -48,7 +48,7 @@ interface MySrv : bluetooth.Server {/*...*/}
 **示例：**
 
 ```
-typedef ohos.bluetooth.Server MySrv;
+typedef MySrv = ohos.bluetooth.Server;
 // MySrv 是 ohos.bluetooth.Server 的别名
 ```
 
@@ -96,7 +96,7 @@ interface I1 {
 **示例：**
 
 ```
-typedef number? OptNumber;
+typedef OptNumber = number?;
 ```
 
 ### sequence
@@ -247,7 +247,7 @@ void setReactor(Foo foo);
 interface File {
     attribute String name;
     attribute u32 size;
-    optional attribute String lastError;
+    [Optional] attribute String lastError;
 
     void seek(u32 offset);
     u32 pos();
@@ -288,7 +288,7 @@ interface TxtFile : File {
 
 # 版本
 
-version 指令允许使用语义版本化类似的标签标记根或嵌套命名空间。
+version 指令用于给根命名空间或嵌套命名空间标记类似语义化版本的标签。
 
 **示例：**
 

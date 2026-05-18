@@ -49,19 +49,35 @@ npm i
 cd external && npm i && cd ..
 ```
 
-**Step 2: Compile**
+**Step 2: Prepare libarkts**
+
+```bash
+cd external/libarkts
+PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
+npm run compile
+cd ../..
+```
+
+**Step 3: Compile the pipeline**
 
 ```bash
 cd runner && npm run compile && cd ..
 ```
 
-**Step 3: Generate**
+**Step 4: Download and prepare the SDK**
+
+```bash
+npm run download:sdk
+```
+
+**Step 5: Generate**
 
 ```bash
 bash generate.sh
 ```
 
-The generated code will be in `./out`.
+Installed generated output will be in `./out`; intermediate pipeline
+artifacts are written under `runner/out`.
 
 ## Tools
 

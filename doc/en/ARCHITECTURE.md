@@ -97,7 +97,7 @@ flowchart LR
 ```
 
 1. **SDK preparation** -- Upstream `.d.ts` / `.d.ets` declarations are
-   patched and prepared. The `runner prepareSdk` command applies patches
+   patched and prepared. The `runner sdk` command applies patches
    from `sdk-patched/` or `sdk-patched-arkts/` to the vendored SDK
    submodule.
 
@@ -108,7 +108,7 @@ flowchart LR
    format.
 
 3. **Parse to AST (core)** -- The `core/` workspace reads `.idl` files
-   via the `webidl2.js` parser and builds the IDL AST. The AST is the
+   with the parser in `core/src/from-idl/parser.ts` and builds the IDL AST. The AST is the
    single source of truth for all downstream generators.
 
 4. **Generate (arkgen / libohos)** -- Printers walk the AST and emit
@@ -492,7 +492,7 @@ generated output files.
 Input: vendored `interface_sdk-js/` submodule.
 
 Process:
-1. `runner prepareSdk` reads the upstream SDK submodule.
+1. `runner sdk` reads the upstream SDK submodule.
 2. Patches from `sdk-patched/` or `sdk-patched-arkts/` are applied to
    fix or augment declarations.
 3. An ArkTS configuration is generated (`sdk2config`).

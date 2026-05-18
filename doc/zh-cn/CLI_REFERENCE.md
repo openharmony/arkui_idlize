@@ -52,7 +52,7 @@ node runner -- m3 <sdk-path> <idl-files...>
 | `--arkgen-options-file <file>` | string | （必需） | arkgen 配置文件路径 |
 | `--arkgen-interop-types <file>` | string | （必需） | interop-types.h 文件路径 |
 | `--scraper-options-file <file>` | string | （必需） | scraper 配置文件路径 |
-| `--etsgen-options-file <file>` | string | - | etsgen 配置文件路径 |
+| `--etsgen-options-file <file>` | string | `original` / `prepared` 阶段必需 | etsgen 配置文件路径。`--sdk-stage=idl` 时不使用 |
 | `--etsgen <executable>` | string | `npx etsgen` | etsgen 可执行文件路径。当 `--sdk-stage=idl` 时忽略 |
 | `--arkgen <executable>` | string | `npx arkgen` | arkgen 可执行文件路径 |
 | `--target <target>` | `sig \| libace \| all` | `sig` | 生成目标 |
@@ -67,6 +67,7 @@ node runner -- m3 ./sdk ./custom.idl \
   --output ./out \
   --sdk-stage original \
   --arkgen-options-file ./arkgen/generation-config/config.json \
+  --etsgen-options-file ./etsgen/generator-config.json \
   --arkgen-interop-types ./interop-types.h \
   --scraper-options-file ./scraper.json
 
@@ -230,8 +231,8 @@ node /path/to/arkgen [options]
 
 | 选项 | 描述 |
 |--------|-------------|
-| `--dts2peer` | 将 `.d.ts` 转换为 peer 草稿。**已弃用** -- 请改用 `dtsgen --dts2idl` 后跟 `--idl2peer` |
-| `--ets2ts` | 将 `.ets` 转换为 `.ts` |
+| `--dts2peer` | 已弃用的占位选项。当前实现只打印弃用提示；请改用 `etsgen --ets2idl` 后接 `arkgen --idl2peer` |
+| `--ets2ts` | CLI 接受该选项，但当前未实现 |
 | `--idl2peer` | 将 IDL 转换为 peer 草稿 |
 | `--show-config-schema` | 打印生成器配置的 JSON 模式并退出 |
 
@@ -435,12 +436,14 @@ node runner -- m3 ./out/patched-sdk-arkts ./custom.idl \
   --output ./out \
   --sdk-stage prepared \
   --arkgen-options-file ./arkgen/generation-config/config.json \
+  --etsgen-options-file ./etsgen/generator-config.json \
   --arkgen-interop-types ./interop-types.h \
   --scraper-options-file ./scraper-config.json \
   --target all \
   --language arkts
 
-# 生成输出放置在 ./out/peers/sig/ 和 ./out/peers/libace/ 中
+# 安装后的输出位于 ./out/sig/ 和 ./out/libace/。
+# 管线中间产物仍保留在 runner/out/peers/ 下。
 ```
 
 ### 仅从 IDL 快速生成

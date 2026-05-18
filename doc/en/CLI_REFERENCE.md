@@ -54,7 +54,7 @@ scraping, and IDL to peer generation.
 | `--arkgen-options-file <file>` | string | (required) | Path to arkgen configuration file |
 | `--arkgen-interop-types <file>` | string | (required) | Path to interop-types.h file |
 | `--scraper-options-file <file>` | string | (required) | Path to scraper configuration file |
-| `--etsgen-options-file <file>` | string | - | Path to etsgen configuration file |
+| `--etsgen-options-file <file>` | string | required for `original` / `prepared` | Path to etsgen configuration file. Not used when `--sdk-stage=idl` |
 | `--etsgen <executable>` | string | `npx etsgen` | Path to the etsgen executable. Ignored when `--sdk-stage=idl` |
 | `--arkgen <executable>` | string | `npx arkgen` | Path to the arkgen executable |
 | `--target <target>` | `sig \| libace \| all` | `sig` | Generation target |
@@ -69,6 +69,7 @@ node runner -- m3 ./sdk ./custom.idl \
   --output ./out \
   --sdk-stage original \
   --arkgen-options-file ./arkgen/generation-config/config.json \
+  --etsgen-options-file ./etsgen/generator-config.json \
   --arkgen-interop-types ./interop-types.h \
   --scraper-options-file ./scraper.json
 
@@ -234,8 +235,8 @@ node /path/to/arkgen [options]
 
 | Option | Description |
 |--------|-------------|
-| `--dts2peer` | Convert `.d.ts` to peer drafts. **Deprecated** -- use `dtsgen --dts2idl` followed by `--idl2peer` instead |
-| `--ets2ts` | Convert `.ets` to `.ts` |
+| `--dts2peer` | Deprecated placeholder. Current implementation only prints a deprecation message; use `etsgen --ets2idl` followed by `arkgen --idl2peer` |
+| `--ets2ts` | Accepted by the CLI but not implemented |
 | `--idl2peer` | Convert IDL to peer drafts |
 | `--show-config-schema` | Print the JSON schema for the generator configuration and exit |
 
@@ -439,12 +440,14 @@ node runner -- m3 ./out/patched-sdk-arkts ./custom.idl \
   --output ./out \
   --sdk-stage prepared \
   --arkgen-options-file ./arkgen/generation-config/config.json \
+  --etsgen-options-file ./etsgen/generator-config.json \
   --arkgen-interop-types ./interop-types.h \
   --scraper-options-file ./scraper-config.json \
   --target all \
   --language arkts
 
-# Generated output is placed in ./out/peers/sig/ and ./out/peers/libace/
+# Installed output is placed in ./out/sig/ and ./out/libace/.
+# Intermediate pipeline output remains under runner/out/peers/.
 ```
 
 ### Quick generation from IDL only

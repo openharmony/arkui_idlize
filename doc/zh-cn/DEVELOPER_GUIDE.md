@@ -143,6 +143,7 @@ bash generate.sh
 node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
     --sdk-stage prepared \
     --arkgen-options-file ./arkgen/generation-config/config.json \
+    --etsgen-options-file ./etsgen/generator-config.json \
     --arkgen-interop-types ./runner/interop-types/src/cpp/interop-types.h \
     --scraper-options-file ./runner/configs/scraper-config.json \
     --arkgen "node arkgen" \
@@ -157,26 +158,24 @@ node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
 |---|---|
 | `--sdk-stage prepared` | 使用已打补丁的 SDK。当直接输入 `.idl` 文件时使用 `idl`。 |
 | `--arkgen-options-file` | 生成配置（`config.json`）的路径。 |
+| `--etsgen-options-file` | etsgen 转换配置路径。`original` 和 `prepared` SDK 阶段需要该参数。 |
 | `--arkgen-interop-types` | 共享 C++ interop 类型头文件的路径。 |
 | `--scraper-options-file` | 控制处理哪些包的 scraper 配置。 |
 | `--target` | `sig`（仅 ArkTS peer）、`libace`（仅 C++ modifier）或 `all`。 |
 
 ### 1.5 定位输出
 
-运行成功后，生成的文件会放置在 `runner/out/`（或 `--output` 指定的路径）下：
+运行成功后，中间产物保留在 `runner/out/` 下，选定的 peer 输出会安装到
+`--output` 指定的目录：
 
 ```
 out/
-  peers/
-    sig/                          # Arkoala peer（ArkTS / TypeScript）
-      peer/
-        ArkMyButtonPeer.ts        # 封装 framenode 的原生 peer
-      generated/
-        ArkMyButtonComponent.ts   # 带有属性 setter 的组件类
-    libace/                       # C++ libace modifier
-      generated/
-        MyButtonModifier.cc       # 用于属性应用的 C++ modifier
-        MyButtonSerializer.cc     # 用于 IPC 的 serializer
+  sig/                            # Arkoala peer（ArkTS / TypeScript）
+    arkoala-arkts/
+      ...
+  libace/                         # C++ libace modifier
+    generated/
+      ...
 ```
 
 生成文件的命名约定：
@@ -215,17 +214,18 @@ C++ modifier 会将属性变更应用到 framenode。
 
 ```bash
 # 检查 peer 文件是否已生成
-ls out/peers/sig/generated/ArkMyButton*
+find out/sig -name "*MyButton*"
 
 # 检查 C++ modifier 文件是否已生成
-ls out/peers/libace/generated/MyButton*
+find out/libace -name "*MyButton*"
 ```
 
 如果文件缺失或内容不正确，请沿管线阶段向前回溯排查：
 
-1. 检查 `out/peers/sig/` 或 `out/peers/libace/` 中的生成输出。
-2. 检查 `out/idl/` 中转换后的 IDL，验证解析器接收到的内容。
-3. 检查生成配置（`arkgen/generation-config/config.json`），
+1. 检查 `out/sig/` 或 `out/libace/` 中安装后的输出。
+2. 检查 `runner/out/peers/sig/` 或 `runner/out/peers/libace/` 中的中间生成输出。
+3. 检查 `runner/out/idl/` 中转换后的 IDL，验证解析器接收到的内容。
+4. 检查生成配置（`arkgen/generation-config/config.json`），
    确认组件不在 `ignoreMaterialized` 中。
 
 ---
@@ -245,7 +245,7 @@ find runner/out/idl/ -name "*.idl" | xargs grep -l "ExistingComponent"
 ```
 
 如果组件是从 `.d.ts` / `.d.ets` 声明派生的，则 IDL 由 `etsgen` 阶段生成，
-存放在 `out/idl/` 中。如果是手写的，请检查 `interfaces/interfaces/arkui-extra/`。
+存放在 `runner/out/idl/` 中。如果是手写的，请检查 `interfaces/interfaces/arkui-extra/`。
 
 ### 2.2 编辑 IDL
 
@@ -407,8 +407,8 @@ interface ExistingComponent {
 bash generate.sh
 
 # 验证生成的方法反映了变更
-grep -n "borderWidth" out/peers/sig/generated/ArkExistingComponentComponent.ts
-grep -n "setData" out/peers/libace/generated/ExistingComponentModifier.cc
+rg -n "borderWidth" out/sig runner/out/peers/sig
+rg -n "setData" out/libace runner/out/peers/libace
 ```
 
 检查以下内容：
@@ -534,8 +534,8 @@ const i32 MAX_RETRIES = 3;
 ### 类型别名
 
 ```idl
-typedef (number or String) ResourceColor;
-typedef number? OptionalNumber;
+typedef ResourceColor = (number or String);
+typedef OptionalNumber = number?;
 ```
 
 ---
@@ -556,9 +556,10 @@ typedef number? OptionalNumber;
 
 | 内容 | 位置 |
 |---|---|
-| ArkTS peer（sig 目标） | `runner/out/peers/sig/` |
-| C++ libace modifier | `runner/out/peers/libace/` |
-| 所有 peer 输出 | `runner/out/peers/` |
+| 安装后的 ArkTS peer（`--target sig`） | `<--output>/` |
+| 安装后的 C++ libace modifier（`--target libace`） | `<--output>/` |
+| 安装后的全部输出（`--target all`） | `<--output>/sig/` 和 `<--output>/libace/` |
+| 中间 peer 输出 | `runner/out/peers/` |
 | 抓取的 IDL | `runner/out/scraper/` |
 | 已准备的 SDK（ArkTS） | `runner/out/patched-sdk-arkts/` |
 | 已准备的 SDK（TypeScript） | `runner/out/patched-sdk-ts/` |

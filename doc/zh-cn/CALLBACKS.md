@@ -14,11 +14,11 @@
 
 hold 和 release 的具体实现由资源的创建者决定。
 
-**回调** — 包含资源、`call` 和 `callSync` 函数指针的集合。`callSync` 的签名为 `void (VMContext vmContext, int32 resourceId, [callbackArg0, ..., callbackArgN] [ContinuationType continuation])`。`callSync` 的签名与 `call` 完全相同，但没有 vmContext 参数。
+**回调** — 包含资源、`call` 和 `callSync` 函数指针的集合。`call` 的签名为 `void (int32 resourceId, [callbackArg0, ..., callbackArgN] [ContinuationType continuation])`。`callSync` 的签名与 `call` 基本相同，但会在最前面增加一个 `VMContext` 参数。
 
 **VMContext** — 虚拟机上下文，在部分 API 调用中传入。用于通过 napi/ani/ets_napi 等（取决于虚拟机类型）调用 VM。CAPI 不提供关于 VMContext 具体是什么的任何信息。
 
-**continuation** — 回调，将被调用以响应式方式提供父回调执行的结果。
+**continuation** — 用于返回父回调执行结果的回调。
 
 ### Hold、Release 和调用上下文 <a id='hold-release-and-call-context'></a>
 
@@ -167,7 +167,7 @@ void main() {
 
 ### 延续 <a id='continuations'></a>
 
-延续（continuation）是一种将回调执行结果传递给调用者的方式。本质上延续只是返回类型在响应式风格中的表示。
+延续（continuation）是一种把回调执行结果传回调用方的方式。本质上，它用一个额外回调来表示源 IDL 声明中的返回值。
 
 假设有以下 IDL 回调声明：
 

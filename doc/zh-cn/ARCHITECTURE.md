@@ -79,15 +79,15 @@ flowchart LR
 ```
 
 1. **SDK 准备** -- 上游 `.d.ts` / `.d.ets` 声明被打补丁并准备就绪。
-   `runner prepareSdk` 命令将 `sdk-patched/` 或 `sdk-patched-arkts/` 中的补丁
+   `runner sdk` 命令将 `sdk-patched/` 或 `sdk-patched-arkts/` 中的补丁
    应用于 vendored 的 SDK 子模块。
 
 2. **dts2idl（etsgen）** -- `etsgen` 工作区将 TypeScript 声明文件转换为 `.idl`
    中间表示文件。此阶段处理 TypeScript 特有的构造（联合类型、泛型、条件类型）
    并将其规范化为 IDL 格式。
 
-3. **解析为 AST（core）** -- `core/` 工作区通过 `webidl2.js` 解析器读取 `.idl`
-   文件并构建 IDL AST。AST 是所有下游生成器的唯一事实来源。
+3. **解析为 AST（core）** -- `core/` 工作区使用 `core/src/from-idl/parser.ts`
+   中的解析器读取 `.idl` 文件并构建 IDL AST。AST 是所有下游生成器的唯一事实来源。
 
 4. **生成（arkgen / libohos）** -- Printer 遍历 AST 并发射目标语言代码。
    `arkgen` 工作区生成 ArkTS peer、C++ libace modifier 和 Arkoala 绑定。
@@ -454,7 +454,7 @@ classDiagram
 输入：vendored 的 `interface_sdk-js/` 子模块。
 
 过程：
-1. `runner prepareSdk` 读取上游 SDK 子模块。
+1. `runner sdk` 读取上游 SDK 子模块。
 2. 应用 `sdk-patched/` 或 `sdk-patched-arkts/` 中的补丁以修复或增强声明。
 3. 生成 ArkTS 配置（`sdk2config`）。
 

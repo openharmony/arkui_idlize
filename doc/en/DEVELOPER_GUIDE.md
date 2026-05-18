@@ -149,6 +149,7 @@ Or with explicit arguments:
 node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
     --sdk-stage prepared \
     --arkgen-options-file ./arkgen/generation-config/config.json \
+    --etsgen-options-file ./etsgen/generator-config.json \
     --arkgen-interop-types ./runner/interop-types/src/cpp/interop-types.h \
     --scraper-options-file ./runner/configs/scraper-config.json \
     --arkgen "node arkgen" \
@@ -163,27 +164,24 @@ Key flags:
 |---|---|
 | `--sdk-stage prepared` | Use the pre-patched SDK. Use `idl` when feeding `.idl` files directly. |
 | `--arkgen-options-file` | Path to the generation config (`config.json`). |
+| `--etsgen-options-file` | Path to the etsgen conversion config. Required for `original` and `prepared` SDK stages. |
 | `--arkgen-interop-types` | Path to the shared C++ interop types header. |
 | `--scraper-options-file` | Scraper configuration controlling which packages are processed. |
 | `--target` | `sig` (ArkTS peers only), `libace` (C++ modifiers only), or `all`. |
 
 ### 1.5 Locate the Output
 
-After a successful run, generated files are placed under `runner/out/` (or
-the `--output` path):
+After a successful run, intermediate files remain under `runner/out/`, and
+the selected peer output is installed into the `--output` path:
 
 ```
 out/
-  peers/
-    sig/                          # Arkoala peers (ArkTS / TypeScript)
-      peer/
-        ArkMyButtonPeer.ts        # Native peer wrapping the framenode
-      generated/
-        ArkMyButtonComponent.ts   # Component class with attribute setters
-    libace/                       # C++ libace modifiers
-      generated/
-        MyButtonModifier.cc       # C++ modifier for attribute application
-        MyButtonSerializer.cc     # Serializer for IPC
+  sig/                            # Arkoala peers (ArkTS / TypeScript)
+    arkoala-arkts/
+      ...
+  libace/                         # C++ libace modifiers
+    generated/
+      ...
 ```
 
 Naming conventions for generated files:
@@ -223,18 +221,20 @@ After generation, inspect the output files to confirm correctness:
 
 ```bash
 # Check that peer files were generated
-ls out/peers/sig/generated/ArkMyButton*
+find out/sig -name "*MyButton*"
 
 # Check that C++ modifier files were generated
-ls out/peers/libace/generated/MyButton*
+find out/libace -name "*MyButton*"
 ```
 
 If a file is missing or has incorrect content, trace backwards through the
 pipeline stages:
 
-1. Check the generated output in `out/peers/sig/` or `out/peers/libace/`.
-2. Check the converted IDL in `out/idl/` to verify what the parser received.
-3. Check the generation config (`arkgen/generation-config/config.json`) to
+1. Check the installed output in `out/sig/` or `out/libace/`.
+2. Check the intermediate generated output in `runner/out/peers/sig/` or
+   `runner/out/peers/libace/`.
+3. Check the converted IDL in `runner/out/idl/` to verify what the parser received.
+4. Check the generation config (`arkgen/generation-config/config.json`) to
    confirm the component is not in `ignoreMaterialized`.
 
 ---
@@ -255,7 +255,7 @@ find runner/out/idl/ -name "*.idl" | xargs grep -l "ExistingComponent"
 ```
 
 If the component was derived from a `.d.ts` / `.d.ets` declaration, the
-IDL was produced by the `etsgen` stage and lives in `out/idl/`. If it was
+IDL was produced by the `etsgen` stage and lives in `runner/out/idl/`. If it was
 handwritten, check `interfaces/interfaces/arkui-extra/`.
 
 ### 2.2 Edit the IDL
@@ -426,8 +426,8 @@ Re-run the pipeline and inspect the output:
 bash generate.sh
 
 # Verify the generated methods reflect the changes
-grep -n "borderWidth" out/peers/sig/generated/ArkExistingComponentComponent.ts
-grep -n "setData" out/peers/libace/generated/ExistingComponentModifier.cc
+rg -n "borderWidth" out/sig runner/out/peers/sig
+rg -n "setData" out/libace runner/out/peers/libace
 ```
 
 Check that:
@@ -553,8 +553,8 @@ const i32 MAX_RETRIES = 3;
 ### Type Aliases
 
 ```idl
-typedef (number or String) ResourceColor;
-typedef number? OptionalNumber;
+typedef ResourceColor = (number or String);
+typedef OptionalNumber = number?;
 ```
 
 ---
@@ -575,9 +575,10 @@ typedef number? OptionalNumber;
 
 | What | Location |
 |---|---|
-| ArkTS peers (sig target) | `runner/out/peers/sig/` |
-| C++ libace modifiers | `runner/out/peers/libace/` |
-| All peer output | `runner/out/peers/` |
+| Installed ArkTS peers (`--target sig`) | `<--output>/` |
+| Installed C++ libace modifiers (`--target libace`) | `<--output>/` |
+| Installed output (`--target all`) | `<--output>/sig/` and `<--output>/libace/` |
+| Intermediate peer output | `runner/out/peers/` |
 | Scraped IDL | `runner/out/scraper/` |
 | Prepared SDK (ArkTS) | `runner/out/patched-sdk-arkts/` |
 | Prepared SDK (TypeScript) | `runner/out/patched-sdk-ts/` |
