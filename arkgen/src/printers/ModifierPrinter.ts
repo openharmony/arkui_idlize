@@ -375,7 +375,7 @@ class ModifiersFileVisitor {
                     const attribute = attributeTypes[index];
                     // TODO: handle overload condition 
                     if (this.noNeedPrintModifier(attribute)) {
-                        return;
+                        continue;
                     }
                     const expr = `${this.generateFiledFlag(attribute, index, true)} != ${AttributeUpdaterFlag.INITIAL}`
                     const params: LanguageExpression[] = attribute.args.map((_, index) => {
@@ -467,7 +467,7 @@ class ModifiersFileVisitor {
                 for (let index = start; index < end; index++) {
                     const attribute = attributeTypes[index];
                     if (this.noNeedPrintModifier(attribute)) {
-                        return;
+                        continue;
                     }
                     const expr = `${this.generateFiledFlag(attribute, index, true)} != ${AttributeUpdaterFlag.INITIAL}`
                     const params: LanguageExpression[] = attribute.args.map((_, index) => {
