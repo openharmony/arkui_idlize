@@ -62,6 +62,29 @@ export class ArkTSPrinter extends TSPrinter {
     }
   }
   printDeclaration(declaration: lw.LWDeclaration): void {
+    if (declaration.kind === lw.LWKind.EnumDeclaration) {
+      const needsLong = declaration.members.some(m => typeof m.value === 'number' && (m.value > 0x7FFFFFFF || m.value < -0x80000000))
+      this.p.put('export', ' ', 'enum', ' ', declaration.name)
+      if (needsLong) {
+        this.p.put(':', ' ', 'long')
+      }
+      this.p.put('{')
+      this.p.inc().newline()
+      declaration.members.forEach((member, i) => {
+        if (i > 0) {
+          this.p.put(',')
+          this.p.newline()
+        }
+        this.p.put(member.name)
+        if (member.value !== undefined) {
+          const val = typeof member.value === 'number' ? member.value.toString() : `"${member.value}"`
+          this.p.put(' ', '=', ' ', val)
+        }
+      })
+      this.p.dec().newline()
+      this.p.put('}')
+      return
+    }
     if (declaration.kind === lw.LWKind.FunctionDeclaration) {
       declaration.annotations.forEach(ann => {
         if (ann.kind === lw.DecoratorKind.SimpleAnnotation) {
