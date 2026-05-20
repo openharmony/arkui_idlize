@@ -241,13 +241,16 @@ find out/libace -name "*MyButton*"
 
 ```bash
 # 查找特定组件的 IDL 文件
-find runner/out/idl/ -name "*.idl" | xargs grep -l "ExistingComponent"
+find interfaces/interfaces/ -name "*.idl" | xargs grep -l "ExistingComponent"
 ```
 
 如果组件是从 `.d.ts` / `.d.ets` 声明派生的，则 IDL 由 `etsgen` 阶段生成，
-存放在 `runner/out/idl/` 中。如果是手写的，请检查 `interfaces/interfaces/arkui-extra/`。
+存放在 `runner/out/idl/` 中。这是生成目录，每次运行生成时都会被覆盖。
+请勿修改 out 目录中的文件，而应修改输入的 `.d.ets` 声明文件。
 
-### 2.2 编辑 IDL
+如果是手写的，请检查 `interfaces/interfaces/arkui-extra/`——这些文件可以被修改和更新。
+
+### 2.2 编辑手写 IDL
 
 打开 IDL 文件，向接口中添加新的属性或方法：
 
@@ -433,7 +436,6 @@ import arkui.component.units.Length as Length;
 ### 带属性和方法的接口
 
 ```idl
-[Entity=Class]
 interface MyService {
     // 构造函数
     constructor(String name, optional i32 timeout);
@@ -452,6 +454,28 @@ interface MyService {
     static MyService createDefault();
 };
 ```
+
+如果声明了带有 **`Entity=Class` 扩展属性** 的接口，并且该接口需要作为 peer 或包含任何方法，
+则必须避免使用普通属性，或仅与 `Getter/Setter` 组合使用。
+
+```idl
+[Entity=Class]
+interface MyService {
+    // 属性
+    [Accessor=Getter]
+    attribute String name;
+    [Accessor=Getter]
+    readonly attribute i32 id;
+    [Accessor=Getter]
+    [Optional] attribute String description;
+    [Accessor=Setter]
+    [Optional] attribute String description;
+
+    // 方法
+    void start();
+};
+```
+
 
 ### 可选参数
 
