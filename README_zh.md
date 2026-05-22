@@ -37,6 +37,31 @@ graph TD
     writer --> serializers["serializer"]
 ```
 
+## 核心概念
+
+**peer**
+一个生成的类，镜像了 ArkUI 组件的 API 接口。每个 peer 封装一个原生
+framenode，并将组件的属性和方法暴露给应用层。
+
+**modifier**
+一个生成的 C++ 对象，在运行时将属性变更应用到 framenode。Modifier 在
+ArkTS peer 层和原生 ArkUI 渲染引擎之间搭建桥梁，将属性 setter 转换为
+原生调用。
+
+**serializer**
+生成的代码，用于为进程间通信（IPC）调用编码属性值。Serializer 将 IDL
+表示中的类型值转换为适合跨越 ArkTS/C++ 边界的线路格式。
+
+**framenode**
+一个原生 ArkUI 树节点，是 modifier 的运行时目标。UI 树中的每个可见组件
+都对应一个 framenode；modifier 和 peer 操作 framenode 以更新属性、布局
+和渲染状态。
+
+**materialized**
+一个组件，其 peer 是根据 IDL 定义完整生成的，而非 stub。
+Materialization 通过 `arkgen/generation-config/config.json` 逐组件控制。
+未被 materialized 的组件仅生成最小的 stub。
+
 ## 快速开始
 
 **步骤 1：克隆并安装**
@@ -80,11 +105,10 @@ bash generate.sh
 
 **Peer Generator**（`arkgen`）-- 从 IDL 定义生成 ArkTS peer、C++ libace modifier
 和 Arkoala 绑定。主要模式：`--idl2peer`。参见
-[开发者指南](doc/zh-cn/DEVELOPER_GUIDE.md)和
-[CLI 参考](doc/zh-cn/CLI_REFERENCE.md)。
+[开发者指南](doc/zh-cn/DEVELOPER_GUIDE.md)。
 
 **IDL Converter**（`etsgen`）-- 将 `.d.ts` 和 `.d.ets` 声明转换为 IDL 格式。
-主要模式：`--ets2idl`。参见[CLI 参考](doc/zh-cn/CLI_REFERENCE.md)。
+主要模式：`--ets2idl`。
 
 **Pipeline Runner**（`runner`）-- 通过 `m3` 命令编排端到端生成管线，依次执行
 SDK 准备、IDL 转换、抓取、peer 生成和输出安装。参见
@@ -103,15 +127,6 @@ SDK 准备、IDL 转换、抓取、peer 生成和输出安装。参见
 | 文档 | 说明 |
 |------|------|
 | [开发者指南](doc/zh-cn/DEVELOPER_GUIDE.md) | ArkUI 开发者工作流：初始开发、新接口、参数变更 |
-| [CLI 参考](doc/zh-cn/CLI_REFERENCE.md) | runner、arkgen、etsgen 的参数和用法 |
+| [CLI 参考](doc/zh-cn/CLI_REFERENCE.md) | runner 的参数和用法 |
 | [IDL 规范](doc/zh-cn/IDL_SPEC.md) | IDL 语言语法、类型、扩展属性 |
 
-### 工具开发者文档
-
-| 文档 | 说明 |
-|------|------|
-| [架构](doc/zh-cn/ARCHITECTURE.md) | 工具开发者概念、核心模块、UML 图 |
-| [序列化](doc/zh-cn/SERIALIZATION.md) | 类型序列化协议 |
-| [回调](doc/zh-cn/CALLBACKS.md) | 回调与事件绑定模式 |
-| [限制](doc/zh-cn/LIMITATIONS.md) | 处理管线的限制 |
-| [性能](doc/zh-cn/PERFORMANCE.md) | 性能相关注意事项 |

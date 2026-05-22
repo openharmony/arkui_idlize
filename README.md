@@ -39,6 +39,35 @@ graph TD
     writer --> serializers["Serializers"]
 ```
 
+## Key Concepts
+
+**peer**
+A generated class that mirrors an ArkUI component's API surface. Each peer
+wraps a native framenode and exposes the component's attributes and methods
+to the application layer.
+
+**modifier**
+A generated C++ object that applies property changes to a framenode at
+runtime. Modifiers bridge the ArkTS peer layer and the native ArkUI
+rendering engine, translating attribute setters into native calls.
+
+**serializer**
+Generated code that encodes property values for IPC calls. Serializers
+convert typed values from IDL representation into a wire format suitable
+for crossing the ArkTS/C++ boundary.
+
+**framenode**
+A native ArkUI tree node that is the runtime target of a modifier. Each
+visible component in the UI tree corresponds to a framenode; modifiers and
+peers operate on framenodes to update properties, layout, and rendering
+state.
+
+**materialized**
+A component whose peer is fully generated from its IDL definition rather
+than stubbed out. Materialization is controlled per component in
+`arkgen/generation-config/config.json`. Non-materialized components produce
+minimal stubs.
+
 ## Quick Start
 
 **Step 1: Clone and install**
@@ -83,12 +112,10 @@ artifacts are written under `runner/out`.
 
 **Peer Generator** (`arkgen`) -- Generates ArkTS peers, C++ libace
 modifiers, and Arkoala bindings from IDL definitions. Primary mode:
-`--idl2peer`. See [Developer Guide](doc/en/DEVELOPER_GUIDE.md) and
-[CLI Reference](doc/en/CLI_REFERENCE.md).
+`--idl2peer`. See [Developer Guide](doc/en/DEVELOPER_GUIDE.md).
 
 **IDL Converter** (`etsgen`) -- Converts `.d.ts` and `.d.ets`
-declarations to IDL format. Primary mode: `--ets2idl`. See
-[CLI Reference](doc/en/CLI_REFERENCE.md).
+declarations to IDL format. Primary mode: `--ets2idl`.
 
 **Pipeline Runner** (`runner`) -- Orchestrates the end-to-end generation
 pipeline via the `m3` command, which chains SDK preparation, IDL
@@ -109,15 +136,6 @@ definitions (the reverse direction of `etsgen`).
 | Document | Description |
 |----------|-------------|
 | [Developer Guide](doc/en/DEVELOPER_GUIDE.md) | ArkUI developer workflow: initial dev, new interfaces, parameter changes |
-| [CLI Reference](doc/en/CLI_REFERENCE.md) | Parameters and usage for runner, arkgen, etsgen |
+| [CLI Reference](doc/en/CLI_REFERENCE.md) | Parameters and usage for runner |
 | [IDL Specification](doc/en/IDL_SPEC.md) | IDL language syntax, types, extended attributes |
 
-### For Tool Developers
-
-| Document | Description |
-|----------|-------------|
-| [Architecture](doc/en/ARCHITECTURE.md) | Tool developer concepts, core modules, UML diagrams |
-| [Serialization](doc/en/SERIALIZATION.md) | Types serialization protocol |
-| [Callbacks](doc/en/CALLBACKS.md) | Callback and event binding patterns |
-| [Limitations](doc/en/LIMITATIONS.md) | Processing pipeline limitations |
-| [Performance](doc/en/PERFORMANCE.md) | Performance considerations |

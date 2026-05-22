@@ -4,7 +4,6 @@
 并为 OpenHarmony / ArkUI 生态系统生成 native bindings 代码。
 
 完整的 IDL 语言规范请参见 [IDL_SPEC.md](IDL_SPEC.md)。
-架构细节请参见 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
 ---
 
