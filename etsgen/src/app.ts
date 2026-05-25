@@ -56,7 +56,7 @@ export function etsgen(argv:string[]) {
     validatePaths(inputFiles, "file")
     validatePaths(auxInputFiles, "file")
 
-    const detsInputFiles = scanInputDirs(inputDirs, (it) => it.endsWith("d.ets"), true).concat(inputFiles)
+    const detsInputFiles = scanInputDirs(inputDirs, (it) => it.endsWith("d.ets")).concat(inputFiles)
 
     if (options.ets2idl) {
         const { inputDirs, inputFiles } = formatInputPaths(options)

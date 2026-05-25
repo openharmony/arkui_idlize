@@ -32,6 +32,7 @@ import {
     isThrows,
     MethodModifier,
     PrimitiveTypesInstance,
+    isMaterialized,
 } from '@idlizer/core'
 import { getHookMethod } from '../../DefaultConfiguration.js'
 import {
@@ -192,11 +193,19 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                         result = [writer.makeThrowError("Object deserialization is not implemented.")]
 
                         if (idl.isReferenceType(returnType)) {
-                            const enumEntry = library.resolveTypeReference(returnType)
-                            if (enumEntry && idl.isEnum(enumEntry))
+                            const entry = library.resolveTypeReference(returnType)
+                            if (entry && idl.isEnum(entry)) {
                                 result = [
-                                    writer.makeReturn(writer.enumFromI32(writer.makeString(returnValName), enumEntry))
+                                    writer.makeReturn(writer.enumFromI32(writer.makeString(returnValName), entry))
                                 ]
+                            } else if (entry && idl.isInterface(entry) && isMaterialized(entry, library)) {
+                                const extractor = getExtractor(entry, writer.language, false)
+                                result = [
+                                    writer.makeReturn(
+                                        writer.makeMethodCall(extractor.receiver!, extractor.method, [writer.makeString(`ptr`)])
+                                    )
+                                ]
+                            }
                         }
                     }
                 } else if (isPrimitiveType(returnType, 'buffer')) {

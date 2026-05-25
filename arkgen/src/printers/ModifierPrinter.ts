@@ -323,7 +323,7 @@ class ModifiersFileVisitor {
 
     generateHooksCall(hookName: string, params: LanguageExpression[], writer: LanguageWriter): LanguageExpression {
         const hookCall = writer.makeFunctionCall(hookName, [
-            writer.makeString('peer'), ...params
+            writer.makeThis(), writer.makeString('peer'), ...params
         ])
         return hookCall;
     }
@@ -379,7 +379,7 @@ class ModifiersFileVisitor {
                     const attribute = attributeTypes[index];
                     // Improve: handle overload condition 
                     if (this.noNeedPrintModifier(attribute)) {
-                        return;
+                        continue;
                     }
                     const expr = `${this.generateFiledFlag(attribute, index, true)} != ${AttributeUpdaterFlag.INITIAL}`
                     const params: LanguageExpression[] = attribute.args.map((_, index) => {
@@ -419,7 +419,7 @@ class ModifiersFileVisitor {
                     switchPrinter.print(`${this.generateFiledFlag(attribute, index, true)} = ${AttributeUpdaterFlag.INITIAL};`)
                     if (attribute.isOptional) {
                         if (hookRecord && hookRecord.replaceImplementation) {
-                            switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
+                            switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeThis(), writer.makeString('peer'), ...resetParams]).asString()};`)
                         } else {
                             switchPrinter.print(`${resetStatement.asString()};`)
                         }
@@ -480,7 +480,7 @@ class ModifiersFileVisitor {
                 for (let index = start; index < end; index++) {
                     const attribute = attributeTypes[index];
                     if (this.noNeedPrintModifier(attribute)) {
-                        return;
+                        continue;
                     }
                     const expr = `${this.generateFiledFlag(attribute, index, true)} != ${AttributeUpdaterFlag.INITIAL}`
                     const params: LanguageExpression[] = attribute.args.map((_, index) => {
@@ -549,7 +549,7 @@ class ModifiersFileVisitor {
     printModifiers(modifierInfo: ModifierInfo): PrinterResult[] {
         const peer = modifierInfo.peer
         const component = findComponentByName(this.library, peer.componentName)!
-        const isAbstract = !modifierInfo.isParent && !(modifierInfo.isTrivial ?? true)
+        const isAbstract = !this.hasHeirs(peer) && !(modifierInfo.isTrivial ?? true)
         const modifierName = this.generateAttributeSetName(modifierInfo)
         const baseModifierMethods = [
             'applyNormalAttribute',
@@ -560,7 +560,7 @@ class ModifiersFileVisitor {
         ]
         const componentAttribute = component.attributeDeclaration;
         let abstractMethods = modifierInfo.modifier?.methods ?? []
-        const classWithLogicName = modifierInfo.isParent ?
+        const classWithLogicName = this.hasHeirs(peer) ?
             this.generateAuxiliaryClassName(modifierInfo) :
             modifierName
         const generateLogic: PrinterResult['generate'] = () => {
@@ -592,7 +592,7 @@ class ModifiersFileVisitor {
                     writer.print("_state: ModifierState = new ModifierState;")
                 }
                 writer.print(`private ${this.generateAddrName(peer)}: ArrayBuffer = new ArrayBuffer(4096);`)
-                writer.print(`private ${this.generateFilledFlagName(peer)}: Uint8Array = new Uint8Array(this.${this.generateAddrName(peer)});`)
+                writer.print(`public ${this.generateFilledFlagName(peer)}: Uint8Array = new Uint8Array(this.${this.generateAddrName(peer)});`)
 
                 if (isAbstract) {
                     writer.writeStaticInitBlock(writer => {
@@ -620,10 +620,10 @@ class ModifiersFileVisitor {
                     )
                 }
 
-                if (!modifierInfo.isParent) {
+                if (!this.hasHeirs(peer)) {
                     writer.print(`isUpdater: () => boolean = () => false`)
                     baseModifierMethods.forEach(method => {
-                        const methodName = modifierInfo.isParent ? `${method}${peer.componentName}` : method
+                        const methodName = this.hasHeirs(peer) ? `${method}${peer.componentName}` : method
                         writer.print(`${methodName}(instance: ${compAttributteConverted}): void { }`)
                     })
                 }
@@ -635,8 +635,8 @@ class ModifiersFileVisitor {
                     })
                 })
 
-                this.printApplyModifierPatch(peer, writer, component, attributeTypes, modifierInfo.parent !== undefined, collectedHooks, modifierInfo.isParent)
-                this.printMergeModifier(peer, writer, classWithLogicName, attributeTypes, modifierInfo.parent !== undefined, modifierInfo.isParent)
+                this.printApplyModifierPatch(peer, writer, component, attributeTypes, modifierInfo.parent !== undefined, collectedHooks, this.hasHeirs(peer))
+                this.printMergeModifier(peer, writer, classWithLogicName, attributeTypes, modifierInfo.parent !== undefined, this.hasHeirs(peer))
 
                 attributeTypes.forEach((attribute, index) => {
                     printer.writeMethodImplementation(attribute.method.method, (writer) => {
@@ -683,11 +683,11 @@ class ModifiersFileVisitor {
                     })
                 })
                 const attributeModifierSignature = generateAttributeModifierSignature(this.library, component)
-                const attributeModifierMethodName = modifierInfo.isParent ? `attributeModifier${peer.componentName}` : `attributeModifier`
+                const attributeModifierMethodName = this.hasHeirs(peer) ? `attributeModifier${peer.componentName}` : `attributeModifier`
                 writer.writeMethodImplementation(new Method(attributeModifierMethodName, attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
                     writer.writeStatement(writer.makeThrowError("Not implemented"))
                 })
-                if (!modifierInfo.isParent) {
+                if (!this.hasHeirs(peer)) {
                     abstractMethods.forEach((method => {
                         const signature = new NamedMethodSignature(method.returnType,
                             method.parameters.map(param => param.type),
@@ -695,7 +695,7 @@ class ModifiersFileVisitor {
                         writer.writeMethodDeclaration(method.name, signature, [MethodModifier.ABSTRACT])
                     }))
                 }
-            }, parentSet, modifierInfo.isParent ? [compAttributteConverted] : extendsInterface, undefined, undefined, !modifierInfo.isParent && abstractMethods.length > 0)
+            }, parentSet, this.hasHeirs(peer) ? [compAttributteConverted] : extendsInterface, undefined, undefined, !this.hasHeirs(peer) && abstractMethods.length > 0)
 
             const collector = this.printImports(modifierInfo)
             collector.addFeatures(collectedHooks, HandwrittenModule(this.library.language))
@@ -715,7 +715,7 @@ class ModifiersFileVisitor {
 
         // If the corresponding component has heirs requiring modifiers, modifier interface should be generated
         // separately
-        if (modifierInfo.modifier && modifierInfo.isParent) {
+        if (modifierInfo.modifier && this.hasHeirs(peer)) {
             const generateInterface: PrinterResult['generate'] = () => {
                 const printer = this.library.createLanguageWriter()
                 const nameConvertor = this.library.createTypeNameConvertor(this.library.language)

@@ -137,9 +137,11 @@ export function arkgen(argv:string[]) {
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
-        const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
-        idlInputFiles.forEach(idlFilename => {
-            idlFilename = path.resolve(idlFilename)
+        const idlInputFiles = allInputFiles
+            .filter(it => it.endsWith('.idl'))
+            .map(it => path.resolve(it))
+        const uniqueIdlInputFiles = Array.from(new Set(idlInputFiles))
+        uniqueIdlInputFiles.forEach(idlFilename => {
             const file = parseIDLFile(idlFilename)
             linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
             files.push(file)

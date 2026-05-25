@@ -9,6 +9,10 @@
         "ohos.util.ArrayList",
         "ohos.util.Deque",
         "ohos.util.List",
+        "ohos.arkui.advanced.SegmentButton",
+        "ohos.arkui.advanced.SegmentButtonV2",
+        "ohos.data.distributedDataObject",
+        "ohos.multimedia.movingphotoview",
         "internal.component.ets"
     ],
     "DeletedDeclarations": [

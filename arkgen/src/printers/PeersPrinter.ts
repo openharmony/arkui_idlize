@@ -248,8 +248,9 @@ class PeerFileVisitor {
     protected printPeer(peer: PeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
             const modifierDecl = getModifierForPeer(peer, this.library)
-            if (modifierDecl !== undefined && this.library.language !== Language.KOTLIN) {
-                writer.print(`${toCamelCase(peer.componentName)}AttributeSet?: ${modifierDecl.name};`)
+            if (this.library.language !== Language.KOTLIN) {
+                const modifierName = modifierDecl ? modifierDecl.name : `AttributeModifier<${peer.originalClassName}>`
+                writer.print(`${toCamelCase(peer.componentName)}AttributeSet?: ${modifierName};`)
             }
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);

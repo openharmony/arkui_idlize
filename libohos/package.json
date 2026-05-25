@@ -23,10 +23,10 @@
     "dependencies": {
         "@idlizer/core": "2.2.2+devel",
         "@idlizer/kit": "2.2.2+devel",
-        "@idlizer/ost": "2.2.2+devel",
-        "@koalaui/interop": "1.5.0-dev.72071-9166"
+        "@idlizer/ost": "2.2.2+devel"
     },
     "devDependencies": {
+        "@koalaui/interop": "1.5.0-dev.72071-9166",
         "@types/node": "^18.19.127",
         "@idlizer/rimraf": "2.2.2+devel"
     },

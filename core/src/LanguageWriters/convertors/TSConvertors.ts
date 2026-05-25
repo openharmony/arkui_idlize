@@ -150,7 +150,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             let typeSpec = type.name
             let typeArgs = !isInsideInstanceof() || decl && idl.isCallback(decl)
                 // there is a bug with panda - if we're inside callback generics, we need to expand other generics too. So withInsideInstanceof is used
-                ? type.typeArguments?.map(it => withInsideInstanceof(false, () => this.convert(it))) ?? []
+                ? type.typeArguments?.map(it => this.convert(it)) ?? []
                 : []
             if (typeSpec === `Optional`)
                 return `${typeArgs} | undefined`

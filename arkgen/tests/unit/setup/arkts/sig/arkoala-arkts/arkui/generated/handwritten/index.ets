@@ -14,7 +14,7 @@
  */
 import { CheckCustomModifierModifierBase } from '../framework';
 import { AnimateParam } from '../framework'
-import { ArkCheckHooksComponent, ArkCheckHooksPeer } from '../framework'
+import { ArkCheckHooksComponent, ArkCheckHooksPeer, CheckHooksModifier } from '../framework'
 import {
     SampleTransformSrcI,
     SampleTransformDstI,
@@ -69,11 +69,11 @@ export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksComponent,
 }
 
 // Probably only one set of methods with Component or Peer are needed
-export function hookCheckHooksText(receiver: ArkCheckHooksPeer, text?: string): void {
+export function hookCheckHooksText(modifier: CheckHooksModifier, receiver: ArkCheckHooksPeer, text?: string): void {
     receiver.setCheckHookResultAttribute(`Check hook text: ${text}`)
 }
 
-export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksPeer, flag: boolean, count: number, text: string): void {
+export function hookCheckHooksMethodPrimitives(modifier: CheckHooksModifier, receiver: ArkCheckHooksPeer, flag: boolean, count: number, text: string): void {
     receiver.setCheckHookResultAttribute(`Check hook method primitives: ${flag}, ${count}, ${text}`)
 }
 

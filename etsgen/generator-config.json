@@ -9,7 +9,8 @@
         "ohos.util.ArrayList",
         "ohos.util.Deque",
         "ohos.util.List",
-        "internal.component.ets"
+        "internal.component.ets",
+        "arkui.stateManagement.utils"
     ],
     "DeletedDeclarations": [
         "double",
