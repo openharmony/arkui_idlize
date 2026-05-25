@@ -5,7 +5,6 @@ define component interfaces in IDL format and generate native bindings for
 the OpenHarmony / ArkUI ecosystem.
 
 For the full IDL language specification, see [IDL_SPEC.md](IDL_SPEC.md).
-For architecture details, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
@@ -251,14 +250,18 @@ Handwritten or supplementary IDL files live under `interfaces/interfaces/`.
 
 ```bash
 # Find the IDL file for a specific component
-find runner/out/idl/ -name "*.idl" | xargs grep -l "ExistingComponent"
+find interfaces/interfaces/ -name "*.idl" | xargs grep -l "ExistingComponent"
 ```
 
 If the component was derived from a `.d.ts` / `.d.ets` declaration, the
-IDL was produced by the `etsgen` stage and lives in `runner/out/idl/`. If it was
-handwritten, check `interfaces/interfaces/arkui-extra/`.
+IDL was produced by the `etsgen` stage and lives in `runner/out/idl/`. That 
+is generated folder and it will be overwritten every time generation is launched. 
+Never modify files in out folder, instead correct input `.d.ets` declarations.
 
-### 2.2 Edit the IDL
+If it was handwritten, check `interfaces/interfaces/arkui-extra/` - that files can 
+be modified to update.
+
+### 2.2 Edit the handwritten IDL
 
 Open the IDL file and add new attributes or methods to the interface:
 
@@ -452,7 +455,6 @@ import arkui.component.units.Length as Length;
 ### Interface with Attributes and Methods
 
 ```idl
-[Entity=Class]
 interface MyService {
     // Constructor
     constructor(String name, optional i32 timeout);
@@ -471,6 +473,28 @@ interface MyService {
     static MyService createDefault();
 };
 ```
+
+If interface with **`Entity=Class` attribute** is declared and this interface is supposed 
+to be a peer or have any method, attrubtes must be avioded or used only with `Getter/Setter` combination.
+
+```idl
+[Entity=Class]
+interface MyService {
+    // Attributes
+    [Accessor=Getter]
+    attribute String name;
+    [Accessor=Getter]
+    readonly attribute i32 id;
+    [Accessor=Getter]
+    [Optional] attribute String description;
+    [Accessor=Setter]
+    [Optional] attribute String description;
+
+    // Methods
+    void start();
+};
+```
+
 
 ### Optional Parameters
 

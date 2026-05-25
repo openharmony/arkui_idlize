@@ -91,12 +91,13 @@ interface I1 {
 }
 ```
 
-If it is necessary to make a type optional, you can use `?` suffix.
+If it is necessary to make a type optional, you can use `?` suffix or define a union with `undefined` inside.
 
  **Example:**
 
 ```
 typedef OptNumber = number?;
+typedef OptNumber = (number or undefined);
 ```
 
 ### sequence
@@ -220,7 +221,7 @@ Unlike functions and methods, a callback signature cannot be marked with the asy
  2.   **Attributes, which can be marked as *optional* or *static*:**    
      1. Type  
      2. Name  
- 3.   **Methods, which can be marked as *static*:**    
+ 3.   **Methods, which can be marked as *static* and *async*:**    
      1. Return type  
      2. Name  
      3. Set of typed/named parameters  

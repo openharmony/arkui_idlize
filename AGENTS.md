@@ -185,6 +185,10 @@ Terms marked (*) appear in source code, config files, or IDL files.
 - **For architecture deep-dives**, read `doc/DESIGN.md`,
   `doc/SERIALIZATION.md`, `doc/CALLBACKS.md` as relevant to the task
   at hand.
+- **Keep English and Chinese documentation synchronized.** Every change to
+  a `doc/en/` file must be mirrored in the corresponding `doc/zh-cn/` file,
+  and vice versa. The same applies to `README.md` and `README_zh.md`.
+  Never update one language without updating the other.
 
 ## Setup & deeper docs
 

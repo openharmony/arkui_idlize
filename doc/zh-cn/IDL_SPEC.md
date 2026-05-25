@@ -91,12 +91,13 @@ interface I1 {
 }
 ```
 
-如果需要使类型变为可选的，可以使用 `?` 后缀。
+如果需要使类型变为可选的，可以使用 `?` 后缀，或者通过定义包含 `undefined` 的联合类型来实现。
 
-**示例：**
+ **示例：**
 
 ```
 typedef OptNumber = number?;
+typedef OptNumber = (number or undefined);
 ```
 
 ### sequence
@@ -220,7 +221,7 @@ void setReactor(Foo foo);
  2.   **属性，可以标记为 *optional* 或 *static*：**
      1. 类型
      2. 名称
- 3.   **方法，可以标记为 *static*：**
+ 3.   **方法，可以标记为 *static* 和 *async*：**
      1. 返回类型
      2. 名称
      3. 类型化/命名参数集合
