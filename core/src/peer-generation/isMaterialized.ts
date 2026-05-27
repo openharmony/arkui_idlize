@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { generatorConfiguration } from '../config.js'
+import { generatorConfiguration, getExtendableClassNames } from '../config.js'
 import * as idl from '../idl/index.js'
 import { Language } from '../Language.js'
 import { Method } from '../LanguageWriters/LanguageWriter.js'
@@ -51,6 +51,10 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     }
 
     if (generatorConfiguration().ignoreMaterialized.includes(declaration.name)) {
+        return false
+    }
+
+    if (getExtendableClassNames().has(declaration.name)) {
         return false
     }
 

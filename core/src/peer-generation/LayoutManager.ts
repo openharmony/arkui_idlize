@@ -30,6 +30,7 @@ export type LayoutTargetDescriptionHint =
     | 'component.function'
     | 'component.modifier'
     | 'component.handwritten'
+    | 'component.extendable'
 
 export interface LayoutTargetDescription {
     node: IDLEntry

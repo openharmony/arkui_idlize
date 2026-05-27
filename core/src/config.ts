@@ -18,6 +18,7 @@ import * as path from "node:path"
 
 import { ConfigSchema, D, ConfigTypeInfer } from "./configDescriber.js"
 import { mergeJSONs } from "./configMerge.js";
+import { IDLEntry } from "./idl/node.js";
 
 const T = {
     stringArray: () => D.array(D.string())
@@ -50,7 +51,9 @@ export const CoreConfigurationSchema = D.object({
     moduleName: D.string(),
     modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace'),
 
-    globalPackages: T.stringArray()
+    globalPackages: T.stringArray(),
+
+    extendableComponents: T.stringArray()
 })
 
 export type CoreConfiguration = ConfigTypeInfer<typeof CoreConfigurationSchema>
@@ -72,7 +75,9 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     moduleName: "",
     modules: new Map<string, ModuleConfiguration>(),
 
-    globalPackages: []
+    globalPackages: [],
+
+    extendableComponents: []
 }
 
 let currentConfig: CoreConfiguration = defaultCoreConfiguration
@@ -92,6 +97,23 @@ export function generatorConfiguration<T extends CoreConfiguration>(): T {
 export function generatorTypePrefix() {
     const conf = generatorConfiguration()
     return `${conf.TypePrefix}${conf.LibraryPrefix}`
+}
+
+export function getExtendableClassNames(): Set<string> {
+    const config = generatorConfiguration()
+    const names = new Set<string>()
+    for (const fqn of config.extendableComponents) {
+        const lastDot = fqn.lastIndexOf('.')
+        const declName = lastDot >= 0 ? fqn.substring(lastDot + 1) : fqn
+        if (declName.startsWith('Extendable')) {
+            names.add(declName)
+        }
+    }
+    return names
+}
+
+export function isExtendableComponentEntry(entry: IDLEntry): boolean {
+    return getExtendableClassNames().has(entry.name)
 }
 
 function parseConfigFile(configurationFile: string): any {

@@ -73,7 +73,7 @@ export function expandComponentWithSupers(library: PeerLibrary, decl: idl.IDLInt
     return result
 }
 
-export function generateAttributeModifierSignature(library: PeerLibrary, component: IdlComponentDeclaration): MethodSignature {
+export function generateAttributeModifierSignature(library: PeerLibrary, component: IdlComponentDeclaration): NamedMethodSignature {
     const modifiers = expandComponentWithSupers(library, component.attributeDeclaration).map(it =>
         idl.createReferenceType(getReferenceTo('AttributeModifier'),
             [idl.createReferenceType(it)],
@@ -121,7 +121,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         return result
     }
 
-    private printImports(peer: PeerClass, component:IdlComponentDeclaration): ImportsCollector {
+    private printImports(peer: PeerClass, component: IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")

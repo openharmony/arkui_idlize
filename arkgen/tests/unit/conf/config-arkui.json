@@ -27,6 +27,7 @@
                 "arkui.Graphics",
                 "arkui.PeerNode",
                 "arkui.component.check.exeception",
+                "arkui.component.check.extendable",
                 "arkui.component.check.hierarchy",
                 "arkui.component.check.hooks",
                 "arkui.component.check.modifiers",
@@ -131,5 +132,8 @@
             "package": "arkui",
             "path": "./"
         }
+    ],
+    "extendableComponents": [
+        "arkui.component.check.extendable.ExtendableCheckExtendable"
     ]
 }
