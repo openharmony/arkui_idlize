@@ -25,7 +25,6 @@ function getKoalauiPackages() {
     const packageNames = [
         'common',
         'compat',
-        'fast-arktsc',
         'harness',
         'interop',
         'libarkts',

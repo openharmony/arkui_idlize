@@ -34,6 +34,7 @@ import {
     getInitializerDefaultValue,
     getSyntheticTypesFileName,
     flattenUnionType,
+    isExtendableComponentEntry
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager.js'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration.js'
@@ -595,6 +596,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
         return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
+            || isExtendableComponentEntry(entry)
             || (idl.isTypedef(entry) || idl.isCallback(entry) || idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
     }
 
@@ -740,6 +742,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
             || getComponentIfModifier(entry, this.peerLibrary) !== undefined
+            || isExtendableComponentEntry(entry)
             || ((idl.isTypedef(entry)
                 || idl.isCallback(entry)
                 || idl.isInterface(entry)
@@ -825,6 +828,7 @@ export class CJInterfacesVisitor implements InterfacesVisitor {
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
         return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
+            || isExtendableComponentEntry(entry)
     }
 
     printInterfaces(): PrinterResult[] {
@@ -1211,6 +1215,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
             || getComponentIfModifier(entry, this.peerLibrary) !== undefined
+            || isExtendableComponentEntry(entry)
             || (idl.isTypedef(entry)|| idl.isCallback(entry) || idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
             || idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses
     }

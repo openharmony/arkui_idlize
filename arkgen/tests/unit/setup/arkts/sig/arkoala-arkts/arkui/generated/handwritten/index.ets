@@ -23,12 +23,13 @@ import {
 } from '../framework'
 import {
     ArkCheckChildComponent, ArkCheckCustomModifierComponent, ArkCheckDuplicateChildComponent,
-    ArkCheckDuplicateParentComponent, ArkCheckEnumComponent, ArkCheckExceptionComponent, ArkCheckNoModifiersComponent,
-    ArkCheckOptionalComponent, ArkCheckParentComponent, ArkCheckTransformComponent, ArkCheckTrivialModifierComponent,
-    ArkCheckUnitsComponent, ArkDatebookComponent, ArkRootComponent, CheckChildAttribute, CheckCustomModifierAttribute,
-    CheckDuplicateChildAttribute, CheckDuplicateParentAttribute, CheckEnumAttribute, CheckExceptionAttribute,
-    CheckHooksAttribute, CheckNoModifiersAttribute, CheckOptionalAttribute, CheckParentAttribute,
-    CheckTransformAttribute, CheckTrivialModifierAttribute, CheckUnitsAttribute, DatebookAttribute, Root
+    ArkCheckDuplicateParentComponent, ArkCheckEnumComponent, ArkCheckExceptionComponent, ArkCheckExtendableComponent,
+    ArkCheckNoModifiersComponent, ArkCheckOptionalComponent, ArkCheckParentComponent, ArkCheckTransformComponent,
+    ArkCheckTrivialModifierComponent, ArkCheckUnitsComponent, ArkDatebookComponent, ArkRootComponent,
+    CheckChildAttribute, CheckCustomModifierAttribute, CheckDuplicateChildAttribute, CheckDuplicateParentAttribute,
+    CheckEnumAttribute, CheckExceptionAttribute, CheckExtendableAttribute, CheckHooksAttribute,
+    CheckNoModifiersAttribute, CheckOptionalAttribute, CheckParentAttribute, CheckTransformAttribute,
+    CheckTrivialModifierAttribute, CheckUnitsAttribute, DatebookAttribute, Root
 } from '../framework'
 
 export interface AttributeModifier<T> {
@@ -146,6 +147,10 @@ export function hookCheckEnumAttributeModifier(
 export function hookCheckExceptionAttributeModifier(
     attr: ArkCheckExceptionComponent,
     value: AttributeModifier<CheckExceptionAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckExtendableAttributeModifier(
+    attr: ArkCheckExtendableComponent,
+    value: AttributeModifier<CheckExtendableAttribute> | AttributeModifier<Root> | undefined
 ): void {}
 export function hookCheckParentAttributeModifier(
     attr: ArkCheckParentComponent,

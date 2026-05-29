@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter,
-    PrinterLike, CppConvertor, LayoutManager, ETSLanguageWriter, wrapCurrentFileDescription } from '@idlizer/core'
+    PrinterLike, CppConvertor, LayoutManager, wrapCurrentFileDescription } from '@idlizer/core'
 import {
     dummyImplementations, gniFile, libraryDeclaration,
     makeArkuiModule, makeCallbacksKinds,
@@ -59,6 +59,7 @@ import { createArkoalaInstall, LibaceInstall } from "./ArkoalaInstall.js"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType.js"
 import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter.js"
 import { createComponentsPrinter } from "./printers/ComponentsPrinter.js"
+import { printExtendableComponents } from "./printers/ExtendableComponentsPrinter.js"
 import { printModifiers } from "./printers/ModifierPrinter.js"
 import { arkoalaLayout, ArkTSComponentsLayout } from "./ArkoalaLayout.js"
 import { printUnitTestsAsMultipleFiles } from "./ut/UnittestPrinter.js"
@@ -179,6 +180,9 @@ export function generateArkoalaFromIdl(config: {
             createComponentsPrinter({attributeModifierHooks: config.attributeModifierHooks}),
             ...spreadIfNotLang([Language.KOTLIN],
                 printModifiers,
+            ),
+            ...spreadIfLang([Language.ARKTS],
+                printExtendableComponents,
             ),
             printGlobal,
             createSerializerPrinter(peerLibrary.language, ""),

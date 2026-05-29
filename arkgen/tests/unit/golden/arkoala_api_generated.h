@@ -344,6 +344,8 @@ typedef struct Callback_DrawContext_Void Callback_DrawContext_Void;
 typedef struct Opt_Callback_DrawContext_Void Opt_Callback_DrawContext_Void;
 typedef struct Callback_Void Callback_Void;
 typedef struct Opt_Callback_Void Opt_Callback_Void;
+typedef struct CustomBuilder CustomBuilder;
+typedef struct Opt_CustomBuilder Opt_CustomBuilder;
 typedef struct Opt_Object Opt_Object;
 typedef struct PageTransitionCallback PageTransitionCallback;
 typedef struct Opt_PageTransitionCallback Opt_PageTransitionCallback;
@@ -357,6 +359,8 @@ typedef struct Ark_AggregatedReferences1Different Ark_AggregatedReferences1Diffe
 typedef struct Opt_AggregatedReferences1Different Opt_AggregatedReferences1Different;
 typedef struct Ark_AggregatedReferences2Different Ark_AggregatedReferences2Different;
 typedef struct Opt_AggregatedReferences2Different Opt_AggregatedReferences2Different;
+typedef struct Ark_CheckExtendableOptions Ark_CheckExtendableOptions;
+typedef struct Opt_CheckExtendableOptions Opt_CheckExtendableOptions;
 typedef struct Ark_DatebookOptions Ark_DatebookOptions;
 typedef struct Opt_DatebookOptions Opt_DatebookOptions;
 typedef struct Ark_ExternalInterface Ark_ExternalInterface;
@@ -738,6 +742,16 @@ typedef struct Opt_Callback_Void {
     Ark_Tag tag;
     Callback_Void value;
 } Opt_Callback_Void;
+typedef struct CustomBuilder {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId);
+} CustomBuilder;
+typedef struct Opt_CustomBuilder {
+    Ark_Tag tag;
+    CustomBuilder value;
+} Opt_CustomBuilder;
 typedef struct Opt_Object {
     Ark_Tag tag;
     Ark_Object value;
@@ -812,6 +826,14 @@ typedef struct Opt_AggregatedReferences2Different {
     Ark_Tag tag;
     Ark_AggregatedReferences2Different value;
 } Opt_AggregatedReferences2Different;
+typedef struct Ark_CheckExtendableOptions {
+    /* kind: Interface */
+    Opt_Int32 intAttr;
+} Ark_CheckExtendableOptions;
+typedef struct Opt_CheckExtendableOptions {
+    Ark_Tag tag;
+    Ark_CheckExtendableOptions value;
+} Opt_CheckExtendableOptions;
 typedef struct Ark_DatebookOptions {
     /* kind: Interface */
     Opt_DatebookType type;
@@ -1054,6 +1076,15 @@ typedef struct GENERATED_ArkUICheckExceptionModifier {
                                            const Ark_Number* count);
 } GENERATED_ArkUICheckExceptionModifier;
 
+typedef struct GENERATED_ArkUICheckExtendableModifier {
+    Ark_NativePointer (*construct)(Ark_Int32 id,
+                                   Ark_Int32 flags);
+    void (*setCheckExtendableOptions)(Ark_NativePointer node,
+                                      const Opt_CheckExtendableOptions* options);
+    void (*setCommonMethodBoolean)(Ark_NativePointer node,
+                                   Ark_Boolean flag);
+} GENERATED_ArkUICheckExtendableModifier;
+
 typedef struct GENERATED_ArkUICheckHooksModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
                                    Ark_Int32 flags);
@@ -1221,6 +1252,7 @@ typedef struct GENERATED_ArkUINodeModifiers {
     const GENERATED_ArkUICheckDuplicateParentModifier* (*getCheckDuplicateParentModifier)();
     const GENERATED_ArkUICheckEnumModifier* (*getCheckEnumModifier)();
     const GENERATED_ArkUICheckExceptionModifier* (*getCheckExceptionModifier)();
+    const GENERATED_ArkUICheckExtendableModifier* (*getCheckExtendableModifier)();
     const GENERATED_ArkUICheckHooksModifier* (*getCheckHooksModifier)();
     const GENERATED_ArkUICheckNoModifiersModifier* (*getCheckNoModifiersModifier)();
     const GENERATED_ArkUICheckOptionalModifier* (*getCheckOptionalModifier)();
@@ -1252,6 +1284,7 @@ typedef enum GENERATED_Ark_NodeType {
     GENERATED_ARKUI_CHECK_DUPLICATE_PARENT,
     GENERATED_ARKUI_CHECK_ENUM,
     GENERATED_ARKUI_CHECK_EXCEPTION,
+    GENERATED_ARKUI_CHECK_EXTENDABLE,
     GENERATED_ARKUI_CHECK_HOOKS,
     GENERATED_ARKUI_CHECK_NO_MODIFIERS,
     GENERATED_ARKUI_CHECK_OPTIONAL,

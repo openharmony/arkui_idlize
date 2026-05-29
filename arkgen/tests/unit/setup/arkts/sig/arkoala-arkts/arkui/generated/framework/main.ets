@@ -38,7 +38,9 @@ import {
     ArkCheckParentComponent,
     ArkCheckChildPeer,
     ArkCheckChildComponent,
+    CheckExtendableOptions,
     CheckTrivialModifierModifier,
+    ExtendableCheckExtendable,
     MenuElement
 } from "./."
 
@@ -221,6 +223,18 @@ function checkModifiers() {
     checkResult("modifier test", menuElement.modifierProp!.foo('Hello'), 10)
 }
 
+class ExtendableCheckExtendableImpl extends ExtendableCheckExtendable {
+}
+
+function checkExtendableComponent() {
+    const elem = new ExtendableCheckExtendableImpl()
+    const options: CheckExtendableOptions = {
+        intAttr: 10
+    }
+    elem.setCheckExtendableOptions(options)
+    elem.commonMethodBoolean(true)
+}
+
 export function main(): void {
     initNatives()
 
@@ -232,6 +246,7 @@ export function main(): void {
     checkTransformOnSerialize()
     checkHierarchy()
     checkModifiers()
+    checkExtendableComponent()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")
