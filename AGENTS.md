@@ -61,7 +61,7 @@ skill (see §Skills index). This table is the primary routing guide.
 **Cross-cutting heuristics** (not covered by a single table row):
 
 - **Type serialization** across the ArkTS/C++ boundary:
-  `idl-libohos` → `doc/SERIALIZATION.md`.
+  `idl-libohos` → `core/doc/en/SERIALIZATION.md`.
 - **New IDL construct** (node type, keyword): start in `idl-core`;
   changes ripple to every generator.
 - **Type error in generated C++ or ArkTS code**:
@@ -182,9 +182,8 @@ Terms marked (*) appear in source code, config files, or IDL files.
 - **Regenerate via `runner m3`** (see `.claude/skills/idl-instructions/SKILL.md`) after any
   pipeline-affecting change; do not claim done from code review of
   generators alone — verify generated output.
-- **For architecture deep-dives**, read `doc/DESIGN.md`,
-  `doc/SERIALIZATION.md`, `doc/CALLBACKS.md` as relevant to the task
-  at hand.
+- **For architecture deep-dives**, read `doc_developer/en/ARCHITECTURE.md`
+  and the internal notes under `core/doc/en/` as relevant to the task at hand.
 - **Keep English and Chinese documentation synchronized.** Every change to
   a `doc/en/` file must be mirrored in the corresponding `doc/zh-cn/` file,
   and vice versa. The same applies to `README.md` and `README_zh.md`.
@@ -196,11 +195,11 @@ For environment setup, regeneration commands, and bundle publishing,
 read `.claude/skills/idl-instructions/SKILL.md` — setup details are not duplicated
 here.
 
-For architecture deep-dives, read the relevant file under `doc/`:
+For architecture deep-dives, read the relevant file:
 
-- `doc/DESIGN.md` — overall architecture and design decisions.
-- `doc/SERIALIZATION.md` — serialization protocol and value encoding.
-- `doc/CALLBACKS.md` — callback and event binding patterns.
+- `doc_developer/en/ARCHITECTURE.md` — overall architecture and design decisions.
+- `core/doc/en/SERIALIZATION.md` — serialization protocol and value encoding.
+- `core/doc/en/CALLBACKS.md` — callback and event binding patterns.
 
 Read those when the task calls for it; do not skip them on the assumption
 that this file covers the same ground.

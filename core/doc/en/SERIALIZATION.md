@@ -1,4 +1,4 @@
-# Types Serialization
+# Type Serialization
 
 ## Materialized classes/interfaces
 

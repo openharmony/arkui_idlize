@@ -8,8 +8,92 @@ IDLize is a compiler toolchain for the OpenHarmony/ArkUI ecosystem that
 ingests interface declarations (`.d.ts`, `.d.ets`, `.idl`) and generates
 native bindings. Generated artifacts include ArkTS peer classes, C++
 libace modifiers, and serialization code for the ArkUI component
-framework. The target audience is ArkUI developers who need to define or
-process component interfaces for the OpenHarmony platform.
+framework.
+
+This repository's public documentation is primarily for IDLize tool
+developers: people who add generator features, maintain the pipeline, or
+debug generated output. Tool users who only need to run IDLize should start
+with [Using IDLize as a Tool User](#using-idlize-as-a-tool-user).
+
+## Tool Developer Setup
+
+**Step 1: Clone and install**
+
+```bash
+git submodule update --init
+npm i
+cd external && npm i && cd ..
+```
+
+**Step 2: Prepare libarkts**
+
+```bash
+cd external/libarkts
+PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
+npm run compile
+cd ../..
+```
+
+**Step 3: Compile the pipeline**
+
+```bash
+cd runner && npm run compile && cd ..
+```
+
+**Step 4: Download and prepare the SDK**
+
+```bash
+npm run download:sdk
+```
+
+This gives you a local development environment that can compile the
+pipeline and run the standard generation flow.
+
+## Development Workflow
+
+1. Pick the workspace that owns the change.
+
+| Change | Workspace |
+|---|---|
+| IDL parser, AST, `LanguageWriter` | `core/` |
+| `.d.ts` / `.d.ets` to IDL conversion | `etsgen/` |
+| ArkUI peer generation and generation config | `arkgen/` |
+| Shared printers, serializers, peer infrastructure | `libohos/` |
+| End-to-end pipeline orchestration | `runner/` |
+| Declaration linting | `linter/`, `idlinter/` |
+
+2. Compile the affected workspace, or compile through `runner` when the
+   change spans multiple pipeline stages.
+
+```bash
+npm run -C core compile
+npm run -C etsgen compile
+npm run -C arkgen compile
+npm run -C runner compile
+```
+
+3. Run the focused tests or checks that match the change.
+
+```bash
+npm run -C core test
+npm run -C etsgen test
+npm run -C arkgen test
+npm run sanity
+```
+
+4. Regenerate after any pipeline-affecting change.
+
+```bash
+bash generate.sh
+```
+
+Installed generated output is written to `./out`; intermediate pipeline
+artifacts are written under `runner/out`. When generated code looks wrong,
+work backwards from `out/` to `runner/out/peers/` and then to
+`runner/out/idl/` to identify the stage that diverged.
+
+Do not hand-edit generated output directories such as `out/`, `build/`,
+`bundled/`, or `lib/` when they sit next to `src/`.
 
 ## Architecture
 
@@ -68,51 +152,25 @@ than stubbed out. Materialization is controlled per component in
 `arkgen/generation-config/config.json`. Non-materialized components produce
 minimal stubs.
 
-## Quick Start
+## Using IDLize as a Tool User
 
-**Step 1: Clone and install**
-
-```bash
-git submodule update --init
-npm i
-cd external && npm i && cd ..
-```
-
-**Step 2: Prepare libarkts**
-
-```bash
-cd external/libarkts
-PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
-npm run compile
-cd ../..
-```
-
-**Step 3: Compile the pipeline**
-
-```bash
-cd runner && npm run compile && cd ..
-```
-
-**Step 4: Download and prepare the SDK**
-
-```bash
-npm run download:sdk
-```
-
-**Step 5: Generate**
+Tool users usually provide SDK declarations or handwritten IDL, run the
+pipeline, and consume the generated ArkTS/C++ bindings.
 
 ```bash
 bash generate.sh
 ```
 
-Installed generated output will be in `./out`; intermediate pipeline
-artifacts are written under `runner/out`.
+For custom runs, use `runner m3` with the SDK stage, target, output path,
+and config files you need. See [Tool User Guide](doc/en/USER_GUIDE.md),
+[CLI Reference](doc/en/CLI_REFERENCE.md), and
+[IDL Specification](doc/en/IDL_SPEC.md).
 
 ## Tools
 
 **Peer Generator** (`arkgen`) -- Generates ArkTS peers, C++ libace
 modifiers, and Arkoala bindings from IDL definitions. Primary mode:
-`--idl2peer`. See [Developer Guide](doc/en/DEVELOPER_GUIDE.md).
+`--idl2peer`. See [Tool User Guide](doc/en/USER_GUIDE.md).
 
 **IDL Converter** (`etsgen`) -- Converts `.d.ts` and `.d.ets`
 declarations to IDL format. Primary mode: `--ets2idl`.
@@ -131,11 +189,17 @@ definitions (the reverse direction of `etsgen`).
 
 ## Documentation
 
+### For Tool Developers
+
+| Document | Description |
+|----------|-------------|
+| [Tool Developer Guide](doc_developer/en/DEVELOPER_GUIDE.md) | Starter guide for tool developers: setup, workflow, concepts, and code map |
+| [Architecture](doc_developer/en/ARCHITECTURE.md) | Pipeline architecture and workspace responsibilities |
+
 ### For Tool Users
 
 | Document | Description |
 |----------|-------------|
-| [Developer Guide](doc/en/DEVELOPER_GUIDE.md) | ArkUI developer workflow: initial dev, new interfaces, parameter changes |
+| [Tool User Guide](doc/en/USER_GUIDE.md) | IDLize user workflow: initial generation, new interfaces, parameter changes |
 | [CLI Reference](doc/en/CLI_REFERENCE.md) | Parameters and usage for runner |
 | [IDL Specification](doc/en/IDL_SPEC.md) | IDL language syntax, types, extended attributes |
-

@@ -1,8 +1,8 @@
-# IDLize Developer Workflow Guide
+# IDLize Tool User Workflow Guide
 
-This guide walks ArkUI developers through using the IDLize toolchain to
-define component interfaces in IDL format and generate native bindings for
-the OpenHarmony / ArkUI ecosystem.
+This guide is for IDLize tool users: people who use the toolchain to define
+component interfaces in IDL format and generate native bindings for the
+OpenHarmony / ArkUI ecosystem.
 
 For the full IDL language specification, see [IDL_SPEC.md](IDL_SPEC.md).
 

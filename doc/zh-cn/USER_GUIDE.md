@@ -1,6 +1,6 @@
-# IDLize 开发者工作流指南
+# IDLize 工具使用者工作流指南
 
-本指南面向 ArkUI 开发者，介绍如何使用 IDLize 工具链以 IDL 格式定义组件接口，
+本指南面向 IDLize 工具使用者，介绍如何使用 IDLize 工具链以 IDL 格式定义组件接口，
 并为 OpenHarmony / ArkUI 生态系统生成 native bindings 代码。
 
 完整的 IDL 语言规范请参见 [IDL_SPEC.md](IDL_SPEC.md)。
