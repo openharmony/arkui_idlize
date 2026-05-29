@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -189,8 +189,8 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
             printer.writeClass(componentClassName, (writer) => {
                 writer.writeMethodImplementation(
                     new Method('getPeer',
-                        new MethodSignature(createReferenceType(peerClassName), []
-                        ), [MethodModifier.PROTECTED], []),
+                        new MethodSignature(createReferenceType(peerClassName), []),
+                        [MethodModifier.PROTECTED], []),
                     writer => writer.writeStatement(
                         writer.makeReturn(
                             writer.makeCast(
@@ -226,12 +226,9 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                     writer.print('// we call this function outside of class, so need to make it public')
                     writer.writeMethodCall('super', applyAttributesFinish, [])
                 })
-                const optionsFinishSignature = new MethodSignature(
+                const optionsFinishSignature = new NamedMethodSignature(
                     idl.createPrimitiveType('void'),
                     [idl.createPrimitiveType('String')],
-                    undefined,
-                    undefined,
-                    undefined,
                     ['traceName']
                 )
                 const applyOptionsFinish = 'applyOptionsFinish'
@@ -393,8 +390,8 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
             printer.writeClass(componentClassName, (writer) => {
                 writer.writeMethodImplementation(
                     new Method('getPeer',
-                        new MethodSignature(createReferenceType(peerClassName), []
-                        ), [MethodModifier.PROTECTED], []),
+                        new MethodSignature(createReferenceType(peerClassName), []),
+                        [MethodModifier.PROTECTED], []),
                     writer => {
                         writer.print('if (let Some(peer) <- this.peer) {')
                         writer.pushIndent()
@@ -543,8 +540,8 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
 
                 writer.writeMethodImplementation(
                     new Method("getPeer",
-                        new MethodSignature(createReferenceType(peerClassName), []
-                        ), modifiers, []),
+                        new MethodSignature(createReferenceType(peerClassName), []),
+                        modifiers, []),
                     writer => writer.writeStatement(
                         writer.makeReturn(
                             writer.makeCast(

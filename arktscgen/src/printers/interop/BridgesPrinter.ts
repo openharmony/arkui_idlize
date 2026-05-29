@@ -14,7 +14,6 @@
  */
 
 import {
-    ArgumentModifier,
     capitalize,
     CppLanguageWriter,
     createEmptyReferenceResolver,
@@ -22,8 +21,8 @@ import {
     IndentedPrinter,
     isVoidType,
     LanguageExpression,
-    LanguageStatement,
     MethodSignature,
+    NamedMethodSignature,
     PrimitiveType,
     PrimitiveTypeList
 } from "@idlizer/core"
@@ -99,7 +98,7 @@ export class BridgesPrinter extends InteropPrinter {
         iface: IDLInterface,
         node: IDLMethod,
         converter: BaseTypeConvertor<IDLType>
-    ): [string, MethodSignature] {
+    ): [string, NamedMethodSignature] {
         const signature = makeSignature(
             node.parameters.map(p => ({
                 name: mangleIfKeyword(p.name),
@@ -111,22 +110,22 @@ export class BridgesPrinter extends InteropPrinter {
 
         if (!isCreateOrUpdate(node.name) && !isImplInterface(iface.name)) {
             signature.args.splice(1, 0, createReferenceType(iface.name))
-            signature.argNames!.splice(1, 0, 'receiver')
+            signature.argsNames.splice(1, 0, 'receiver')
         }
 
         const fixArgName = (name: string, prev?: string) =>
             name.endsWith('Len') ? (prev ?? name.slice(0, -3)) + 'SequenceLength' : name === 'ctx' ? 'context' : name
         // Not necessary, just to keep old names
-        signature.argNames = signature.argNames
-            ?.map((v, i) => fixArgName(v, i === 0 ? undefined : signature.argNames![i - 1]))
+        signature.argsNames = signature.argsNames
+            .map((v, i) => fixArgName(v, i === 0 ? undefined : signature.argsNames[i - 1]))
 
         const methodName = isImplInterface(iface.name) ? node.name : InteropConstructions.method(iface.name, node.name)
         return [methodName, signature]
     }
 
-    private printBody(node: IDLMethod, signature: MethodSignature, pandaMethodName: string): void {
+    private printBody(node: IDLMethod, signature: NamedMethodSignature, pandaMethodName: string): void {
         const writer = this.writer
-        const argNames = signature.argNames!.map(BridgesConstructions.castedParameter)
+        const argNames = signature.argsNames.map(BridgesConstructions.castedParameter)
         const statements = signature.args.map((type, index) => this.writer.makeAssign(
             BridgesConstructions.castedParameter(signature.argName(index)),
             undefined,

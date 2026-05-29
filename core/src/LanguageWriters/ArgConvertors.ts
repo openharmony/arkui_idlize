@@ -742,9 +742,11 @@ export class ArrayConvertor extends BaseArgConvertor { //
         if (writer instanceof ETSLanguageWriter) {
             // in ETS we must explicitly set initializer value per each element OR pass initializer function
             statements.push(writer.makeAssign(bufferName, arrayType, writer.makeArrayInit(this.type, lengthBuffer, {
-                initializerFunction: writer.makeLambda(new MethodSignature(this.elementType, [idl.createPrimitiveType('i32')]), [
-                    this.elementConvertor.convertorDeserialize(`${bufferName}TempBuf`, deserializerName, (expr) => {
-                        return writer.makeLambdaReturn(expr)
+                initializerFunction: writer.makeLambda(
+                    new MethodSignature(this.elementType, [idl.createPrimitiveType('i32')]),
+                    [
+                        this.elementConvertor.convertorDeserialize(`${bufferName}TempBuf`, deserializerName, (expr) => {
+                            return writer.makeLambdaReturn(expr)
                     }, writer)
                 ])
             })))
