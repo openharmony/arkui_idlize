@@ -22,8 +22,7 @@
         </policylist>
         <filefilterlist>
             <filefilter name="binaryFileTypePolicyFilter" desc="Binary file filter" >
-                <filteritem type="filepath" name="doc/img/.*" desc="Documentation images"/>
-                <filteritem type="filepath" name="doc_developer/img/.*" desc="Documentation images"/>
+                <filteritem type="filepath" name="core/doc/img/.*" desc="Documentation images"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>
