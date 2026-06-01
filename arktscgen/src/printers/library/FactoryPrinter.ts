@@ -134,7 +134,7 @@ export class FactoryPrinter extends SingleFilePrinter {
                     this.writer.makeStaticMethodCall(
                         makeFullyQualifiedName(node),
                         PeersConstructions.createOrUpdate(node.name, universalName),
-                        signature.argNames!
+                        signature.argsNames
                             .map(mangleIfKeyword)
                             .map(it => this.writer.makeString(it))
                     )

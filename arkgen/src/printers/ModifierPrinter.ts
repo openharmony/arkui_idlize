@@ -15,8 +15,8 @@
 
 import * as idl from '@idlizer/core/idl'
 import { getSuper, IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter,
-    LayoutNodeRole, LayoutTargetDescription, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary,
-    PeerMethod } from "@idlizer/core";
+    LayoutNodeRole, LayoutTargetDescription, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass,
+    PeerLibrary, PeerMethod } from "@idlizer/core";
 import { getHookMethod, collectDeclDependencies, collectDeclItself, collectPeers, componentToPeerClass,
     findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector,
     peerGeneratorConfiguration, PrinterResult, collectModifiers,
@@ -366,7 +366,7 @@ class ModifiersFileVisitor {
 
         const methodName = changeName ? `applyModifierPatch${peer.componentName}` : `applyModifierPatch`
         writer.writeMethodImplementation(new Method(methodName,
-            new MethodSignature(idl.createPrimitiveType('void'), [idl.createReferenceType("arkui.PeerNode.PeerNode")], [], [], [], ['node'])),
+            new NamedMethodSignature(idl.createPrimitiveType('void'), [idl.createReferenceType("arkui.PeerNode.PeerNode")], ['node'], [], [], [])),
             writer => {
                 if (hasParent) {
                     writer.print(`super.applyModifierPatch${peer.parentComponentName}(node)`);
@@ -624,7 +624,8 @@ class ModifiersFileVisitor {
                 if (!this.hasParent(peer)) {
                     writer.writeMethodImplementation(new Method(
                         `setInstanceId`,
-                        new MethodSignature(idl.createPrimitiveType('void'), [idl.createPrimitiveType('number')], [], [], [], ['instanceId'])),
+                        new NamedMethodSignature(idl.createPrimitiveType('void'),
+                            [idl.createPrimitiveType('number')], ['instanceId'], [], [], [])),
                         writer => {
                             writer.writeStatement(writer.makeAssign('this._instanceId', undefined, writer.makeString('instanceId'), false))
                         }
@@ -700,9 +701,8 @@ class ModifiersFileVisitor {
                 })
                 if (!modifierInfo.isParent) {
                     abstractMethods.forEach((method => {
-                        const signature = new MethodSignature(method.returnType,
+                        const signature = new NamedMethodSignature(method.returnType,
                             method.parameters.map(param => param.type),
-                            undefined, undefined, undefined,
                             method.parameters.map(param => param.name))
                         writer.writeMethodDeclaration(method.name, signature, [MethodModifier.ABSTRACT])
                     }))
@@ -749,10 +749,10 @@ class ModifiersFileVisitor {
                         writer.print(`${method}(instance: ${compAttributteConverted}): void { }`)
                     }
                     writer.writeMethodImplementation(new Method(`applyModifierPatch`,
-                        new MethodSignature(
+                        new NamedMethodSignature(
                             idl.createPrimitiveType('void'),
                             [idl.createReferenceType("arkui.PeerNode.PeerNode")],
-                            [], [], [], ['node'])),
+                            ['node'], [], [], [])),
                         writer => {
                             writer.print(`super.applyModifierPatch${peer.componentName}(node)`)
                         }
@@ -766,9 +766,8 @@ class ModifiersFileVisitor {
                     writer.popIndent()
                     writer.print('}')
                     abstractMethods.forEach((method => {
-                        const signature = new MethodSignature(method.returnType,
+                        const signature = new NamedMethodSignature(method.returnType,
                             method.parameters.map(param => param.type),
-                            undefined, undefined, undefined,
                             method.parameters.map(param => param.name))
                         writer.writeMethodDeclaration(method.name, signature, [MethodModifier.ABSTRACT])
                     }))

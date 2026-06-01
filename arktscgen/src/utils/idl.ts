@@ -44,6 +44,7 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
+    NamedMethodSignature,
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
@@ -223,7 +224,7 @@ export function makeMethod(
     )
 }
 
-export function makeSignature(parameters: { name: string, type: IDLType, isOptional?: boolean }[], returnType: IDLType): MethodSignature {
+export function makeSignature(parameters: { name: string, type: IDLType, isOptional?: boolean }[], returnType: IDLType): NamedMethodSignature {
     let parameterModifiers = parameters.map(it => it.isOptional || idl.isOptionalType(it.type) ? idl.ArgumentModifier.OPTIONAL : undefined)
     let lastNonOptional = -1
     for (let i = 0; i < parameterModifiers.length; i++) {
@@ -232,15 +233,14 @@ export function makeSignature(parameters: { name: string, type: IDLType, isOptio
     if (lastNonOptional != -1) {
         for (let i = 0; i < lastNonOptional; i++) parameterModifiers[i] = undefined
     }
-    return new MethodSignature(
+    return new NamedMethodSignature(
         returnType,
         parameters.map(it => it.type),
-        undefined,
-        parameterModifiers,
-        undefined,
         parameters
             .map(it => it.name)
-            .map(mangleIfKeyword)
+            .map(mangleIfKeyword),
+        undefined,
+        parameterModifiers
     )
 }
 

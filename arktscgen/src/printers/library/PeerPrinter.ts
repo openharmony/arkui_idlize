@@ -117,14 +117,7 @@ export class PeerPrinter {
 
         writer.writeConstructorImplementation(
             iface.name,
-            new MethodSignature(
-                createPrimitiveType('void'),
-                args,
-                undefined,
-                undefined,
-                undefined,
-                argNames
-            ),
+            new NamedMethodSignature(createPrimitiveType('void'), args, argNames),
             () => {
                 writer.writeExpressionStatements(
                     writer.makeFunctionCall(
@@ -139,14 +132,11 @@ export class PeerPrinter {
     private printTypeGuard(iface: IDLInterface, writer: TSLanguageWriter): void {
         writer.writeFunctionImplementation(
             PeersConstructions.typeGuard.name(iface.name),
-            new MethodSignature(
+            new NamedMethodSignature(
                 createReferenceType(
                     PeersConstructions.typeGuard.returnType(iface.name)
                 ),
                 [createReferenceType(PeersConstructions.typeGuard.parameter.type)],
-                undefined,
-                undefined,
-                undefined,
                 [PeersConstructions.typeGuard.parameter.name]
             ),
             () => {

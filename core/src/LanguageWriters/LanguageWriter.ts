@@ -472,14 +472,13 @@ export class MethodSignature {
         public args: idl.IDLType[],
         public defaults: stringOrNone[]|undefined = undefined,
         argsModifiers: (ArgumentModifier[]|ArgumentModifier|undefined)[]|undefined = undefined,
-        public printHints?: MethodArgPrintHintOrNone[],
-        public argNames?: string[]
+        public printHints?: MethodArgPrintHintOrNone[]
     ) {
         this.argsModifiers = argsModifiers?.map(it => it===undefined ? [] : Array.isArray(it) ? it : [it])
     }
 
     argName(index: number): string {
-        return this?.argNames?.at(index) ?? `arg${index}`
+        return `arg${index}`
     }
     argDefault(index: number): string|undefined {
         return this.defaults?.[index]
