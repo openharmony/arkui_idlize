@@ -24,6 +24,8 @@ generated output. Tool users who only need to run IDLize can start from
 
 ### Architecture
 
+![idlize_architecture_en](doc/img/idlize_architecture_en.png)
+
 Figure 1 IDLize architecture
 
 IDLize uses the following pipeline:

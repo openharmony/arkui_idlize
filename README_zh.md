@@ -21,6 +21,8 @@ C++ libace modifier，以及ArkUI组件框架使用的序列化代码。
 
 ### 架构
 
+![idlize_architecture_zh](doc/img/idlize_architecture_zh.png)
+
 图1 IDLize架构图
 
 IDLize使用如下管线：
