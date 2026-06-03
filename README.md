@@ -1,23 +1,90 @@
-# <p> <img align="bottom" src="artwork/logo.svg" alt="logo" width="100"/> IDLize <p/>
+# IDLize Component
+
+<p><img align="bottom" src="artwork/logo.svg" alt="IDLize logo" width="100"/></p>
 
 [中文文档](README_zh.md)
 
-## What is IDLize
+## Introduction
 
-IDLize is a compiler toolchain for the OpenHarmony/ArkUI ecosystem that
+IDLize is a compiler toolchain for the OpenHarmony ArkUI ecosystem. It
 ingests interface declarations (`.d.ts`, `.d.ets`, `.idl`) and generates
-native bindings. Generated artifacts include ArkTS peer classes, C++
-libace modifiers, and serialization code for the ArkUI component
-framework.
+native binding code, including ArkTS peer classes, C++ libace modifiers,
+and serialization code used by the ArkUI component framework.
 
-This repository's public documentation is primarily for IDLize tool
-developers: people who add generator features, maintain the pipeline, or
-debug generated output. Tool users who only need to run IDLize should start
-with [Using IDLize as a Tool User](#using-idlize-as-a-tool-user).
+This repository is part of the ArkUI framework subsystem. It provides the
+IDL conversion, parsing, generation, and pipeline orchestration tools used
+to produce ArkUI bridge-layer code for targets such as ArkTS and Cangjie.
+For more ArkUI framework subsystem concepts, see the
+[ArkUI framework subsystem README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md).
 
-## Tool Developer Setup
+The public documentation in this repository is mainly for IDLize tool
+developers who add generator features, maintain the pipeline, or debug
+generated output. Tool users who only need to run IDLize can start from
+[Using IDLize as a Tool User](#using-idlize-as-a-tool-user).
 
-**Step 1: Clone and install**
+### Architecture
+
+Figure 1 IDLize architecture
+
+IDLize uses the following pipeline:
+
+1. `scraper/` pulls and normalizes external SDK content.
+2. `etsgen/` converts `.d.ts` and `.d.ets` declarations to `.idl`.
+3. `core/` parses IDL files and builds the IDL abstract syntax tree (AST).
+4. `arkgen/` and `libohos/` walk the AST and print ArkTS peers, C++ libace
+   modifiers, serializers, and Arkoala glue code.
+5. `runner/` installs generated output into the target directory.
+
+## Directory
+
+The repository root contains the following key directories:
+
+```text
+/arkui_idlize
+├── arkgen                 # ArkUI component peer generator and generation config
+├── arktscgen              # ArkTS-specific code generation path
+├── artwork                # Project artwork used by documentation
+├── core                   # IDL AST, parser, LanguageWriter, config, diagnostics
+├── doc                    # Tool-user documentation
+├── doc_developer          # Tool-developer documentation
+├── dtsgen                 # Reverse generator from IDL to .d.ts declarations
+├── etsgen                 # .d.ts/.d.ets to IDL transformer
+├── external               # Vendored dependencies used by the toolchain
+├── idlinter               # IDL lint rules
+├── interface_sdk-js       # Vendored upstream SDK submodule, read-only
+├── interfaces             # Packaged interface definitions consumed downstream
+├── libohos                # Shared printers, serializers, and peer infrastructure
+├── linter                 # .d.ts/.d.ets declaration lint rules
+├── ohosgen                # OHOS-target generator and integration demos
+├── runner                 # End-to-end pipeline orchestrator and m3 command
+├── scraper                # SDK scraping, caching, and normalization utilities
+├── sdk-patched            # Patched upstream TypeScript SDK declarations
+├── sdk-patched-arkts      # Patched upstream ArkTS SDK declarations
+└── tools                  # Repository setup, SDK download, and release utilities
+```
+
+Generated output directories such as `out/`, `build/`, `bundled/`, and
+`lib/` directories adjacent to `src/` are pipeline products and should not
+be edited manually.
+
+## Constraints
+
+- Use Node.js 18 or later. The verified CLI environment uses Node.js 18.
+- Run commands from the repository root unless a step explicitly changes
+  directories.
+- Initialize submodules before installing or compiling dependencies.
+- Prepare `external/libarkts` with `PANDA_SDK_VERSION=1.5.0-dev.58082`
+  before compiling the full pipeline.
+- Do not hand-edit `interface_sdk-js/`; patch upstream declarations through
+  `sdk-patched/` or `sdk-patched-arkts/`.
+- Regenerate output with `bash generate.sh` after any pipeline-affecting
+  change.
+
+## Build and Usage
+
+### Build the Development Environment
+
+1. Clone submodules and install root dependencies.
 
 ```bash
 git submodule update --init
@@ -25,7 +92,7 @@ npm i
 cd external && npm i && cd ..
 ```
 
-**Step 2: Prepare libarkts**
+2. Prepare `libarkts` so ArkTS-related generators can compile.
 
 ```bash
 cd external/libarkts
@@ -34,29 +101,42 @@ npm run compile
 cd ../..
 ```
 
-**Step 3: Compile the pipeline**
+3. Compile the pipeline entry point.
 
 ```bash
 cd runner && npm run compile && cd ..
 ```
 
-**Step 4: Download and prepare the SDK**
+4. Download and prepare the SDK inputs used by the standard generation
+   flow.
 
 ```bash
 npm run download:sdk
 ```
 
-This gives you a local development environment that can compile the
-pipeline and run the standard generation flow.
+The environment is ready when the commands complete without errors.
 
-## Development Workflow
+### Run the Standard Generation Flow
 
-1. Pick the workspace that owns the change.
+Run the standard pipeline from the repository root:
+
+```bash
+bash generate.sh
+```
+
+Installed generated output is written to `./out`; intermediate pipeline
+artifacts are written under `runner/out`. When generated code looks wrong,
+work backwards from `out/` to `runner/out/peers/`, then to
+`runner/out/idl/`, to identify the stage that diverged.
+
+### Develop a Pipeline Change
+
+1. Select the workspace that owns the change.
 
 | Change | Workspace |
 |---|---|
 | IDL parser, AST, `LanguageWriter` | `core/` |
-| `.d.ts` / `.d.ets` to IDL conversion | `etsgen/` |
+| `.d.ts` or `.d.ets` to IDL conversion | `etsgen/` |
 | ArkUI peer generation and generation config | `arkgen/` |
 | Shared printers, serializers, peer infrastructure | `libohos/` |
 | End-to-end pipeline orchestration | `runner/` |
@@ -87,43 +167,26 @@ npm run sanity
 bash generate.sh
 ```
 
-Installed generated output is written to `./out`; intermediate pipeline
-artifacts are written under `runner/out`. When generated code looks wrong,
-work backwards from `out/` to `runner/out/peers/` and then to
-`runner/out/idl/` to identify the stage that diverged.
+## Description
 
-Do not hand-edit generated output directories such as `out/`, `build/`,
-`bundled/`, or `lib/` when they sit next to `src/`.
+### Interface Description
 
-## Architecture
+IDLize exposes command-line tools through npm workspace packages.
 
-```mermaid
-graph TD
-    subgraph "1. IDL Core"
-        etsgen["etsgen<br/>.d.ts / .d.ets → .idl"]
-        parser["IDL Parser<br/>core/"]
-        etsgen -->|"generates .idl"| parser
-    end
+| Tool | Package or workspace | Function |
+|---|---|---|
+| Peer Generator | `arkgen` | Generates ArkTS peers, C++ libace modifiers, and Arkoala bindings from IDL definitions. |
+| IDL Converter | `etsgen` | Converts `.d.ts` and `.d.ets` declarations to IDL format. |
+| Pipeline Runner | `runner` | Orchestrates SDK preparation, IDL conversion, scraping, peer generation, and output installation through `m3`. |
+| Declaration Linters | `linter`, `idlinter` | Validate `.d.ts`, `.d.ets`, and `.idl` declarations. |
+| IDL Generator | `dtsgen` | Generates `.d.ts` declarations from IDL definitions. |
 
-    subgraph "2. ArkUI Generator"
-        arkgen["arkgen<br/>Component peer generation"]
-    end
+For command parameters and examples, see the
+[Tool User Guide](doc/en/USER_GUIDE.md),
+[CLI Reference](doc/en/CLI_REFERENCE.md), and
+[IDL Specification](doc/en/IDL_SPEC.md).
 
-    subgraph "3. Generator Core"
-        libohos["libohos<br/>Printers, Serializers"]
-        writer["Language Writers<br/>ArkTS / C++ / CangJie"]
-        libohos --> writer
-    end
-
-    input[".d.ts / .d.ets / .idl"] --> etsgen
-    parser -->|"IDL AST"| arkgen
-    arkgen --> libohos
-    writer --> peers["ArkTS Peers"]
-    writer --> modifiers["C++ Modifiers"]
-    writer --> serializers["Serializers"]
-```
-
-## Key Concepts
+### Key Concepts
 
 **peer**
 A generated class that mirrors an ArkUI component's API surface. Each peer
@@ -136,9 +199,10 @@ runtime. Modifiers bridge the ArkTS peer layer and the native ArkUI
 rendering engine, translating attribute setters into native calls.
 
 **serializer**
-Generated code that encodes property values for IPC calls. Serializers
-convert typed values from IDL representation into a wire format suitable
-for crossing the ArkTS/C++ boundary.
+Generated code that encodes property values for inter-process
+communication (IPC). Serializers convert typed values from IDL
+representation into a wire format suitable for crossing the ArkTS/C++
+boundary.
 
 **framenode**
 A native ArkUI tree node that is the runtime target of a modifier. Each
@@ -152,7 +216,7 @@ than stubbed out. Materialization is controlled per component in
 `arkgen/generation-config/config.json`. Non-materialized components produce
 minimal stubs.
 
-## Using IDLize as a Tool User
+### Using IDLize as a Tool User
 
 Tool users usually provide SDK declarations or handwritten IDL, run the
 pipeline, and consume the generated ArkTS/C++ bindings.
@@ -162,44 +226,34 @@ bash generate.sh
 ```
 
 For custom runs, use `runner m3` with the SDK stage, target, output path,
-and config files you need. See [Tool User Guide](doc/en/USER_GUIDE.md),
-[CLI Reference](doc/en/CLI_REFERENCE.md), and
-[IDL Specification](doc/en/IDL_SPEC.md).
-
-## Tools
-
-**Peer Generator** (`arkgen`) -- Generates ArkTS peers, C++ libace
-modifiers, and Arkoala bindings from IDL definitions. Primary mode:
-`--idl2peer`. See [Tool User Guide](doc/en/USER_GUIDE.md).
-
-**IDL Converter** (`etsgen`) -- Converts `.d.ts` and `.d.ets`
-declarations to IDL format. Primary mode: `--ets2idl`.
-
-**Pipeline Runner** (`runner`) -- Orchestrates the end-to-end generation
-pipeline via the `m3` command, which chains SDK preparation, IDL
-conversion, scraping, peer generation, and output installation. See
-[CLI Reference](doc/en/CLI_REFERENCE.md).
-
-**Linters** -- The `.d.ts` linter (`@idlizer/linter`) and the `.idl`
-linter (`@idlizer/idlinter`) validate interface declarations for quality
-and correctness.
-
-**IDL Generator** (`dtsgen`) -- Generates `.d.ts` declarations from IDL
-definitions (the reverse direction of `etsgen`).
+and config files you need. See the [Tool User Guide](doc/en/USER_GUIDE.md)
+for common workflows.
 
 ## Documentation
 
-### For Tool Developers
+### Tool Developer Documentation
 
 | Document | Description |
-|----------|-------------|
-| [Tool Developer Guide](doc_developer/en/DEVELOPER_GUIDE.md) | Starter guide for tool developers: setup, workflow, concepts, and code map |
-| [Architecture](doc_developer/en/ARCHITECTURE.md) | Pipeline architecture and workspace responsibilities |
+|---|---|
+| [Tool Developer Guide](doc_developer/en/DEVELOPER_GUIDE.md) | Starter guide for tool developers: setup, workflow, concepts, and code map. |
+| [Architecture](doc_developer/en/ARCHITECTURE.md) | Pipeline architecture and workspace responsibilities. |
 
-### For Tool Users
+### Tool User Documentation
 
 | Document | Description |
-|----------|-------------|
-| [Tool User Guide](doc/en/USER_GUIDE.md) | IDLize user workflow: initial generation, new interfaces, parameter changes |
-| [CLI Reference](doc/en/CLI_REFERENCE.md) | Parameters and usage for runner |
-| [IDL Specification](doc/en/IDL_SPEC.md) | IDL language syntax, types, extended attributes |
+|---|---|
+| [Tool User Guide](doc/en/USER_GUIDE.md) | IDLize user workflow: initial generation, new interfaces, parameter changes. |
+| [CLI Reference](doc/en/CLI_REFERENCE.md) | Parameters and usage for `runner`. |
+| [IDL Specification](doc/en/IDL_SPEC.md) | IDL language syntax, types, and extended attributes. |
+
+## Repositories Involved
+
+[ArkUI framework subsystem](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+
+[arkui_ace_engine](https://gitcode.com/openharmony/arkui_ace_engine)
+
+[arkui_ace_engine_lite](https://gitcode.com/openharmony/arkui_ace_engine_lite)
+
+[arkui_napi](https://gitcode.com/openharmony/arkui_napi)
+
+[**arkui_idlize**](https://gitcode.com/openharmony-sig/arkui_idlize)
