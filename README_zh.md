@@ -1,20 +1,86 @@
-# <p> <img align="bottom" src="artwork/logo.svg" alt="logo" width="100"/> IDLize <p/>
+# IDLize部件
+
+<p><img align="bottom" src="artwork/logo.svg" alt="IDLize logo" width="100"/></p>
 
 [English](README.md)
 
-## IDLize 是什么
+## 简介
 
-IDLize 是面向 OpenHarmony/ArkUI 生态的编译器工具链，用于读取接口声明文件
-（`.d.ts`、`.d.ets`、`.idl`）并生成原生绑定代码。生成的产物包括 ArkTS peer 类、
-C++ libace modifier，以及 ArkUI 组件框架的序列化代码。
+IDLize是面向OpenHarmony ArkUI生态的编译器工具链，用于读取接口声明文件
+（`.d.ts`、`.d.ets`、`.idl`）并生成原生绑定代码。生成产物包括ArkTS peer类、
+C++ libace modifier，以及ArkUI组件框架使用的序列化代码。
 
-本仓库的对外文档主要面向 IDLize 工具开发者：为生成器增加能力、维护管线、
-或排查生成结果的人。只需要运行 IDLize 生成代码的工具使用者，可以从
-[作为工具使用 IDLize](#作为工具使用-idlize) 开始阅读。
+本仓库属于ArkUI框架子系统，提供IDL转换、解析、代码生成和管线编排工具，
+用于为ArkUI生成面向ArkTS、Cangjie等目标的桥接层代码。更多ArkUI框架子系统
+相关概念，请参考
+[ArkUI框架子系统README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)。
 
-## 工具开发者环境搭建
+本仓库的对外文档主要面向IDLize工具开发者：为生成器增加能力、维护管线，或排查
+生成结果的人。只需要运行IDLize生成代码的工具使用者，可以从
+[作为工具使用IDLize](#作为工具使用idlize)开始阅读。
 
-**步骤 1：克隆并安装**
+### 架构
+
+![idlize_architecture_zh](doc/img/idlize_architecture_zh.png)
+
+图1 IDLize架构图
+
+IDLize使用如下管线：
+
+1. `scraper/`拉取并规范化外部SDK内容。
+2. `etsgen/`将`.d.ts`和`.d.ets`声明转换为`.idl`。
+3. `core/`解析IDL文件并构建IDL抽象语法树（AST）。
+4. `arkgen/`和`libohos/`遍历AST，输出ArkTS peer、C++ libace modifier、
+   serializer和Arkoala胶水代码。
+5. `runner/`将生成结果安装到目标目录。
+
+## 目录
+
+仓库根目录包含以下关键目录：
+
+```text
+/arkui_idlize
+├── arkgen                 # ArkUI组件peer生成器和生成配置
+├── arktscgen              # ArkTS专用代码生成路径
+├── artwork                # 文档使用的项目图形资源
+├── core                   # IDL AST、parser、LanguageWriter、配置和诊断
+├── doc                    # 工具使用者文档
+├── doc_developer          # 工具开发者文档
+├── dtsgen                 # 从IDL反向生成.d.ts声明
+├── etsgen                 # .d.ts/.d.ets到IDL的转换器
+├── external               # 工具链使用的外部依赖
+├── idlinter               # IDL检查规则
+├── interface_sdk-js       # 上游SDK子模块，只读
+├── interfaces             # 下游消费的接口定义包
+├── libohos                # 共享printer、serializer和peer基础设施
+├── linter                 # .d.ts/.d.ets声明检查规则
+├── ohosgen                # OHOS目标生成器和集成示例
+├── runner                 # 端到端管线编排器和m3命令
+├── scraper                # SDK抓取、缓存和规范化工具
+├── sdk-patched            # 修补后的上游TypeScript SDK声明
+├── sdk-patched-arkts      # 修补后的上游ArkTS SDK声明
+└── tools                  # 仓库搭建、SDK下载和发布工具
+```
+
+`out/`、`build/`、`bundled/`，以及与`src/`相邻的`lib/`等生成目录是管线产物，
+不要手工修改。
+
+## 约束
+
+- 使用Node.js 18或更高版本。当前验证过的命令行环境使用Node.js 18。
+- 除非步骤明确切换目录，否则从仓库根目录执行命令。
+- 安装或编译依赖前，先初始化子模块。
+- 编译完整管线前，使用`PANDA_SDK_VERSION=1.5.0-dev.58082`准备
+  `external/libarkts`。
+- 不要手工修改`interface_sdk-js/`；如需修补上游声明，请通过`sdk-patched/`
+  或`sdk-patched-arkts/`处理。
+- 任何影响管线输出的变更，都需要执行`bash generate.sh`重新生成。
+
+## 编译构建/使用方法
+
+### 构建开发环境
+
+1. 克隆子模块并安装根目录依赖。
 
 ```bash
 git submodule update --init
@@ -22,7 +88,7 @@ npm i
 cd external && npm i && cd ..
 ```
 
-**步骤 2：准备 libarkts**
+2. 准备`libarkts`，使ArkTS相关生成器可以编译。
 
 ```bash
 cd external/libarkts
@@ -31,35 +97,46 @@ npm run compile
 cd ../..
 ```
 
-**步骤 3：编译管线**
+3. 编译管线入口。
 
 ```bash
 cd runner && npm run compile && cd ..
 ```
 
-**步骤 4：下载并准备 SDK**
+4. 下载并准备标准生成流程使用的SDK输入。
 
 ```bash
 npm run download:sdk
 ```
 
-完成以上步骤后，本地环境即可编译管线并运行标准生成流程。
+以上命令无错误完成后，开发环境即准备完成。
 
-## 开发代码流程
+### 运行标准生成流程
 
-1. 先确定变更由哪个 workspace 负责。
+在仓库根目录运行标准管线：
+
+```bash
+bash generate.sh
+```
+
+安装后的生成输出位于`./out`目录；管线中间产物位于`runner/out`。如果生成代码
+不符合预期，请从`out/`回溯到`runner/out/peers/`，再检查`runner/out/idl/`，
+定位是哪一个阶段开始偏离。
+
+### 开发管线变更
+
+1. 先确定变更由哪个workspace负责。
 
 | 变更内容 | Workspace |
 |---|---|
 | IDL parser、AST、`LanguageWriter` | `core/` |
-| `.d.ts` / `.d.ets` 到 IDL 的转换 | `etsgen/` |
-| ArkUI peer 生成和生成配置 | `arkgen/` |
-| 共享 printer、serializer、peer 基础设施 | `libohos/` |
+| `.d.ts`或`.d.ets`到IDL的转换 | `etsgen/` |
+| ArkUI peer生成和生成配置 | `arkgen/` |
+| 共享printer、serializer、peer基础设施 | `libohos/` |
 | 端到端管线编排 | `runner/` |
 | 声明检查 | `linter/`、`idlinter/` |
 
-2. 编译受影响的 workspace；如果变更跨越多个管线阶段，可以通过 `runner`
-   编译。
+2. 编译受影响的workspace；如果变更跨越多个管线阶段，可以通过`runner`编译。
 
 ```bash
 npm run -C core compile
@@ -83,111 +160,82 @@ npm run sanity
 bash generate.sh
 ```
 
-安装后的生成输出位于 `./out` 目录；管线中间产物位于 `runner/out`。如果生成代码
-不符合预期，请从 `out/` 回溯到 `runner/out/peers/`，再检查
-`runner/out/idl/`，定位是哪一个阶段开始偏离。
+## 说明
 
-不要手工修改生成目录，例如 `out/`、`build/`、`bundled/`，以及与 `src/`
-相邻的 `lib/`。
+### 接口说明
 
-## 架构
+IDLize通过npm workspace包提供命令行工具。
 
-```mermaid
-graph TD
-    subgraph "1. IDL Core"
-        etsgen["etsgen<br/>.d.ts / .d.ets → .idl"]
-        parser["IDL Parser<br/>core/"]
-        etsgen -->|"生成 .idl"| parser
-    end
+| 工具 | 包或workspace | 功能 |
+|---|---|---|
+| Peer Generator | `arkgen` | 从IDL定义生成ArkTS peer、C++ libace modifier和Arkoala绑定。 |
+| IDL Converter | `etsgen` | 将`.d.ts`和`.d.ets`声明转换为IDL格式。 |
+| Pipeline Runner | `runner` | 通过`m3`编排SDK准备、IDL转换、抓取、peer生成和输出安装。 |
+| 声明检查工具 | `linter`、`idlinter` | 验证`.d.ts`、`.d.ets`和`.idl`声明。 |
+| IDL Generator | `dtsgen` | 从IDL定义生成`.d.ts`声明。 |
 
-    subgraph "2. ArkUI Generator"
-        arkgen["arkgen<br/>组件 peer 生成"]
-    end
+命令参数和示例请参考[工具使用者指南](doc/zh-cn/USER_GUIDE.md)、
+[CLI参考](doc/zh-cn/CLI_REFERENCE.md)和[IDL规范](doc/zh-cn/IDL_SPEC.md)。
 
-    subgraph "3. Generator Core"
-        libohos["libohos<br/>printer、serializer"]
-        writer["language writer<br/>ArkTS / C++ / CangJie"]
-        libohos --> writer
-    end
-
-    input[".d.ts / .d.ets / .idl"] --> etsgen
-    parser -->|"IDL AST"| arkgen
-    arkgen --> libohos
-    writer --> peers["ArkTS Peers"]
-    writer --> modifiers["C++ modifier"]
-    writer --> serializers["serializer"]
-```
-
-## 核心概念
+### 核心概念
 
 **peer**
-一个生成的类，镜像了 ArkUI 组件的 API 接口。每个 peer 封装一个原生
-framenode，并将组件的属性和方法暴露给应用层。
+一个生成的类，镜像了ArkUI组件的API接口。每个peer封装一个原生framenode，
+并将组件的属性和方法暴露给应用层。
 
 **modifier**
-一个生成的 C++ 对象，在运行时将属性变更应用到 framenode。Modifier 在
-ArkTS peer 层和原生 ArkUI 渲染引擎之间搭建桥梁，将属性 setter 转换为
-原生调用。
+一个生成的C++对象，在运行时将属性变更应用到framenode。Modifier在ArkTS peer
+层和原生ArkUI渲染引擎之间搭建桥梁，将属性setter转换为原生调用。
 
 **serializer**
-生成的代码，用于为进程间通信（IPC）调用编码属性值。Serializer 将 IDL
-表示中的类型值转换为适合跨越 ArkTS/C++ 边界的线路格式。
+生成的代码，用于为进程间通信（IPC）调用编码属性值。Serializer将IDL表示中的
+类型值转换为适合跨越ArkTS/C++边界的线路格式。
 
 **framenode**
-一个原生 ArkUI 树节点，是 modifier 的运行时目标。UI 树中的每个可见组件
-都对应一个 framenode；modifier 和 peer 操作 framenode 以更新属性、布局
-和渲染状态。
+一个原生ArkUI树节点，是modifier的运行时目标。UI树中的每个可见组件都对应
+一个framenode；modifier和peer操作framenode以更新属性、布局和渲染状态。
 
 **materialized**
-一个组件，其 peer 是根据 IDL 定义完整生成的，而非 stub。
-Materialization 通过 `arkgen/generation-config/config.json` 逐组件控制。
-未被 materialized 的组件仅生成最小的 stub。
+一个组件，其peer是根据IDL定义完整生成的，而非stub。Materialization通过
+`arkgen/generation-config/config.json`逐组件控制。未被materialized的组件仅生成
+最小的stub。
 
-## 作为工具使用 IDLize
+### 作为工具使用IDLize
 
-工具使用者通常提供 SDK 声明或手写 IDL，运行管线，然后消费生成的 ArkTS/C++
-绑定代码。
+工具使用者通常提供SDK声明或手写IDL，运行管线，然后消费生成的ArkTS/C++绑定代码。
 
 ```bash
 bash generate.sh
 ```
 
-如果需要自定义生成流程，可以使用 `runner m3` 指定 SDK 阶段、生成目标、输出路径
-和配置文件。参见 [工具使用者指南](doc/zh-cn/USER_GUIDE.md)、
-[CLI 参考](doc/zh-cn/CLI_REFERENCE.md) 和 [IDL 规范](doc/zh-cn/IDL_SPEC.md)。
-
-## 工具
-
-**Peer Generator**（`arkgen`）-- 从 IDL 定义生成 ArkTS peer、C++ libace modifier
-和 Arkoala 绑定。主要模式：`--idl2peer`。参见
-[工具使用者指南](doc/zh-cn/USER_GUIDE.md)。
-
-**IDL Converter**（`etsgen`）-- 将 `.d.ts` 和 `.d.ets` 声明转换为 IDL 格式。
-主要模式：`--ets2idl`。
-
-**Pipeline Runner**（`runner`）-- 通过 `m3` 命令编排端到端生成管线，依次执行
-SDK 准备、IDL 转换、抓取、peer 生成和输出安装。参见
-[CLI 参考](doc/zh-cn/CLI_REFERENCE.md)。
-
-**代码检查工具** -- `.d.ts` 检查工具（`@idlizer/linter`）和 `.idl` 检查工具
-（`@idlizer/idlinter`）用于验证接口声明的质量和正确性。
-
-**IDL Generator**（`dtsgen`）-- 从 IDL 定义生成 `.d.ts` 声明（与 `etsgen`
-相反的方向）。
+如果需要自定义生成流程，可以使用`runner m3`指定SDK阶段、生成目标、输出路径和
+配置文件。常见工作流请参考[工具使用者指南](doc/zh-cn/USER_GUIDE.md)。
 
 ## 文档
 
 ### 工具开发者文档
 
 | 文档 | 说明 |
-|------|------|
-| [工具开发者指南](doc_developer/zh-cn/DEVELOPER_GUIDE.md) | 面向新手工具开发者的环境搭建、开发流程、核心概念和代码导览 |
-| [架构设计](doc_developer/zh-cn/ARCHITECTURE.md) | 管线架构和各工作区职责 |
+|---|---|
+| [工具开发者指南](doc_developer/zh-cn/DEVELOPER_GUIDE.md) | 面向工具开发者的环境搭建、开发流程、核心概念和代码导览。 |
+| [架构设计](doc_developer/zh-cn/ARCHITECTURE.md) | 管线架构和各工作区职责。 |
 
 ### 工具使用者文档
 
 | 文档 | 说明 |
-|------|------|
-| [工具使用者指南](doc/zh-cn/USER_GUIDE.md) | IDLize 工具使用者工作流：初始生成、新接口、参数变更 |
-| [CLI 参考](doc/zh-cn/CLI_REFERENCE.md) | runner 的参数和用法 |
-| [IDL 规范](doc/zh-cn/IDL_SPEC.md) | IDL 语言语法、类型、扩展属性 |
+|---|---|
+| [工具使用者指南](doc/zh-cn/USER_GUIDE.md) | IDLize工具使用者工作流：初始生成、新接口、参数变更。 |
+| [CLI参考](doc/zh-cn/CLI_REFERENCE.md) | `runner`的参数和用法。 |
+| [IDL规范](doc/zh-cn/IDL_SPEC.md) | IDL语言语法、类型和扩展属性。 |
+
+## 相关仓
+
+[ArkUI框架子系统](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+
+[arkui_ace_engine](https://gitcode.com/openharmony/arkui_ace_engine)
+
+[arkui_ace_engine_lite](https://gitcode.com/openharmony/arkui_ace_engine_lite)
+
+[arkui_napi](https://gitcode.com/openharmony/arkui_napi)
+
+[**arkui_idlize**](https://gitcode.com/openharmony-sig/arkui_idlize)
