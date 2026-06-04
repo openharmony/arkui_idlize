@@ -17,7 +17,7 @@
 - [版本](#版本)
 
 
-# **package/namespace**
+# **package/namespace** <a id="packagenamespace"></a>
 
 *package* 指令和 *namespace* 容器用于把一组声明组织到命名作用域中，便于按模块管理复杂接口。*package* 指令指定当前模块的根作用域，namespace 容器用于创建嵌套作用域。
 
@@ -31,7 +31,7 @@ namespace gatt {
 }
 ```
 
-# import/typedef
+# import/typedef <a id="importtypedef"></a>
 
 *import* 指令用于将指定的作用域映射到当前作用域。
 

@@ -17,7 +17,7 @@
 - [version](#version)
 
 
-# **package/namespace** 
+# **package/namespace** <a id="packagenamespace"></a>
 
 The *package* directive and the *namespace* container are designed to semantically structure a set of declarations into named scopes, allowing complexity to be managed through localization. The *package* directive specifies the root scope of the current module, while the namespace container enables the creation of nested scopes.
 
@@ -31,7 +31,7 @@ namespace gatt {
 }
 ```
 
-# import/typedef
+# import/typedef <a id="importtypedef"></a>
 
 The *import* directive maps the specified scope onto the current one.
 

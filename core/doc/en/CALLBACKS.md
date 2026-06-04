@@ -265,7 +265,7 @@ Traversing managed closure to native CAPI structure.
 
 1. Have managed closure with known signature.
 2. Closure is registered in ResourceHolder and transformed to primitive type values (see [Managed: closure serialization](#managed-closure-serialization)).
-3. In native call, callSync, hold and release are filled with functional pointers (see [Bridges: hold and release](#bridges-hold-release), [Bridges: call and callSync](#bridges-call-callSync)).
+3. In native call, callSync, hold and release are filled with functional pointers (see [Bridges: hold and release](#bridges-hold-release), [Bridges: call and callSync](#bridges-call-callsync)).
 4. Callback structure in CAPI terms has been passed to appropriate CAPI method call.
 
 Converting native CAPI structure to managed closure.
@@ -277,7 +277,7 @@ Converting native CAPI structure to managed closure.
 Calling callback in CAPI, that was created from managed closure.
 
 1. Have CAPI structure describing callback, that came from managed side. `call` or `callSync` has been invoked.
-2. `callManagedSmth` or `callManagedSmthSync` (that call or callSync essentially is, see [Bridges: call and callSync](#bridges-call-callSync)) is invoked. 
+2. `callManagedSmth` or `callManagedSmthSync` (that call or callSync essentially is, see [Bridges: call and callSync](#bridges-call-callsync)) is invoked.
 3. Callback arguments are serialized. Depending on synchronous or asynchronous call managed function is invoked or callback is put into queue and called later (see [Bridges: general events](#bridges-general-events)).
 4. After receiving callback arguments in managed side, they are deserialized, closure instance is got from ResourceHolder and called (see [Managed: deserialize arguments and call closure](#managed-deserialize-and-call)). If there is not void return type in closure, continuation callback is called with received result (see [Continuations](#continuations)).
 
@@ -478,7 +478,7 @@ In example above you can see process of deserialization callback with `void (arg
 
 ### Managed: deserialize arguments and call closure <a id='managed-deserialize-and-call'></a>
 
-Managed arguments deserialization is symmetric to [Bridges: call and callSync](#bridges-call-callSync). Firstly it reads callback kind (unique signature identifier) in deserializeAndCallCallback, where appropriate callback parser is being selected:
+Managed arguments deserialization is symmetric to [Bridges: call and callSync](#bridges-call-callsync). Firstly it reads callback kind (unique signature identifier) in deserializeAndCallCallback, where appropriate callback parser is being selected:
 
 ```typescript
 export function deserializeAndCallCallback(thisDeserializer: Deserializer): void {
@@ -556,7 +556,7 @@ void impl_GlobalScope_foo(KSerializerBuffer thisArray, int32_t thisLength) {
 }
 ```
 
-### Bridges: call and callSync <a id='bridges-call-callSync'></a>
+### Bridges: call and callSync <a id='bridges-call-callsync'></a>
 
 Call and callSync implemenetations are much more complicated. Let's go slowly from interop function implementation:
 
