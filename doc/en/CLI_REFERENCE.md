@@ -27,7 +27,7 @@ and is invoked as:
 node runner -- <command> [options]
 ```
 
-### Command: `m3`
+### Command: `m3` <a id="command-m3"></a>
 
 ```
 node runner -- m3 <sdk-path> <idl-files...>
@@ -83,7 +83,7 @@ node runner -- m3 ./sdk ./my-component.idl \
 
 ---
 
-### Command: `complete`
+### Command: `complete` <a id="command-complete"></a>
 
 ```
 node runner -- complete <sdk-path>
@@ -120,7 +120,7 @@ node runner -- complete ./sdk \
 
 ---
 
-### Command: `sdk`
+### Command: `sdk` <a id="command-sdk"></a>
 
 ```
 node runner -- sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>
@@ -145,7 +145,7 @@ node runner -- sdk ./interface_sdk-js ./out/patched-sdk-arkts ./out/patched-sdk-
 
 ---
 
-### Command: `m3-sdk`
+### Command: `m3-sdk` <a id="command-m3-sdk"></a>
 
 ```
 node runner -- m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>
@@ -175,7 +175,7 @@ node runner -- m3-sdk ./out/patched-sdk-arkts ./out/absolute-sdk
 
 ---
 
-### Command: `sdk-new-shape`
+### Command: `sdk-new-shape` <a id="command-sdk-new-shape"></a>
 
 ```
 node runner -- sdk-new-shape <path>
@@ -191,7 +191,7 @@ Create a new SDK shape by transforming builder functions.
 
 ---
 
-### Command: `transform-builder-functions`
+### Command: `transform-builder-functions` <a id="command-transform-builder-functions"></a>
 
 ```
 node runner -- transform-builder-functions <api-path>

@@ -25,7 +25,7 @@ runner 是顶层管线编排器。它使用 `commander` 库，调用方式如下
 node runner -- <command> [options]
 ```
 
-### 命令：`m3`
+### 命令：`m3` <a id="命令-m3"></a>
 
 ```
 node runner -- m3 <sdk-path> <idl-files...>
@@ -80,7 +80,7 @@ node runner -- m3 ./sdk ./my-component.idl \
 
 ---
 
-### 命令：`complete`
+### 命令：`complete` <a id="命令-complete"></a>
 
 ```
 node runner -- complete <sdk-path>
@@ -116,7 +116,7 @@ node runner -- complete ./sdk \
 
 ---
 
-### 命令：`sdk`
+### 命令：`sdk` <a id="命令-sdk"></a>
 
 ```
 node runner -- sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>
@@ -141,7 +141,7 @@ node runner -- sdk ./interface_sdk-js ./out/patched-sdk-arkts ./out/patched-sdk-
 
 ---
 
-### 命令：`m3-sdk`
+### 命令：`m3-sdk` <a id="命令-m3-sdk"></a>
 
 ```
 node runner -- m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>
@@ -170,7 +170,7 @@ node runner -- m3-sdk ./out/patched-sdk-arkts ./out/absolute-sdk
 
 ---
 
-### 命令：`sdk-new-shape`
+### 命令：`sdk-new-shape` <a id="命令-sdk-new-shape"></a>
 
 ```
 node runner -- sdk-new-shape <path>
@@ -186,7 +186,7 @@ node runner -- sdk-new-shape <path>
 
 ---
 
-### 命令：`transform-builder-functions`
+### 命令：`transform-builder-functions` <a id="命令-transform-builder-functions"></a>
 
 ```
 node runner -- transform-builder-functions <api-path>

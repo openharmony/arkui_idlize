@@ -266,7 +266,7 @@ void boo(VMContext vmContext) {
 
 1. 拥有已知签名的托管闭包。
 2. 闭包在 ResourceHolder 中注册并转换为基本类型值（参见 [托管层：闭包序列化](#managed-closure-serialization)）。
-3. 在原生调用中，callSync、hold 和 release 被填充函数指针（参见 [桥接：hold 和 release](#bridges-hold-release)、[桥接：call 和 callSync](#bridges-call-callSync)）。
+3. 在原生调用中，callSync、hold 和 release 被填充函数指针（参见 [桥接：hold 和 release](#bridges-hold-release)、[桥接：call 和 callSync](#bridges-call-callsync)）。
 4. CAPI 术语中的回调结构被传递到相应的 CAPI 方法调用。
 
 将原生 CAPI 结构转换为托管闭包。
@@ -278,7 +278,7 @@ void boo(VMContext vmContext) {
 在 CAPI 中调用从托管闭包创建的回调。
 
 1. 拥有描述来自托管侧回调的 CAPI 结构。`call` 或 `callSync` 已被调用（即已被执行）。
-2. `callManagedSmth` 或 `callManagedSmthSync`（即 call 或 callSync 的本质，参见 [桥接：call 和 callSync](#bridges-call-callSync)）被调用。
+2. `callManagedSmth` 或 `callManagedSmthSync`（即 call 或 callSync 的本质，参见 [桥接：call 和 callSync](#bridges-call-callsync)）被调用。
 3. 回调参数被序列化。根据同步或异步调用，托管函数被调用或回调被放入队列稍后调用（参见 [桥接：通用事件](#bridges-general-events)）。
 4. 在托管侧接收到回调参数后，它们被反序列化，从 ResourceHolder 获取闭包实例并调用（参见 [托管层：反序列化参数并调用闭包](#managed-deserialize-and-call)）。如果闭包的返回类型不是 void，则使用接收到的结果调用 continuation 回调（参见 [延续](#continuations)）。
 
@@ -479,7 +479,7 @@ class DeserializerBase {
 
 ### 托管层：反序列化参数并调用闭包 <a id='managed-deserialize-and-call'></a>
 
-托管参数反序列化与 [桥接：call 和 callSync](#bridges-call-callSync) 是对称的。首先在 deserializeAndCallCallback 中读取回调类型（唯一签名标识符），选择适当的回调解析器：
+托管参数反序列化与 [桥接：call 和 callSync](#bridges-call-callsync) 是对称的。首先在 deserializeAndCallCallback 中读取回调类型（唯一签名标识符），选择适当的回调解析器：
 
 ```typescript
 export function deserializeAndCallCallback(thisDeserializer: Deserializer): void {
@@ -557,7 +557,7 @@ void impl_GlobalScope_foo(KSerializerBuffer thisArray, int32_t thisLength) {
 }
 ```
 
-### 桥接：call 和 callSync <a id='bridges-call-callSync'></a>
+### 桥接：call 和 callSync <a id='bridges-call-callsync'></a>
 
 call 和 callSync 的实现要复杂得多。让我们从互操作函数实现开始慢慢分析：
 
