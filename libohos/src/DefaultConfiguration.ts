@@ -47,7 +47,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
         // true - `memo` and other annotations being imported from `arkui.incremental.annotation`
         // false - from `arkui.stateManagement.runtime`
         SupportNewIncrementalImports: D.boolean({ default: true }),
-        GenerateCommonMethodHack: D.boolean({ default: false }),
         GenerateUnused: D.boolean(),
         ApiVersion: D.number(),
         dumpSerialized: D.boolean(),
