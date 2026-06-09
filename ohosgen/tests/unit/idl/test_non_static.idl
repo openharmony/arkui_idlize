@@ -1,6 +1,0 @@
-package test_non_static;
-
-[Entity=Class]
-interface Example {
-    static Example createExample();
-};

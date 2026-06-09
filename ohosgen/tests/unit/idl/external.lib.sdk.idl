@@ -1,5 +1,0 @@
-package external.lib.sdk;
-
-interface SDKExternalType {
-    boolean externalMethod(number value);
-};

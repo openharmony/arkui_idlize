@@ -695,7 +695,7 @@ ${nodeTypes.getOutput().join(",\n")}
 ${readTemplate('arkoala_node_api.tpl', { removeCopyright: true })
             .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)}
 
-${readTemplate("generic_service_api.h")}
+${readTemplate("generic_service_api.h", { removeCopyright: true })}
 ${readTemplate('any_api.tpl', { removeCopyright: true })}
 
 ${readTemplate('arkoala_api_epilogue.tpl', { removeCopyright: true })

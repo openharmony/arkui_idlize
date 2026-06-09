@@ -1,8 +1,0 @@
-void idlDummy();
-
-/*
-[Entity=Class]
-interface IDLDummyClass {
-    void dummy();
-};
-*/
