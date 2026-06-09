@@ -23,7 +23,6 @@ include_dirs = [
 sources = [
     'generated/native/ohos_mediaquery.cc',
     'generated/native/ohos_mediaqueryApiImpl_temp.cc',
-    'src/cpp/mediaqueryImpl.cc',
 ]
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones

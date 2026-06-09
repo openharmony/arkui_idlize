@@ -21,7 +21,6 @@ include_dirs = [
 
 sources = [
     'generated/native/ohos_security_huks.cc',
-    'src/cpp/huksImpl.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',
     external_interop_dir / 'interop-logging.cc',

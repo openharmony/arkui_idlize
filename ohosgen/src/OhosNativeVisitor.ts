@@ -76,7 +76,6 @@ import {
     createOutArgConvertor,
 } from '@idlizer/core'
 import {
-    readLangTemplate,
     getUniquePropertiesFromSuperTypes,
     printCallbacksKinds,
     printManagedCaller,
@@ -111,6 +110,141 @@ interface SignatureDescriptor {
     returnType: string
     paramsCString?: string
 }
+
+const apiGetterTemplate = `const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
+static const %API_NAME%* Get%API_NAME%(int32_t apiVersion) {
+    return reinterpret_cast<const %API_NAME%*>(
+        GetAnyImpl(static_cast<int>(%API_KIND%),
+        apiVersion, nullptr));
+}`
+
+const apiImplPrologueTemplate = `/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "%API_HEADER_PATH%"
+
+#define KOALA_INTEROP_MODULE %INTEROP_MODULE_NAME%
+#include "common-interop.h"
+#include "callback-resource.h"
+#include "SerializerBase.h"
+#include "DeserializerBase.h"
+#include <unordered_map>
+
+#if defined(KOALA_USE_PANDA_VM)
+    #if defined(KOALA_ETS_NAPI)
+        KOALA_ETS_INTEROP_MODULE_CLASSPATH(KOALA_INTEROP_MODULE, KOALA_QUOTE(ETS_MODULE_CLASSPATH_PREFIX) KOALA_QUOTE(KOALA_INTEROP_MODULE));
+    #elif defined(KOALA_ANI)
+        KOALA_ANI_INTEROP_MODULE_CLASSPATH(KOALA_INTEROP_MODULE, KOALA_QUOTE(ETS_MODULE_CLASSPATH_PREFIX) KOALA_QUOTE(KOALA_INTEROP_MODULE));
+    #endif
+#endif
+CustomDeserializer * DeserializerBase::customDeserializers = nullptr;
+
+%CALLBACK_KINDS%
+
+OH_NativePointer getManagedCallbackCaller(CallbackKind kind);
+OH_NativePointer getManagedCallbackCallerSync(CallbackKind kind);`
+
+const apiImplEpilogueTemplate = `const OH_AnyAPI* impls[16] = { 0 };
+
+
+const OH_AnyAPI* GetAnyAPIImpl(int kind, int version) {
+    switch (kind) {
+        case OH_%LIBRARY_NAME%_API_KIND:
+            return reinterpret_cast<const OH_AnyAPI*>(Get%LIBRARY_NAME%APIImpl(version));
+        default:
+            return nullptr;
+    }
+}
+
+extern "C" const OH_AnyAPI* GENERATED_GetArkAnyAPI(int kind, int version) {
+    if (kind < 0 || kind > 15) return nullptr;
+    if (!impls[kind]) {
+        impls[kind] = GetAnyAPIImpl(kind, version);
+    }
+    return impls[kind];
+}`
+
+const ohosApiPrologueTemplate = `/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef %INCLUDE_GUARD_DEFINE%
+#define %INCLUDE_GUARD_DEFINE%
+
+%INTEROP_TYPES_HEADER
+
+#define %LIBRARY_NAME%_API_VERSION 1
+
+#include <stdint.h>
+
+/* clang-format off */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef InteropTag OH_Tag;
+typedef InteropRuntimeType OH_%LIBRARY_NAME%_RuntimeType;
+
+typedef InteropFloat32 OH_Float32;
+typedef InteropFloat64 OH_Float64;
+typedef InteropInt32 OH_Int32;
+typedef InteropUInt32 OH_UInt32;
+typedef InteropInt64 OH_Int64;
+typedef InteropUInt64 OH_UInt64;
+typedef InteropInt8 OH_Int8;
+typedef InteropUInt8 OH_UInt8;
+typedef InteropBoolean OH_Boolean;
+typedef InteropCharPtr OH_CharPtr;
+typedef InteropNativePointer OH_NativePointer;
+typedef InteropString OH_String;
+typedef InteropCallbackResource OH_%LIBRARY_NAME%_CallbackResource;
+typedef InteropNumber OH_Number;
+typedef InteropMaterialized OH_Materialized;
+typedef InteropCustomObject OH_CustomObject;
+typedef InteropUndefined OH_Undefined;
+// typedef InteropAPIKind OH_APIKind;
+typedef InteropVMContext OH_%LIBRARY_NAME%_VMContext;
+typedef InteropAsyncWorker OH_%LIBRARY_NAME%_AsyncWorker;
+typedef InteropAsyncWorkerPtr OH_%LIBRARY_NAME%_AsyncWorkerPtr;
+typedef InteropBuffer OH_Buffer;
+typedef InteropFunction OH_Function;
+typedef InteropObject OH_Object;
+
+typedef enum OH_%LIBRARY_NAME%_APIKind {
+    OH_%LIBRARY_NAME%_API_KIND = %API_KIND%
+} OH_%LIBRARY_NAME%_APIKind;`
+
+const ohosApiEpilogueTemplate = `
+#ifdef __cplusplus
+}  // extern "C"
+#endif
+
+#endif // %INCLUDE_GUARD_DEFINE%
+/* clang-format on */`
 
 class OHOSNativeVisitor {
     implementationStubsFile: CppSourceFile
@@ -324,7 +458,7 @@ class OHOSNativeVisitor {
     }
 
     private writeApiGetter(writer: CppLanguageWriter): void {
-        writer.writeLines(readTemplate("api_getter.cc")
+        writer.writeLines(apiGetterTemplate
             .replaceAll("%API_KIND%", `OH_${this.libraryName}_APIKind::OH_${this.libraryName}_API_KIND`)
             .replaceAll("%API_NAME%", `${generatorConfiguration().TypePrefix}${this.libraryName}_API`))
     }
@@ -372,7 +506,7 @@ class OHOSNativeVisitor {
         printCallbacksKinds(this.library, callbackKindsPrinter)
 
         this.cppWriter.writeLines(
-            readLangTemplate('api_impl_prologue.cc', Language.CPP)
+            apiImplPrologueTemplate
                 .replaceAll("%INTEROP_MODULE_NAME%", `${this.libraryName.toUpperCase()}NativeModule`)
                 .replaceAll("%API_HEADER_PATH%", `${this.libraryName.toLowerCase()}.h`)
                 .replaceAll("%CALLBACK_KINDS%", callbackKindsPrinter.getOutput().join("\n"))
@@ -381,7 +515,7 @@ class OHOSNativeVisitor {
         this.cppWriter.writeLines(libraryCcDeclaration({removeCopyright: true}))
         const interopTypesContent = readInteropTypesHeader()
         this.hWriter.writeLines(
-            readLangTemplate('ohos_api_prologue.h', Language.CPP)
+            ohosApiPrologueTemplate
                 .replaceAll("%INTEROP_TYPES_HEADER", interopTypesContent)
                 .replaceAll("%INCLUDE_GUARD_DEFINE%", `OH_${this.libraryName.toUpperCase()}_H`)
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
@@ -406,15 +540,15 @@ class OHOSNativeVisitor {
         })
         // this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
         this.cppWriter.concat(printManagedCaller('', this.library).content)
-        this.hWriter.writeLines(readTemplate('any_api.h'))
+        this.hWriter.writeLines(readTemplate('any_api.tpl', { removeCopyright: true }))
         this.hWriter.writeLines(readTemplate('generic_service_api.h'))
         this.hWriter.writeLines(
-            readLangTemplate('ohos_api_epilogue.h', Language.CPP)
+            ohosApiEpilogueTemplate
                 .replaceAll("%INCLUDE_GUARD_DEFINE%", `OH_${this.libraryName.toUpperCase()}_H`)
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
         this.implementationApiFile.content.writeLines(
-            readLangTemplate('api_impl_epilogue.cc', Language.CPP)
+            apiImplEpilogueTemplate
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
     }

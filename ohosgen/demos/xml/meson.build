@@ -25,7 +25,6 @@ include_dirs = [
 sources = [
     'generated/native/ohos_xml.cc',
     'generated/native/ohos_xmlApiImpl_temp.cc',
-    'src/cpp/xmlImpl.cc',
 ]
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones

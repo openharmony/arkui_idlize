@@ -660,7 +660,7 @@ function makeAPI(apiVersion: number,
     headers: PrinterLike, modifiers: PrinterLike, accessors: PrinterLike, events: PrinterLike,
     nodeTypes: PrinterLike, structs: PrinterLike, typedefs: PrinterLike): string {
     return `
-${readTemplate('arkoala_api_prologue.h')
+${readTemplate('arkoala_api_prologue.tpl')
             .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion.toString())
             .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
             .replaceAll(`%INTEROP_TYPES_HEADER`, readInteropTypesHeader())}
@@ -692,13 +692,13 @@ typedef enum ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType {
 ${nodeTypes.getOutput().join(",\n")}
 } ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType;
 
-${readTemplate('arkoala_node_api.h')
+${readTemplate('arkoala_node_api.tpl', { removeCopyright: true })
             .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)}
 
 ${readTemplate("generic_service_api.h")}
-${readTemplate('any_api.h')}
+${readTemplate('any_api.tpl', { removeCopyright: true })}
 
-${readTemplate('arkoala_api_epilogue.h')
+${readTemplate('arkoala_api_epilogue.tpl', { removeCopyright: true })
             .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)}
 `
 }
