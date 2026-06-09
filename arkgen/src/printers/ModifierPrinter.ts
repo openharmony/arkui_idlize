@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { getSuper, IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter,
+import { getSuper, IfStatement, Language, LanguageExpression, LanguageStatement, LanguageWriter,
     LayoutNodeRole, LayoutTargetDescription, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass,
     PeerLibrary, PeerMethod } from "@idlizer/core";
 import { getHookMethod, collectDeclDependencies, collectDeclItself, collectPeers, componentToPeerClass,
@@ -127,18 +127,6 @@ class ModifiersFileVisitor {
         return modifier.modifier ?
             `${modifier.modifier.name}Functions` :
             `${modifier.peer.componentName}ModifierFunctions`
-    }
-
-    generateOptimizerParentName(peer: PeerClass): string | undefined {
-        if (!isHeir(peer.originalClassName!)) return undefined;
-        return this.generateOptimizerName(peer.parentComponentName!);
-    }
-
-
-    generateOptimizerName(name: string): string {
-        if (name.endsWith("Attribute"))
-            name = name.substring(0, name.length - 9)
-        return `${name}Optimizer`
     }
 
     generateAddrName(peer: PeerClass) {
@@ -369,7 +357,7 @@ class ModifiersFileVisitor {
             new NamedMethodSignature(idl.createPrimitiveType('void'), [idl.createReferenceType("arkui.PeerNode.PeerNode")], ['node'], [], [], [])),
             writer => {
                 if (hasParent) {
-                    writer.print(`super.applyModifierPatch${peer.parentComponentName}(node)`);
+                    writer.print(`super.applyModifierPatch${peer.parentNames?.componentName}(node)`);
                 }
                 writer.print(`this._state.addRef()`);
                 writer.print(`const peer = node as ${componentToPeerClass(component.name)};`)
@@ -471,7 +459,7 @@ class ModifiersFileVisitor {
         writer.pushIndent()
         {
             if (hasParent) {
-                writer.print(`super.mergeModifier${peer.parentComponentName}(modifier)`);
+                writer.print(`super.mergeModifier${peer.parentNames?.componentName}(modifier)`);
             }
             writer.print(`this._state = modifier._state;`);
             writer.print(`const flagArray = modifier.${this.generateFilledFlagName(peer)};`);

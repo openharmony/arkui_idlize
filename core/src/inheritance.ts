@@ -14,44 +14,10 @@
  */
 import { generatorConfiguration } from "./config.js"
 
-export enum InheritanceRole {
-    Finalizable,
-    PeerNode,
-    Root,
-    Heir,
-    Standalone,
-}
-
-export function determineInheritanceRole(name: string): InheritanceRole {
-    if (generatorConfiguration().rootComponents.includes(name)) return InheritanceRole.Root
-    if (generatorConfiguration().standaloneComponents.includes(name)) return InheritanceRole.Standalone
-    return InheritanceRole.Heir
-}
-
-export function determineParentRole(name: string|undefined, parent: string | undefined): InheritanceRole {
-    if (!name) throw new Error(`name must be known: ${parent}`)
-    if (parent === undefined) {
-        if (isStandalone(name)) return InheritanceRole.PeerNode
-        if (isCommonMethod(name)) return InheritanceRole.PeerNode
-        if (isRoot(name)) return InheritanceRole.PeerNode
-        throw new Error(`Expected check to be exhaustive. node: ${name}`)
-    }
-    if (isRoot(parent)) return InheritanceRole.Root
-    return InheritanceRole.Heir
-}
-
 export function isCommonMethod(name: string): boolean {
     return name === "CommonMethod"
 }
 
 export function isRoot(name: string): boolean {
-    return determineInheritanceRole(name) === InheritanceRole.Root
-}
-
-export function isStandalone(name: string): boolean {
-    return determineInheritanceRole(name) === InheritanceRole.Standalone
-}
-
-export function isHeir(name: string): boolean {
-    return determineInheritanceRole(name) === InheritanceRole.Heir
+    return generatorConfiguration().rootComponents.includes(name)
 }

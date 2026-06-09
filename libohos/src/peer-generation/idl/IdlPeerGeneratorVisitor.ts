@@ -17,7 +17,6 @@ import * as idl from '@idlizer/core/idl'
 import {
     capitalize,
     Language,
-    isRoot,
     generatorConfiguration,
     groupBy,
     isInIdlizeInternal,
@@ -393,17 +392,6 @@ export function createDependencyFilter(library: PeerLibrary): DependencyFilter {
     }
     // Improve: support other languages
     return new EmptyDependencyFilter()
-}
-
-export function isCommonMethodOrSubclass(library: PeerLibrary, decl?: idl.IDLEntry): boolean {
-    if (!decl || !idl.isInterface(decl))
-        return false
-    let isSubclass = isRoot(decl.name)
-    const superDecl = getSuper(decl, library)
-    if (superDecl) {
-        isSubclass ||= isCommonMethodOrSubclass(library, superDecl)
-    }
-    return isSubclass
 }
 
 export function isSourceDecl(node: idl.IDLEntry): boolean {

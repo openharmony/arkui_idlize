@@ -13,7 +13,6 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "standaloneComponents": [],
     "parameterized": [],
     "ignoreMaterialized": [
         "SurfaceProps",

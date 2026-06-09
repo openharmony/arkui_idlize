@@ -27,6 +27,14 @@ export interface ComponentBuilderInfo {
     peerMethodName: string,
 }
 
+export class PeerParentNames {
+    constructor(
+        public readonly originalName: string,
+        public readonly originalFilename: string | undefined,
+        public readonly componentName: string
+    ) {}
+} 
+
 export class PeerClass implements PeerClassBase {
     constructor(
         public readonly decl: IDLInterface,
@@ -44,9 +52,7 @@ export class PeerClass implements PeerClassBase {
 
     originalClassName: string | undefined = undefined
     originalInterfaceName: string | undefined = undefined
-    originalParentName: string | undefined = undefined
-    originalParentFilename: string | undefined = undefined
-    parentComponentName: string | undefined = undefined
+    parentNames: PeerParentNames | undefined = undefined
     attributesFields: IDLProperty[] = []
     hasGenericType: boolean = false
 }

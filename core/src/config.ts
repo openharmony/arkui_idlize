@@ -41,7 +41,6 @@ export const CoreConfigurationSchema = D.object({
     OptionalPrefix: D.string(),
 
     rootComponents: T.stringArray(),
-    standaloneComponents: T.stringArray(),
     parameterized: T.stringArray(),
     ignoreMaterialized: T.stringArray(),
     builderClasses: T.stringArray(),
@@ -65,7 +64,6 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     OptionalPrefix: "",
 
     rootComponents: [],
-    standaloneComponents: [],
     parameterized: [],
     ignoreMaterialized: [],
     builderClasses: [],

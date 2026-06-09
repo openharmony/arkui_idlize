@@ -113,14 +113,6 @@
         "ContainerSpanAttribute",
         "CustomLayoutRoot"
     ],
-    "standaloneComponents": [
-        "TextPickerDialog",
-        "TimePickerDialog",
-        "AlertDialog",
-        "CanvasPattern",
-        "WithThemeAttribute",
-        "ToolBarItemAttribute"
-    ],
     "parameterized": [],
     "builderClasses": [],
     "components": {

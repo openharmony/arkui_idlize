@@ -127,12 +127,6 @@ function main() {
             "CalendarAttribute",
             "ContainerSpanAttribute",
             "CustomLayoutRoot"
-        ],
-        standaloneComponents: [
-            "TextPickerDialog",
-            "TimePickerDialog",
-            "AlertDialog",
-            "CanvasPattern"
         ]
     })
 
