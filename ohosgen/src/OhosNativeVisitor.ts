@@ -540,7 +540,7 @@ class OHOSNativeVisitor {
         })
         // this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
         this.cppWriter.concat(printManagedCaller('', this.library).content)
-        this.hWriter.writeLines(readTemplate('any_api.tpl'))
+        this.hWriter.writeLines(readTemplate('any_api.tpl', { removeCopyright: true }))
         this.hWriter.writeLines(readTemplate('generic_service_api.h'))
         this.hWriter.writeLines(
             ohosApiEpilogueTemplate

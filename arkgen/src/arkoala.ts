@@ -692,13 +692,13 @@ typedef enum ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType {
 ${nodeTypes.getOutput().join(",\n")}
 } ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType;
 
-${readTemplate('arkoala_node_api.tpl')
+${readTemplate('arkoala_node_api.tpl', { removeCopyright: true })
             .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)}
 
 ${readTemplate("generic_service_api.h")}
-${readTemplate('any_api.tpl')}
+${readTemplate('any_api.tpl', { removeCopyright: true })}
 
-${readTemplate('arkoala_api_epilogue.tpl')
+${readTemplate('arkoala_api_epilogue.tpl', { removeCopyright: true })
             .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)}
 `
 }

@@ -84,9 +84,9 @@ import {
 `.trim()
 
 export function libraryCcDeclaration(options?: { removeCopyright?: boolean}): string {
-    let content = readTemplate('library_template.tpl')
+    let content = readTemplate('library_template.tpl', { removeCopyright: true })
         .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
-        .replaceAll(`%ANY_API%`, readTemplate('any_api.tpl'))
+        .replaceAll(`%ANY_API%`, readTemplate('any_api.tpl', { removeCopyright: true }))
         .replaceAll(`%GENERIC_SERVICE_API%`, readTemplate('generic_service_api.h'))
     if (!options?.removeCopyright)
         content = cStyleCopyright + content
@@ -121,7 +121,7 @@ export function bridgeHeaderCustomDeclaration(customApi: string[]): string {
 
 export function appendModifiersCommonPrologue(library: LibraryInterface): LanguageWriter {
     let result = createLanguageWriter(Language.CPP, library)
-    let body = readTemplate('impl_prologue.tpl')
+    let body = readTemplate('impl_prologue.tpl', { removeCopyright: true })
 
     body = body.replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
 
@@ -141,7 +141,7 @@ export function getNodeTypes(library: PeerLibrary): string[] {
 
 export function completeModifiersContent(library: LibraryInterface, content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
     let result = createLanguageWriter(Language.CPP, library)
-    let epilogue = readTemplate('dummy_impl_epilogue.tpl')
+    let epilogue = readTemplate('dummy_impl_epilogue.tpl', { removeCopyright: true })
 
     epilogue = epilogue
         .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
@@ -166,7 +166,7 @@ ${lines}
 
 export function dummyImplementations(library: LibraryInterface, modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number, apiGeneratedFile: string): LanguageWriter {
     let prologue = readTemplate('dummy_impl_prologue.tpl')
-    let epilogue = readTemplate('dummy_impl_epilogue.tpl')
+    let epilogue = readTemplate('dummy_impl_epilogue.tpl', { removeCopyright: true })
 
     prologue = prologue
         .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
@@ -241,13 +241,24 @@ ${serializers.getOutput().join("\n")}
 
 const TEMPLATES_CACHE = new Map<string, string>()
 
-export function readTemplate(name: string): string {
+function removeTemplateCopyright(name: string, template: string): string {
+    let result = template.replace(/^\/\*\n \* Copyright \(c\) \d{4}(?:-\d{4})? Huawei Device Co\., Ltd\.\n \* Licensed under the Apache License, Version 2\.0 \(the "License"\);\n \* you may not use this file except in compliance with the License\.\n \* You may obtain a copy of the License at\n \*\n \* http:\/\/www\.apache\.org\/licenses\/LICENSE-2\.0\n \*\n \* Unless required by applicable law or agreed to in writing, software\n \* distributed under the License is distributed on an "AS IS" BASIS,\n \* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied\.\n \* See the License for the specific language governing permissions and\n \* limitations under the License\.\n \*\/\n\n?/, '')
+    if (name === 'arkoala_node_api.tpl' || name === 'any_api.tpl' || name === 'library_template.tpl') {
+        result = result.replace(/\n$/, '')
+    }
+    if (name === 'impl_prologue.tpl' && !result.endsWith('\n\n')) {
+        result += '\n'
+    }
+    return result
+}
+
+export function readTemplate(name: string, options?: { removeCopyright?: boolean }): string {
     let template = TEMPLATES_CACHE.get(name);
     if (template == undefined) {
         template = fs.readFileSync(path.join(__dirname, `../../libohos/templates/${name}`), 'utf8')
         TEMPLATES_CACHE.set(name, template)
     }
-    return template
+    return options?.removeCopyright ? removeTemplateCopyright(name, template) : template
 }
 
 

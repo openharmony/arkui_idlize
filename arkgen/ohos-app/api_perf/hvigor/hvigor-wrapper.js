@@ -121,6 +121,7 @@ function stripJsonComments(text) {
 function parseJson5File(filePath) {
     if (!isFile(filePath)) {
         logErrorAndExit(`Error: Hvigor config file ${filePath} does not exist.`);
+        return null;
     }
 
     try {
@@ -129,6 +130,7 @@ function parseJson5File(filePath) {
         return JSON.parse(jsonText);
     } catch (error) {
         logErrorAndExit(error);
+        return null;
     }
 }
 
@@ -222,9 +224,9 @@ function canUseSharedDependencyCache(config) {
     if (names.some(name => dependencies[name].startsWith('file:') || dependencies[name].endsWith('.tgz'))) {
         return false;
     }
-    return names.length === 1
-        && names[0] === HVIGOR_OHOS_PLUGIN_PACKAGE_NAME
-        && compareVersion(config.hvigorVersion, '2.5.0') > 0;
+    return names.length === 1 &&
+        names[0] === HVIGOR_OHOS_PLUGIN_PACKAGE_NAME &&
+        compareVersion(config.hvigorVersion, '2.5.0') > 0;
 }
 
 function makeHash(value) {
@@ -313,15 +315,15 @@ function isCi() {
     }
 
     return Boolean(
-        process.env.BUILD_ID
-            || process.env.BUILD_NUMBER
-            || process.env.CI
-            || process.env.CI_APP_ID
-            || process.env.CI_BUILD_ID
-            || process.env.CI_BUILD_NUMBER
-            || process.env.CI_NAME
-            || process.env.CONTINUOUS_INTEGRATION
-            || process.env.RUN_ID
+        process.env.BUILD_ID ||
+        process.env.BUILD_NUMBER ||
+        process.env.CI ||
+        process.env.CI_APP_ID ||
+        process.env.CI_BUILD_ID ||
+        process.env.CI_BUILD_NUMBER ||
+        process.env.CI_NAME ||
+        process.env.CONTINUOUS_INTEGRATION ||
+        process.env.RUN_ID
     );
 }
 
