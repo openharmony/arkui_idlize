@@ -13,14 +13,50 @@ and serialization code used by the ArkUI component framework.
 
 This repository is part of the ArkUI framework subsystem. It provides the
 IDL conversion, parsing, generation, and pipeline orchestration tools used
-to produce ArkUI bridge-layer code for targets such as ArkTS and Cangjie.
+to produce ArkUI bridge-layer code for target languages such as ArkTS and
+Cangjie.
 For more ArkUI framework subsystem concepts, see the
 [ArkUI framework subsystem README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md).
 
-The public documentation in this repository is mainly for IDLize tool
-developers who add generator features, maintain the pipeline, or debug
-generated output. Tool users who only need to run IDLize can start from
+This repository documentation is mainly for IDLize tool developers who add
+generator features, maintain the pipeline, or debug generated output. The
+tool users of this repository are ArkUI system developers who run IDLize as
+part of the ArkUI binding workflow; they can start from
 [Using IDLize as a Tool User](#using-idlize-as-a-tool-user).
+
+### Key Concepts
+
+**Arkoala**
+Arkoala is the multi-language ArkUI runtime project that consumes generated
+IDLize bindings. In this repository, Arkoala-related output includes peer
+interfaces, language bindings, and serialization glue for targets such as
+ArkTS and Cangjie.
+
+**framenode**
+A native ArkUI tree node that represents one component instance in the
+runtime UI tree. It stores the native state used for properties, layout,
+and rendering.
+
+**peer**
+A generated application-layer class that mirrors an ArkUI component's API
+surface. A peer exposes the component's attributes and methods, then
+forwards updates for the corresponding framenode to the native side.
+
+**modifier**
+A generated C++ libace object that applies property changes to a framenode
+at runtime. Modifiers receive serialized setter data and translate it into
+native ArkUI calls.
+
+**serializer**
+Generated code that encodes property values for inter-process communication
+(IPC). Serializers convert typed values from IDL representation into a wire
+format suitable for crossing the ArkTS/C++ boundary.
+
+**materialized**
+A component whose peer is fully generated from its IDL definition rather
+than stubbed out. Materialization is controlled per component in
+`arkgen/generation-config/config.json`. Non-materialized components produce
+minimal stubs.
 
 ### Architecture
 
@@ -91,7 +127,9 @@ be edited manually.
 ```bash
 git submodule update --init
 npm i
-cd external && npm i && cd ..
+cd external
+npm i
+cd ..
 ```
 
 2. Prepare `libarkts` so ArkTS-related generators can compile.
@@ -106,7 +144,9 @@ cd ../..
 3. Compile the pipeline entry point.
 
 ```bash
-cd runner && npm run compile && cd ..
+cd runner
+npm run compile
+cd ..
 ```
 
 4. Download and prepare the SDK inputs used by the standard generation
@@ -127,9 +167,30 @@ bash generate.sh
 ```
 
 Installed generated output is written to `./out`; intermediate pipeline
-artifacts are written under `runner/out`. When generated code looks wrong,
-work backwards from `out/` to `runner/out/peers/`, then to
-`runner/out/idl/`, to identify the stage that diverged.
+artifacts are written under `runner/out`. Treat generated code as
+unexpected when it does not match the source declaration or IDL shape, such
+as a missing component, method, or attribute; a wrong parameter type,
+optional marker, or return type; missing target files; or compile errors in
+the generated ArkTS or C++ output.
+
+To find the stage that diverged, work backwards through the artifacts:
+
+1. Check the installed output in `out/` for the visible symptom.
+2. Compare the intermediate peer output in `runner/out/peers/sig/` or
+   `runner/out/peers/libace/` with the expected API shape.
+3. Inspect `runner/out/idl/` to verify what the parser received.
+4. If the IDL is already wrong, check earlier staging areas such as
+   `runner/out/patched-sdk-arkts/`, `runner/out/patched-sdk-ts/`, and
+   `runner/out/scraper/`.
+
+### Common Troubleshooting
+
+| Symptom | Check | Fix |
+|---|---|---|
+| `node` or `npm` fails with a version or syntax error | Run `node -v` from the repository root. | Use Node.js 18 or later, then reinstall dependencies if needed. |
+| Dependency installation fails | Confirm submodules are initialized and install commands run from the expected directory. | Run `git submodule update --init`, then rerun `npm i` in the repository root and `external/`. Check network or proxy settings if npm cannot download packages. |
+| `external/libarkts` cannot find the panda SDK | Confirm the command is run from `external/libarkts` and includes the required `PANDA_SDK_VERSION`. | Run `PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall`, then `npm run compile`. |
+| Generated output misses an expected API | Compare `out/`, `runner/out/peers/`, and `runner/out/idl/`. | Ensure the source declaration is in the SDK patch or extra IDL input, then rerun `bash generate.sh`. |
 
 ### Develop a Pipeline Change
 
@@ -187,36 +248,6 @@ For command parameters and examples, see the
 [Tool User Guide](doc/en/USER_GUIDE.md),
 [CLI Reference](doc/en/CLI_REFERENCE.md), and
 [IDL Specification](doc/en/IDL_SPEC.md).
-
-### Key Concepts
-
-**peer**
-A generated class that mirrors an ArkUI component's API surface. Each peer
-wraps a native framenode and exposes the component's attributes and methods
-to the application layer.
-
-**modifier**
-A generated C++ object that applies property changes to a framenode at
-runtime. Modifiers bridge the ArkTS peer layer and the native ArkUI
-rendering engine, translating attribute setters into native calls.
-
-**serializer**
-Generated code that encodes property values for inter-process
-communication (IPC). Serializers convert typed values from IDL
-representation into a wire format suitable for crossing the ArkTS/C++
-boundary.
-
-**framenode**
-A native ArkUI tree node that is the runtime target of a modifier. Each
-visible component in the UI tree corresponds to a framenode; modifiers and
-peers operate on framenodes to update properties, layout, and rendering
-state.
-
-**materialized**
-A component whose peer is fully generated from its IDL definition rather
-than stubbed out. Materialization is controlled per component in
-`arkgen/generation-config/config.json`. Non-materialized components produce
-minimal stubs.
 
 ### Using IDLize as a Tool User
 
