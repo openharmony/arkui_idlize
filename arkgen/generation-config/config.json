@@ -517,16 +517,6 @@
         "SymbolSpanAttribute",
         "SpanAttribute"
     ],
-    "standaloneComponents": [
-        "TextPickerDialog",
-        "TimePickerDialog",
-        "AlertDialog",
-        "CanvasPattern",
-        "WithThemeAttribute",
-        "ToolBarItemAttribute",
-        "SpanAttribute",
-        "SymbolSpanAttribute"
-    ],
     "parameterized": [
         "Indicator",
         "AttributeModifier",

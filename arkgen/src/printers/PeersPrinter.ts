@@ -15,10 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import {
-    throwException,
     Language,
-    InheritanceRole,
-    determineParentRole,
     LayoutNodeRole,
     ArgumentModifier,
     capitalize,
@@ -109,24 +106,23 @@ class PeerFileVisitor {
         protected readonly dumpSerialized: boolean,
     ) { }
 
-    protected generatePeerParentName(peer: PeerClass): string {
-        if (!peer.originalClassName)
-            throw new Error(`${peer.componentName} is not supported, use 'uselessConstructorInterfaces' for now`)
-        const parentRole = determineParentRole(peer.originalClassName, peer.parentComponentName)
-        if ([InheritanceRole.Finalizable, InheritanceRole.PeerNode].includes(parentRole)) {
-            return InheritanceRole[parentRole]
+    protected generatePeerParentName(parentComponentName: string | undefined): string {
+        if (parentComponentName === undefined) {
+            return "PeerNode"
         }
-        const parent = peer.parentComponentName ?? throwException(`Expected component to have parent`)
-        return componentToPeerClass(parent)
+        return componentToPeerClass(parentComponentName)
     }
 
     protected printImports(peer: PeerClass, imports: ImportsCollector): void {
+        if (!peer.originalClassName)
+            throw new Error(`${peer.componentName} is not supported, use 'uselessConstructorInterfaces' for now`)
         this.getDefaultPeerImports(this.library.language, imports)
-        if (peer.originalParentFilename) {
-            const parentComponent = findComponentByName(this.library, peer.parentComponentName!)
-            imports.addFeature(this.generatePeerParentName(peer), this.library.layout.resolve({node: parentComponent!.attributeDeclaration, role: LayoutNodeRole.PEER}))
+        if (peer.parentNames) {
+            const parentComponentName = peer.parentNames.componentName
+            const parentComponent = findComponentByName(this.library, parentComponentName)
+            imports.addFeature(this.generatePeerParentName(parentComponentName), this.library.layout.resolve({node: parentComponent!.attributeDeclaration, role: LayoutNodeRole.PEER}))
         }
-        const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+        const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName))!
         collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
         component.attributeDeclaration.methods.forEach(method => {
             method.parameters.map(p => p.type).concat([method.returnType]).forEach(type => {
@@ -187,7 +183,6 @@ class PeerFileVisitor {
 
     protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
         // Improve: fully switch to writer!
-        const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
         const signature = new NamedMethodSignature(
             idl.createPrimitiveType('void'),
             [idl.createPrimitiveType('pointer'), idl.createPrimitiveType('i32'), idl.createPrimitiveType('String'), idl.createPrimitiveType('i32')],
@@ -195,7 +190,10 @@ class PeerFileVisitor {
             [undefined, undefined, [Language.TS, Language.ARKTS].includes(printer.language) ? `''` : '""', '0'])
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => { },
-            { delegationArgs: ['peerPtr', 'id', 'name', 'flags'].map(it => printer.makeString(it)), delegationName: peer.parentComponentName },
+            {
+                delegationArgs: ['peerPtr', 'id', 'name', 'flags'].map(it => printer.makeString(it)),
+                delegationName: peer.parentNames?.componentName
+            },
             [MethodModifier.PUBLIC])
     }
 
@@ -257,7 +255,7 @@ class PeerFileVisitor {
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])
                 .forEach(method => this.printPeerMethod(peer.decl, method, writer))
-        }, this.generatePeerParentName(peer))
+        }, this.generatePeerParentName(peer.parentNames?.componentName))
     }
 
     printFile(): PrinterResult[] {

@@ -42,12 +42,6 @@
                         "type": "string"
                     }
                 },
-                "standaloneComponents": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "parameterized": {
                     "type": "array",
                     "items": {
@@ -358,7 +352,6 @@
                 "OptionalPrefix",
                 "transformOnSerialize",
                 "rootComponents",
-                "standaloneComponents",
                 "parameterized",
                 "ignoreMaterialized",
                 "ignoreGenerics",

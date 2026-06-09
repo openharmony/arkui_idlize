@@ -143,7 +143,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
             }
             imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
         }
-        if (peer.originalParentFilename) {
+        if (peer.parentNames) {
             let [parentRef] = component.attributeDeclaration.inheritance
             let parentDecl = this.library.resolveTypeReference(parentRef)
             while (parentDecl) {
@@ -183,7 +183,9 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
             const printer = this.library.createLanguageWriter()
 
             const componentClassName = generateArkComponentName(peer.componentName)
-            const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
+            const parentComponentClassName = peer.parentNames ?
+                generateArkComponentName(peer.parentNames.componentName) :
+                `ComponentBase`
             const peerClassName = componentToPeerClass(peer.componentName)
 
             printer.writeClass(componentClassName, (writer) => {
@@ -383,7 +385,9 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
             const printer = this.library.createLanguageWriter()
 
             const componentClassName = generateArkComponentName(peer.componentName)
-            const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
+            const parentComponentClassName = peer.parentNames ?
+                generateArkComponentName(peer.parentNames.componentName) :
+                `ComponentBase`
             const peerClassName = componentToPeerClass(peer.componentName)
 
 
@@ -497,7 +501,7 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
         const imports = new ImportsCollector()
         imports.addFeature("ComponentBase", "koalaui.arkoala")
         imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
-        if (peer.originalParentFilename) {
+        if (peer.parentNames) {
             let [parentRef] = component.attributeDeclaration.inheritance
             let parentDecl = this.library.resolveTypeReference(parentRef)
             while (parentDecl) {
@@ -529,7 +533,9 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
 
             const componentClassName = generateArkComponentName(peer.componentName)
             const componentInterface = peer.originalClassName!
-            const parentComponentClassName = (peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`) + "()"
+            const parentComponentClassName = (
+                peer.parentNames ? generateArkComponentName(peer.parentNames.componentName) : `ComponentBase`
+            ) + "()"
             const peerClassName = componentToPeerClass(peer.componentName)
             const modifiers = [MethodModifier.PUBLIC, MethodModifier.OVERRIDE, MethodModifier.OPEN]
 

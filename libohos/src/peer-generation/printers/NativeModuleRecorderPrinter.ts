@@ -63,13 +63,14 @@ class NativeModuleRecorderVisitor {
     }
 
     private printInterface(clazz: PeerClass) {
+        const parentComponentName = clazz.parentNames?.componentName
         this.nativeModuleRecorder.writeInterface(`${clazz.componentName}Interface`, w => {
             for (const method of clazz.methods) {
                 for (const arg of method.argAndOutConvertors(this.library)) {
                     w.print(`${method.sig.name}_${arg.param}?: ${w.getNodeName(arg.idlType)}`)
                 }
             }
-        }, clazz.parentComponentName ? [`${clazz.parentComponentName}Interface`, `UIElement`] : undefined)
+        }, parentComponentName ? [`${parentComponentName}Interface`, `UIElement`] : undefined)
     }
 
     private printPeerMethod(clazz: PeerClass, method: PeerMethod, nativeModuleRecorder: LanguageWriter, returnType?: IDLType) {

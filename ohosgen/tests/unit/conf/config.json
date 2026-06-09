@@ -120,7 +120,6 @@
         "test_exception.CheckCallbackExceptions.checkRethrow"
     ],
     "rootComponents": [],
-    "standaloneComponents": [],
     "parameterized": [],
     "builderClasses": [],
     "components": {
