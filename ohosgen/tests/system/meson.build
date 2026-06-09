@@ -3,6 +3,8 @@ project('NativeBridge', 'c', 'cpp',
     default_options: ['cpp_std=c++17', 'buildtype=release']
 )
 
+fs = import('fs')
+
 cur_test_case = get_option('test_case')
 cur_test_case_package = '@' + cur_test_case.replace('_', '-')
 CUR_TEST_CASE = cur_test_case.to_upper()
@@ -30,11 +32,15 @@ include_dirs = [
 sources = [
     f'./@cur_test_case@/generated/native/@cur_test_case@.cc',
     f'./@cur_test_case@/generated/native/@cur_test_case@ApiImpl_temp.cc',
-    f'./@cur_test_case@/src/cpp/@cur_test_case@Impl.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',
     external_interop_dir / 'interop-logging.cc',
 ]
+
+test_impl_file = f'./@cur_test_case@/src/cpp/@cur_test_case@Impl.cc'
+if fs.exists(test_impl_file)
+    sources += [test_impl_file]
+endif
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
 archs = { 'x86_64': 'x64', 'aarch64': 'arm64', 'wasm32': 'wasm', 'armv7a': 'arm' }

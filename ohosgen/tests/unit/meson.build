@@ -23,7 +23,6 @@ include_dirs = [
 sources = [
     'generated/native/unit.cc',
     'generated/native/unitApiImpl_temp.cc',
-    'src/cpp/unitImpl.cc',
 ]
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones

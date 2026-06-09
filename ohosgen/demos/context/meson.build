@@ -23,7 +23,6 @@ include_dirs = [
 sources = [
     'application/generated/native/application.cc',
     'application/generated/native/applicationApiImpl_temp.cc',
-    'launcher/src/cpp/contextImpl.cc',
 ]
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones

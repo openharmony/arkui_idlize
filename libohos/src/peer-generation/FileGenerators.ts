@@ -84,9 +84,9 @@ import {
 `.trim()
 
 export function libraryCcDeclaration(options?: { removeCopyright?: boolean}): string {
-    let content = readTemplate('library_template.cc')
+    let content = readTemplate('library_template.tpl')
         .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
-        .replaceAll(`%ANY_API%`, readTemplate('any_api.h'))
+        .replaceAll(`%ANY_API%`, readTemplate('any_api.tpl'))
         .replaceAll(`%GENERIC_SERVICE_API%`, readTemplate('generic_service_api.h'))
     if (!options?.removeCopyright)
         content = cStyleCopyright + content
@@ -102,11 +102,11 @@ function applyBridgeTemplate(api: string[], template: string): string {
 }
 
 export function bridgeCcGeneratedDeclaration(generatedApi: string[]): string {
-    return applyBridgeTemplate(generatedApi, "bridge_generated_prologue.cc")
+    return applyBridgeTemplate(generatedApi, "bridge_generated_prologue.tpl")
 }
 
 export function bridgeCcCustomDeclaration(customApi: string[]): string {
-    return applyBridgeTemplate(customApi, "bridge_custom_prologue.cc")
+    return applyBridgeTemplate(customApi, "bridge_custom_prologue.tpl")
 }
 
 export function bridgeHeaderGeneratedDeclaration(generatedApi: string[]): string {
@@ -121,7 +121,7 @@ export function bridgeHeaderCustomDeclaration(customApi: string[]): string {
 
 export function appendModifiersCommonPrologue(library: LibraryInterface): LanguageWriter {
     let result = createLanguageWriter(Language.CPP, library)
-    let body = readTemplate('impl_prologue.cc')
+    let body = readTemplate('impl_prologue.tpl')
 
     body = body.replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
 
@@ -141,7 +141,7 @@ export function getNodeTypes(library: PeerLibrary): string[] {
 
 export function completeModifiersContent(library: LibraryInterface, content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
     let result = createLanguageWriter(Language.CPP, library)
-    let epilogue = readTemplate('dummy_impl_epilogue.cc')
+    let epilogue = readTemplate('dummy_impl_epilogue.tpl')
 
     epilogue = epilogue
         .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
@@ -165,8 +165,8 @@ ${lines}
 }
 
 export function dummyImplementations(library: LibraryInterface, modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number, apiGeneratedFile: string): LanguageWriter {
-    let prologue = readTemplate('dummy_impl_prologue.cc')
-    let epilogue = readTemplate('dummy_impl_epilogue.cc')
+    let prologue = readTemplate('dummy_impl_prologue.tpl')
+    let epilogue = readTemplate('dummy_impl_epilogue.tpl')
 
     prologue = prologue
         .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)

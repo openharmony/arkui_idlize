@@ -36,9 +36,6 @@ set -e
 shopt -s globstar
 mkdir -p ${out_dir}
 
-echo clang++ -O2 -g -o ${out_dir}/libaniimpl.so -I$external_dir/interop/src/cpp/ani -fPIC --shared -std=c++17 $cpp_dir/ani_impl.cpp
-clang++ -O2 -g -o ${out_dir}/libaniimpl.so -I$external_dir/interop/src/cpp/ani -fPIC --shared -std=c++17 $cpp_dir/ani_impl.cpp
-
 echo $arktsc_bin --arktsconfig=./arktsconfig-ani.json --ets-module
 $arktsc_bin --arktsconfig=./arktsconfig-ani.json --ets-module
 

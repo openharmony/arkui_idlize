@@ -53,61 +53,61 @@ toUiObserverNavDestinationInfoPtr
 fromUiObserverNavDestinationInfoPtr
 toWindowSystemBarStylePtr
 fromWindowSystemBarStylePtr
-`
+`;
 
 function trim(line) {
-    const prefixes = ['to', 'from']
+    const prefixes = ['to', 'from'];
     for (const pref of prefixes) {
         if (line.startsWith(pref)) {
-            return line.substring(pref.length)
+            return line.substring(pref.length);
         }
     }
-    return line
+    return line;
 }
 function trimFull(line) {
-    const trimmedPrefix = trim(line)
+    const trimmedPrefix = trim(line);
     return trimmedPrefix.endsWith('Ptr')
         ? trimmedPrefix.substring(0, trimmedPrefix.length - 3)
-        : trimmedPrefix
+        : trimmedPrefix;
 }
 
 function stageA() {
     const lines = log.split('\n')
         .map(x => x.trim())
-        .filter(x => x)
+        .filter(x => x);
 
-    const visited = new Set()
+    const visited = new Set();
     const unique = lines.flatMap(line => {
         if (visited.has(line)) {
-            return []
+            return [];
         }
-        visited.add(line)
-        return [line]
-    })
+        visited.add(line);
+        return [line];
+    });
     unique.sort((a, b) => {
 
-        return trim(a).localeCompare(trim(b))
-    })
+        return trim(a).localeCompare(trim(b));
+    });
     unique.forEach(line => {
-        console.log(line)
-    })
+        console.log(line);
+    });
 
-    console.log(';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;')
+    console.log(';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;');
 
-    const names = new Set()
+    const names = new Set();
     unique.forEach(line => {
-        names.add(trimFull(line))
-    })
+        names.add(trimFull(line));
+    });
 
-    console.error(names)
+    console.error(names);
 
 }
-stageA()
+stageA();
 
 
 function stageB(records) {
     records.forEach(record => {
-        const [name, type] = record
+        const [name, type] = record;
         let text = `
 export function to${name}Ptr(value:${type}):KPointer {
     return 123
@@ -115,9 +115,9 @@ export function to${name}Ptr(value:${type}):KPointer {
 export function from${name}Ptr(ptr:KPointer):${type} {
     const x:Object = {}
     return x as ${type}
-}`
-        console.log(text)
-    })
+}`;
+        console.log(text);
+    });
 }
 stageB([
     ['AbilityInfo', 'AbilityInfo'],
@@ -138,4 +138,4 @@ stageB([
     ['UiObserverNavigationInfo', 'uiObserver.NavigationInfo'],
     ['WindowSize', 'WindowSize'],
     ['WindowSystemBarStyle', 'window.SystemBarStyle'],
-])
+]);
