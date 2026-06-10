@@ -8,7 +8,7 @@ ohosgen XML demo:
     before_script:
       - !reference [.npm, script]
     script:
-      - cd $CI_PROJECT_DIR/ohosgen/demos/xml
+      - cd $CI_PROJECT_DIR/ohosgen/tests/demos/xml
       - npm run all:ts
       - npm run all:arkts
 
@@ -24,7 +24,7 @@ ohosgen XML demo:
       - !reference [.npm, script]
       - npm i -C external/koala_projects/tools --prefer-offline --no-audit --no-fund
     script:
-      - cd $CI_PROJECT_DIR/ohosgen/demos/xml
+      - cd $CI_PROJECT_DIR/ohosgen/tests/demos/xml
       - npm run all:kt
 
 ohosgen unit tests:
@@ -84,14 +84,14 @@ ohosgen demos:
   before_script:
     - !reference [.npm, script]
   script:
-    - cd $CI_PROJECT_DIR/ohosgen/demos/mediaquery
+    - cd $CI_PROJECT_DIR/ohosgen/tests/demos/mediaquery
     - npm show @koalaui/interop && npm show @koalaui/common
     - npm run all:ts
     - npm run all:arkts
-    - cd $CI_PROJECT_DIR/ohosgen/demos/context
+    - cd $CI_PROJECT_DIR/ohosgen/tests/demos/context
 #   - npm run all:ts
     - npm run all:arkts
-    - cd $CI_PROJECT_DIR/ohosgen/demos/huks
+    - cd $CI_PROJECT_DIR/ohosgen/tests/demos/huks
     - npm run all:ts
     - npm run all:arkts
 

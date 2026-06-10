@@ -1,0 +1,13 @@
+[dependencies]
+    Interop = { path = "../../../../external/koala_projects/interop/src/cangjie" }
+[package]
+  cjc-version = "0.58.3"
+  compile-option = "-L ./build/native/cangjie -l XML_NativeBridgeCJ"
+  description = "config file for cj-xml build"
+  link-option = ""
+  name = "idlize"
+  output-type = "executable"
+  src-dir = "./generated/cangjie"
+  target-dir = "./build/cangjie"
+  version = "1.0.0"
+  package-configuration = {}

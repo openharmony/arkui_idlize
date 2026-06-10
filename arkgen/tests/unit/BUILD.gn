@@ -304,7 +304,7 @@ group("check:arkts:install:native") {
 
 # Build test templates (arkts)
 npm_cmd("check:arkts:templates:build") {
-    project_path = rebase_path("../../tests-template/arkts")
+    project_path = rebase_path("../template/arkts")
     run_tasks = [ "build" ]
 }
 
