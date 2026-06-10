@@ -87,7 +87,7 @@ export function libraryCcDeclaration(options?: { removeCopyright?: boolean}): st
     let content = readTemplate('library_template.tpl', { removeCopyright: true })
         .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
         .replaceAll(`%ANY_API%`, readTemplate('any_api.tpl', { removeCopyright: true }))
-        .replaceAll(`%GENERIC_SERVICE_API%`, readTemplate('generic_service_api.h'))
+        .replaceAll(`%GENERIC_SERVICE_API%`, readTemplate('generic_service_api.h', { removeCopyright: true }))
     if (!options?.removeCopyright)
         content = cStyleCopyright + content
     return content
@@ -241,6 +241,27 @@ ${serializers.getOutput().join("\n")}
 
 const TEMPLATES_CACHE = new Map<string, string>()
 
+const LANG_TEMPLATES_WITH_SOURCE_HEADERS = new Set([
+    'arkts/component_builder_decl_m1.ts',
+    'arkts/component_builder_decl_m3.ts',
+    'arkts/component_builder_m1.ts',
+    'arkts/component_builder_m3.ts',
+    'arkts/index-full.d.ts',
+    'arkts/librariesLoader.ts',
+    'arkts/materialized_class_epilogue.ts',
+    'arkts/materialized_class_prologue.ts',
+    'arkts/platform.d.ts',
+    'cangjie/component_builder_m1.cj',
+    'cangjie/materialized_class_prologue.cj',
+    'java/materialized_class_prologue.java',
+    'ts/component_builder_m1.ts',
+    'ts/index-full.d.ts',
+    'ts/librariesLoader.ts',
+    'ts/materialized_class_epilogue.ts',
+    'ts/materialized_class_prologue.ts',
+    'ts/platform.d.ts',
+])
+
 function removeTemplateCopyright(name: string, template: string): string {
     let result = template.replace(/^\/\*\n \* Copyright \(c\) \d{4}(?:-\d{4})? Huawei Device Co\., Ltd\.\n \* Licensed under the Apache License, Version 2\.0 \(the "License"\);\n \* you may not use this file except in compliance with the License\.\n \* You may obtain a copy of the License at\n \*\n \* http:\/\/www\.apache\.org\/licenses\/LICENSE-2\.0\n \*\n \* Unless required by applicable law or agreed to in writing, software\n \* distributed under the License is distributed on an "AS IS" BASIS,\n \* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied\.\n \* See the License for the specific language governing permissions and\n \* limitations under the License\.\n \*\/\n\n?/, '')
     if (name === 'arkoala_node_api.tpl' || name === 'any_api.tpl' || name === 'library_template.tpl') {
@@ -290,7 +311,10 @@ function useLangExtIfNeeded(file: string, lang: Language): string {
 
 export function readLangTemplate(name: string, lang: Language): string {
     name = useLangExtIfNeeded(name, lang)
-    return fs.readFileSync(path.join(__dirname, `../../libohos/templates/${lang.directory}/${name}`), 'utf8')
+    const template = fs.readFileSync(path.join(__dirname, `../../libohos/templates/${lang.directory}/${name}`), 'utf8')
+    return LANG_TEMPLATES_WITH_SOURCE_HEADERS.has(`${lang.directory}/${name}`)
+        ? removeTemplateCopyright(name, template)
+        : template
 }
 
 export function maybeReadLangTemplate(name: string, lang: Language): string | undefined {
@@ -298,7 +322,10 @@ export function maybeReadLangTemplate(name: string, lang: Language): string | un
     const file = path.join(__dirname, `../../libohos/templates/${lang.directory}/${name}`)
     if (!fs.existsSync(file))
         return undefined
-    return fs.readFileSync(file, 'utf8')
+    const template = fs.readFileSync(file, 'utf8')
+    return LANG_TEMPLATES_WITH_SOURCE_HEADERS.has(`${lang.directory}/${name}`)
+        ? removeTemplateCopyright(name, template)
+        : template
 }
 
 export function copyDir(from: string, to: string, recursive: boolean) {

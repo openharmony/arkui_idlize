@@ -1,6 +1,0 @@
-{
-    "$schema": "../../../generation-config/schema.json",
-    "ApiKind": 0,
-    "GenerateUnused": true,
-    "moduleName": "application"
-}
