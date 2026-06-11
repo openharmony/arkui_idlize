@@ -35,7 +35,7 @@ let components = `${repoDir}/api/\@internal/component/ets`
 if (!fs.existsSync(sdk)) {
     fs.mkdirSync(sdk)
     try {
-      fs.symlinkSync("../." + components, sdk + "/component")
+      fs.symlinkSync(components, sdk + "/component")
     } catch (e) {
       console.log("Symlink failed, try to copy")
       fs.cpSync(components, sdk + "/component", { recursive: true })
