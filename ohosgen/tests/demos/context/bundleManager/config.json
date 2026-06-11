@@ -1,0 +1,6 @@
+{
+    "$schema": "../../../../generation-config/schema.json",
+    "ApiKind": 1,
+    "GenerateUnused": true,
+    "moduleName": "bundleManager"
+}

@@ -9,7 +9,7 @@
         "@koalaui/compat": "1.5.0-dev.72071-9166",
         "@koalaui/common": "1.5.0-dev.72071-9166",
         "@koalaui/interop": "1.5.0-dev.72071-9166",
-        "@idlizer/arkgen-tests-template-arkts": "file:../../tests-template/arkts",
+        "@idlizer/arkgen-tests-template-arkts": "file:../../tests/template/arkts",
         "commander": "^10.0.0"
     },
     "devDependencies": {
