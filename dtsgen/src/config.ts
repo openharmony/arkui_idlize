@@ -28,10 +28,6 @@ export const DtsgenConfigurationSchema = D.combine(CoreConfigurationSchema, D.ob
         ignoreComponents: D.array(D.string()),
         ignoreTypeParameters: D.array(D.string()),
     }),
-    constants: D.default(
-        D.map(D.string(), D.string()),
-        new Map()
-    ),
 })
 )
 

@@ -214,8 +214,6 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "constants": {
-    },
     "handwrittenDeserializers": [
         "test_inheritance.BaseGesture"
     ]

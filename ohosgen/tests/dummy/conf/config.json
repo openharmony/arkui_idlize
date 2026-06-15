@@ -39,7 +39,5 @@
     },
     "dummy": {
         "ignoreMethods": {}
-    },
-    "constants": {
     }
 }

@@ -70,10 +70,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
         serializer: D.object({
             ignore: T.stringArray()
         }),
-        constants: D.default(
-            D.map(D.string(), D.string()),
-            new Map()
-        ),
         patchMaterialized: D.default(
             D.map(D.string(), D.map(D.string(), D.string())),
             new Map()

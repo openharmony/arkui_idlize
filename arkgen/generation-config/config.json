@@ -937,8 +937,6 @@
         "idlize.internal.interop.Test.TestCallIntRecursiveCallback",
         "idlize.internal.interop.Test.TestCallIntMemory"
     ],
-    "constants": {
-            },
     "moduleName": "arkui",
     "modules": {
         "arkui": {
