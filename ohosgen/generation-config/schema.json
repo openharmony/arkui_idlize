@@ -313,12 +313,6 @@
                     ],
                     "type": "object"
                 },
-                "constants": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
                 "patchMaterialized": {
                     "type": "object",
                     "additionalProperties": {
