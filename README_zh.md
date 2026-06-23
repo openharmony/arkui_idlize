@@ -35,7 +35,7 @@ ArkUI的C++层组件节点，表示ArkUI树中的一个组件实例。它保存�
 FrameNode的更新转发到C++侧。
 
 **Modifier**
-由IDLize工具生成的生成的C++层struct，用于将属性的变化传递到FrameNode。
+由IDLize工具生成的C++层struct，用于将属性的变化传递到FrameNode。
 
 **Serializer**
 由IDLize工具生成的序列化代码，用于在ArkTS层和C++层之间进行类型转换。
