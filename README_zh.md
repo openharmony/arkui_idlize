@@ -11,13 +11,14 @@ IDLize是面向OpenHarmony ArkUI的编译期生成器工具，用于读取接口
 C++ Modifier，以及ArkTS层和C++层之间进行回调和类型转换的序列化代码。
 
 本仓库属于ArkUI子系统，为ArkUI开发提供代码生成工具，
-用于为ArkUI生成面向ArkTS、Cangjie等目标语言的代码。更多ArkUI框架子系统
-相关概念，请参考
-[ArkUI框架子系统README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)。
+用于为ArkUI生成面向ArkTS、仓颉（华为编程语言）等目标语言的代码。更多ArkUI
+框架子系统相关概念，请参考
+[ArkUI框架子系统README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+（中文）。
 
-本仓库文档主要面向IDLize工具开发者，用于为生成器增加能力、维护生成器功能，或排查
-生成结果。本仓库的工具使用者是把IDLize用于ArkUI代码生成的ArkUI系统开发者，
-可以从[作为工具使用IDLize](#作为工具使用idlize)开始阅读。
+> **本文档面向谁。** 本README主要面向**IDLize工具开发者**，用于为生成器
+> 增加能力、维护生成器功能，或排查生成结果。如果你只是想**使用**IDLize生成
+> ArkUI代码，请从[作为工具使用IDLize](#作为工具使用idlize)开始阅读。
 
 ### 核心概念
 
@@ -77,6 +78,8 @@ IDLize使用如下管线：
 
 ### 构建开发环境
 
+**前置条件：** Node.js 18 或更高版本，以及 git。
+
 1. 克隆子模块并安装根目录依赖。
 
 ```bash
@@ -118,7 +121,11 @@ bash generate.sh
 | 现象 | 检查项 | 处理方法 |
 |---|---|---|
 | `node`或`npm`报版本或语法错误 | 在仓库根目录执行`node -v`。 | 使用Node.js 18或更高版本；必要时重新安装依赖。 |
+| 在`external/`中执行`npm run compile`失败 | 先重新执行`cd external && npm i`。 | 编译前必须先安装`external/`及其子模块依赖。 |
 | 生成结果缺少预期API | 对比`out/`、`runner/out/peers/`和`runner/out/idl/`。 | 确认SDK声明无误，然后重新执行`bash generate.sh`。 |
+
+如需深入排查，请参考[追踪生成结果](doc/zh-cn/USER_GUIDE.md#3-判断生成结果是否正确)和
+[调试路径](doc_developer/zh-cn/ARCHITECTURE.md#6-调试路径)。
 
 ## 说明
 
@@ -130,7 +137,7 @@ IDLize通过npm提供命令行工具。
 |---|---|---|
 | ArkUI代码生成器 | `arkgen` | 从IDL定义生成ArkTS peer、C++ libace modifier和Arkoala绑定。 |
 | IDL转换器 | `etsgen` | 将`.d.ts`和`.d.ets`声明转换为IDL格式。 |
-| 生成管线编排工具 | `runner` | 通过`m3`编排SDK准备、IDL转换、抓取、peer生成和输出安装。 |
+| 生成管线编排工具 | `runner` | 编排SDK准备、IDL转换、抓取、peer生成和输出安装，驱动标准生成流程。 |
 | 声明检查工具 | `linter`、`idlinter` | 验证`.d.ts`、`.d.ets`和`.idl`声明。 |
 
 命令参数和示例请参考[工具使用者指南](doc/zh-cn/USER_GUIDE.md)、

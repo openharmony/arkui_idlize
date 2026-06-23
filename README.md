@@ -13,13 +13,15 @@ type conversion between the ArkTS layer and the C++ layer.
 
 This repository is part of the ArkUI subsystem. It provides code generation
 tools for ArkUI development and generates code for target languages such as
-ArkTS and Cangjie. For more ArkUI framework subsystem concepts, see the
-[ArkUI framework subsystem README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md).
+ArkTS and Cangjie (仓颉 — a Huawei programming language). For more ArkUI
+framework subsystem concepts, see the
+[ArkUI framework subsystem README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+(Chinese).
 
-This repository documentation is mainly for IDLize tool developers who add
-generator capabilities, maintain generator behavior, or debug generated output.
-ArkUI system developers who use IDLize for ArkUI code generation can start from
-[Using IDLize as a Tool](#using-idlize-as-a-tool).
+> **Who this is for.** This README targets **IDLize tool developers** who add
+> generator capabilities, maintain generator behavior, or debug generated
+> output. If you only want to **use** IDLize to generate ArkUI code, start at
+> [Using IDLize as a Tool](#using-idlize-as-a-tool).
 
 ### Key Concepts
 
@@ -83,6 +85,8 @@ The repository root contains these key directories:
 
 ### Build the Development Environment
 
+**Prerequisites:** Node.js 18 or later and git.
+
 1. Clone submodules and install dependencies.
 
 ```bash
@@ -126,7 +130,12 @@ written under `runner/out`.
 | Symptom | Check | Fix |
 |---|---|---|
 | `node` or `npm` reports a version or syntax error | Run `node -v` from the repository root. | Use Node.js 18 or later, then reinstall dependencies if needed. |
+| `npm run compile` fails inside `external/` | Re-run `cd external && npm i` first. | `external/` and submodules must be installed before compiling. |
 | Generated output misses an expected API | Compare `out/`, `runner/out/peers/`, and `runner/out/idl/`. | Confirm that the SDK declaration is correct, then rerun `bash generate.sh`. |
+
+For deeper debugging, see
+[Trace generated output](doc/en/USER_GUIDE.md#3-check-whether-generated-output-is-correct)
+and [Debugging path](doc_developer/en/ARCHITECTURE.md#6-debugging-path).
 
 ## Description
 
@@ -138,7 +147,7 @@ IDLize provides command-line tools through npm.
 |---|---|---|
 | ArkUI Code Generator | `arkgen` | Generates ArkTS peer, C++ libace modifier, and Arkoala binding code from IDL definitions. |
 | IDL Converter | `etsgen` | Converts `.d.ts` and `.d.ets` declarations to IDL format. |
-| Generation Pipeline Orchestrator | `runner` | Orchestrates SDK preparation, IDL conversion, scraping, peer generation, and output installation through `m3`. |
+| Generation Pipeline Orchestrator | `runner` | Orchestrates SDK preparation, IDL conversion, scraping, peer generation, and output installation for the standard generation flow. |
 | Declaration Checkers | `linter`, `idlinter` | Validate `.d.ts`, `.d.ets`, and `.idl` declarations. |
 
 For command parameters and examples, see the
