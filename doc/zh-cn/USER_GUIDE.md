@@ -1,46 +1,91 @@
-# IDLize 工具使用者工作流指南
+# IDLize 工具使用者指南
 
-本指南面向 IDLize 工具使用者，介绍如何使用 IDLize 工具链以 IDL 格式定义组件接口，
-并为 OpenHarmony / ArkUI 生态系统生成 native bindings 代码。
+本指南面向把 IDLize 用作 ArkUI 代码生成工具的开发者。读完后，应能够：
 
-完整的 IDL 语言规范请参见 [IDL_SPEC.md](IDL_SPEC.md)。
+- 运行标准生成流程。
+- 判断输入声明、IDL 中间产物和生成代码分别位于哪里。
+- 添加手写 IDL 或扩展现有接口。
+- 修改接口参数后验证 ArkTS 和 C++ 侧生成结果。
 
----
+完整 IDL 语言语法请参见 [IDL_SPEC.md](IDL_SPEC.md)。命令参数请参见
+[CLI_REFERENCE.md](CLI_REFERENCE.md)。
 
-## 前提条件
+## 1. 使用前提
 
-在生成代码之前，请先配置构建环境：
+从仓库根目录准备环境：
 
 ```bash
-# 克隆并安装依赖
 git submodule update --init
-npm install
-cd external && npm install && cd ..
-
-# 准备 libarkts
-cd external/libarkts
-PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
+npm i
+cd external
+npm i
+cd ..
+cd runner
 npm run compile
-cd ../../
-
-# 编译所有工作区
-cd runner && npm run compile && cd ..
-
-# 下载 SDK
+cd ..
 npm run download:sdk
 ```
 
----
+以上命令完成后即可运行标准生成流程。更完整的开发环境和发布说明请参见
+[开发者指南](../../doc_developer/zh-cn/DEVELOPER_GUIDE.md)。
 
-## 场景 1：从零开始创建新组件
+## 2. 运行标准生成流程
 
-本场景将演示如何定义一个名为 `MyButton` 的全新 ArkUI 组件，
-运行管线，并集成生成的输出代码。
+在仓库根目录执行：
 
-### 1.1 定义 IDL 接口
+```bash
+bash generate.sh
+```
 
-创建一个新的 `.idl` 文件。文件必须以 `package` 声明开头，
-并可以导入其他 IDL 包中的类型。
+`generate.sh` 调用 `runner m3`，使用 `sdk-patched-arkts/` 作为已准备的 SDK，
+并把 `interfaces/interfaces/arkui-extra/` 作为额外 IDL 输入。标准生成会安装
+全部目标：
+
+```text
+out/
+  sig/       # ArkTS / TypeScript peer 和组件类
+  libace/    # C++ modifier、serializer 和 native module 胶水代码
+```
+
+中间产物位于 `runner/out/`：
+
+| 路径 | 用途 |
+|---|---|
+| `runner/out/idl/` | `etsgen` 从 `.d.ts` / `.d.ets` 转换出的 `.idl`。 |
+| `runner/out/peers/sig/` | `arkgen` 生成的 ArkTS / TypeScript peer 中间输出。 |
+| `runner/out/peers/libace/` | `arkgen` 生成的 C++ 中间输出。 |
+| `runner/out/patched-sdk-arkts/` | 已准备的 ArkTS SDK 声明。 |
+| `runner/out/patched-sdk-ts/` | 已准备的 TypeScript SDK 声明。 |
+| `runner/out/scraper/` | scraper 阶段处理后的 IDL 输入。 |
+
+这些目录是生成产物，不要手工修改。需要修正输入时，应修改手写 IDL、SDK patch
+或生成配置，然后重新运行 `bash generate.sh`。
+
+## 3. 判断生成结果是否正确
+
+当生成代码缺少组件、方法或属性，或参数类型、可选标记、返回类型不符合预期时，
+按产物链路反向检查：
+
+1. 查看 `out/sig/` 或 `out/libace/`，确认安装后的文件是否缺失或内容不对。
+2. 查看 `runner/out/peers/sig/` 或 `runner/out/peers/libace/`，确认 printer 实际输出。
+3. 查看 `runner/out/idl/`，确认 parser 实际接收到的 IDL。
+4. 如果 IDL 已经错误，继续检查 `runner/out/patched-sdk-arkts/`、
+   `runner/out/patched-sdk-ts/` 和输入 patch。
+5. 如果 IDL 正确但 peer 输出错误，检查 `arkgen/generation-config/config.json` 和相关生成器。
+
+常用检查命令：
+
+```bash
+rg -n "MyButton" out runner/out/peers runner/out/idl
+rg -n "borderWidth" out/sig runner/out/peers/sig
+rg -n "setData" out/libace runner/out/peers/libace
+```
+
+## 4. 添加手写 IDL 组件
+
+### 4.1 编写 IDL 文件
+
+下面示例定义一个 `MyButton` 组件：
 
 ```idl
 package arkui.component.mybutton;
@@ -48,28 +93,23 @@ package arkui.component.mybutton;
 import arkui.component.units;
 import arkui.component.common;
 
-// 点击事件的回调
 callback MyButtonClickCallback = void (i32 clickCount);
 
-// 带 [Component] 扩展属性的组件接口
 [Component]
 interface MyButton {
     constructor();
 
-    // 属性
     attribute String label;
     attribute ResourceColor backgroundColor;
     attribute Length width;
     attribute Length height;
     attribute boolean enabled;
 
-    // 方法（属性 setter 返回组件类型以支持链式调用）
     MyButton onClick(MyButtonClickCallback callback);
     MyButton fontSize(Length size);
     MyButton borderRadius(Length radius);
 };
 
-// 属性接口（modifier 模式的 peer）
 [ComponentInterface]
 interface MyButtonAttribute {
     MyButtonAttribute label(String value);
@@ -81,40 +121,28 @@ interface MyButtonAttribute {
 };
 ```
 
-关键要点：
+要点：
 
-- `package` 将接口放置在命名空间层次结构中。
-- `import` 将其他 IDL 包中的类型引入当前作用域。
-- `[Component]` 将接口标记为 ArkUI 组件，使管线识别该接口并生成完整的
-  peer/modifier/serializer 栈。
-- `[ComponentInterface]` 标记 modifier 模式使用的属性 setter 接口。
-- 属性 setter 通常返回组件类型或属性类型，以支持方法链式调用。
-- 使用标准 IDL 类型（`String`、`boolean`、`i32`、`number`、`Length`、
-  `ResourceColor` 等）或引用在导入包中定义的类型。
+- `package` 决定接口的命名空间。
+- `import` 引入外部 IDL 包中的类型。
+- `[Component]` 标记 ArkUI 组件接口。
+- `[ComponentInterface]` 标记属性 setter 接口。
+- setter 通常返回组件或属性接口类型，以支持链式调用。
 
-### 1.2 放置 IDL 文件
+### 4.2 放置 IDL 文件
 
-IDL 文件可以放置在以下两个位置之一：
+推荐把手写 IDL 放在标准额外输入目录：
 
-**选项 A：`interfaces/` 目录**（推荐用于手写 IDL）。
-
-```
+```text
 interfaces/interfaces/arkui-extra/mybutton.idl
 ```
 
-`interfaces/interfaces/arkui-extra/` 目录下的文件会在 `generate.sh`
-将该目录作为额外 IDL 输入时自动被拾取。
+如果使用自定义目录，可以直接调用 `runner m3`，通过 `<idl-files...>` 位置参数传入。
 
-**选项 B：自定义目录**，通过 `runner m3` 的 `<idl-files>` 位置参数传入。
+### 4.3 配置生成
 
-### 1.3 配置生成
-
-编辑 `arkgen/generation-config/config.json` 以注册组件。
-
-默认情况下，组件不会被 materialized（仅生成 stub）。
-要生成完整的 peer 和 modifier，组件不能出现在 `ignoreMaterialized` 列表中。
-大多数情况下新组件默认就会被 materialized，但如果需要强制 materialize，
-可以将完全限定名添加到 `forceMaterialized`：
+组件是否完整生成主要由 `arkgen/generation-config/config.json` 控制。新组件通常会被
+materialized；如果需要强制完整生成，可将完全限定名加入 `forceMaterialized`：
 
 ```json
 {
@@ -125,18 +153,124 @@ interfaces/interfaces/arkui-extra/mybutton.idl
 }
 ```
 
-完全限定名是包路径加上接口名称：`<package>.<InterfaceName>`。
+完全限定名格式为 `<package>.<InterfaceName>`。如果组件在 `ignoreMaterialized` 中，
+只会生成最小 stub。
 
-### 1.4 运行管线
-
-使用 `generate.sh` 进行标准运行，或直接调用 `runner m3`：
+### 4.4 重新生成并验证
 
 ```bash
-# 使用提供的脚本
+bash generate.sh
+find out/sig -name "*MyButton*"
+find out/libace -name "*MyButton*"
+```
+
+常见命名约定：
+
+| 生成产物 | 命名模式 |
+|---|---|
+| Peer 类 | `Ark<Component>Peer`，例如 `ArkMyButtonPeer`。 |
+| Component 类 | `Ark<Component>Component`，例如 `ArkMyButtonComponent`。 |
+| C++ Modifier | `<Component>Modifier`，例如 `MyButtonModifier`。 |
+| Materialized 接口实现 | `<Name>Internal`，例如 `MyButtonInternal`。 |
+| Native module 调用 | `ArkUIGeneratedNativeModule._<method>`。 |
+
+## 5. 扩展现有组件接口
+
+### 5.1 先确定输入来源
+
+不要修改 `runner/out/idl/` 或 `out/`。这些目录会在每次生成时被覆盖。
+
+| 来源 | 应修改的位置 |
+|---|---|
+| 手写或补充 IDL | `interfaces/interfaces/arkui-extra/` 或传给 `runner m3` 的自定义 IDL 路径。 |
+| 上游 ArkTS SDK 声明 | `sdk-patched-arkts/`。 |
+| 上游 TypeScript SDK 声明 | `sdk-patched/`。 |
+| 生成配置 | `arkgen/generation-config/config.json`。 |
+
+可以用以下命令定位手写 IDL：
+
+```bash
+rg -n "ExistingComponent" interfaces/interfaces
+```
+
+### 5.2 添加属性或方法
+
+在组件接口和属性接口中补充对应声明：
+
+```idl
+package arkui.component.existing;
+
+import arkui.component.common;
+import arkui.component.units;
+
+[Component]
+interface ExistingComponent {
+    attribute String tooltip;
+    ExistingComponent shadow(number radius, number offsetX, number offsetY, ResourceColor color);
+    ExistingComponent animation(optional Duration duration);
+};
+
+[ComponentInterface]
+interface ExistingComponentAttribute {
+    ExistingComponentAttribute tooltip(String value);
+    ExistingComponentAttribute shadow(number radius, number offsetX, number offsetY, ResourceColor color);
+};
+```
+
+重新生成：
+
+```bash
 bash generate.sh
 ```
 
-或使用显式参数：
+生成方法名通常与 IDL 方法名一致，首字母不会自动转换大小写。
+
+## 6. 修改现有接口参数
+
+常见变更示例：
+
+```idl
+interface ExistingComponent {
+    ExistingComponent borderWidth(Length width, optional ResourceColor color);
+    void setData(sequence<String> data);
+    ExistingComponent padding(Length value);
+    ExistingComponent padding(record<String, Length> edges);
+};
+```
+
+兼容性判断：
+
+- 添加可选参数通常向后兼容。
+- 新增重载通常向后兼容。
+- 修改参数类型是破坏性变更。
+- 删除参数或方法是破坏性变更；应先使用 `[Deprecated]` 标记旧 API。
+
+```idl
+interface ExistingComponent {
+    [Deprecated]
+    ExistingComponent oldMethod(String param);
+
+    ExistingComponent newMethod(String param, optional i32 flags);
+};
+```
+
+验证时同时检查 ArkTS 和 C++ 侧：
+
+```bash
+bash generate.sh
+rg -n "borderWidth" out/sig runner/out/peers/sig
+rg -n "setData" out/libace runner/out/peers/libace
+```
+
+确认以下内容：
+
+- ArkTS peer 方法签名已更新。
+- C++ modifier 接受新的参数类型。
+- Serializer 对新参数类型的编码符合预期。
+
+## 7. 直接调用 `runner m3`
+
+标准脚本等价于以下调用：
 
 ```bash
 node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
@@ -148,280 +282,23 @@ node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
     --arkgen "node arkgen" \
     --etsgen "node etsgen" \
     --target all \
+    --no-arkgen-dummy-impl \
     --output "./out"
 ```
 
-关键标志：
+关键参数：
 
-| 标志 | 用途 |
+| 参数 | 用途 |
 |---|---|
-| `--sdk-stage prepared` | 使用已打补丁的 SDK。当直接输入 `.idl` 文件时使用 `idl`。 |
-| `--arkgen-options-file` | 生成配置（`config.json`）的路径。 |
-| `--etsgen-options-file` | etsgen 转换配置路径。`original` 和 `prepared` SDK 阶段需要该参数。 |
-| `--arkgen-interop-types` | 共享 C++ interop 类型头文件的路径。 |
-| `--scraper-options-file` | 控制处理哪些包的 scraper 配置。 |
-| `--target` | `sig`（仅 ArkTS peer）、`libace`（仅 C++ modifier）或 `all`。 |
-
-### 1.5 定位输出
-
-运行成功后，中间产物保留在 `runner/out/` 下，选定的 peer 输出会安装到
-`--output` 指定的目录：
-
-```
-out/
-  sig/                            # Arkoala peer（ArkTS / TypeScript）
-    arkoala-arkts/
-      ...
-  libace/                         # C++ libace modifier
-    generated/
-      ...
-```
-
-生成文件的命名约定：
-
-| 生成产物 | 命名模式 |
-|---|---|
-| Peer 类 | `Ark<Component>Peer`（如 `ArkMyButtonPeer`） |
-| Component 类 | `Ark<Component>Component`（如 `ArkMyButtonComponent`） |
-| C++ modifier | `<Component>Modifier`（如 `MyButtonModifier`） |
-| Materialized 接口实现 | `<Name>Internal`（如 `MyButtonInternal`） |
-| 原生模块调用 | `ArkUIGeneratedNativeModule._<method>` |
-
-### 1.6 集成生成的 Peer
-
-生成的 ArkTS peer 可以在应用代码中导入和使用：
-
-```typescript
-import { ArkMyButtonComponent } from "./generated/ArkMyButtonComponent"
-
-const button = new ArkMyButtonComponent()
-button.label("Submit")
-    .backgroundColor(Color.Blue)
-    .fontSize(16)
-    .borderRadius(8)
-    .onClick((clickCount) => {
-        console.log(`Clicked ${clickCount} times`)
-    })
-```
-
-在原生端，当 peer 的 setter 方法通过序列化桥接被调用时，
-C++ modifier 会将属性变更应用到 framenode。
-
-### 1.7 验证输出
-
-生成完成后，检查输出文件以确认正确性：
-
-```bash
-# 检查 peer 文件是否已生成
-find out/sig -name "*MyButton*"
-
-# 检查 C++ modifier 文件是否已生成
-find out/libace -name "*MyButton*"
-```
-
-如果文件缺失或内容不正确，请沿管线阶段向前回溯排查：
-
-1. 检查 `out/sig/` 或 `out/libace/` 中安装后的输出。
-2. 检查 `runner/out/peers/sig/` 或 `runner/out/peers/libace/` 中的中间生成输出。
-3. 检查 `runner/out/idl/` 中转换后的 IDL，验证解析器接收到的内容。
-4. 检查生成配置（`arkgen/generation-config/config.json`），
-   确认组件不在 `ignoreMaterialized` 中。
-
----
-
-## 场景 2：为现有组件添加新接口
-
-本场景涵盖为现有组件扩展新属性或方法。
-
-### 2.1 定位 IDL 文件
-
-管线生成的 IDL 文件放置在 `runner/out/idl/` 中。
-手写或补充的 IDL 文件位于 `interfaces/interfaces/` 下。
-
-```bash
-# 查找特定组件的 IDL 文件
-find interfaces/interfaces/ -name "*.idl" | xargs grep -l "ExistingComponent"
-```
-
-如果组件是从 `.d.ts` / `.d.ets` 声明派生的，则 IDL 由 `etsgen` 阶段生成，
-存放在 `runner/out/idl/` 中。这是生成目录，每次运行生成时都会被覆盖。
-请勿修改 out 目录中的文件，而应修改输入的 `.d.ets` 声明文件。
-
-如果是手写的，请检查 `interfaces/interfaces/arkui-extra/`——这些文件可以被修改和更新。
-
-### 2.2 编辑手写 IDL
-
-打开 IDL 文件，向接口中添加新的属性或方法：
-
-```idl
-package arkui.component.existing;
-
-import arkui.component.common;
-import arkui.component.units;
-
-[Component]
-interface ExistingComponent {
-    // ... 已有属性和方法 ...
-
-    // 新增：添加新属性
-    attribute String tooltip;
-
-    // 新增：添加带参数的新方法
-    ExistingComponent shadow(number radius, number offsetX, number offsetY, ResourceColor color);
-
-    // 新增：添加带可选参数的方法
-    ExistingComponent animation(optional Duration duration);
-};
-```
-
-向属性接口添加方法时：
-
-```idl
-[ComponentInterface]
-interface ExistingComponentAttribute {
-    // ... 已有 setter ...
-
-    // 新增：tooltip 属性的 setter
-    ExistingComponentAttribute tooltip(String value);
-
-    // 新增：shadow 的 setter
-    ExistingComponentAttribute shadow(number radius, number offsetX, number offsetY, ResourceColor color);
-};
-```
-
-### 2.3 重新生成
-
-重新运行管线：
-
-```bash
-bash generate.sh
-```
-
-生成器会检测 IDL 文件中的变更，并仅重新生成受影响的输出文件。
-
-### 2.4 更新集成代码
-
-重新生成后，新方法会出现在生成的 peer 和 modifier 类中。
-更新应用代码以使用新 API：
-
-```typescript
-// 新方法在生成的组件上可用
-component.tooltip("Click to submit")
-    .shadow(4, 2, 2, Color.Gray)
-    .animation(Duration.seconds(300))
-```
-
-### 2.5 生成方法的命名约定
-
-生成的方法和属性名称遵循以下规则：
-
-| IDL 声明 | 生成的 peer 方法 | 生成的 C++ modifier 方法 |
-|---|---|---|
-| `attribute String label` | `getLabel()`、`setLabel(value)` | `setLabel(value)` |
-| `void onClick(Callback cb)` | `onClick(cb)` | `onClick(cb)` |
-| `ExistingComponent shadow(...)` | `shadow(...)` 返回 `this` | `shadow(...)` |
-| `static void foo()` | peer 上的 `static foo()` | 原生模块中的 `foo()` |
-
-生成代码中的方法名称直接与 IDL 方法名称一致。
-首字母不会进行大小写转换。
-
----
-
-## 场景 3：修改现有接口参数
-
-本场景涵盖更改现有方法或属性的参数，包括类型变更、可选参数和重载。
-
-### 3.1 编辑 IDL
-
-打开 IDL 文件并修改目标方法或属性。以下展示了几种常见的参数变更。
-
-**添加可选参数：**
-
-```idl
-interface ExistingComponent {
-    // 修改前：
-    // ExistingComponent borderWidth(Length width);
-
-    // 修改后：添加可选的 color 参数
-    ExistingComponent borderWidth(Length width, optional ResourceColor color);
-};
-```
-
-**更改参数类型：**
-
-```idl
-interface ExistingComponent {
-    // 修改前：
-    // void setData(String data);
-
-    // 修改后：更改为序列类型
-    void setData(sequence<String> data);
-};
-```
-
-**使用可选参数添加重载：**
-
-```idl
-interface ExistingComponent {
-    // 原始方法
-    ExistingComponent padding(Length value);
-
-    // 使用容器类型的重载
-    ExistingComponent padding(record<String, Length> edges);
-};
-```
-
-IDL 支持重载方法——即名称相同但参数签名不同的函数：
-
-```idl
-interface ExistingComponent {
-    void resize(number width, number height);
-    void resize(SizeOptions size);
-};
-```
-
-### 3.2 处理向后兼容性
-
-更改现有接口可能会破坏已生成代码的使用者。
-请考虑以下准则：
-
-- **添加可选参数**是向后兼容的。现有调用处无需修改即可继续工作。
-- **更改参数类型**是破坏性变更。使用者必须更新其代码以匹配新的签名。
-- **添加新重载**是向后兼容的。现有调用处仍然有效。
-- **删除参数或方法**是破坏性变更。请先使用 `[Deprecated]` 扩展属性标记为已弃用：
-
-```idl
-interface ExistingComponent {
-    // 将旧方法标记为已弃用
-    [Deprecated]
-    ExistingComponent oldMethod(String param);
-
-    // 提供替代方法
-    ExistingComponent newMethod(String param, optional i32 flags);
-};
-```
-
-### 3.3 重新生成并验证
-
-重新运行管线并检查输出：
-
-```bash
-bash generate.sh
-
-# 验证生成的方法反映了变更
-rg -n "borderWidth" out/sig runner/out/peers/sig
-rg -n "setData" out/libace runner/out/peers/libace
-```
-
-检查以下内容：
-
-- 生成的 peer 方法具有更新后的签名。
-- C++ modifier 方法接受新的参数类型。
-- Serializer 正确编码新的参数类型。
-
----
-
-## IDL 语法快速参考
+| `--sdk-stage prepared` | 从已准备的 SDK 开始。只使用 IDL 输入时可改为 `idl`。 |
+| `--arkgen-options-file` | ArkUI 生成配置。 |
+| `--etsgen-options-file` | `.d.ts` / `.d.ets` 到 IDL 的转换配置；`idl` 阶段不需要。 |
+| `--arkgen-interop-types` | ArkTS/C++ 共享 interop 类型头文件。 |
+| `--scraper-options-file` | scraper 处理范围配置。 |
+| `--target` | `sig`、`libace` 或 `all`。 |
+| `--output` | 安装后的输出目录。 |
+
+## 8. IDL 快速参考
 
 ### 包和导入
 
@@ -432,173 +309,82 @@ import arkui.component.common;
 import arkui.component.units.Length as Length;
 ```
 
-### 带属性和方法的接口
+### 接口、属性和方法
 
 ```idl
 interface MyService {
-    // 构造函数
     constructor(String name, optional i32 timeout);
 
-    // 属性
     attribute String name;
     readonly attribute i32 id;
     [Optional] attribute String description;
 
-    // 方法
     void start();
     boolean isRunning();
     String getStatus(optional boolean verbose);
 
-    // 静态方法
     static MyService createDefault();
 };
 ```
 
-如果声明了带有 **`Entity=Class` 扩展属性** 的接口，并且该接口需要作为 peer 或包含任何方法，
-则必须避免使用普通属性，或仅与 `Getter/Setter` 组合使用。
+如果带 `[Entity=Class]` 的接口需要作为 peer 或包含方法，应避免普通属性，或使用
+`[Accessor=Getter]` / `[Accessor=Setter]` 组合：
 
 ```idl
 [Entity=Class]
 interface MyService {
-    // 属性
     [Accessor=Getter]
     attribute String name;
-    [Accessor=Getter]
-    readonly attribute i32 id;
-    [Accessor=Getter]
-    [Optional] attribute String description;
     [Accessor=Setter]
-    [Optional] attribute String description;
+    attribute String name;
 
-    // 方法
     void start();
 };
-```
-
-
-### 可选参数
-
-```idl
-void drawRect(number x, number y, number width, number height, optional ResourceColor fill);
-
-// 可选接口属性
-[Optional] attribute String tooltip;
 ```
 
 ### 回调
 
 ```idl
-// 定义回调类型
 callback OnChangeCallback = void (String newValue, i32 changeId);
-callback OnErrorCallback = void (String message);
 
-// 将回调用作方法参数或属性
 interface MyComponent {
     attribute OnChangeCallback onChange;
-    void setOnError(OnErrorCallback callback);
+    void setOnChange(OnChangeCallback callback);
 };
 ```
 
-### 枚举（字典语法）
+### 联合、序列和记录
 
 ```idl
-dictionary Direction {
-    number UP = 0;
-    number DOWN = 1;
-    number LEFT = 2;
-    number RIGHT = 3;
-};
-```
-
-### 联合类型
-
-```idl
-// 接受多种类型的参数
 void setSize((number or String or Length) value);
-
-// 可选联合类型
 void setColor(optional (ResourceColor or undefined) color);
-```
-
-### 序列和记录
-
-```idl
 void setItems(sequence<String> items);
 void setMetadata(record<String, boolean> meta);
 ```
 
-### 扩展属性
+### 常用扩展属性
 
-| 扩展属性 | 用法 | 描述 |
+| 扩展属性 | 用法 | 说明 |
 |---|---|---|
-| `[Component]` | 用于接口 | 标记为 ArkUI 组件 |
-| `[ComponentInterface]` | 用于接口 | 标记为属性 setter 接口 |
-| `[Entity=Class]` | 用于接口 | 生成为带指针支持的类 |
-| `[Entity=Interface]` | 用于接口 | 生成为纯接口 |
-| `[Optional]` | 用于属性 | 属性可以省略 |
-| `[Deprecated]` | 用于任何声明 | 标记 API 为已弃用 |
-| `[Throws]` | 用于方法 | 方法可能抛出异常 |
-| `[Accessor=Getter]` / `[Accessor=Setter]` | 用于属性 | 属性为访问器 |
-| `[ComponentModifier]` | 用于接口 | 标记为 modifier stub |
-| `[Static]` | 用于方法/属性 | 属于接口而非实例 |
-| `[Documentation="..."]` | 用于任何声明 | 内联文档 |
-| `[TypeParameters="T"]` | 用于接口 | 泛型类型参数声明 |
-| `[TypeArguments="Foo"]` | 用于方法/属性 | 具体泛型参数 |
-| `[VerbatimDts="..."]` | 用于任何声明 | 原样输出的 TypeScript 内容 |
-| `[DtsName="original"]` | 用于任何声明 | 保留原始声明名称 |
+| `[Component]` | 接口 | 标记 ArkUI 组件。 |
+| `[ComponentInterface]` | 接口 | 标记组件属性 setter 接口。 |
+| `[Entity=Class]` | 接口 | 生成带指针支持的类形态。 |
+| `[Entity=Interface]` | 接口 | 生成接口形态。 |
+| `[Optional]` | 属性 | 属性可以省略。 |
+| `[Deprecated]` | 任意声明 | 标记 API 已弃用。 |
+| `[Throws]` | 方法 | 方法可能抛出异常。 |
+| `[Accessor=Getter]` / `[Accessor=Setter]` | 属性 | 属性为访问器。 |
+| `[Documentation="..."]` | 任意声明 | 内联文档。 |
+| `[DtsName="original"]` | 任意声明 | 保留原始声明名称。 |
 
-### 常量
-
-```idl
-const String DEFAULT_LABEL = "OK";
-const i32 MAX_RETRIES = 3;
-```
-
-### 类型别名
-
-```idl
-typedef ResourceColor = (number or String);
-typedef OptionalNumber = number?;
-```
-
----
-
-## 文件位置参考
-
-### 输入文件
+## 9. 位置速查
 
 | 内容 | 位置 |
 |---|---|
-| 手写 IDL 文件 | `interfaces/interfaces/arkui-extra/` |
-| 生成的 IDL（来自 etsgen） | `runner/out/idl/` |
-| 上游 SDK 子模块 | `interface_sdk-js/` |
-| 已打补丁的 SDK（ArkTS） | `sdk-patched-arkts/` |
-| 已打补丁的 SDK（TypeScript） | `sdk-patched/` |
-
-### 生成输出
-
-| 内容 | 位置 |
-|---|---|
-| 安装后的 ArkTS peer（`--target sig`） | `<--output>/` |
-| 安装后的 C++ libace modifier（`--target libace`） | `<--output>/` |
-| 安装后的全部输出（`--target all`） | `<--output>/sig/` 和 `<--output>/libace/` |
-| 中间 peer 输出 | `runner/out/peers/` |
-| 抓取的 IDL | `runner/out/scraper/` |
-| 已准备的 SDK（ArkTS） | `runner/out/patched-sdk-arkts/` |
-| 已准备的 SDK（TypeScript） | `runner/out/patched-sdk-ts/` |
-| 响应文件 | `runner/out/response-files/` |
-
-### 配置
-
-| 内容 | 位置 |
-|---|---|
-| 生成配置 | `arkgen/generation-config/config.json` |
-| 生成配置模式 | `arkgen/generation-config/schema.json` |
-| Scraper 配置 | `runner/configs/scraper-config.json` |
-| Etsgen 配置 | `etsgen/generator-config.json` |
-| 输出目录常量 | `runner/src/shared.ts` |
-
-### 生成脚本
-
-标准生成命令位于仓库根目录的 `generate.sh` 中。
-在任何 IDL 或配置变更后运行它以重新生成所有输出。
+| 手写 IDL | `interfaces/interfaces/arkui-extra/`。 |
+| SDK ArkTS patch | `sdk-patched-arkts/`。 |
+| SDK TypeScript patch | `sdk-patched/`。 |
+| 生成配置 | `arkgen/generation-config/config.json`。 |
+| Scraper 配置 | `runner/configs/scraper-config.json`。 |
+| Etsgen 配置 | `etsgen/generator-config.json`。 |
+| 输出目录常量 | `runner/src/shared.ts`。 |

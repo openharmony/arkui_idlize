@@ -1,239 +1,189 @@
-# CLI 参数参考
+# IDLize CLI 参考
 
-本文档提供了 IDLize **runner** 命令行工具所有参数的综合参考。
+本文档面向需要直接调用 `runner` 的 IDLize 工具使用者和生成器开发者。标准生成流程
+优先使用仓库根目录的 `bash generate.sh`；需要自定义 SDK 阶段、输入 IDL 或输出目标时，
+再直接调用 `runner`。
 
----
+## 1. 调用形式
 
-## 目录
-
-- [1. runner](#1-runner)
-  - [m3](#命令-m3)
-  - [complete](#命令-complete)
-  - [sdk](#命令-sdk)
-  - [m3-sdk](#命令-m3-sdk)
-  - [sdk-new-shape](#命令-sdk-new-shape)
-  - [transform-builder-functions](#命令-transform-builder-functions)
-- [2. 常用模式](#2-常用模式)
-
----
-
-## 1. runner
-
-runner 是顶层管线编排器。它使用 `commander` 库，调用方式如下：
+从仓库根目录执行：
 
 ```bash
-node runner -- <command> [options]
+node runner <command> [options]
 ```
 
-### 命令：`m3` <a id="命令-m3"></a>
+`runner` 使用 `commander` 定义命令，命令实现位于 `runner/src/main.ts`。
 
-```
-node runner -- m3 <sdk-path> <idl-files...>
-```
-
-使用 m3 管线生成 peer：SDK 准备、ETS 到 IDL 转换、scrape，以及 IDL 到 peer 生成。
-
-#### 位置参数
-
-| 参数 | 类型 | 必需 | 描述 |
-|----------|------|----------|-------------|
-| `<sdk-path>` | string | 是 | SDK 目录路径 |
-| `<idl-files...>` | string[] | 是 | 一个或多个额外 IDL 文件路径 |
-
-#### 选项
-
-| 选项 | 类型 | 默认值 | 描述 |
-|--------|------|---------|-------------|
-| `--output <path>` | string | （必需） | 生成文件的输出路径 |
-| `--sdk-stage <stage>` | `original \| prepared \| idl` | （必需） | SDK 处理阶段。`original`：从原始 SDK 开始；`prepared`：从已准备的 SDK 开始；`idl`：直接从 IDL 文件开始 |
-| `--arkgen-options-file <file>` | string | （必需） | arkgen 配置文件路径 |
-| `--arkgen-interop-types <file>` | string | （必需） | interop-types.h 文件路径 |
-| `--scraper-options-file <file>` | string | （必需） | scraper 配置文件路径 |
-| `--etsgen-options-file <file>` | string | `original` / `prepared` 阶段必需 | etsgen 配置文件路径。`--sdk-stage=idl` 时不使用 |
-| `--etsgen <executable>` | string | `npx etsgen` | etsgen 可执行文件路径。当 `--sdk-stage=idl` 时忽略 |
-| `--arkgen <executable>` | string | `npx arkgen` | arkgen 可执行文件路径 |
-| `--target <target>` | `sig \| libace \| all` | `sig` | 生成目标 |
-| `--language <language>` | `ts \| arkts` | `arkts` | 输出语言 |
-| `--no-arkgen-dummy-impl` | flag | - | 不生成 `dummy_impl.cc` 和 `real_impl.cc` 测试文件 |
-
-#### 示例
+## 2. `m3`
 
 ```bash
-# 从原始 SDK 运行完整管线
-node runner -- m3 ./sdk ./custom.idl \
-  --output ./out \
-  --sdk-stage original \
-  --arkgen-options-file ./arkgen/generation-config/config.json \
-  --etsgen-options-file ./etsgen/generator-config.json \
-  --arkgen-interop-types ./interop-types.h \
-  --scraper-options-file ./scraper.json
+node runner m3 <sdk-path> <idl-files...> [options]
+```
 
-# 仅从 IDL 文件（跳过 SDK 准备和 ets2idl）
-node runner -- m3 ./sdk ./my-component.idl \
+`m3` 是主生成管线，负责 SDK 准备、声明到 IDL、scrape、IDL 到 peer 生成、格式化和
+输出安装。
+
+### 位置参数
+
+| 参数 | 必需 | 说明 |
+|---|---|---|
+| `<sdk-path>` | 是 | SDK 目录路径。`--sdk-stage=prepared` 时传已准备 SDK；`idl` 阶段可传占位 SDK 路径。 |
+| `<idl-files...>` | 是 | 一个或多个额外 IDL 文件或目录。 |
+
+### 选项
+
+| 选项 | 默认值 | 说明 |
+|---|---|---|
+| `--output <path>` | 必需 | 安装生成文件的输出目录。 |
+| `--sdk-stage <stage>` | 必需 | `original`、`prepared` 或 `idl`。 |
+| `--arkgen-options-file <file>` | 必需 | `arkgen` 生成配置路径。 |
+| `--arkgen-interop-types <file>` | 必需 | `interop-types.h` 路径。 |
+| `--scraper-options-file <file>` | 必需 | scraper 配置路径。 |
+| `--etsgen-options-file <file>` | `original` / `prepared` 阶段必需 | `etsgen` 转换配置路径；`idl` 阶段不使用。 |
+| `--etsgen <executable>` | `npx etsgen` | `etsgen` 可执行命令；`idl` 阶段忽略。 |
+| `--arkgen <executable>` | `npx arkgen` | `arkgen` 可执行命令。 |
+| `--target <target>` | `sig` | 生成目标：`sig`、`libace` 或 `all`。 |
+| `--language <language>` | `arkts` | 输出语言：`ts` 或 `arkts`。 |
+| `--no-arkgen-dummy-impl` | 关闭时生成测试实现 | 不生成 `dummy_impl.cc` 和 `real_impl.cc` 测试文件。 |
+
+### 标准示例
+
+```bash
+node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
+    --sdk-stage prepared \
+    --arkgen-options-file ./arkgen/generation-config/config.json \
+    --etsgen-options-file ./etsgen/generator-config.json \
+    --arkgen-interop-types ./runner/interop-types/src/cpp/interop-types.h \
+    --scraper-options-file ./runner/configs/scraper-config.json \
+    --arkgen "node arkgen" \
+    --etsgen "node etsgen" \
+    --target all \
+    --no-arkgen-dummy-impl \
+    --output "./out"
+```
+
+### 仅从 IDL 生成
+
+```bash
+node runner m3 ./sdk ./my-component.idl \
   --output ./out \
   --sdk-stage idl \
   --arkgen-options-file ./arkgen/generation-config/config.json \
-  --arkgen-interop-types ./interop-types.h \
-  --scraper-options-file ./scraper.json \
+  --arkgen-interop-types ./runner/interop-types/src/cpp/interop-types.h \
+  --scraper-options-file ./runner/configs/scraper-config.json \
   --target all
 ```
 
----
-
-### 命令：`complete` <a id="命令-complete"></a>
-
-```
-node runner -- complete <sdk-path>
-```
-
-使用 ohosgen 管线从完整 SDK 生成 peer（`m3` 的替代方案）。
-
-#### 位置参数
-
-| 参数 | 类型 | 必需 | 描述 |
-|----------|------|----------|-------------|
-| `<sdk-path>` | string | 是 | SDK 目录路径 |
-
-#### 选项
-
-| 选项 | 类型 | 默认值 | 描述 |
-|--------|------|---------|-------------|
-| `--ohosgen-config <file>` | string | （必需） | ohosgen 配置文件路径 |
-| `--sdk-stage <stage>` | `original \| prepared \| idl` | （必需） | SDK 处理阶段 |
-| `--etsgen <executable>` | string | `npx etsgen` | etsgen 可执行文件路径。当 `--sdk-stage=idl` 时忽略 |
-| `--ohosgen <executable>` | string | `npx ohosgen` | ohosgen 可执行文件路径 |
-| `--target <target>` | `sig \| libace \| all` | `sig` | 生成目标 |
-| `--language <language>` | `ts \| arkts` | `arkts` | 输出语言 |
-
-#### 示例
+## 3. `complete`
 
 ```bash
-node runner -- complete ./sdk \
+node runner complete <sdk-path> [options]
+```
+
+使用 `ohosgen` 管线从完整 SDK 生成 peer，是 `m3` 之外的生成路径。
+
+| 选项 | 默认值 | 说明 |
+|---|---|---|
+| `--ohosgen-config <file>` | 必需 | `ohosgen` 配置路径。 |
+| `--sdk-stage <stage>` | 必需 | `original`、`prepared` 或 `idl`。 |
+| `--etsgen <executable>` | `npx etsgen` | `etsgen` 可执行命令；`idl` 阶段忽略。 |
+| `--ohosgen <executable>` | `npx ohosgen` | `ohosgen` 可执行命令。 |
+| `--target <target>` | `sig` | 生成目标：`sig`、`libace` 或 `all`。 |
+| `--language <language>` | `arkts` | 输出语言：`ts` 或 `arkts`。 |
+
+示例：
+
+```bash
+node runner complete ./sdk \
   --ohosgen-config ./ohosgen-config.json \
   --sdk-stage prepared \
   --target all
 ```
 
----
-
-### 命令：`sdk` <a id="命令-sdk"></a>
-
-```
-node runner -- sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>
-```
-
-通过克隆、打补丁和处理 API 文件来准备 SDK。
-生成 API 版本 12 和 API 版本 11 的已准备 SDK 输出。
-
-#### 位置参数
-
-| 参数 | 类型 | 必需 | 描述 |
-|----------|------|----------|-------------|
-| `<sdk-path>` | string | 是 | 原始 SDK 目录路径 |
-| `<prepared-sdk-12>` | string | 是 | 已准备 SDK（API 12）的输出路径 |
-| `<prepared-sdk-11>` | string | 是 | 已准备 SDK（API 11）的输出路径 |
-
-#### 示例
+## 4. `sdk`
 
 ```bash
-node runner -- sdk ./interface_sdk-js ./out/patched-sdk-arkts ./out/patched-sdk-ts
+node runner sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>
 ```
 
----
+准备 SDK，但不运行代码生成。
 
-### 命令：`m3-sdk` <a id="命令-m3-sdk"></a>
+| 参数 | 说明 |
+|---|---|
+| `<sdk-path>` | 原始 SDK 目录路径。 |
+| `<prepared-sdk-12>` | API 12 prepared SDK 输出路径。 |
+| `<prepared-sdk-11>` | API 11 prepared SDK 输出路径。 |
 
-```
-node runner -- m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>
-```
-
-准备一个适合链接 peer 的 SDK。生成一个使用绝对路径重写导入的"绝对" SDK。
-
-#### 位置参数
-
-| 参数 | 类型 | 必需 | 描述 |
-|----------|------|----------|-------------|
-| `<prepared-sdk-12>` | string | 是 | 已准备 SDK（API 12）路径 |
-| `<absolute-prepared-sdk-12>` | string | 是 | 绝对 SDK 的输出路径 |
-
-#### 选项
-
-| 选项 | 类型 | 默认值 | 描述 |
-|--------|------|---------|-------------|
-| `--original-sdk` | flag | - | 将第一个参数视为需要先准备的原始 SDK |
-
-#### 示例
+示例：
 
 ```bash
-node runner -- m3-sdk ./out/patched-sdk-arkts ./out/absolute-sdk
+node runner sdk ./interface_sdk-js ./out/patched-sdk-arkts ./out/patched-sdk-ts
 ```
 
----
+## 5. `m3-sdk`
 
-### 命令：`sdk-new-shape` <a id="命令-sdk-new-shape"></a>
-
+```bash
+node runner m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12> [options]
 ```
-node runner -- sdk-new-shape <path>
+
+生成适合 peer 链接使用、且路径不依赖当前工作目录的 SDK。
+
+| 选项 | 说明 |
+|---|---|
+| `--original-sdk` | 将第一个参数视为原始 SDK，并先执行准备流程。 |
+
+示例：
+
+```bash
+node runner m3-sdk ./out/patched-sdk-arkts ./out/absolute-sdk
+```
+
+## 6. SDK 形态转换命令
+
+### `sdk-new-shape`
+
+```bash
+node runner sdk-new-shape <path>
 ```
 
 通过转换 builder 函数创建新的 SDK 形态。
 
-#### 位置参数
+### `transform-builder-functions`
 
-| 参数 | 类型 | 必需 | 描述 |
-|----------|------|----------|-------------|
-| `<path>` | string | 是 | 要转换的 SDK 目录路径 |
-
----
-
-### 命令：`transform-builder-functions` <a id="命令-transform-builder-functions"></a>
-
-```
-node runner -- transform-builder-functions <api-path>
+```bash
+node runner transform-builder-functions <api-path>
 ```
 
 在预处理后的 SDK API 目录中转换组件 builder 函数。
 
-#### 位置参数
+## 7. 输出位置
 
-| 参数 | 类型 | 必需 | 描述 |
-|----------|------|----------|-------------|
-| `<api-path>` | string | 是 | SDK API 目录路径 |
+| 场景 | 输出 |
+|---|---|
+| `m3 --target sig` | 将 `runner/out/peers/sig/` 安装到 `--output`。 |
+| `m3 --target libace` | 将 `runner/out/peers/libace/` 安装到 `--output`。 |
+| `m3 --target all` | 将整个 `runner/out/peers/` 安装到 `--output`，通常包含 `sig/` 和 `libace/`。 |
+| 中间 IDL | `runner/out/idl/`。 |
+| 中间 peer 输出 | `runner/out/peers/`。 |
 
----
+## 8. 常用模式
 
-## 2. 常用模式
-
-### 完整管线：SDK 到 peer
+### SDK 到完整生成输出
 
 ```bash
-# 步骤 1：准备 SDK
-node runner -- sdk ./interface_sdk-js ./out/patched-sdk-arkts ./out/patched-sdk-ts
+node runner sdk ./interface_sdk-js ./out/patched-sdk-arkts ./out/patched-sdk-ts
 
-# 步骤 2：运行 m3 管线
-node runner -- m3 ./out/patched-sdk-arkts ./custom.idl \
+node runner m3 ./out/patched-sdk-arkts ./custom.idl \
   --output ./out \
   --sdk-stage prepared \
   --arkgen-options-file ./arkgen/generation-config/config.json \
   --etsgen-options-file ./etsgen/generator-config.json \
-  --arkgen-interop-types ./interop-types.h \
-  --scraper-options-file ./scraper-config.json \
+  --arkgen-interop-types ./runner/interop-types/src/cpp/interop-types.h \
+  --scraper-options-file ./runner/configs/scraper-config.json \
   --target all \
   --language arkts
-
-# 安装后的输出位于 ./out/sig/ 和 ./out/libace/。
-# 管线中间产物仍保留在 runner/out/peers/ 下。
 ```
 
-### 仅从 IDL 快速生成
+### 快速定位参数定义
 
-当已有 IDL 文件时，跳过 SDK 准备和 ETS 到 IDL 转换：
-
-```bash
-node runner -- m3 ./sdk ./my-component.idl \
-  --output ./out \
-  --sdk-stage idl \
-  --arkgen-options-file ./config.json \
-  --arkgen-interop-types ./interop-types.h \
-  --scraper-options-file ./scraper.json
-```
+命令参数定义在 `runner/src/main.ts`。如果本文档与源码不一致，以源码为准。

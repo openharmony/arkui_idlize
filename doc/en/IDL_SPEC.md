@@ -1,254 +1,181 @@
-- [package/namespace](#packagenamespace)
-- [import/typedef](#importtypedef)
-- [literal types](#literal-types)
-  - [primitives](#primitives)
-  - [containers](#containers)
-    - [optional](#optional)
-    - [sequence](#sequence)
-    - [union](#union)
-    - [record](#record)
-- [declarations](#declarations)
-  - [enumeration (using dictionary syntax)](#enumeration-using-dictionary-syntax)
-  - [constant](#constant)
-  - [function](#function)
-  - [callback](#callback)
-  - [interface](#interface)
-- [extended attributes](#extended-attributes)
-- [version](#version)
+# IDL Language Specification
 
+This document describes the IDL intermediate language used by IDLize. IDL
+connects SDK declarations and generators: `etsgen` converts `.d.ts` / `.d.ets`
+to `.idl`, `core` parses `.idl` into AST, and `arkgen` plus `libohos` generate
+ArkTS, C++, and Arkoala-related code from that AST.
 
-# **package/namespace** <a id="packagenamespace"></a>
+## 1. package and namespace
 
-The *package* directive and the *namespace* container are designed to semantically structure a set of declarations into named scopes, allowing complexity to be managed through localization. The *package* directive specifies the root scope of the current module, while the namespace container enables the creation of nested scopes.
+The `package` directive defines the root namespace of the current file. The
+`namespace` container creates nested namespaces inside a file.
 
- **Examples:** 
-
-```
+```idl
 package ohos.bluetooth;
+
 namespace gatt {
-    interface Server {/*...*/}
-    // ohos.bluetooth.gatt.Server
+    interface Server {
+    }
+    // Fully qualified name: ohos.bluetooth.gatt.Server
 }
 ```
 
-# import/typedef <a id="importtypedef"></a>
+## 2. import and typedef
 
-The *import* directive maps the specified scope onto the current one.
+`import` maps a namespace into the current scope:
 
- **Example:** 
-
-```
+```idl
 import ohos;
-interface MySrv : bluetooth.Server {/*...*/}
-//  ohos.bluetooth.Server becomes visible as bluetooth.Server via 'import ohos'
+
+interface MySrv : bluetooth.Server {
+}
+// ohos.bluetooth.Server is available as bluetooth.Server
 ```
 
-A  *typedef*  declaration is used to assign a new name to an existing type within the current scope.
+`typedef` defines an alias for an existing type:
 
- **Example:** 
-
-```
+```idl
 typedef MySrv = ohos.bluetooth.Server;
-// MySrv alias for ohos.bluetooth.Server
 ```
 
-# literal types
+## 3. Types
 
-Primitive types and the most common generic containers are available in their literal form.
+### 3.1 Primitive Types
 
-## primitives
-**Composition of primitives:**  
-  
-1. void  
-2. boolean  
-3. **Integers:**  
-    1. i8 / u8  
-    2. i16 / u16  
-    3. i32 / u32  
-    4. i64 / u64  
-4. **Real numbers:**  
-    1. f32
-    2. f64
-5. number / bigint  
-6. String  
-7. buffer   
+| Type | Description |
+|---|---|
+| `void` | No return value. |
+| `boolean` | Boolean value. |
+| `i8` / `u8` | 8-bit signed / unsigned integer. |
+| `i16` / `u16` | 16-bit signed / unsigned integer. |
+| `i32` / `u32` | 32-bit signed / unsigned integer. |
+| `i64` / `u64` | 64-bit signed / unsigned integer. |
+| `f32` / `f64` | 32-bit / 64-bit floating-point number. |
+| `number` | Numeric type. |
+| `bigint` | Big integer type. |
+| `String` | String. |
+| `buffer` | Binary buffer. |
 
-## containers
+### 3.2 optional
 
-### optional
+Parameters can be marked optional with `optional`:
 
-These semantics are not defined for types themselves, but only for aggregate elements, using a special syntax. 
-
- **Example:** 
-
+```idl
+void someMethod(optional String someParameter);
 ```
-// optional parameter of function/method
-void someMethod(optional String someParameter); 
 
+Interface attributes can be marked optional with `[Optional]`:
+
+```idl
 interface I1 {
-    // optional interface attribute
-    [Optional] attribute String someAttribute;
+    [Optional]
+    attribute String someAttribute;
 }
 ```
 
-If it is necessary to make a type optional, you can use `?` suffix or define a union with `undefined` inside.
+When a type itself needs optional semantics, use the `?` suffix or a union that
+contains `undefined`:
 
- **Example:**
-
-```
+```idl
 typedef OptNumber = number?;
-typedef OptNumber = (number or undefined);
+typedef OptNumber2 = (number or undefined);
 ```
 
-### sequence
+### 3.3 sequence
 
-A dynamic array of elements of a given type. 
+`sequence<T>` represents a dynamic array of the specified element type:
 
- **Example:** 
-
-```
-void someMethod(sequence<String> someParameter);
+```idl
+void someMethod(sequence<String> values);
 ```
 
-### union
+### 3.4 union
 
-A container that holds a value of one of multiple types.
+A union type means the value can be one of several types:
 
-**Example:** 
-
-```
-void someMethod((sequence<String> or String or number) someParameter);
+```idl
+void someMethod((sequence<String> or String or number) value);
 ```
 
-### record
+### 3.5 record
 
-An associative container with specified key and value types. 
+`record<K, V>` represents a key-value map:
 
-**Example:** 
-
-```
-void someMethod(record<String, boolean> someParameter);
+```idl
+void someMethod(record<String, boolean> flags);
 ```
 
-# declarations
+## 4. Declarations
 
-Declarations introduce new entities (types, values, functions) into the current scope, making them accessible by name.
+### 4.1 Enumeration
 
-## enumeration (using dictionary syntax)
+IDL uses `dictionary` syntax for integer or string enumerations. Do not mix
+integer entries and string entries in the same enumeration.
 
-Declares an enumerated type with a domain of integer or string values. Within a dictionary, integer and
-string items cannot be mixed.
-
-**Example:** 
-
-```
+```idl
 dictionary Origin {
     number local = 0;
     number remote = 1;
 };
 ```
 
-## constant
+### 4.2 Constants
 
-Declares a value of the specified type. The set of allowed types is limited:
+Constants support boolean, numeric, and string literals. Constants are not
+types.
 
--   boolean,
--   integers and real numbers,
--   strings.
-
-The value can only be specified in literal form (expressions, generators, etc. are not supported). 
-
- **Example:** 
-```
+```idl
 const String MIMETYPE_TEXT_PLAIN = "text/plain";
 const number three = 3;
 ```
 
- _(A constant is not a type.)_ 
+### 4.3 Functions
 
-## function
+A function declaration contains a return type, a function name, and a parameter
+list:
 
-Declares a function. Here is an example of a function that takes no arguments and returns nothing:
-
-```
+```idl
 void foo();
-```
-
-The result type and argument types can be of any kind; there are no restrictions on them. A parameter can also be declared as optional. The function can be preceded by the async marker, indicating that it returns its result in a deferred manner.
-
-```
 async number bar(String param1, optional boolean param2);
 ```
 
-Functions with the same name can form overloaded sets; distinctions are made based on the parameter signatures.
+Functions with the same name can form an overload set distinguished by
+parameter signature:
 
-```
+```idl
 number bar(String param1);
 number bar(String param1, boolean param2);
 number bar(String param1, i32 param2);
 ```
 
-(Function is not a type.)
+### 4.4 Callbacks
 
-## callback
+`callback` declares a named callable type. Callbacks can be used as attribute
+types, method parameters, or function parameters.
 
-Declares a named callable type whose values enable the corresponding callbacks to be passed between user and service implementations, allowing their deferred activation on the receiving side to reverse the flow of activity in the user-service model. 
-
- **Example:** 
-
-```
+```idl
 callback Foo = number (number param1, optional String param2);
-```
 
-Callback values can be assigned to interface attributes or passed as function/method parameters. 
-
- **Examples:** 
-
-```
 interface I1 {
     attribute Foo foo;
 }
+
 void setReactor(Foo foo);
 ```
 
-Unlike functions and methods, a callback signature cannot be marked with the async marker.
+Callback signatures cannot use `async`.
 
-## interface
+### 4.5 Interfaces
 
- **Declares a contract in an object-oriented style, which consists of:** 
-  
- 1.  Optionally, a base interface for inheritance.   
- 2.   **Attributes, which can be marked as *optional* or *static*:**    
-     1. Type  
-     2. Name  
- 3.   **Methods, which can be marked as *static* and *async*:**    
-     1. Return type  
-     2. Name  
-     3. Set of typed/named parameters  
- 4.   **Constructors:**    
-     1. Set of typed/named parameters  
- 5.   **Constants:**    
-     1. Type  
-     2. Name  
-     3. Value  
+Interfaces can contain inheritance, attributes, methods, constructors, and
+constants.
 
-Static attributes and methods are associated not with an instance of an interface but with the interface itself.
-
-Constructors are special methods with the following implicit restrictions:
-
-   1. The return type is always an instance of the interface.
-   2. The method name is always "constructor".
-   3. The constructor is always static, even though it is not explicitly marked with the static attribute.
-
-Interfaces are types. An interface instance (value) is a small identifier that links the instance to the corresponding implementation object. An interface value can be stored in attributes, passed as a parameter, or returned from a function/method.
-
- **Examples:** 
-
-```
+```idl
 interface File {
     attribute String name;
     attribute u32 size;
-    [Optional] attribute String lastError;
+    [Optional]
+    attribute String lastError;
 
     void seek(u32 offset);
     u32 pos();
@@ -264,34 +191,47 @@ interface TxtFile : File {
 }
 ```
 
-The concept of a *class* is not explicitly implemented in IDL but can be represented at the application level through various mechanisms, such as the presence of a constructor.
+An interface is a type. An interface value is an identifier connected to a
+concrete implementation object. It can be stored in attributes, passed as a
+parameter, or returned from a function or method.
 
-# extended attributes
+Constructors have these implicit rules:
 
-Many declarations and their components can be supplemented with additional metadata using the extended attributes mechanism. Most extended attributes are technical in nature and are not intended for application-level use; only a few can be explicitly utilized at the application level:
+- The return type is always an instance of the current interface.
+- The name is always `constructor`.
+- A constructor always has static semantics, even when `static` is not written.
 
--   Documentation
+## 5. Extended Attributes
+
+Extended attributes add generator metadata to declarations. Common extended
+attributes include:
+
+| Extended attribute | Description |
+|---|---|
+| `[Component]` | Marks an ArkUI component interface. |
+| `[ComponentInterface]` | Marks a component attribute setter interface. |
+| `[Entity=Class]` | Generates the interface as a class shape. |
+| `[Entity=Interface]` | Generates the interface as an interface shape. |
+| `[Optional]` | Marks an attribute as omittable. |
+| `[Deprecated]` | Marks a declaration as deprecated. |
+| `[Throws]` | Marks a method as possibly throwing. |
+| `[Accessor=Getter]` / `[Accessor=Setter]` | Marks an attribute accessor direction. |
+| `[Documentation="..."]` | Carries original comments or inline documentation. |
+
+Example:
+
+```idl
+[Documentation="/** Input method subtype */"]
+interface InputMethodSubtype {
+}
 ```
-[Documentation="/**
-* @file
-* @kit IMEKit
-**/
-/**
-* Input method subtype
-* @interface InputMethodSubtype
-* @syscap SystemCapability.MiscServices.InputMethodFramework
-* @since 9
-*/"] interface InputMethodSubtype {}
-```
--   Entity/Component/ComponentInterface, various labels that make sense in certain environments
 
-# version
+## 6. version
 
-The version directive allows marking a root or nested namespace with a semantic versioning-like label. 
+The `version` directive marks a root namespace or nested namespace with a
+version:
 
- **Example:** 
-
-```
+```idl
 namespace ns {
     version 1.2.3-dev456;
 };

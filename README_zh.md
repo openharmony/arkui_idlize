@@ -1,66 +1,82 @@
-# IDLize部件
+# IDLize 工具
 
 <p><img align="bottom" src="artwork/logo.svg" alt="IDLize logo" width="100"/></p>
 
-[English](README.md)
 
 ## 简介
 
-IDLize是面向OpenHarmony ArkUI生态的编译器工具链，用于读取接口声明文件
-（`.d.ts`、`.d.ets`、`.idl`）并生成原生绑定代码。生成产物包括ArkTS peer类、
-C++ libace modifier，以及ArkUI组件框架使用的序列化代码。
+IDLize 是给 ArkUI 开发使用的编译期代码生成工具，用于读取接口声明文件
+（`.d.ets`、`.idl`）并生成代码。生成代码产物包括 ArkTS 层代码、
+C++ 层代码，以及 ArkTS 层和 C++ 层之间进行回调和类型转换的序列化代码。
 
-本仓库属于ArkUI框架子系统，提供IDL转换、解析、代码生成和管线编排工具，
-用于为ArkUI生成面向ArkTS、Cangjie等目标语言的桥接层代码。更多ArkUI框架子系统
-相关概念，请参考
-[ArkUI框架子系统README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)。
+本仓库属于 ArkUI 子系统，为 ArkUI 开发提供代码生成工具。更多 ArkUI
+框架子系统相关概念，请参考
+[ArkUI 框架子系统 README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)。
 
-本仓库文档主要面向IDLize工具开发者，用于为生成器增加能力、维护管线，或排查
-生成结果。本仓库的工具使用者是把IDLize用于ArkUI绑定流程的ArkUI系统开发者，
-可以从[作为工具使用IDLize](#作为工具使用idlize)开始阅读。
+> **本文档面向谁。** 本 README 主要面向**IDLize 工具开发者**，用于为生成器增加能力、维护生成器功能，或排查生成结果。如果只是想**使用** IDLize 生成 ArkUI 代码，请从 [作为工具使用 IDLize](#作为工具使用-idlize) 开始阅读。
 
 ### 核心概念
 
-**Arkoala**
-Arkoala是多语言ArkUI运行时项目，用于消费IDLize生成的绑定代码。本仓库中与
-Arkoala相关的产物包括peer接口、语言绑定，以及面向ArkTS、Cangjie等目标的
-序列化胶水代码。
+**FrameNode**
+ArkUI 的 C++ 层组件节点，表示 ArkUI 树中的一个组件实例。它保存属性、布局和渲染所需
+的状态。
 
-**framenode**
-原生ArkUI树节点，表示运行时UI树中的一个组件实例。它保存属性、布局和渲染所需
-的原生状态。
+**Peer**
+由 IDLize 工具生成的 ArkTS 层类，用于暴露组件的属性和方法，并转发属性设置等操作到 C++ 层的组件上。
 
-**peer**
-生成的应用层类，镜像ArkUI组件的API接口。Peer暴露组件的属性和方法，并把对应
-framenode的更新转发到原生侧。
+**Modifier**
+由 IDLize 工具生成的 C++ 层类，用于将组件属性的变化传递到 FrameNode。
 
-**modifier**
-生成的C++ libace对象，在运行时将属性变更应用到framenode。Modifier接收序列化
-后的setter数据，并将其转换为ArkUI原生调用。
-
-**serializer**
-生成的代码，用于为进程间通信（IPC）调用编码属性值。Serializer将IDL表示中的
-类型值转换为适合跨越ArkTS/C++边界的线路格式。
-
-**materialized**
-组件的peer根据IDL定义完整生成，而不是只生成stub。Materialization通过
-`arkgen/generation-config/config.json`逐组件控制。未被materialized的组件仅生成
-最小stub。
+**Serializer**
+由 IDLize 工具生成的序列化代码，用于在 ArkTS 层和 C++ 层之间进行类型转换。
 
 ### 架构
 
-![idlize_architecture_zh](doc/img/idlize_architecture_zh.png)
+**图 1** IDLize 架构图
 
-图1 IDLize架构图
+![](./doc/img/idlize-box-architecture.png)
 
-IDLize使用如下管线：
+### 架构说明
 
-1. `scraper/`拉取并规范化外部SDK内容。
-2. `etsgen/`将`.d.ts`和`.d.ets`声明转换为`.idl`。
-3. `core/`解析IDL文件并构建IDL抽象语法树（AST）。
-4. `arkgen/`和`libohos/`遍历AST，输出ArkTS peer、C++ libace modifier、
-   serializer和Arkoala胶水代码。
-5. `runner/`将生成结果安装到目标目录。
+IDLize 工具主要由编译与处理、代码生成、支撑库三大模块组成。
+
+#### 编译与处理模块
+
+负责把外部 SDK、补充接口和手写接口整理成可被生成器稳定消费的统一接口描述。
+
+- 输入准备：负责转换、裁剪和合并输入的接口描述，保证后续处理只面对必要且一致的接口集合。
+  - SDK 准备器：对 OHOS SDK 进行前处理，提取 ArkUI 代码生成所需的接口声明文件。
+  - 声明转换器：读取 ArkTS 风格的声明文件，将类、接口、枚举、属性、方法和组件信息转换为统一的接口描述文件。
+  - IDL 筛选合并器：把转换得到的接口文件和额外补充的接口文件放在一起整理，挑出生成 ArkUI 组件真正需要的部分，去掉无关内容，并生成后续生成器需要的模块配置。
+- IDL 核心：负责理解统一接口描述，并把文本形式的接口内容变成结构化的语义模型，供所有生成器共享。
+  - IDL 语法解析器：读取接口描述文本，识别包、命名空间、接口、枚举、属性、方法、类型和扩展信息，并在格式错误时给出诊断。
+  - IDL 抽象语法树：以树状结构保存接口文件中的所有声明、类型关系、继承关系和位置信息，是后续筛选、转换和生成的基础。
+
+#### 代码生成模块
+
+负责把统一接口描述转换成 ArkUI 需要的 ArkTS 层代码、C++ 层代码、序列化逻辑和工程集成文件。
+
+- 生成管线：负责组织生成前后的完整流程，让接口描述能够稳定变成目标目录中的生成产物。
+  - 生成管线编排器：按顺序串联输入准备、接口解析、代码生成和格式整理。
+  - 生成后处理器：处理生成后的格式化和输出目录整理，使生成结果可以直接进入下游工程。
+- 生成器：负责围绕组件和接口关系生成不同组件的代码，每类生成器服务于一条明确的运行链路。
+  - Peer 生成器：生成 ArkTS 层组件封装，负责创建组件对应的 ArkTS 层节点，保存跨语言调用所需句柄，并把属性和方法调用转发到 C++ 层。
+  - Modifier 生成器：生成属性更新链路，记录、合并和应用属性变化，并提供 C++ 层可调用的更新入口，把属性变更落到 ArkUI 节点上。
+
+#### 支撑库
+
+负责提供生成过程中反复使用的公共能力，避免各生成器重复处理文件布局、缩进输出、类型写法和目标语言差异。
+
+- 生成支撑库：负责把生成片段组织成完整文件，并统一处理依赖收集、输出路径、命名空间、版权提示和语言外壳。
+  - 共享生成支撑库：提供组件收集、依赖收集、文件布局、模块导入、序列化辅助等公共生成能力。
+  - 代码打印器：负责按层级输出文本，维护缩进、拼接片段和写入文件，保证生成代码结构清晰稳定。
+  - 目标语言写入器：把类、接口、方法、属性、条件、循环、导入和类型转换等通用生成动作转换成不同目标语言的具体写法。
+
+#### 外部依赖
+
+为声明读取和 ArkTS 语法理解提供底层能力，是声明转换阶段能够准确识别 ArkTS 接口结构的基础。
+
+- arkcompiler_ets_frontend：负责提供 ArkTS 声明解析能力，使工具能够读取 SDK 中的 ArkTS 接口结构，并转换为后续生成使用的统一接口描述。
 
 ## 目录
 
@@ -68,45 +84,23 @@ IDLize使用如下管线：
 
 ```text
 /arkui_idlize
-├── arkgen                 # ArkUI组件peer生成器和生成配置
-├── arktscgen              # ArkTS专用代码生成路径
-├── artwork                # 文档使用的项目图形资源
-├── core                   # IDL AST、parser、LanguageWriter、配置和诊断
+├── arkgen                 # ArkUI 代码生成器
+├── core                   # IDL 抽象语法树的核心定义
 ├── doc                    # 工具使用者文档
 ├── doc_developer          # 工具开发者文档
-├── dtsgen                 # 从IDL反向生成.d.ts声明
-├── etsgen                 # .d.ts/.d.ets到IDL的转换器
-├── external               # 工具链使用的外部依赖
-├── idlinter               # IDL检查规则
-├── interface_sdk-js       # 上游SDK子模块，只读
-├── interfaces             # 下游消费的接口定义包
-├── libohos                # 共享printer、serializer和peer基础设施
-├── linter                 # .d.ts/.d.ets声明检查规则
-├── ohosgen                # OHOS目标生成器和集成示例
-├── runner                 # 端到端管线编排器和m3命令
-├── scraper                # SDK抓取、缓存和规范化工具
-├── sdk-patched            # 修补后的上游TypeScript SDK声明
-├── sdk-patched-arkts      # 修补后的上游ArkTS SDK声明
-└── tools                  # 仓库搭建、SDK下载和发布工具
+├── etsgen                 # .d.ets 到 IDL 的转换器
+├── idlinter               # .idl 文件语法检查器
+├── libohos                # 代码生成支撑库
+├── runner                 # 生成管线编排器
+├── scraper                # SDK 预处理工具
+└── tools                  # 仓库打包发布工具
 ```
-
-`out/`、`build/`、`bundled/`，以及与`src/`相邻的`lib/`等生成目录是管线产物，
-不要手工修改。
-
-## 约束
-
-- 使用Node.js 18或更高版本。当前验证过的命令行环境使用Node.js 18。
-- 除非步骤明确切换目录，否则从仓库根目录执行命令。
-- 安装或编译依赖前，先初始化子模块。
-- 编译完整管线前，使用`PANDA_SDK_VERSION=1.5.0-dev.58082`准备
-  `external/libarkts`。
-- 不要手工修改`interface_sdk-js/`；如需修补上游声明，请通过`sdk-patched/`
-  或`sdk-patched-arkts/`处理。
-- 任何影响管线输出的变更，都需要执行`bash generate.sh`重新生成。
 
 ## 编译构建/使用方法
 
 ### 构建开发环境
+
+**前置条件：** Node.js 18 或更高版本，以及 git。
 
 1. 克隆子模块并安装根目录依赖。
 
@@ -118,16 +112,7 @@ npm i
 cd ..
 ```
 
-2. 准备`libarkts`，使ArkTS相关生成器可以编译。
-
-```bash
-cd external/libarkts
-PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
-npm run compile
-cd ../..
-```
-
-3. 编译管线入口。
+2. 编译管线入口。
 
 ```bash
 cd runner
@@ -135,7 +120,7 @@ npm run compile
 cd ..
 ```
 
-4. 下载并准备标准生成流程使用的SDK输入。
+3. 下载 OHOS SDK。
 
 ```bash
 npm run download:sdk
@@ -151,92 +136,42 @@ npm run download:sdk
 bash generate.sh
 ```
 
-安装后的生成输出位于`./out`目录；管线中间产物位于`runner/out`。当生成代码与
-源声明或IDL结构不一致时，可以认为“不符合预期”，例如组件、方法或属性缺失；参数
-类型、可选标记或返回类型错误；目标文件未生成；或生成的ArkTS/C++代码编译失败。
-
-定位偏离阶段时，请按产物链路反向检查：
-
-1. 先在`out/`中确认安装后产物的现象。
-2. 对比`runner/out/peers/sig/`或`runner/out/peers/libace/`中的中间peer输出，
-   确认生成API形态是否符合预期。
-3. 检查`runner/out/idl/`，确认parser实际接收到的IDL内容。
-4. 如果IDL已经错误，继续检查`runner/out/patched-sdk-arkts/`、
-   `runner/out/patched-sdk-ts/`和`runner/out/scraper/`等更早的暂存目录。
+执行完成后的生成输出位于 `./out` 目录；管线中间产物位于 `runner/out`。
 
 ### 常见问题与排查
 
 | 现象 | 检查项 | 处理方法 |
 |---|---|---|
-| `node`或`npm`报版本或语法错误 | 在仓库根目录执行`node -v`。 | 使用Node.js 18或更高版本；必要时重新安装依赖。 |
-| 依赖安装失败 | 确认子模块已初始化，且安装命令在正确目录执行。 | 执行`git submodule update --init`，再分别在仓库根目录和`external/`执行`npm i`。如果npm无法下载包，检查网络或代理配置。 |
-| `external/libarkts`找不到panda SDK | 确认命令在`external/libarkts`目录执行，并带有要求的`PANDA_SDK_VERSION`。 | 执行`PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall`，然后执行`npm run compile`。 |
-| 生成结果缺少预期API | 对比`out/`、`runner/out/peers/`和`runner/out/idl/`。 | 确认源声明已进入SDK补丁或额外IDL输入，然后重新执行`bash generate.sh`。 |
+| `node` 或 `npm` 报版本或语法错误 | 在仓库根目录执行 `node -v`。 | 使用 Node.js 18 或更高版本；必要时重新安装依赖。 |
+| 在 `external/` 中执行 `npm run compile` 失败 | 先重新执行 `cd external && npm i`。 | 编译前必须先安装 `external/` 及其子模块依赖。 |
+| 生成结果缺少预期 API | 对比 `out/`、`runner/out/peers/` 和 `runner/out/idl/`。 | 确认 SDK 声明无误，然后重新执行 `bash generate.sh`。 |
 
-### 开发管线变更
-
-1. 先确定变更由哪个workspace负责。
-
-| 变更内容 | Workspace |
-|---|---|
-| IDL parser、AST、`LanguageWriter` | `core/` |
-| `.d.ts`或`.d.ets`到IDL的转换 | `etsgen/` |
-| ArkUI peer生成和生成配置 | `arkgen/` |
-| 共享printer、serializer、peer基础设施 | `libohos/` |
-| 端到端管线编排 | `runner/` |
-| 声明检查 | `linter/`、`idlinter/` |
-
-2. 编译受影响的workspace；如果变更跨越多个管线阶段，可以通过`runner`编译。
-
-```bash
-npm run -C core compile
-npm run -C etsgen compile
-npm run -C arkgen compile
-npm run -C runner compile
-```
-
-3. 运行与变更匹配的测试或检查。
-
-```bash
-npm run -C core test
-npm run -C etsgen test
-npm run -C arkgen test
-npm run sanity
-```
-
-4. 任何影响管线输出的变更，都需要重新生成。
-
-```bash
-bash generate.sh
-```
+如需深入排查，请参考 [追踪生成结果](doc/zh-cn/USER_GUIDE.md#3-判断生成结果是否正确) 和
+[调试路径](doc_developer/zh-cn/ARCHITECTURE.md#6-调试路径)。
 
 ## 说明
 
 ### 接口说明
 
-IDLize通过npm workspace包提供命令行工具。
+IDLize 通过 npm 提供命令行工具。
 
-| 工具 | 包或workspace | 功能 |
+| 工具 | npm 包 | 功能 |
 |---|---|---|
-| Peer Generator | `arkgen` | 从IDL定义生成ArkTS peer、C++ libace modifier和Arkoala绑定。 |
-| IDL Converter | `etsgen` | 将`.d.ts`和`.d.ets`声明转换为IDL格式。 |
-| Pipeline Runner | `runner` | 通过`m3`编排SDK准备、IDL转换、抓取、peer生成和输出安装。 |
-| 声明检查工具 | `linter`、`idlinter` | 验证`.d.ts`、`.d.ets`和`.idl`声明。 |
-| IDL Generator | `dtsgen` | 从IDL定义生成`.d.ts`声明。 |
+| ArkUI 代码生成器 | `arkgen` | 从 IDL 定义生成 ArkTS peer、C++ libace modifier 和 Arkoala 绑定。 |
+| IDL 转换器 | `etsgen` | 将 `.d.ts` 和 `.d.ets` 声明转换为 IDL 格式。 |
+| 生成管线编排工具 | `runner` | 编排 SDK 准备、IDL 转换、抓取、peer 生成和输出安装，驱动标准生成流程。 |
+| 声明检查工具 | `linter`、`idlinter` | 验证 `.d.ts`、`.d.ets` 和 `.idl` 声明。 |
 
-命令参数和示例请参考[工具使用者指南](doc/zh-cn/USER_GUIDE.md)、
-[CLI参考](doc/zh-cn/CLI_REFERENCE.md)和[IDL规范](doc/zh-cn/IDL_SPEC.md)。
+命令参数和示例请参考 [工具使用者指南](doc/zh-cn/USER_GUIDE.md)、
+[CLI 参考](doc/zh-cn/CLI_REFERENCE.md) 和 [IDL 规范](doc/zh-cn/IDL_SPEC.md)。
 
-### 作为工具使用IDLize
+### 作为工具使用 IDLize
 
-工具使用者通常提供SDK声明或手写IDL，运行管线，然后消费生成的ArkTS/C++绑定代码。
+工具使用者通常提供 SDK 声明或手写 IDL，运行管线，然后使用生成的代码。
 
 ```bash
 bash generate.sh
 ```
-
-如果需要自定义生成流程，可以使用`runner m3`指定SDK阶段、生成目标、输出路径和
-配置文件。常见工作流请参考[工具使用者指南](doc/zh-cn/USER_GUIDE.md)。
 
 ## 文档
 
@@ -251,13 +186,13 @@ bash generate.sh
 
 | 文档 | 说明 |
 |---|---|
-| [工具使用者指南](doc/zh-cn/USER_GUIDE.md) | IDLize工具使用者工作流：初始生成、新接口、参数变更。 |
-| [CLI参考](doc/zh-cn/CLI_REFERENCE.md) | `runner`的参数和用法。 |
-| [IDL规范](doc/zh-cn/IDL_SPEC.md) | IDL语言语法、类型和扩展属性。 |
+| [工具使用者指南](doc/zh-cn/USER_GUIDE.md) | IDLize 工具使用者工作流：初始生成、新接口、参数变更。 |
+| [CLI 参考](doc/zh-cn/CLI_REFERENCE.md) | `runner` 的参数和用法。 |
+| [IDL 规范](doc/zh-cn/IDL_SPEC.md) | IDL 语言语法、类型和扩展属性。 |
 
 ## 相关仓
 
-[ArkUI框架子系统](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+[ArkUI 框架子系统](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
 
 [arkui_ace_engine](https://gitcode.com/openharmony/arkui_ace_engine)
 
