@@ -3,8 +3,8 @@
     "version": "2.2.2+devel",
     "description": "",
     "type": "module",
-    "main": "build/lib/src/main.js",
-    "bin": "build/lib/src/main.js",
+    "main": "index.js",
+    "bin": "index.js",
     "exports": "./build/lib/src/index.js",
     "types": "./build/lib/src/index.d.ts",
     "files": [
