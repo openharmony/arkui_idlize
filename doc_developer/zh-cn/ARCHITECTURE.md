@@ -96,7 +96,7 @@ flowchart LR
 | `core/src/idl/discriminators.ts` | AST 类型守卫。 |
 | `core/src/idl/utils.ts` | AST 查询和辅助操作。 |
 | `core/src/LanguageWriters/LanguageWriter.ts` | 目标语言无关的写入抽象。 |
-| `core/src/LanguageWriters/writers/` | TS、ArkTS、C++、CangJie、Kotlin writer。 |
+| `core/src/LanguageWriters/writers/` | TS、ArkTS、C++、CangJie 等目标语言 writer。 |
 | `core/src/LanguageWriters/convertors/` | IDL 类型到目标语言类型的转换器。 |
 | `core/src/peer-generation/` | 共享 peer 模型、引用解析和布局基础设施。 |
 
@@ -178,7 +178,7 @@ C++ Modifier 和 Arkoala 接口。
 | 文件 | 用途 |
 |---|---|
 | `runner/src/main.ts` | 定义 `m3`、`complete`、`sdk`、`m3-sdk` 等命令。 |
-| `runner/src/shared.ts` | 定义 `runner/out` 下的权威路径常量。 |
+| `runner/src/shared.ts` | 定义 `runner/out` 下的输出路径常量。 |
 | `runner/src/commands/ets2idl.ts` | 调用 `etsgen`。 |
 | `runner/src/commands/idl2peer.ts` | 调用 `arkgen`。 |
 | `runner/src/commands/sdk.ts` | 准备 patched SDK。 |
@@ -188,7 +188,7 @@ C++ Modifier 和 Arkoala 接口。
 
 ## 5. `runner/out` 数据流
 
-`runner/src/shared.ts` 是输出路径的权威来源。标准生成会写入以下主要目录：
+`runner/src/shared.ts` 集中定义输出路径。标准生成会写入以下主要目录：
 
 | 目录 | 内容 |
 |---|---|

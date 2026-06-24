@@ -1,7 +1,7 @@
 # IDLize Developer Guide
 
 This guide is for tool developers who maintain the IDLize generators and
-pipeline. After reading it, you should be able to determine:
+pipeline. After reading it, readers should be able to determine:
 
 - What IDLize owns in the ArkUI code generation flow.
 - Which stages a standard generation run goes through.
@@ -205,7 +205,7 @@ first.
 | `core/src/idl/discriminators.ts` | AST type guards. |
 | `core/src/idl/utils.ts` | AST query and helper functions. |
 | `core/src/LanguageWriters/LanguageWriter.ts` | Target-language-neutral code writing abstraction. |
-| `core/src/LanguageWriters/writers/` | TS, ArkTS, C++, CangJie, and Kotlin writers. |
+| `core/src/LanguageWriters/writers/` | Writers for TS, ArkTS, C++, CangJie, and more target languages. |
 | `core/src/LanguageWriters/convertors/` | Converters from IDL types to target-language types. |
 | `core/src/peer-generation/` | Shared peer model, reference resolution, and layout infrastructure. |
 

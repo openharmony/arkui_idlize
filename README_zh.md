@@ -13,7 +13,7 @@ C++ 层代码，以及 ArkTS 层和 C++ 层之间进行回调和类型转换的�
 框架子系统相关概念，请参考
 [ArkUI 框架子系统 README](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/ArkUI%E6%A1%86%E6%9E%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)。
 
-> **本文档面向谁。** 本 README 主要面向**IDLize 工具开发者**，用于为生成器增加能力、维护生成器功能，或排查生成结果。如果你只是想**使用** IDLize 生成 ArkUI 代码，请从 [作为工具使用 IDLize](#作为工具使用-idlize) 开始阅读。
+> **本文档面向谁。** 本 README 主要面向**IDLize 工具开发者**，用于为生成器增加能力、维护生成器功能，或排查生成结果。如果只是想**使用** IDLize 生成 ArkUI 代码，请从 [作为工具使用 IDLize](#作为工具使用-idlize) 开始阅读。
 
 ### 核心概念
 

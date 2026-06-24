@@ -1,7 +1,7 @@
 # IDLize Tool User Guide
 
 This guide is for developers who use IDLize as an ArkUI code generation tool.
-After reading it, you should be able to:
+After reading it, readers should be able to:
 
 - Run the standard generation flow.
 - Identify where input declarations, IDL intermediates, and generated code are located.
@@ -129,7 +129,7 @@ interface MyButtonAttribute {
 Key points:
 
 - `package` sets the interface namespace.
-- `import` brings types from other IDL packages into scope.
+- `import` brings types from external IDL packages into scope.
 - `[Component]` marks an ArkUI component interface.
 - `[ComponentInterface]` marks the attribute setter interface.
 - Setters usually return the component or attribute interface type to support chaining.
@@ -142,7 +142,7 @@ The recommended standard extra-input directory is:
 interfaces/interfaces/arkui-extra/mybutton.idl
 ```
 
-If you use another directory, call `runner m3` directly and pass it through the
+If you use a custom directory, call `runner m3` directly and pass it through the
 `<idl-files...>` positional argument.
 
 ### 4.3 Configure Generation
@@ -191,7 +191,7 @@ each generation run.
 
 | Source | Modify this location |
 |---|---|
-| Handwritten or supplementary IDL | `interfaces/interfaces/arkui-extra/` or another IDL path passed to `runner m3`. |
+| Handwritten or supplementary IDL | `interfaces/interfaces/arkui-extra/` or a custom IDL path passed to `runner m3`. |
 | Upstream ArkTS SDK declaration | `sdk-patched-arkts/`. |
 | Upstream TypeScript SDK declaration | `sdk-patched/`. |
 | Generation configuration | `arkgen/generation-config/config.json`. |

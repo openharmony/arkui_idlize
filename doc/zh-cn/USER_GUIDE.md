@@ -1,6 +1,6 @@
 # IDLize 工具使用者指南
 
-本指南面向把 IDLize 用作 ArkUI 代码生成工具的开发者。读完后，你应该能够：
+本指南面向把 IDLize 用作 ArkUI 代码生成工具的开发者。读完后，应能够：
 
 - 运行标准生成流程。
 - 判断输入声明、IDL 中间产物和生成代码分别位于哪里。
@@ -124,7 +124,7 @@ interface MyButtonAttribute {
 要点：
 
 - `package` 决定接口的命名空间。
-- `import` 引入其他 IDL 包中的类型。
+- `import` 引入外部 IDL 包中的类型。
 - `[Component]` 标记 ArkUI 组件接口。
 - `[ComponentInterface]` 标记属性 setter 接口。
 - setter 通常返回组件或属性接口类型，以支持链式调用。
@@ -137,7 +137,7 @@ interface MyButtonAttribute {
 interfaces/interfaces/arkui-extra/mybutton.idl
 ```
 
-如果使用其他目录，可以直接调用 `runner m3`，通过 `<idl-files...>` 位置参数传入。
+如果使用自定义目录，可以直接调用 `runner m3`，通过 `<idl-files...>` 位置参数传入。
 
 ### 4.3 配置生成
 
@@ -182,7 +182,7 @@ find out/libace -name "*MyButton*"
 
 | 来源 | 应修改的位置 |
 |---|---|
-| 手写或补充 IDL | `interfaces/interfaces/arkui-extra/` 或其他传给 `runner m3` 的 IDL 路径。 |
+| 手写或补充 IDL | `interfaces/interfaces/arkui-extra/` 或传给 `runner m3` 的自定义 IDL 路径。 |
 | 上游 ArkTS SDK 声明 | `sdk-patched-arkts/`。 |
 | 上游 TypeScript SDK 声明 | `sdk-patched/`。 |
 | 生成配置 | `arkgen/generation-config/config.json`。 |

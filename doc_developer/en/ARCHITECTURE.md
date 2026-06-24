@@ -108,7 +108,7 @@ IDL, and provides writer and type-conversion abstractions.
 | `core/src/idl/discriminators.ts` | AST type guards. |
 | `core/src/idl/utils.ts` | AST query and helper operations. |
 | `core/src/LanguageWriters/LanguageWriter.ts` | Target-language-neutral writing abstraction. |
-| `core/src/LanguageWriters/writers/` | TS, ArkTS, C++, CangJie, and Kotlin writers. |
+| `core/src/LanguageWriters/writers/` | Writers for TS, ArkTS, C++, CangJie, and more target languages. |
 | `core/src/LanguageWriters/convertors/` | Converters from IDL types to target-language types. |
 | `core/src/peer-generation/` | Shared peer model, reference resolution, and layout infrastructure. |
 
@@ -194,7 +194,7 @@ conversion, scrape, code generation, formatting, and installation.
 | File | Purpose |
 |---|---|
 | `runner/src/main.ts` | Defines `m3`, `complete`, `sdk`, `m3-sdk`, and related commands. |
-| `runner/src/shared.ts` | Defines authoritative path constants under `runner/out`. |
+| `runner/src/shared.ts` | Defines output path constants under `runner/out`. |
 | `runner/src/commands/ets2idl.ts` | Invokes `etsgen`. |
 | `runner/src/commands/idl2peer.ts` | Invokes `arkgen`. |
 | `runner/src/commands/sdk.ts` | Prepares patched SDKs. |
@@ -204,8 +204,8 @@ conversion, scrape, code generation, formatting, and installation.
 
 ## 5. `runner/out` Data Flow
 
-`runner/src/shared.ts` is the authoritative source for output paths. A standard
-generation run writes these primary directories:
+`runner/src/shared.ts` centralizes output path definitions. A standard generation
+run writes these primary directories:
 
 | Directory | Contents |
 |---|---|

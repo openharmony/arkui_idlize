@@ -126,7 +126,7 @@ node runner sdk ./interface_sdk-js ./out/patched-sdk-arkts ./out/patched-sdk-ts
 node runner m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12> [options]
 ```
 
-生成适合 peer 链接使用的绝对路径 SDK。
+生成适合 peer 链接使用、且路径不依赖当前工作目录的 SDK。
 
 | 选项 | 说明 |
 |---|---|
@@ -186,4 +186,4 @@ node runner m3 ./out/patched-sdk-arkts ./custom.idl \
 
 ### 快速定位参数定义
 
-命令参数的权威定义在 `runner/src/main.ts`。如果本文档与源码不一致，以源码为准。
+命令参数定义在 `runner/src/main.ts`。如果本文档与源码不一致，以源码为准。

@@ -130,7 +130,8 @@ node runner sdk ./interface_sdk-js ./out/patched-sdk-arkts ./out/patched-sdk-ts
 node runner m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12> [options]
 ```
 
-Generates an absolute-path SDK suitable for linking peers.
+Generates an SDK whose paths do not depend on the current working directory,
+suitable for linking peers.
 
 | Option | Description |
 |---|---|
@@ -190,5 +191,5 @@ node runner m3 ./out/patched-sdk-arkts ./custom.idl \
 
 ### Locate Parameter Definitions Quickly
 
-The authoritative command parameter definitions are in `runner/src/main.ts`. If
-this document and the source disagree, treat the source as authoritative.
+The command parameter definitions are in `runner/src/main.ts`. If this document
+and the source disagree, treat the source as the source of truth.

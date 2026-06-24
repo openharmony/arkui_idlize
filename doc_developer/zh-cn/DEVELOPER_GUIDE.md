@@ -1,6 +1,6 @@
 # IDLize 开发者指南
 
-本指南面向维护 IDLize 生成器和管线的工具开发者。读完后，你应该能判断：
+本指南面向维护 IDLize 生成器和管线的工具开发者。读完后，应能够判断：
 
 - IDLize 在 ArkUI 代码生成链路中负责什么。
 - 一次标准生成经过哪些阶段。
@@ -193,7 +193,7 @@ node runner m3 sdk-patched-arkts ./interfaces/interfaces/arkui-extra/ \
 | `core/src/idl/discriminators.ts` | AST 类型守卫。 |
 | `core/src/idl/utils.ts` | AST 查询和辅助操作。 |
 | `core/src/LanguageWriters/LanguageWriter.ts` | 目标语言无关的代码写入抽象。 |
-| `core/src/LanguageWriters/writers/` | TS、ArkTS、C++、CangJie、Kotlin writer。 |
+| `core/src/LanguageWriters/writers/` | TS、ArkTS、C++、CangJie 等目标语言 writer。 |
 | `core/src/LanguageWriters/convertors/` | IDL 类型到目标语言类型的转换器。 |
 | `core/src/peer-generation/` | 共享 peer 模型、引用解析和布局基础设施。 |
 

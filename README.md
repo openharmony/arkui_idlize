@@ -16,8 +16,8 @@ tools for ArkUI development. For more ArkUI framework subsystem concepts, see th
 
 > **Who this is for.** This README targets **IDLize tool developers** who add
 > generator capabilities, maintain generator behavior, or debug generated
-> output. If you only want to **use** IDLize to generate ArkUI code, start at
-> [Using IDLize as a Tool](#using-idlize-as-a-tool).
+> output. Readers who only want to **use** IDLize to generate ArkUI code
+> should start at [Using IDLize as a Tool](#using-idlize-as-a-tool).
 
 ### Key Concepts
 
