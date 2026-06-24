@@ -24,6 +24,7 @@ import {
     passStringArray,
     unpackNonNullableNode,
     unpackNode,
+    unpackConstructable,
     unpackNodeArray,
     unpackNativeObjectArray,
     AstNode,
