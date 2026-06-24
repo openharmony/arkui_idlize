@@ -58,8 +58,12 @@ export class PeersConstructions {
         }
     }
 
-    static get unpackNullable(): string {
+    static get unpackNullableNode(): string {
         return `unpackNode`
+    }
+
+    static get unpackNullableConstructable(): string {
+        return `unpackConstructable`
     }
 
     static get unpackNonNullable(): string {

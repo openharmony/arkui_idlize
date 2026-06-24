@@ -61,6 +61,10 @@ export class Config {
         return `AstNode`
     }
 
+    static get astTypeAncestor(): string {
+        return `Type`
+    }
+
     static get context(): string {
         return `Context`
     }

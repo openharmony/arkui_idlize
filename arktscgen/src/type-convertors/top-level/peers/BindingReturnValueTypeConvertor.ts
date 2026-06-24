@@ -18,6 +18,7 @@ import {
     IDLEnum,
     IDLInterface,
     IDLNamedNode,
+    IDLReferenceType,
     IDLType,
     isContainerType,
     isInterface,
@@ -29,12 +30,14 @@ import {
 import { Config } from "../../../general/Config.js"
 import { Importer } from "../../../printers/library/Importer.js"
 import { PeersConstructions } from "../../../constuctions/PeersConstructions.js"
-import { isString } from "../../../utils/idl.js"
+import { isString, makeEnoughQualifiedName } from "../../../utils/idl.js"
 import { Typechecker } from "../../../general/Typechecker.js"
 
 export function unpackWrapper(type: IDLType, typechecker: Typechecker): string | undefined {
     const isAstNode = (ref: IDLNamedNode): ref is IDLInterface =>
         (isReferenceType(ref) || isInterface(ref)) && typechecker.isHeir(ref, Config.astNodeCommonAncestor)
+    const isAstType = (ref: IDLNamedNode): boolean =>
+        (isReferenceType(ref) || isInterface(ref)) && typechecker.isHeir(ref, Config.astTypeAncestor)
 
     if (isContainerType(type)) {
         if (IDLContainerUtils.isSequence(type) && isReferenceType(type.elementType[0])) {
@@ -55,8 +58,15 @@ export function unpackWrapper(type: IDLType, typechecker: Typechecker): string |
     } else if (isOptionalType(type)) {
         const innerType = type.type
         if (isReferenceType(innerType)) {
-            return isAstNode(innerType) ? PeersConstructions.unpackNullable : undefined // PeersConstructions.newOf
+            if (isAstNode(innerType)) {
+                return PeersConstructions.unpackNullableNode
+            }
+            if (isAstType(innerType)) {
+                return PeersConstructions.unpackNullableConstructable
+            }
+            return undefined // PeersConstructions.newOf
         }
+
         throwException(`unexpected optional of non-reference type`)
     }
 
@@ -67,13 +77,16 @@ export function hasTypeHintArgument(wrapper: string): boolean {
     return [
         PeersConstructions.arrayOfPointersToArrayOfPeers,
         PeersConstructions.unpackNonNullable,
-        PeersConstructions.unpackNullable,
+        PeersConstructions.unpackNullableNode,
+        PeersConstructions.unpackNullableConstructable,
     ].includes(wrapper)
 }
 
 export function typeHintArgument(type: IDLType, typechecker: Typechecker, importer: Importer): string | undefined {
     const isAstNode = (ref: IDLNamedNode): ref is IDLInterface =>
         isInterface(ref) && typechecker.isHeir(ref, Config.astNodeCommonAncestor)
+    const isAstType = (ref: IDLNamedNode): ref is IDLInterface =>
+        isInterface(ref) && typechecker.isHeir(ref, Config.astTypeAncestor)
 
     const iface = isReferenceType(type) ?
         typechecker.resolveReference(type) : undefined
@@ -84,6 +97,11 @@ export function typeHintArgument(type: IDLType, typechecker: Typechecker, import
             importer.withEnumImport(Config.nodeTypeAttribute)
             return astNodeTypeName
         }
+    }
+
+    if (iface && isAstType(iface)) {
+        // unpackConstructable second argument
+        return makeEnoughQualifiedName(type as IDLReferenceType, typechecker.resolveReference.bind(typechecker))
     }
 
     return undefined

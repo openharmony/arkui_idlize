@@ -23,6 +23,7 @@ import {
     passNodeArray,
     unpackNonNullableNode,
     unpackNode,
+    unpackConstructable,
     unpackNodeArray,
     AstNode,
     KNativePointer,
