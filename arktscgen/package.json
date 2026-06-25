@@ -1,6 +1,6 @@
 {
     "name": "@idlizer/arktscgen",
-    "version": "2.2.2-arktscgen-2",
+    "version": "2.2.2+devel",
     "description": "",
     "type": "module",
     "main": "index.js",
@@ -20,14 +20,14 @@
     "license": "Apache-2.0",
     "keywords": [],
     "devDependencies": {
-        "@idlizer/core": "2.2.2-arktscgen-1+devel",
+        "@idlizer/core": "2.2.2+devel",
+        "@idlizer/rimraf": "2.2.2+devel",
         "commander": "^10.0.0",
         "typescript": "^4.9.5",
         "@types/json5": "^2.2.0",
         "@types/node": "^18.19.127",
         "esbuild": "^0.27.3",
-        "json5": "^2.2.3",
-        "@idlizer/rimraf": "2.2.2+devel"
+        "json5": "^2.2.3"
     },
     "scripts": {
         "clean": "rimraf lib build",
