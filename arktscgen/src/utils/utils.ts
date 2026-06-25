@@ -12,7 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import path from "node:path"
 
-export const DIR_NAME = path.resolve(fileURLToPath(import.meta.url), "../../../..")
+declare const __filename: string | undefined
+
+// Resolve the package's own package.json (exposed via the "./package.json"
+// subpath in this package's "exports" field) and take its parent directory.
+// This makes DIR_NAME point at the arktscgen package root regardless of whether
+// the code runs from the tsc ESM output or the esbuild CJS bundle.
+//
+// In the esbuild CJS bundle, `import.meta.url` is unavailable; use the
+// CommonJS `__filename` (preserved by esbuild) as the resolution base. In the
+// tsc ESM output, use `import.meta.url`.
+const baseUrl = typeof __filename !== "undefined" ? __filename : import.meta.url
+const packageJsonPath = createRequire(baseUrl).resolve("@idlizer/arktscgen/package.json")
+export const DIR_NAME = path.dirname(packageJsonPath)

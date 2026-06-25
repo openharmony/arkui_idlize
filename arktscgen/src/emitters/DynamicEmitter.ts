@@ -57,7 +57,7 @@ export class DynamicEmitter {
         private shouldLog: boolean
     )
     {
-        const myJson = path.resolve(DIR_NAME, '..', 'package.json')
+        const myJson = path.join(DIR_NAME, 'package.json')
         if (fs.existsSync(myJson)) {
             this.generatorVersion = JSON5.parse(
                 fs.readFileSync(myJson).toString())?.version ?? `Unknown`
@@ -201,7 +201,7 @@ export class DynamicEmitter {
     }
 
     private readTemplate(name: string): string {
-        return fs.readFileSync(path.join(DIR_NAME, `./../templates/${name}`), `utf8`)
+        return fs.readFileSync(path.join(DIR_NAME, `templates`, name), `utf8`)
     }
 
     private withLog(transformer: Transformer): IDLFile {

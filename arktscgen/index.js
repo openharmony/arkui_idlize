@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from "./build/lib/src/main.js"
+import "./lib/cli.cjs"
