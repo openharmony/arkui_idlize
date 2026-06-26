@@ -16,30 +16,26 @@
 import { program } from "commander"
 import { throwException } from "@idlizer/core"
 import path from "node:path"
-import { DIR_NAME } from "../utils/utils.js"
 
 type CliOptions = {
     pandaSdkPath: string
     outputDir: string
     optionsFile: string
     debug: boolean
-    initialize: boolean
 }
 
 export function cliOptions(): CliOptions {
     const cliOptions: Partial<CliOptions> = program
         .option('--panda-sdk-path <path>', 'Path to panda sdk')
         .option('--output-dir <path>', 'Path to output dir')
-        .option('--options-file <path>', 'Path to file which determines what to generate')
+        .requiredOption('--options-file <path>', 'Path to file which determines what to generate')
         .option('--debug', 'Generate intermediate versions of IDL IR')
-        .option('--no-initialize', 'Do not emit static part of sources')
         .parse()
         .opts()
     return {
         pandaSdkPath: cliOptions.pandaSdkPath ?? throwException(`panda-sdk-path is mandatory parameter`),
         outputDir: cliOptions.outputDir ?? throwException(`output-dir is mandatory parameter`),
-        optionsFile: cliOptions.optionsFile ?? path.join(DIR_NAME, `../build/libarkts-copy/generator/options.json5`),
+        optionsFile: cliOptions.optionsFile!,
         debug: cliOptions.debug ?? false,
-        initialize: cliOptions.initialize ?? false
     }
 }

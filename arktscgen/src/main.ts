@@ -20,7 +20,6 @@ import { parseIDLFile } from "@idlizer/core"
 import { DynamicEmitter } from "./emitters/DynamicEmitter.js"
 import { Config } from "./general/Config.js"
 import { IgnoreOptions, IrHackOptions } from "./options/IgnoreOptions.js"
-import { StaticEmitter } from "./emitters/StaticEmitter.js"
 import { cliOptions } from "./options/cli-options.js"
 import { NonNullableOptions } from "./options/NonNullableOptions.js"
 import { CodeFragmentOptions } from "./options/CodeFragmentOptions.js"
@@ -32,12 +31,6 @@ const pandaSdkIdlFilePath = `ohos_arm64/include/tools/es2panda/generated/es2pand
 
 function main() {
     const options = cliOptions()
-    if (options.initialize) {
-        new StaticEmitter(
-            options.outputDir,
-            options.pandaSdkPath
-        ).emit()
-    }
     new DynamicEmitter(
         options.outputDir,
         options.pandaSdkPath,

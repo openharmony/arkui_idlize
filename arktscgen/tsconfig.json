@@ -13,7 +13,7 @@
         "strict": true,
         "skipLibCheck": true,
         "removeComments": false,
-        "outDir": "build/lib",
+        "outDir": "lib",
         "rootDirs": [".."],
         "module": "esnext",
     },
