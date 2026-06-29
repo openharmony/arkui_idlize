@@ -390,22 +390,21 @@ export function scanDirectory(dir: string, fileFilter: (file: string) => boolean
 
 export function scanInputDirs(inputDirs: string[]): string[]
 export function scanInputDirs(inputDirs: string[], fileExtension: string): string[]
-export function scanInputDirs(inputDirs: string[], fileFilter: (file: string) => boolean, recursive: boolean): string[]
+export function scanInputDirs(inputDirs: string[], fileFilter: (file: string) => boolean): string[]
 export function scanInputDirs(
     inputDirs: string[],
     fileFilter: undefined | string | ((file: string) => boolean) = undefined,
-    recursive = false,
 ): string[] {
     if (typeof fileFilter === 'undefined')
-        return scanInputDirs(inputDirs, (_) => true, recursive)
+        return scanInputDirs(inputDirs, (_) => true)
     if (typeof fileFilter === 'string')
-        return scanInputDirs(inputDirs, (file: string) => file.endsWith(fileFilter), recursive)
+        return scanInputDirs(inputDirs, (file: string) => file.endsWith(fileFilter))
     const resolvedInputDirs = inputDirs.map(dir => path.resolve(dir))
     console.log("Resolved input directories:", resolvedInputDirs)
     return resolvedInputDirs.flatMap(dir => {
         if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
             console.log(`Processing all definitions from directory: ${dir}`)
-            return scanDirectory(dir, fileFilter, recursive)
+            return scanDirectory(dir, fileFilter, true)
         } else {
             console.warn(`Warning: Directory does not exist or is not a directory: ${dir}`)
             return []

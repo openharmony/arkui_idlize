@@ -132,8 +132,13 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         if (!this.options.isDeclared) {
             imports.addFeature("RuntimeType", "@koalaui/interop")
             if (this.library.language === Language.ARKTS) {
-                imports.addFeatures(["NodeAttach"], "^arkui.incremental.runtime.memo.node")
-                imports.addFeatures(["remember"], "^arkui.incremental.runtime.memo.remember")
+                const newIncrementalImports = peerGeneratorConfiguration().SupportNewIncrementalImports
+                imports.addFeatures(["NodeAttach"], newIncrementalImports
+                    ? "^arkui.incremental.runtime.memo.node"
+                    : "@koalaui/runtime")
+                imports.addFeatures(["remember"], newIncrementalImports
+                    ? "^arkui.incremental.runtime.memo.remember"
+                    : "@koalaui/runtime")
             } else {
                 imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
             }
@@ -343,7 +348,10 @@ class TSComponentFileVisitor extends TSLikeComponentFileVisitor {
 class ArkTsComponentFileVisitor extends TSLikeComponentFileVisitor {
     protected populateImports(imports: ImportsCollector) {
         if (this.library.useMemoM3) {
-            imports.addFeatures(['memo', 'memo_stable', 'memo_skip'], '^arkui.incremental.annotation')
+            const incrementalModule = peerGeneratorConfiguration().SupportNewIncrementalImports
+                ? "^arkui.incremental.annotation"
+                : "^arkui.stateManagement.runtime"
+            imports.addFeatures(['memo', 'memo_stable', 'memo_skip'], incrementalModule)
             imports.addFeatures(['ComponentBuilder'], '@koalaui/builderLambda')
         }
     }
@@ -421,10 +429,21 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
 
                 const attributesFinishSignature = new MethodSignature(idl.createPrimitiveType('void'), [])
                 const applyAttributesFinish = 'applyAttributesFinish'
+                const applyAttributesFinishHook = peerGeneratorConfiguration().hooks.get(component.attributeDeclaration.name)?.get(applyAttributesFinish)
                 writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
-                    writer.print('// we call this function outside of class, so need to make it public')
-                    writer.writeMethodCall('super', applyAttributesFinish, [])
+                    if (applyAttributesFinishHook && applyAttributesFinishHook.replaceImplementation) {
+                        writer.print(`${applyAttributesFinishHook.hookName}(this)`)
+                    } else {
+                        if (applyAttributesFinishHook) {
+                            writer.print(`${applyAttributesFinishHook.hookName}(this)`)
+                        }
+                        writer.print('// we call this function outside of class, so need to make it public')
+                        writer.writeMethodCall('super', applyAttributesFinish, [])
+                    }
                 })
+                if (applyAttributesFinishHook) {
+                    imports.addFeature(applyAttributesFinishHook.hookName, HandwrittenModule(this.library.language))
+                }
             }, parentComponentClassName, [`${peer.originalClassName!}Interfaces`])
             return { content: printer, imports}
         }

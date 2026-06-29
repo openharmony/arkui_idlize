@@ -1818,7 +1818,7 @@ export class TransformOnSerializeConvertor extends BaseArgConvertor {
     private targetConvertor: ArgConvertor
     constructor(param: string, protected library: PeerLibrary, protected managedDeclaration: idl.IDLEntry, protected source: idl.IDLType, protected target: idl.IDLType) {
         const targetConvertor = library.typeConvertor(param, target)
-        super(target, targetConvertor.runtimeTypes, false, targetConvertor.useArray, param)
+        super(target, targetConvertor.runtimeTypes, false, true, param)
         this.targetConvertor = targetConvertor
     }
     getSourceType(): idl.IDLType {

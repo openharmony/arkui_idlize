@@ -201,6 +201,10 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
         }
     }, pluginContext)
 
+    if (failed.length > 0) {
+        throw new Error(`Failed to process files: ${failed.map(it => it.fileName).join(", ")}`)
+    }
+
     if (traceStatus) {
         fs.writeFileSync(traceStatus, status.Print())
     }
@@ -241,7 +245,7 @@ function adjustExports(library: IDLSuperFile[], config: ETSVisitorConfig): void 
                     console.log(`WARNING: reexport from deleted package ${reexportPackage} found. Mistakes possible if those reexports were used.`)
                     continue
                 } else {
-                    throw new Error(`Failed to adjust reexport for package ${reexportPackage}: file not found`)
+                    throw new Error(`Failed to adjust reexport for package ${reexportPackage} from ${file.originalFileName}: file not found`)
                 }
             }
             adjustFileExports(reexportedFile)
@@ -796,13 +800,31 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return false
     }
 
+    private isBuilderFuncWrapper(decl:arkts.FunctionDeclaration): boolean {
+        if (this.mode !== 'arkoala') {
+            return false
+        }
+        const func = decl.function!
+        // Check for @Builder annotation
+        const hasBuilder = decl.annotations.some(a => arkts.isIdentifier(a.expr) && a.expr.name === 'Builder')
+        if (!hasBuilder) {
+            return false
+        }
+        // Check if return type name ends with 'Attribute'
+        if (func.returnTypeAnnotation && arkts.isETSTypeReference(func.returnTypeAnnotation)) {
+            const returnTypeName = (func.returnTypeAnnotation as arkts.ETSTypeReference).baseName!.name
+            return returnTypeName.endsWith('Attribute')
+        }
+        return false
+    }
+
     visitFunctionDeclaration(node: arkts.FunctionDeclaration): arkts.FunctionDeclaration {
         const func = node.function!
         if (func.id?.name && this.config.DeletedDeclarations.includes(func.id.name)) {
             this.traceDeleted('DeletedDeclarations')
             return node
         }
-        if (this.isBuilderFuncImpl(node)) {
+        if (this.isBuilderFuncImpl(node) || this.isBuilderFuncWrapper(node)) {
             return node
         }
         const { set: paramsSet, attrs: typeParametersAttrs, parameters } = this.extractTypeParameters(func.typeParams)
@@ -1463,6 +1485,15 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Intl.Locale': return idl.createReferenceType('idlize.typescript.Intl.Locale')
                 case 'Error': return idl.createReferenceType('idlize.typescript.Error')
                 case 'Type': return idl.createReferenceType('idlize.typescript.Type')
+                case 'Int8Array':
+                case 'Int32Array':
+                case 'Int64Array':
+                case 'Uint8Array':
+                case 'Uint32Array':
+                case 'Uint64Array':
+                case 'Float32Array':
+                case 'Float64Array':
+                    return idl.createPrimitiveType('buffer')
                 case 'ParticleTuple': {
                     const typeParameters = new Set<string>()
                     typeArgs?.forEach(arg => {

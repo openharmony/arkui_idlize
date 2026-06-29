@@ -44,6 +44,9 @@ export const PeerGeneratorConfigurationSchema = D.combine(
     CoreConfigurationSchema,
     D.object({
         SupportCallHolder: D.boolean({ default: true }),
+        // true - `memo` and other annotations being imported from `arkui.incremental.annotation`
+        // false - from `arkui.stateManagement.runtime`
+        SupportNewIncrementalImports: D.boolean({ default: true }),
         GenerateUnused: D.boolean(),
         ApiVersion: D.number(),
         dumpSerialized: D.boolean(),

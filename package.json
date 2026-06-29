@@ -29,8 +29,8 @@
   "keywords": [],
   "scripts": {
     "postinstall": "node ./tools/postinstall.mjs",
-    "clean": "npm run clean --ws --if-present -s",
-    "bundle": "read -p 'Enter bundle version, e.g. 22.22.22-work-conf-999: ' BUNDLE_VERSION && read -p 'Enter bundle out directory: ' BUNDLE_OUT && node ./tools/bundle.mjs $BUNDLE_VERSION $BUNDLE_OUT",
+    "clean": "npm run clean --ws --if-present -s && rimraf out",
+    "bundle": "node ./tools/bundle.mjs 2.1.140 bundled --idlizer-only --koalaui-version 1.7.14 --no-panda-version --skip-install-packing",
     "tracker": "./tracker/track external/interface_sdk-js sdk-patched-arkts",
     "release": "npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && npm run -C arktscgen compile && npm run -C idlinter compile && node tools/release.mjs",
     "bump:toolchain": "node ./tools/bump-koala-toolchain.mjs --resolve",

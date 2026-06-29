@@ -1816,9 +1816,12 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
             imports.push({ feature: "KStringPtr", module: "@koalaui/interop" })
         }
         if (options.useMemoM3 && language === Language.ARKTS) {
+            const incrementalModule = peerGeneratorConfiguration().SupportNewIncrementalImports
+                ? "^arkui.incremental.annotation"
+                : "^arkui.stateManagement.runtime"
             imports.push(
-                { feature: "memo", module: "^arkui.incremental.annotation" },
-                { feature: "memo_stable", module: "^arkui.incremental.annotation" },
+                { feature: "memo", module: incrementalModule },
+                { feature: "memo_stable", module: incrementalModule },
                 { feature: "ComponentBuilder", module: "@koalaui/builderLambda" },
                 { feature: "Builder", module: "@koalaui/builderLambda" },
             )

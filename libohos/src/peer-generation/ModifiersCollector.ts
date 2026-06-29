@@ -22,7 +22,6 @@ export class ModifierInfo {
     constructor(
         public readonly modifier: idl.IDLInterface | undefined,
         public readonly peer: PeerClass,
-        public isParent: boolean = false
     ) {}
     public isTrivial?: boolean
     public parent?: ModifierInfo
@@ -46,15 +45,13 @@ class ModifierCollector {
             if (this.modifiers?.has(parentComponent.name)) {
                 let parentModifier = this.modifiers.get(parentComponent.name)!
                 modifier.parent = parentModifier
-                parentModifier.isParent = true
             } else if (newModifiers.has(parentComponent.name)) {
                 let parentModifier = newModifiers.get(parentComponent.name)!
                 modifier.parent = parentModifier
-                parentModifier.isParent = true
             } else {
                 const parentPeer = this.peers.find(peer => (peer.componentName === parentComponent!.name))
                 if (parentPeer) {
-                    let parentModifier = new ModifierInfo(undefined, parentPeer, true)
+                    let parentModifier = new ModifierInfo(undefined, parentPeer)
                     modifier.parent = parentModifier
                     newModifiers.set(parentComponent.name, parentModifier)
                     this.collectParentModifiers(parentComponent.name, parentModifier, newModifiers)
@@ -101,6 +98,11 @@ class ModifierCollector {
                         this.modifiers.set(componentName, new ModifierInfo(entry, peer))
                     }
                 }
+            }
+        }
+        for (const peer of this.peers) {
+            if (!this.modifiers.has(peer.componentName)) {
+                this.modifiers.set(peer.componentName, new ModifierInfo(undefined, peer))
             }
         }
         let newModifiers = new Map<string, ModifierInfo>()

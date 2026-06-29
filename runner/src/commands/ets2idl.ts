@@ -36,13 +36,12 @@ export function ets2idl({
     traceStatus,
 }: Ets2IdlConfig):Ets2IdlResult {
     const sdkApiPath = join(sdkPath, 'api')
-    const files = scan(sdkApiPath).filter(it => it.endsWith(".d.ets"))
     run(context => context.exec([
         etsgen,
         '--ets2idl',
         ['--output-dir', GENERATED_IDL_DIR],
         ['--base-dir', sdkApiPath],
-        ['--input-files', files],
+        ['--input-dir', sdkApiPath],
         over(arktsConfigPath, path => ['--ets-config', path]),
         over(traceStatus, st => ['--trace-status', st]),
         ['--ignore-default-config'],

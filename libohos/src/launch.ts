@@ -22,5 +22,5 @@ export function libohosPredefinedFiles(): string[] {
     if (PREDEFINED_PATH === undefined) {
         PREDEFINED_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'predefined')
     }
-    return scanInputDirs([PREDEFINED_PATH, path.join(PREDEFINED_PATH, 'interop')])
+    return scanInputDirs([PREDEFINED_PATH])
 }

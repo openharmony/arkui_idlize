@@ -18,3 +18,14 @@ export function Button(
     @memo
     content_?: () => void
 ): ButtonAttribute
+
+// must be removed by the etsgen
+@memo
+export function ButtonImpl(
+    style: () => void,
+    content_: () => void,
+): void
+@Builder
+export function Button(
+    style: () => void,
+): ButtonAttribute

@@ -53,8 +53,6 @@ export function idl2peer({
     interopTypes,
     noDummyImpl,
 }: Idl2PeerArkuiConfig): Idl2PeerResult {
-    const idlFiles = idlPaths.flatMap(scan)
-
     let arkgenTarget = ''
     if (target === 'sig') {
         arkgenTarget = 'arkoala'
@@ -73,7 +71,7 @@ export function idl2peer({
         arkgen,
         '--idl2peer',
         ['--reference-names', 'ets'],
-        ['--input-files', flat(idlFiles).join(",")],
+        ['--input-dir', idlPaths.join(",")],
         ['--output-dir', GENERATED_PEER_DIR],
         ['--generator-target', arkgenTarget],
         ['--language', language],
