@@ -56,7 +56,8 @@ export function getEnumToOrdinalName(_language: Language, declaration: idl.IDLEn
     return idl.entryToFunctionName(_language, declaration, "", "ToOrdinal")
 }
 
-export function makeETSDiscriminatorFromFields(self: LanguageWriter, convertor: { targetType: (writer: LanguageWriter) => string }, value: string, accessors: string[], duplicates: Set<string>): LanguageExpression {
+export function makeETSDiscriminatorFromFields(self: LanguageWriter, convertor: ArgConvertor, value: string,
+    accessors: string[], duplicates: Set<string>): LanguageExpression {
     if (convertor instanceof AggregateConvertor
         || convertor instanceof InterfaceConvertor
         || convertor instanceof MaterializedClassConvertor
