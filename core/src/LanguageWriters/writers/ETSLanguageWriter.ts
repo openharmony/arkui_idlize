@@ -226,10 +226,15 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             ? this.makeString(`${enumName}.values()[${value.asString()}]`)
             : this.makeMethodCall(enumName, 'fromValue', [value])
     }
-    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
+    makeDiscriminatorFromFields(convertor: ArgConvertor,
                                 value: string,
                                 accessors: string[],
                                 duplicates: Set<string>): LanguageExpression {
+        const runtimeInstanceCheck = this.tryMakeRuntimeInstanceCheck(value, convertor.idlType, convertor.runtimeTypes)
+        if (runtimeInstanceCheck !== undefined) {
+            return this.makeString(runtimeInstanceCheck)
+        }
+
         if (convertor instanceof AggregateConvertor
             || convertor instanceof InterfaceConvertor
             || convertor instanceof MaterializedClassConvertor
@@ -269,7 +274,55 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // the '==' operator must be used when one of the operands is a reference
         return super.makeNaryOp('==', args)
     }
+    private makeErasedFunctionInstanceCheck(value: string, declaration: idl.IDLCallback): string {
+        const isUiBuilder = declaration.name === 'CustomBuilder' || declaration.name === 'CustomBuilderT'
+        const uiBuilderParameters = isUiBuilder ? ['__memo_context: Any', '__memo_id: Any'] : []
+        const parameters: string[] = []
+        for (let index = 0; index < declaration.parameters.length; index++) {
+            const parameter = declaration.parameters[index]
+            if (parameter.isOptional) {
+                break
+            }
+            if (parameter.isVariadic) {
+                parameters.push(`...p${index}: Any[]`)
+                continue
+            }
+            parameters.push(`p${index}: Any`)
+        }
+        const functionParameters = [...uiBuilderParameters, ...parameters].join(', ')
+        return `${value} instanceof ((${functionParameters}) => never)`
+    }
+
+    private makeErasedTupleInstanceCheck(value: string, declaration: idl.IDLInterface): string {
+        const arity = declaration.properties.length
+        const tupleType = arity <= 16 ? `Tuple${arity}` : "TupleN"
+        return `(${value} instanceof ${tupleType}) && ((${value}.length) == (${arity}))`
+    }
+
+    private tryMakeRuntimeInstanceCheck(value: string, type: idl.IDLType, runtimeTypes: RuntimeType[]): string | undefined {
+        const declaration = this.resolver.toDeclaration(type)
+        if (idl.isCallback(declaration)) {
+            return this.makeErasedFunctionInstanceCheck(value, declaration)
+        }
+
+        if (declaration === idl.IDLFunctionType
+            || (idl.isNamedNode(declaration) && declaration.name === "Function")
+            || (runtimeTypes.length === 1 && runtimeTypes[0] === RuntimeType.FUNCTION)) {
+            return `runtimeType(${value}) == RuntimeType.FUNCTION`
+        }
+
+        if (idl.isInterface(declaration) && declaration.subkind === idl.IDLInterfaceSubkind.Tuple) {
+            return this.makeErasedTupleInstanceCheck(value, declaration)
+        }
+
+        return undefined
+    }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
+        const runtimeInstanceCheck = this.tryMakeRuntimeInstanceCheck(value, type, runtimeTypes)
+        if (runtimeInstanceCheck !== undefined) {
+            return runtimeInstanceCheck
+        }
+
         return `${value} instanceof ${withInsideInstanceof(true, () => {
             return this.getNodeName(type)
         })}`
