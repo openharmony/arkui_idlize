@@ -24,12 +24,13 @@ import {
 import {
     ArkCheckChildComponent, ArkCheckCustomModifierComponent, ArkCheckDuplicateChildComponent,
     ArkCheckDuplicateParentComponent, ArkCheckEnumComponent, ArkCheckExceptionComponent, ArkCheckExtendableComponent,
-    ArkCheckNoModifiersComponent, ArkCheckOptionalComponent, ArkCheckParentComponent, ArkCheckTransformComponent,
-    ArkCheckTrivialModifierComponent, ArkCheckUnitsComponent, ArkDatebookComponent, ArkRootComponent,
-    CheckChildAttribute, CheckCustomModifierAttribute, CheckDuplicateChildAttribute, CheckDuplicateParentAttribute,
-    CheckEnumAttribute, CheckExceptionAttribute, CheckExtendableAttribute, CheckHooksAttribute,
-    CheckNoModifiersAttribute, CheckOptionalAttribute, CheckParentAttribute, CheckTransformAttribute,
-    CheckTrivialModifierAttribute, CheckUnitsAttribute, DatebookAttribute, Root
+    ArkCheckExtendableNoContentComponent, ArkCheckNoModifiersComponent, ArkCheckOptionalComponent,
+    ArkCheckParentComponent, ArkCheckTransformComponent, ArkCheckTrivialModifierComponent, ArkCheckUnitsComponent,
+    ArkDatebookComponent, ArkRootComponent, CheckChildAttribute, CheckCustomModifierAttribute,
+    CheckDuplicateChildAttribute, CheckDuplicateParentAttribute, CheckEnumAttribute, CheckExceptionAttribute,
+    CheckExtendableAttribute, CheckExtendableNoContentAttribute, CheckHooksAttribute, CheckNoModifiersAttribute,
+    CheckOptionalAttribute, CheckParentAttribute, CheckTransformAttribute, CheckTrivialModifierAttribute,
+    CheckUnitsAttribute, DatebookAttribute, Root
 } from '../framework'
 
 export interface AttributeModifier<T> {
@@ -151,6 +152,10 @@ export function hookCheckExceptionAttributeModifier(
 export function hookCheckExtendableAttributeModifier(
     attr: ArkCheckExtendableComponent,
     value: AttributeModifier<CheckExtendableAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookCheckExtendableNoContentAttributeModifier(
+    attr: ArkCheckExtendableNoContentComponent,
+    value: AttributeModifier<CheckExtendableNoContentAttribute> | AttributeModifier<Root> | undefined
 ): void {}
 export function hookCheckParentAttributeModifier(
     attr: ArkCheckParentComponent,

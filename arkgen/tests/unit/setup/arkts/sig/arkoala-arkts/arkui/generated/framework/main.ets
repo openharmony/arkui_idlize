@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,7 @@ import {
     CheckExtendableOptions,
     CheckTrivialModifierModifier,
     ExtendableCheckExtendable,
+    ExtendableCheckExtendableNoContent,
     MenuElement
 } from "./."
 
@@ -235,6 +236,18 @@ function checkExtendableComponent() {
     elem.commonMethodBoolean(true)
 }
 
+class ExtendableCheckExtendableNoContentImpl extends ExtendableCheckExtendableNoContent {
+}
+
+function checkExtendableNoContentComponent() {
+    const elem = new ExtendableCheckExtendableNoContentImpl()
+    const options: CheckExtendableOptions = {
+        intAttr: 10
+    }
+    elem.setCheckExtendableNoContentOptions(options)
+    elem.commonMethodBoolean(true)
+}
+
 export function main(): void {
     initNatives()
 
@@ -247,6 +260,7 @@ export function main(): void {
     checkHierarchy()
     checkModifiers()
     checkExtendableComponent()
+    checkExtendableNoContentComponent()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")

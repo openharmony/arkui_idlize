@@ -1085,6 +1085,15 @@ typedef struct GENERATED_ArkUICheckExtendableModifier {
                                    Ark_Boolean flag);
 } GENERATED_ArkUICheckExtendableModifier;
 
+typedef struct GENERATED_ArkUICheckExtendableNoContentModifier {
+    Ark_NativePointer (*construct)(Ark_Int32 id,
+                                   Ark_Int32 flags);
+    void (*setCheckExtendableNoContentOptions)(Ark_NativePointer node,
+                                               const Opt_CheckExtendableOptions* options);
+    void (*setCommonMethodBoolean)(Ark_NativePointer node,
+                                   Ark_Boolean flag);
+} GENERATED_ArkUICheckExtendableNoContentModifier;
+
 typedef struct GENERATED_ArkUICheckHooksModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
                                    Ark_Int32 flags);
@@ -1253,6 +1262,7 @@ typedef struct GENERATED_ArkUINodeModifiers {
     const GENERATED_ArkUICheckEnumModifier* (*getCheckEnumModifier)();
     const GENERATED_ArkUICheckExceptionModifier* (*getCheckExceptionModifier)();
     const GENERATED_ArkUICheckExtendableModifier* (*getCheckExtendableModifier)();
+    const GENERATED_ArkUICheckExtendableNoContentModifier* (*getCheckExtendableNoContentModifier)();
     const GENERATED_ArkUICheckHooksModifier* (*getCheckHooksModifier)();
     const GENERATED_ArkUICheckNoModifiersModifier* (*getCheckNoModifiersModifier)();
     const GENERATED_ArkUICheckOptionalModifier* (*getCheckOptionalModifier)();
@@ -1285,6 +1295,7 @@ typedef enum GENERATED_Ark_NodeType {
     GENERATED_ARKUI_CHECK_ENUM,
     GENERATED_ARKUI_CHECK_EXCEPTION,
     GENERATED_ARKUI_CHECK_EXTENDABLE,
+    GENERATED_ARKUI_CHECK_EXTENDABLE_NO_CONTENT,
     GENERATED_ARKUI_CHECK_HOOKS,
     GENERATED_ARKUI_CHECK_NO_MODIFIERS,
     GENERATED_ARKUI_CHECK_OPTIONAL,

@@ -43,3 +43,23 @@ interface ExtendableCheckExtendable: CheckExtendableAttribute {
     static <T> void _instantiateImpl(CustomBuilderT<T> styles, ConstructorT<T> factory, optional CustomBuilder content_);
     this setCheckExtendableOptions(optional CheckExtendableOptions options);
 };
+
+[Component]
+interface CheckExtendableNoContentAttribute: Root {
+    this commonMethodBoolean(boolean flag);
+};
+
+[ComponentInterface]
+interface CheckExtendableNoContentInterface {
+    [CallSignature]
+    CheckExtendableAttribute invoke(optional CheckExtendableOptions options);
+};
+
+[Entity=Class, Abstract]
+interface ExtendableCheckExtendableNoContent: CheckExtendableNoContentAttribute {
+    constructor();
+    static <T> T $_instantiate(ConstructorT<T> factory, optional CheckExtendableOptions options);
+    [TypeAnnotations=Builder]
+    static <T> void _instantiateImpl(CustomBuilderT<T> styles, ConstructorT<T> factory);
+    this setCheckExtendableNoContentOptions(optional CheckExtendableOptions options);
+};
