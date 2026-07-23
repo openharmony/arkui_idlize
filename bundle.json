@@ -1,5 +1,5 @@
 {
-  "name": "@ohos/idlize",
+  "name": "@ohos/arkui_idlize",
   "description": "IDL-based native binding generators for OpenHarmony ArkUI",
   "version": "2.1.140",
   "license": "Apache License 2.0",
