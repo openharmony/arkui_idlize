@@ -42,7 +42,7 @@ Run the base installation from the repository root:
 npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 ```
 
-The libarkts archive must be supplied by `ace_ets2bundle`; other npm
+The libarkts archive must be supplied by `ace_ets2bundle`; the remaining npm
 dependencies are installed from the configured registry.
 
 Compile the main generation pipeline and download the SDK:

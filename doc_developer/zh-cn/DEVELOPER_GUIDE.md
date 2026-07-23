@@ -40,7 +40,7 @@ SDK declarations / handwritten IDL
 npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 ```
 
-libarkts 压缩包必须由 `ace_ets2bundle` 提供；其他 npm 依赖从已配置的 registry
+libarkts 压缩包必须由 `ace_ets2bundle` 提供；其余 npm 依赖从已配置的 registry
 安装。
 
 编译主生成管线并下载 SDK：

@@ -156,8 +156,8 @@ The repository root contains these key directories:
 npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 ```
 
-The libarkts archive must come from the `ace_ets2bundle` component. Other npm
-dependencies use the repository's configured registry.
+The libarkts archive must come from the `ace_ets2bundle` component. The
+remaining npm dependencies use the repository's configured registry.
 
 2. Compile the pipeline entry point.
 

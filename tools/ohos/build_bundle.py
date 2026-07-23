@@ -204,6 +204,35 @@ def contains_external_file_reference(value):
     return False
 
 
+def validate_dependency_version(
+    archive_name, name, version, bundle_version, koalaui_version
+):
+    if name in IDLIZER_PACKAGES and version != bundle_version:
+        raise RuntimeError(
+            f"{archive_name}: {name} is {version}, expected {bundle_version}"
+        )
+    if name in KOALA_PACKAGES and version != koalaui_version:
+        raise RuntimeError(
+            f"{archive_name}: {name} is {version}, expected {koalaui_version}"
+        )
+
+
+def validate_package(archive, bundle_version, koalaui_version):
+    package = archive_package_json(archive)
+    if package.get("version") != bundle_version:
+        raise RuntimeError(
+            f"{archive.name} has version {package.get('version')}, expected {bundle_version}"
+        )
+    if contains_external_file_reference(package):
+        raise RuntimeError(f"{archive.name} contains an external file dependency")
+    for field in DEPENDENCY_FIELDS:
+        for name, version in package.get(field, {}).items():
+            validate_dependency_version(
+                archive.name, name, version, bundle_version, koalaui_version
+            )
+    return package.get("name")
+
+
 def validate_bundle(bundle_out, bundle_version, koalaui_version):
     entries = sorted(bundle_out.iterdir(), key=lambda path: path.name)
     archives = [path for path in entries if path.suffix == ".tgz"]
@@ -212,26 +241,10 @@ def validate_bundle(bundle_out, bundle_version, koalaui_version):
             f"Unexpected bundle contents: {', '.join(path.name for path in entries)}"
         )
 
-    package_names = set()
-    for archive in archives:
-        package = archive_package_json(archive)
-        package_names.add(package.get("name"))
-        if package.get("version") != bundle_version:
-            raise RuntimeError(
-                f"{archive.name} has version {package.get('version')}, expected {bundle_version}"
-            )
-        if contains_external_file_reference(package):
-            raise RuntimeError(f"{archive.name} contains an external file dependency")
-        for field in DEPENDENCY_FIELDS:
-            for name, version in package.get(field, {}).items():
-                if name in IDLIZER_PACKAGES and version != bundle_version:
-                    raise RuntimeError(
-                        f"{archive.name}: {name} is {version}, expected {bundle_version}"
-                    )
-                if name in KOALA_PACKAGES and version != koalaui_version:
-                    raise RuntimeError(
-                        f"{archive.name}: {name} is {version}, expected {koalaui_version}"
-                    )
+    package_names = {
+        validate_package(archive, bundle_version, koalaui_version)
+        for archive in archives
+    }
     if package_names != IDLIZER_PACKAGES:
         raise RuntimeError(f"Unexpected package set: {sorted(package_names)}")
 
@@ -251,28 +264,18 @@ def validate_mutable_paths(source_root, paths):
         if path == Path(path.anchor) or path == source_root or source_root in path.parents:
             raise RuntimeError(f"Refusing to modify unsafe path: {path}")
     for index, path in enumerate(paths):
-        for other in paths[index + 1 :]:
+        for other in paths[index + 1:]:
             if path == other or path in other.parents or other in path.parents:
                 raise RuntimeError(f"Mutable paths overlap: {path} and {other}")
 
 
-def main():
-    args = parse_args()
-    source_root = Path(args.source_root).resolve()
-    work_dir = Path(args.work_dir).resolve()
-    bundle_out = Path(args.bundle_out).resolve()
-    libarkts = Path(args.libarkts).resolve()
-    panda_sdk = Path(args.panda_sdk).resolve()
-    node_bin = Path(args.node_bin).resolve()
-    stamp = Path(args.stamp).resolve()
-    depfile = Path(args.depfile).resolve()
-
-    validate_mutable_paths(source_root, (work_dir, bundle_out, stamp, depfile))
-
+def validate_required_inputs(source_root, libarkts, panda_sdk, node_bin):
     for required in (source_root / "package.json", libarkts, panda_sdk, node_bin / "npm"):
         if not required.exists():
             raise FileNotFoundError(required)
 
+
+def prepare_workspace(source_root, work_dir, bundle_out, stamp, libarkts):
     tracked_sources = source_files(source_root)
     shutil.rmtree(work_dir, ignore_errors=True)
     shutil.rmtree(bundle_out, ignore_errors=True)
@@ -286,20 +289,29 @@ def main():
     local_libarkts = dependency_dir / "libarkts.tgz"
     shutil.copy2(libarkts, local_libarkts)
     manifest_snapshots = prepare_install_manifests(work_dir, local_libarkts)
+    return tracked_sources, dependency_dir, local_libarkts, manifest_snapshots
 
+
+def prepare_panda_sdk(dependency_dir, panda_sdk):
     panda_dir = dependency_dir / "panda-sdk"
     panda_dir.mkdir()
     safe_extract(panda_sdk, panda_dir)
     panda_sdk_path = panda_dir / "sdk"
     if not (panda_sdk_path / "package.json").is_file():
         raise RuntimeError(f"Invalid Panda SDK archive: {panda_sdk}")
+    return panda_sdk_path
 
+
+def build_environment(node_bin, panda_sdk_path, bundle_out):
     env = os.environ.copy()
     env["PATH"] = str(node_bin) + os.pathsep + env.get("PATH", "")
     env["PANDA_SDK_PATH"] = str(panda_sdk_path)
     env["IDLIZE_BUNDLE_OUT"] = str(bundle_out)
     env["npm_config_registry"] = NPM_REGISTRY
+    return env
 
+
+def install_dependencies(work_dir, node_bin, env):
     npm = node_bin / "npm"
     run(
         [
@@ -314,8 +326,10 @@ def main():
         work_dir,
         env,
     )
-    restore_manifests(manifest_snapshots)
+    return npm
 
+
+def validate_libarkts_installation(work_dir, local_libarkts):
     archive_libarkts_version = archive_package_json(local_libarkts).get("version")
     installed_libarkts = json.loads(
         find_installed_libarkts(work_dir).read_text(encoding="utf-8")
@@ -325,6 +339,46 @@ def main():
             "npm did not install the libarkts archive supplied by ace_ets2bundle"
         )
 
+
+def resolve_paths(args):
+    return tuple(
+        Path(value).resolve()
+        for value in (
+            args.source_root,
+            args.work_dir,
+            args.bundle_out,
+            args.libarkts,
+            args.panda_sdk,
+            args.node_bin,
+            args.stamp,
+            args.depfile,
+        )
+    )
+
+
+def main():
+    args = parse_args()
+    (
+        source_root,
+        work_dir,
+        bundle_out,
+        libarkts,
+        panda_sdk,
+        node_bin,
+        stamp,
+        depfile,
+    ) = resolve_paths(args)
+    validate_mutable_paths(source_root, (work_dir, bundle_out, stamp, depfile))
+    validate_required_inputs(source_root, libarkts, panda_sdk, node_bin)
+
+    tracked_sources, dependency_dir, local_libarkts, manifest_snapshots = (
+        prepare_workspace(source_root, work_dir, bundle_out, stamp, libarkts)
+    )
+    panda_sdk_path = prepare_panda_sdk(dependency_dir, panda_sdk)
+    env = build_environment(node_bin, panda_sdk_path, bundle_out)
+    npm = install_dependencies(work_dir, node_bin, env)
+    restore_manifests(manifest_snapshots)
+    validate_libarkts_installation(work_dir, local_libarkts)
     run([npm, "run", "bundle"], work_dir, env)
     validate_bundle(bundle_out, args.bundle_version, args.koalaui_version)
 

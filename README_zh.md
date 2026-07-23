@@ -108,7 +108,7 @@ IDLize 工具主要由编译与处理、代码生成、支撑库三大模块组�
 npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 ```
 
-libarkts 压缩包必须来自 `ace_ets2bundle` 部件；其他 npm 依赖使用仓库已配置的
+libarkts 压缩包必须来自 `ace_ets2bundle` 部件；其余 npm 依赖使用仓库已配置的
 registry。
 
 2. 编译管线入口。
