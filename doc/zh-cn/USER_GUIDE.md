@@ -15,16 +15,15 @@
 从仓库根目录准备环境：
 
 ```bash
-git submodule update --init
-npm i
-cd external
-npm i
-cd ..
+npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 cd runner
 npm run compile
 cd ..
 npm run download:sdk
 ```
+
+libarkts 压缩包应使用 `ace_ets2bundle` 的产物；公共 npm 依赖继续使用仓库已配置的
+registry。
 
 以上命令完成后即可运行标准生成流程。更完整的开发环境和发布说明请参见
 [开发者指南](../../doc_developer/zh-cn/DEVELOPER_GUIDE.md)。

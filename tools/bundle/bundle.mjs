@@ -13,11 +13,17 @@
  * limitations under the License.
  */
 
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
-import { basename, join, resolve } from 'node:path'
-import { Package, IDLIZE_HOME, all_packages as idlize_packages } from '../utils.mjs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs'
+import { basename, join, parse, resolve } from 'node:path'
+import {
+    Package,
+    IDLIZE_HOME,
+    external_packages,
+    idlize_packages,
+} from '../utils.mjs'
 
 const all_packages = [
+    ...external_packages,
     ...idlize_packages,
 ]
 const koalaui_dependencies = [
@@ -35,40 +41,12 @@ const idlizer_dependencies = [
     "@idlizer/runner"
 ]
 
-const INSTALL_JS_TEXT = `
-const { mkdirSync } = require("node:fs")
-const { resolve } = require("node:path")
-const { execSync } = require("node:child_process")
-
-if (!process.argv[2]) {
-    throw new Error("Install directory was not provided!");
-}
-
-const TGZ_DIR = __dirname
-const WORK_DIR = resolve(process.argv[2])
-
-mkdirSync(WORK_DIR, { recursive: true })
-execSync("npm init -y", { stdio: "ignore", cwd: WORK_DIR })
-execSync(\`npm i \${TGZ_DIR}/*.tgz\`, { stdio: "ignore", cwd: WORK_DIR })
-
-console.log("Done!")
-console.log("Installed to", WORK_DIR)
-console.log()
-console.log("Please check that")
-console.log()
-console.log("* Panda SDK installed with correct version")
-console.log("* SDK is downloaded")
-console.log()
-console.log("The tool can be used as follows:")
-console.log()
-console.log("cd", WORK_DIR)
-console.log("npx @idlizer/runner m3 <path-to-arkts12-sdk> <path-to-idl-files> --arkgen-options-file <arkgen-config-file> --output <path-to-peers> --sdk-stage prepared")
-console.log()
-
-`.trim()
-
-function findPackage(name) {
-    return all_packages.find(it => it.name() === name)
+function findPackage(name, packages) {
+    const pkg = packages.find(it => it.name() === name)
+    if (!pkg) {
+        throw new Error(`Package ${name} is not available for bundling`)
+    }
+    return pkg
 }
 
 function mangleVersion(version, manglePanda) {
@@ -80,30 +58,34 @@ function mangleVersion(version, manglePanda) {
     return version
 }
 
-function applyVersions(dependencies, versions) {
+function applyVersions(dependencies, versions, packages) {
     for (const dependency of dependencies) {
-        if (!(dependency in versions))
-            continue
-        const pkg = findPackage(dependency)
+        const pkg = findPackage(dependency, packages)
         pkg.write('version', versions[pkg.name()])
-        const subDependencies = pkg.read('dependencies')
-        if (subDependencies) {
-            for (const subDependency in subDependencies) {
-                if (!(subDependency in versions))
-                    continue
-                subDependencies[subDependency] = versions[subDependency]
+        for (const field of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+            const subDependencies = pkg.read(field)
+            if (subDependencies) {
+                for (const subDependency in subDependencies) {
+                    if (!(subDependency in versions))
+                        continue
+                    subDependencies[subDependency] = versions[subDependency]
+                }
+                pkg.write(field, subDependencies)
             }
-            pkg.write('dependencies', subDependencies)
         }
     }
 }
 
 export function bundle(bundleVersion, bundleOut, options) {
-    bundleOut = bundleOut ? resolve(bundleOut) : join(IDLIZE_HOME, "bundle")
+    bundleOut = resolve(process.env.IDLIZE_BUNDLE_OUT ?? bundleOut ?? join(IDLIZE_HOME, "bundle"))
+
+    if (bundleOut === parse(bundleOut).root || bundleOut === IDLIZE_HOME ||
+        existsSync(join(bundleOut, 'package.json'))) {
+        throw new Error(`Refusing to clean unsafe bundle output directory: ${bundleOut}`)
+    }
 
     if (options.idlizerOnly && !options.koalauiVersion) {
-        console.log('Error: koalaui packages were not selected and their version is not specified')
-        return
+        throw new Error('koalaui packages were not selected and their version is not specified')
     }
 
     const newVersion = mangleVersion(bundleVersion, options.pandaVersion)
@@ -112,43 +94,46 @@ export function bundle(bundleVersion, bundleOut, options) {
         ...idlizer_dependencies,
     ]
     const bundlableDependencies = options.idlizerOnly ? idlizer_dependencies : allDependencies
+    const availablePackages = options.idlizerOnly ? idlize_packages : all_packages
     const packageSnapshots = allDependencies.flatMap(dep => {
-        const pkg = findPackage(dep)
-        if (!pkg) {
+        if (options.idlizerOnly && koalaui_dependencies.includes(dep)) {
             return []
         }
+        const pkg = findPackage(dep, availablePackages)
         return [{
             snapshot: pkg.snapshot(),
             package: pkg
         }]
     })
     const newVersions = allDependencies.reduce((versions, dep) => {
-        const pkg = findPackage(dep)
-        versions[pkg.name()] = (options.idlizerOnly && koalaui_dependencies.indexOf(dep) >= 0) ?
+        versions[dep] = (options.idlizerOnly && koalaui_dependencies.indexOf(dep) >= 0) ?
             options.koalauiVersion :
             newVersion
         return versions
     }, {})
     try {
-        applyVersions(bundlableDependencies, newVersions)
+        applyVersions(bundlableDependencies, newVersions, availablePackages)
         console.log("Compiling dependencies..")
         bundlableDependencies.forEach(dep => {
-            const pkg = findPackage(dep)
+            const pkg = findPackage(dep, availablePackages)
             console.log(`compiling ${pkg.name()}..`)
             pkg.compile()
         })
 
         console.log("Packing..")
+        rmSync(bundleOut, { recursive: true, force: true })
         mkdirSync(bundleOut, { recursive: true })
         bundlableDependencies.forEach(dep => {
-            const pkg = findPackage(dep)
+            const pkg = findPackage(dep, availablePackages)
             console.log(`packing ${pkg.name()}..`)
             const packPath = pkg.pack()
             copyFileSync(packPath, join(bundleOut, basename(packPath)))
+            rmSync(packPath)
         })
-        if (!options.skipInstallPacking) {
-            console.log(`Creating install.js..`)
-            writeFileSync(join(bundleOut, 'install.js'), INSTALL_JS_TEXT)
+        const outputFiles = readdirSync(bundleOut).sort()
+        if (outputFiles.length !== bundlableDependencies.length ||
+            outputFiles.some(file => !file.endsWith('.tgz'))) {
+            throw new Error(`Unexpected bundle contents: ${outputFiles.join(', ')}`)
         }
 
         console.log(`All done! Bundle saved to ${bundleOut}`)

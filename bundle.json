@@ -1,0 +1,33 @@
+{
+  "name": "@ohos/idlize",
+  "description": "IDL-based native binding generators for OpenHarmony ArkUI",
+  "version": "2.1.140",
+  "license": "Apache License 2.0",
+  "publishAs": "code-segment",
+  "segment": {
+    "destPath": "foundation/arkui/idlize"
+  },
+  "dirs": {},
+  "scripts": {},
+  "component": {
+    "name": "idlize",
+    "subsystem": "arkui",
+    "adapted_system_type": [
+      "standard"
+    ],
+    "deps": {
+      "components": [
+        "ace_ets2bundle",
+        "node"
+      ],
+      "third_party": []
+    },
+    "build": {
+      "sub_component": [
+        "//foundation/arkui/idlize:idlize_bundle"
+      ],
+      "inner_kits": [],
+      "test": []
+    }
+  }
+}

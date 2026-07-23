@@ -23,7 +23,6 @@ function main() {
         .option('--idlizer-only', 'Do not pack koalaui dependencies', false)
         .option('--koalaui-version <version>',
             'Use with --idlizer-only. Indicates the version of koalaui that idlizer packages will depend on')
-        .option('--skip-install-packing', 'Do not add install.js script into bundle', false)
         .action(bundle)
         .parse()
 }

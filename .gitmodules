@@ -1,7 +1,0 @@
-[submodule "external"]
-	path = external
-	url = https://gitee.com/guozejun/koala_projects.git
-[submodule "webidl2.js"]
-	path = core/webidl2.js
-	url = https://gitee.com/nikolay-igotti/webidl2.js
-	branch = main
