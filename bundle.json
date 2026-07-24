@@ -1,7 +1,7 @@
 {
   "name": "@ohos/arkui_idlize",
   "description": "IDL-based native binding generators for OpenHarmony ArkUI",
-  "version": "2.1.140",
+  "version": "6.0",
   "license": "Apache License 2.0",
   "publishAs": "code-segment",
   "segment": {
