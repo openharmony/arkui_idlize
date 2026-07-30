@@ -22,13 +22,11 @@
         </policylist>
         <filefilterlist>
             <filefilter name="defaultPolicyFilter" desc="License header filter" >
-                <filteritem type="filepath" name="\.gitmodules" desc="Git submodule metadata"/>
                 <filteritem type="filepath" name="VERSION" desc="Plain version file"/>
                 <filteritem type="filepath" name="scraper/theList\.csv" desc="CSV input list"/>
                 <filteritem type="filepath" name="tools/devcontainer/\.npmrc" desc="npm configuration file"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Copyright header filter" >
-                <filteritem type="filepath" name="\.gitmodules" desc="Git submodule metadata"/>
                 <filteritem type="filepath" name="VERSION" desc="Plain version file"/>
                 <filteritem type="filepath" name="scraper/theList\.csv" desc="CSV input list"/>
                 <filteritem type="filepath" name="tools/devcontainer/\.npmrc" desc="npm configuration file"/>

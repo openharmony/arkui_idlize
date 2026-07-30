@@ -4,7 +4,6 @@
   "version": "2.1.7",
   "description": "idlize hash of head: acf352e",
   "workspaces": [
-    "core/webidl2.js",
     "arkgen",
     "arkgen/tests-template/arkts",
     "ohosgen/demos/*",
@@ -18,9 +17,7 @@
     "runner",
     "idlinter",
     "interfaces",
-    "scraper",
-    "external/ui2abc",
-    "external/ui2abc/libarkts" 
+    "scraper"
   ],
   "license": "Apache-2.0",
   "keywords": [],
@@ -28,10 +25,10 @@
     "prepare:sdk": "npm run prepare:sdk -C runner",
     "absolute:sdk": "npm run absolute:sdk -C runner",
     "download:sdk": "node ./tools/download-sdk.mjs && npm run prepare:sdk",
-    "compile": "npm run compile --prefix external/incremental/compat && npm run compile --prefix external/incremental/common && npm run compile --prefix external/interop",
+    "compile": "npm run compile -C runner",
     "release": "npm run compile && npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && npm run -c arktscgen compile && npm run -C idlinter compile && node tools/release.mjs",
     "sanity": "npm run -C arkgen sanity && npm run -C linter run",
     "setup-out": "node tools/setup/setup.mjs",
-    "bundle": "node ./tools/bundle.mjs 2.1.140 bundled --idlizer-only --koalaui-version 1.7.14"
+    "bundle": "node ./tools/bundle.mjs 2.1.140 bundled --no-panda-version --idlizer-only --koalaui-version 1.7.14"
   }
 }

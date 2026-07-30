@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@koalaui/libarkts": "file:../external/libarkts",
+    "@koalaui/libarkts": "1.7.14",
     "commander": "^10.0.0"
   },
   "devDependencies": {
@@ -30,7 +30,8 @@
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "tslib": "^2.3.1"
   },
   "scripts": {
     "clean": "rimraf -g build .rollup.cache lib out",

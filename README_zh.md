@@ -100,17 +100,16 @@ IDLize 工具主要由编译与处理、代码生成、支撑库三大模块组�
 
 ### 构建开发环境
 
-**前置条件：** Node.js 18 或更高版本，以及 git。
+**前置条件：** Node.js 18 或更高版本，以及用于下载 SDK 的 git。
 
-1. 克隆子模块并安装根目录依赖。
+1. 安装依赖。
 
 ```bash
-git submodule update --init
-npm i
-cd external
-npm i
-cd ..
+npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 ```
+
+libarkts 压缩包必须来自 `ace_ets2bundle` 部件；其余 npm 依赖使用仓库已配置的
+registry。
 
 2. 编译管线入口。
 
@@ -143,7 +142,7 @@ bash generate.sh
 | 现象 | 检查项 | 处理方法 |
 |---|---|---|
 | `node` 或 `npm` 报版本或语法错误 | 在仓库根目录执行 `node -v`。 | 使用 Node.js 18 或更高版本；必要时重新安装依赖。 |
-| 在 `external/` 中执行 `npm run compile` 失败 | 先重新执行 `cd external && npm i`。 | 编译前必须先安装 `external/` 及其子模块依赖。 |
+| 无法解析 `@koalaui/libarkts` | 检查传给 `npm i --no-save` 的本地 tgz 是否来自 `ace_ets2bundle`。 | 保持 `etsgen` 使用 libarkts `1.7.14`，不要改回 `external/` 文件依赖。 |
 | 生成结果缺少预期 API | 对比 `out/`、`runner/out/peers/` 和 `runner/out/idl/`。 | 确认 SDK 声明无误，然后重新执行 `bash generate.sh`。 |
 
 如需深入排查，请参考 [追踪生成结果](doc/zh-cn/USER_GUIDE.md#3-判断生成结果是否正确) 和

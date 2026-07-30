@@ -148,17 +148,16 @@ The repository root contains these key directories:
 
 ### Build the Development Environment
 
-**Prerequisites:** Node.js 18 or later and git.
+**Prerequisites:** Node.js 18 or later and git (used to download the SDK).
 
-1. Clone submodules and install dependencies.
+1. Install dependencies.
 
 ```bash
-git submodule update --init
-npm i
-cd external
-npm i
-cd ..
+npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 ```
+
+The libarkts archive must come from the `ace_ets2bundle` component. The
+remaining npm dependencies use the repository's configured registry.
 
 2. Compile the pipeline entry point.
 
@@ -193,7 +192,7 @@ written under `runner/out`.
 | Symptom | Check | Fix |
 |---|---|---|
 | `node` or `npm` reports a version or syntax error | Run `node -v` from the repository root. | Use Node.js 18 or later, then reinstall dependencies if needed. |
-| `npm run compile` fails inside `external/` | Re-run `cd external && npm i` first. | `external/` and submodules must be installed before compiling. |
+| `@koalaui/libarkts` cannot be resolved | Check that the local tgz passed to `npm i --no-save` came from `ace_ets2bundle`. | Keep `etsgen` on libarkts `1.7.14`; do not replace it with an `external/` file dependency. |
 | Generated output misses an expected API | Compare `out/`, `runner/out/peers/`, and `runner/out/idl/`. | Confirm that the SDK declaration is correct, then rerun `bash generate.sh`. |
 
 For deeper debugging, see

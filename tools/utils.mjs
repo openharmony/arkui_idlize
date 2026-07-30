@@ -60,6 +60,7 @@ export class Package {
     }
 
     compile() {
+        const cwd = process.cwd()
         process.chdir(this.path)
         try {
             const script = "compile:release" in this.read("scripts")
@@ -67,17 +68,23 @@ export class Package {
                 : "compile"
             execSync(`npm run ${script}`, { encoding: 'utf-8', stdio: 'inherit' })
         } catch(e) {
-            console.log(`cannot compile package: ${this.name()}`, e)
-            // TODO uncomment when crosscompilation will be established on CI
-            // throw e
+            console.error(`cannot compile package: ${this.name()}`, e)
+            throw e
+        } finally {
+            process.chdir(cwd)
         }
     }
 
     pack(destination = '.') {
+        const cwd = process.cwd()
         process.chdir(this.path)
-        execSync(`npm pack --pack-destination ${destination}`, { encoding: 'utf-8' })
-        const tgzName = `${this.name()}-${this.version().toString()}.tgz`.replaceAll('/', '-').replaceAll('@', '')
-        return join(this.path, destination, tgzName)
+        try {
+            execSync(`npm pack --pack-destination ${destination}`, { encoding: 'utf-8' })
+            const tgzName = `${this.name()}-${this.version().toString()}.tgz`.replaceAll('/', '-').replaceAll('@', '')
+            return join(this.path, destination, tgzName)
+        } finally {
+            process.chdir(cwd)
+        }
     }
 
     publish() {
@@ -88,17 +95,25 @@ export class Package {
     externalDependencies = ["@idlizer/core", "@idlizer/libohos", "@koalaui/interop"]
 }
 
-export const all_packages = [
+export const external_packages = [
     new Package(path.join(EXTERNAL_HOME, "compat")),
     new Package(path.join(EXTERNAL_HOME, "common")),
     new Package(path.join(EXTERNAL_HOME, "interop")),
     new Package(path.join(EXTERNAL_HOME, "libarkts")),
+]
+
+export const idlize_packages = [
     new Package(path.join(IDLIZE_HOME, "arkgen")),
     new Package(path.join(IDLIZE_HOME, "core")),
     new Package(path.join(IDLIZE_HOME, "libohos")),
     new Package(path.join(IDLIZE_HOME, "interfaces")),
     new Package(path.join(IDLIZE_HOME, "runner")),
     new Package(path.join(IDLIZE_HOME, "etsgen")),
+]
+
+export const all_packages = [
+    ...external_packages,
+    ...idlize_packages,
 ]
 
 export class Version {

@@ -39,12 +39,11 @@ SDK declarations / handwritten IDL
 Run the base installation from the repository root:
 
 ```bash
-git submodule update --init
-npm i
-cd external
-npm i
-cd ..
+npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 ```
+
+The libarkts archive must be supplied by `ace_ets2bundle`; the remaining npm
+dependencies are installed from the configured registry.
 
 Compile the main generation pipeline and download the SDK:
 
@@ -55,15 +54,10 @@ cd ..
 npm run download:sdk
 ```
 
-When you need to compile ArkTS-related generators or fully verify the pipeline,
-prepare `external/libarkts` and the panda SDK:
-
-```bash
-cd external/libarkts
-PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
-npm run compile
-cd ../..
-```
+The repository no longer requires git submodules for installation or bundling.
+In an OpenHarmony component build, the `idlize_bundle` GN target obtains both
+libarkts and the Panda SDK from `ace_ets2bundle`; it does not place either
+dependency in the source tree.
 
 Run the standard generation flow:
 
@@ -289,6 +283,11 @@ Bundle artifacts:
 npm run bundle
 ```
 
+This writes six idlizer packages to `./bundled`. In an OpenHarmony build, build
+`//foundation/arkui/idlize:idlize_bundle`; its isolated work tree is under
+`target_gen_dir`, and the verified output is written to
+`$root_out_dir/arkui_idlize`.
+
 ## 9. Pre-Submit Checklist
 
 - Code generation logic changed: rerun `bash generate.sh` and inspect `runner/out/peers/`.
@@ -297,4 +296,4 @@ npm run bundle
 - `arkgen` or `libohos` changed: inspect ArkTS / C++ output and Serializer changes.
 - SDK declarations changed: do not edit `interface_sdk-js/` directly; change patch directories instead.
 - README or documentation changed: keep Chinese and English entries synchronized.
-- Do not submit generated directories, bundles, tgz files, or direct changes inside the vendored SDK submodule.
+- Do not submit generated directories, bundles, tgz files, or direct changes inside the vendored SDK directory.

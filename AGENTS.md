@@ -95,16 +95,13 @@ skill (see §Skills index). This table is the primary routing guide.
   subsequent pipeline stages.
 - `ohosgen/` — OHOS-target generator and integration demos under
   `demos/`.
-- `external/` — vendored deps: `ui2abc`, `libarkts`, `interop`,
-  `incremental`.
 - `sdk-patched/` — patched upstream `.d.ts` SDK declarations.
 - `sdk-patched-arkts/` — patched upstream `.d.ets` SDK declarations.
-- `interface_sdk-js/` — vendored upstream SDK submodule (read-only;
+- `interface_sdk-js/` — vendored upstream SDK checkout (read-only;
   do not hand-edit).
 - `bundled/` — release artifacts from `npm run bundle`; **do not edit**.
 
-Nested sub-workspaces (`core/webidl2.js`, `external/ui2abc/libarkts`,
-`arkgen/tests-template/arkts`, `ohosgen/demos/*`, etc.) are not listed
+Nested sub-workspaces (`arkgen/tests-template/arkts`, `ohosgen/demos/*`, etc.) are not listed
 individually — they inherit context from their parent workspace.
 
 ## Skills index
@@ -131,12 +128,11 @@ Terms marked (*) appear in source code, config files, or IDL files.
 - `ArkUI` — OpenHarmony's declarative UI framework; primary codegen target.
 - `OHOS` — OpenHarmony OS; the runtime platform.
 - `ArkTS` — TypeScript dialect for OHOS apps; some codegen targets it.
-- `Arkoala` — multi-language ArkUI runtime project; flavors
-  (`arkoala`, `arkoala-arkts`, `arkoala-cj`, `arkoala-java`,
-  `arkoala-kotlin`) live under `external/` and consume generated peers.
+- `Arkoala` — multi-language ArkUI runtime project whose downstream flavors
+  consume generated peers.
 - `libace` — ArkUI native engine; C++ modifiers plug into it.
-- `panda SDK` — pinned native VM/runtime toolchain; see
-  `.claude/skills/idl-instructions/SKILL.md` for `PANDA_SDK_VERSION` and install steps.
+- `panda SDK` — pinned native VM/runtime toolchain supplied by
+  `ace_ets2bundle` to the OpenHarmony bundle build.
 - `koalaui` (*) — upstream UI runtime library imported as `@koalaui/*`
   by generated peers and `libohos/templates/`.
 
@@ -178,7 +174,7 @@ Terms marked (*) appear in source code, config files, or IDL files.
 - **Do not edit generated output:** `out/`, `build/`, `bundled/`, `lib/`
   (when adjacent to a `src/`), `*.tgz` — these are pipeline products.
 - **Do not hand-edit `interface_sdk-js/`** — it is a vendored upstream
-  submodule; patch via `sdk-patched/` or `sdk-patched-arkts/` instead.
+  checkout; patch via `sdk-patched/` or `sdk-patched-arkts/` instead.
 - **Regenerate via `runner m3`** (see `.claude/skills/idl-instructions/SKILL.md`) after any
   pipeline-affecting change; do not claim done from code review of
   generators alone — verify generated output.

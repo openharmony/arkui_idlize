@@ -1,0 +1,80 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+
+node_version = "v18.20.1"
+host_arch = "${host_os}-${host_cpu}"
+
+if (ohos_indep_compiler_enable) {
+  libarkts_path = "//binarys/developtools/ace_ets2bundle/innerapis/ohos_ets_libarkts_pack_prebuilt/clang_x64/libs/libarkts.tgz"
+  panda_sdk_path = "//binarys/developtools/ace_ets2bundle/innerapis/panda_sdk/clang_x64/libs/panda_sdk.tgz"
+} else {
+  if (current_os == "linux") {
+    libarkts_root_path = root_out_dir
+  } else {
+    libarkts_root_path = "$root_out_dir/clang_x64"
+  }
+  libarkts_path =
+      "$libarkts_root_path/obj/developtools/ace_ets2bundle/ets1.2/libarkts.tgz"
+  panda_sdk_path = "$libarkts_root_path/obj/developtools/ace_ets2bundle/ets1.2/libarkts/panda-sdk/panda_sdk.tgz"
+}
+
+action("idlize_bundle") {
+  script = "tools/ohos/build_bundle.py"
+
+  bundle_output = "$root_out_dir/arkui_idlize"
+  work_dir = "$target_gen_dir/idlize_bundle_work"
+  stamp = "$target_gen_dir/idlize_bundle.stamp"
+  depfile_path = "$target_gen_dir/idlize_bundle.d"
+
+  args = [
+    "--source-root",
+    rebase_path(".", root_build_dir),
+    "--work-dir",
+    rebase_path(work_dir, root_build_dir),
+    "--bundle-out",
+    rebase_path(bundle_output, root_build_dir),
+    "--libarkts",
+    rebase_path(libarkts_path, root_build_dir),
+    "--panda-sdk",
+    rebase_path(panda_sdk_path, root_build_dir),
+    "--node-bin",
+    rebase_path(
+        "//prebuilts/build-tools/common/nodejs/node-${node_version}-${host_arch}/bin",
+        root_build_dir),
+    "--stamp",
+    rebase_path(stamp, root_build_dir),
+    "--depfile",
+    rebase_path(depfile_path, root_build_dir),
+    "--bundle-version",
+    "2.1.140",
+    "--koalaui-version",
+    "1.7.14",
+  ]
+
+  inputs = [
+    "package.json",
+    "tools/bundle.mjs",
+    "tools/bundle/bundle.mjs",
+    "tools/utils.mjs",
+  ]
+  outputs = [ stamp ]
+  depfile = depfile_path
+
+  external_deps = [
+    "ace_ets2bundle:ohos_ets_libarkts_pack_prebuilt($toolchain_linux)",
+    "ace_ets2bundle:panda_sdk($toolchain_linux)",
+  ]
+}

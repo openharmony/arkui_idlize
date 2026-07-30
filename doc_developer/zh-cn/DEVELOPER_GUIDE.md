@@ -37,12 +37,11 @@ SDK declarations / handwritten IDL
 在仓库根目录执行基础安装：
 
 ```bash
-git submodule update --init
-npm i
-cd external
-npm i
-cd ..
+npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 ```
+
+libarkts 压缩包必须由 `ace_ets2bundle` 提供；其余 npm 依赖从已配置的 registry
+安装。
 
 编译主生成管线并下载 SDK：
 
@@ -53,14 +52,9 @@ cd ..
 npm run download:sdk
 ```
 
-当需要编译 ArkTS 相关生成器或完整验证管线时，准备 `external/libarkts` 和 panda SDK：
-
-```bash
-cd external/libarkts
-PANDA_SDK_VERSION=1.5.0-dev.58082 npm run panda:sdk:reinstall
-npm run compile
-cd ../..
-```
+仓库安装和打包不再依赖 git 子模块。在 OpenHarmony 部件构建中，
+`idlize_bundle` GN 目标从 `ace_ets2bundle` 获取 libarkts 和 Panda SDK，
+两项依赖都不会写入源码树。
 
 运行标准生成：
 
@@ -277,6 +271,10 @@ bash generate.sh
 npm run bundle
 ```
 
+该命令向 `./bundled` 写入六个 idlizer 包。在 OpenHarmony 构建中，请构建
+`//foundation/arkui/idlize:idlize_bundle`；隔离工作副本位于
+`target_gen_dir`，校验后的产物写入 `$root_out_dir/arkui_idlize`。
+
 ## 9. 提交前检查清单
 
 - 修改了代码生成逻辑：已重新运行 `bash generate.sh`，并检查 `runner/out/peers/`。
@@ -285,4 +283,4 @@ npm run bundle
 - 修改了 `arkgen` 或 `libohos`：已检查 ArkTS / C++ 输出和 Serializer 变化。
 - 修改了 SDK 声明：没有直接修改 `interface_sdk-js/`，而是修改 patch 目录。
 - 修改了 README 或文档：中文和英文入口保持同步。
-- 没有提交生成目录、bundle、tgz 或 vendored SDK 子模块中的直接改动。
+- 没有提交生成目录、bundle、tgz 或 vendored SDK 目录中的直接改动。

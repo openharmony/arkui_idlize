@@ -16,16 +16,15 @@ parameters, see [CLI_REFERENCE.md](CLI_REFERENCE.md).
 Prepare the environment from the repository root:
 
 ```bash
-git submodule update --init
-npm i
-cd external
-npm i
-cd ..
+npm i --no-save /path/to/ace_ets2bundle/libarkts.tgz
 cd runner
 npm run compile
 cd ..
 npm run download:sdk
 ```
+
+Use the libarkts archive produced by `ace_ets2bundle`; public npm dependencies
+continue to use the repository's configured registry.
 
 After these commands complete, you can run the standard generation flow. For
 full development-environment and release details, see the
