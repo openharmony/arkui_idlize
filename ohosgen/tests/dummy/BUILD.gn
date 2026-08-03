@@ -96,7 +96,6 @@ template("dummy_test") {
             ":$test_target_name:generate",
             ":${test_target_name}:generate:cp",
             "${idlize_root}:external_libarkts",
-            "${idlize_root}:external_incremental_panda",
         ]
     }
 

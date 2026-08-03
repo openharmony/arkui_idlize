@@ -47,13 +47,6 @@ group("external_libarkts") {
     }
 }
 
-group("external_incremental_panda") {
-    deps = []
-    if (idlize_ws == "ohos") {
-        deps += [ "${koala_mr.root_path}/incremental:incremental_abc" ]
-    }
-}
-
 group("external_interop_node") {
     deps = []
     if (idlize_ws == "ohos") {

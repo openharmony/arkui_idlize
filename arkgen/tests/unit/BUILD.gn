@@ -116,7 +116,6 @@ npm_cmd("check:arkts:build") {
     run_tasks = [ "build:arkts" ]
     deps = [
         ":check:arkts:generate:cp",
-        "${idlize_root}:external_incremental_panda",
         "${idlize_root}:external_libarkts",
     ]
 }

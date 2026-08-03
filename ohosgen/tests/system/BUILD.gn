@@ -201,7 +201,6 @@ template("system_test") {
             ":$test_case:build",
             ":$test_case:build-native",
             "${idlize_root}:external_interop_panda",
-            "${idlize_root}:external_incremental_panda",
         ]
     }
 
