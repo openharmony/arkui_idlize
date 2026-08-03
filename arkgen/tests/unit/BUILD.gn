@@ -47,8 +47,8 @@ cp("check:arkts:init") {
 _marker_file = "${target_gen_dir}/.idl_dir"
 
 scan_sources("check:arkts:generate:idl_dir") {
-    dir = rebase_path("./idl")
-    marker_file = _marker_file
+    sources = [ rebase_path("./idl/**/*") ]
+    outputs = [ _marker_file ]
 }
 
 node_cmd("check:arkts:generate") {

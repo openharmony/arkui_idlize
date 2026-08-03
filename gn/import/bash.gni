@@ -191,15 +191,24 @@ template("cp") {
 }
 
 template("scan_sources") {
-  _dir = invoker.dir
-  _marker_file = invoker.marker_file
+  _sources = invoker.sources
+  _output_file = invoker.outputs[0]
   
   action(target_name) {
     script = "$idlize_root/gn/script/scan_sources.py"
-    depfile = "${_marker_file}.d"
-    args = [ "--dir",  _dir, "--marker", rebase_path(_marker_file), "--depfile", rebase_path(depfile)]
+    depfile = "${_output_file}.d"
+    args = []
+    foreach(_source, _sources) {
+      args += [ "--source", _source ]
+    }
+    args += [
+      "--marker",
+      rebase_path(_output_file),
+      "--depfile",
+      rebase_path(depfile),
+    ]
 
     inputs = [ script ]
-    outputs = [ _marker_file ]
+    outputs = invoker.outputs
   }
 }
