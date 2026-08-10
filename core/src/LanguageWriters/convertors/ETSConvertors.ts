@@ -20,6 +20,11 @@ import { TSInteropArgConvertor, TSTypeNameConvertor } from "./TSConvertors.js"
 
 export class ETSTypeNameConvertor extends TSTypeNameConvertor {
     convertTypeReference(type: idl.IDLReferenceType): string {
+        const decl = this.library.resolveTypeReference(type)
+        if (decl && idl.isInterface(decl) && decl.subkind === idl.IDLInterfaceSubkind.Tuple && isInsideInstanceof()) {
+            const arity = decl.properties.length
+            return arity <= 16 ? `Tuple${arity}` : "TupleN"
+        }
         let typeName = super.convertTypeReference(type)
         if (LanguageWriter.isReferenceRelativeToNamespaces && idl.isReferenceType(type)) {
             const namespacesPath = idl.getNamespacesPathFor(type).map(it => `${it.name}.`).join("")

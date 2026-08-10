@@ -26,11 +26,11 @@ import {
     ArkCheckDuplicateParentComponent, ArkCheckEnumComponent, ArkCheckExceptionComponent, ArkCheckExtendableComponent,
     ArkCheckExtendableNoContentComponent, ArkCheckNoModifiersComponent, ArkCheckOptionalComponent,
     ArkCheckParentComponent, ArkCheckTransformComponent, ArkCheckTrivialModifierComponent, ArkCheckUnitsComponent,
-    ArkDatebookComponent, ArkRootComponent, CheckChildAttribute, CheckCustomModifierAttribute,
+    ArkDatebookComponent, ArkListItemComponent, ArkRootComponent, CheckChildAttribute, CheckCustomModifierAttribute,
     CheckDuplicateChildAttribute, CheckDuplicateParentAttribute, CheckEnumAttribute, CheckExceptionAttribute,
     CheckExtendableAttribute, CheckExtendableNoContentAttribute, CheckHooksAttribute, CheckNoModifiersAttribute,
     CheckOptionalAttribute, CheckParentAttribute, CheckTransformAttribute, CheckTrivialModifierAttribute,
-    CheckUnitsAttribute, DatebookAttribute, Root
+    CheckUnitsAttribute, DatebookAttribute, ListItemAttribute, Root
 } from '../framework'
 
 export interface AttributeModifier<T> {
@@ -201,4 +201,8 @@ export function hookRootAttributeModifier(
 export function hookCheckUnitsAttributeModifier(
     attr: ArkCheckUnitsComponent,
     value: AttributeModifier<CheckUnitsAttribute> | AttributeModifier<Root> | undefined
+): void {}
+export function hookListItemAttributeModifier(
+    attr: ArkListItemComponent,
+    value: AttributeModifier<ListItemAttribute> | AttributeModifier<Root> | undefined
 ): void {}

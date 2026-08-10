@@ -59,7 +59,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     convertCallback(node: idl.IDLCallback): string {
         return idl.isSyntheticEntry(node)
             ? this.mapCallback(node)
-            : this.mangleTopLevel(node) ?? node.name
+            : this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertMethod(node: idl.IDLMethod): string {
         return node.name
@@ -158,6 +158,25 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 return this.mapFunctionType(typeArgs)
             const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
             if (decl) {
+                if (idl.isCallback(decl) && isInsideInstanceof()) {
+                    const isUiBuilder = idl.getExtAttribute(
+                        decl, idl.IDLExtendedAttributes.TypeAnnotations) === 'Builder'
+                    const uiBuilderParameters = isUiBuilder ? ['__memo_context: Any', '__memo_id: Any'] : []
+                    const parameters: string[] = []
+                    for (let index = 0; index < decl.parameters.length; index++) {
+                        const parameter = decl.parameters[index]
+                        if (parameter.isOptional) {
+                            break
+                        }
+                        if (parameter.isVariadic) {
+                            parameters.push(`...p${index}: Any[]`)
+                            continue
+                        }
+                        parameters.push(`p${index}: Any`)
+                    }
+                    const functionParameters = [...uiBuilderParameters, ...parameters].join(', ')
+                    return `((${functionParameters}) => never)`
+                }
                 const path = idl.getNamespacesPathFor(decl).map(it => it.name)
                 path.push(decl.name)
                 return `${this.mangleTopLevel(decl) ?? path.join(".")}${maybeTypeArguments}`
