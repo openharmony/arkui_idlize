@@ -15,8 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { collectDeclDependencies, collectExtendableComponents, ExtendableComponentInfo, findComponentByName,
-    getSuperComponent, IdlComponentDeclaration, PrinterResult, readLangTemplate,
-    extractContentParameter } from "@idlizer/libohos"
+    getSuperComponent, IdlComponentDeclaration, PrinterResult, readLangTemplate } from "@idlizer/libohos"
 import { ImportsCollector, Language, LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerLibrary,
     LanguageWriter, LayoutTargetDescription} from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter.js"
@@ -101,14 +100,7 @@ class ExtendableComponentPrinter {
 
                 // Generate $_instantiate methods for each callable in the base component
                 this.printInstantiateMethods(writer)
-
-                if (this.extComponent.extendableComponent) {
-                    writer.writeLines(readLangTemplate('extendable_component_instantiate', this.library.language)
-                        .replaceAll("%INTERFACE_NAME%", this.extComponent.extendableComponent.name)
-                        .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", this.component.attributeDeclaration.name)
-                        .replaceAll("%BASE_COMPONENT_NAME%", this.baseComponent.attributeDeclaration.name)
-                        .replaceAll("%COMPONENT_NAME%", this.extComponent.componentName))
-                }
+                this.printInstantiateImplMethod(writer)
 
                 let componentMethods = this.extComponent.extendableComponent?.methods
                 componentMethods?.push(...this.component.attributeDeclaration.methods)
@@ -182,24 +174,17 @@ class ExtendableComponentPrinter {
 
     private printInstantiateMethods(
         writer: LanguageWriter): void {
-        if (!this.component.interfaceDeclaration?.callables.length) {
+        if (!this.extComponent.extendableComponent?.methods.length) {
             return
         }
+        const instMethods = this.extComponent.extendableComponent.methods.filter(
+            method => method.name == '$_instantiate' && method.isStatic
+        )
 
-        for (const callable of this.component.interfaceDeclaration.callables) {
-            // Extract parameters (excluding content_ if present)
-            const { hasContentParameter, parameters } = extractContentParameter(callable)
-
-            // Build parameter strings for the signature
-            const paramStrings: string[] = [
-                'factory: () => T', // factory parameter with function type
-                ...parameters.map(p => `${p.name}${p.isOptional ? '?' : ''}: ${writer.getNodeName(p.type)}`)
-            ]
-
-            // Add content_ parameter if present
-            if (hasContentParameter) {
-                paramStrings.push('content_?: CustomBuilder')
-            }
+        for (const method of instMethods) {
+            const paramStrings = method.parameters.map(
+                p => `${p.name}${p.isOptional ? '?' : ''}: ${writer.getNodeName(p.type)}`
+            )
 
             // Write the method signature directly as a string
             writer.writeLines(['@ComponentBuilder'])
@@ -208,6 +193,27 @@ class ExtendableComponentPrinter {
             writer.writeStatement(writer.makeThrowError('Illegal call of $_instantiate'))
             writer.popIndent()
             writer.print('}')
+        }
+    }
+
+    private printInstantiateImplMethod(
+        writer: LanguageWriter
+    ): void {
+        if (!this.extComponent.extendableComponent?.methods.length) {
+            return
+        }
+        const instImplMethod = this.extComponent.extendableComponent.methods.find(
+            method => method.name == '_instantiateImpl' && method.isStatic
+        )
+        if (instImplMethod !== undefined) {
+            const templateName = instImplMethod.parameters.at(-1)?.name === 'content_'
+                ? 'extendable_component_instantiate_with_content'
+                : 'extendable_component_instantiate'
+            writer.writeLines(readLangTemplate(templateName, this.library.language)
+                .replaceAll("%INTERFACE_NAME%", this.extComponent.extendableComponent.name)
+                .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", this.component.attributeDeclaration.name)
+                .replaceAll("%BASE_COMPONENT_NAME%", this.baseComponent.attributeDeclaration.name)
+                .replaceAll("%COMPONENT_NAME%", this.extComponent.componentName))
         }
     }
 }

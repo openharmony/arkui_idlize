@@ -2,7 +2,9 @@
 static _instantiateImpl<T extends %INTERFACE_NAME%>(
     @memo @memo_skip
     styles: (instance: T) => void,
-    factory: () => T): void
+    factory: () => T,
+    @memo @memo_skip
+    _content: CustomBuilder): void
 {
     const instanceExtendable = remember(factory);
     @memo @memo_skip
@@ -16,5 +18,8 @@ static _instantiateImpl<T extends %INTERFACE_NAME%>(
         }
         instanceExtendable.__set__commonStyles__Internal(new Array<(instance: %BASE_COMPONENT_NAME%) => void>);
     }
-    %COMPONENT_NAME%Impl(cb);
+    %COMPONENT_NAME%Impl(
+        cb,
+        _content
+    );
 }

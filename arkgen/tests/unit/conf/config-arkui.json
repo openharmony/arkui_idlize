@@ -134,6 +134,7 @@
         }
     ],
     "extendableComponents": [
-        "arkui.component.check.extendable.ExtendableCheckExtendable"
+        "arkui.component.check.extendable.ExtendableCheckExtendable",
+        "arkui.component.check.extendable.ExtendableCheckExtendableNoContent"
     ]
 }

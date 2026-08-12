@@ -126,9 +126,7 @@ class PeerFileVisitor {
         collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
         component.attributeDeclaration.methods.forEach(method => {
             method.parameters.map(p => p.type).concat([method.returnType]).forEach(type => {
-                collectDeclDependencies(this.library, type, (dep) => {
-                    collectDeclDependencies(this.library, dep, imports, { expandTypedefs: true })
-                }, { expandTypedefs: true })
+                collectDeclDependencies(this.library, type, imports, { expandTypedefs: true })
             })
         })
         if (component.interfaceDeclaration)

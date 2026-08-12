@@ -373,6 +373,10 @@ typedef struct Ark_NoConflicts Ark_NoConflicts;
 typedef struct Opt_NoConflicts Opt_NoConflicts;
 typedef struct Ark_PageTransitionOptions Ark_PageTransitionOptions;
 typedef struct Opt_PageTransitionOptions Opt_PageTransitionOptions;
+typedef struct Ark_SwipeActionItem Ark_SwipeActionItem;
+typedef struct Opt_SwipeActionItem Opt_SwipeActionItem;
+typedef struct Ark_Union_CustomBuilder_SwipeActionItem Ark_Union_CustomBuilder_SwipeActionItem;
+typedef struct Opt_Union_CustomBuilder_SwipeActionItem Opt_Union_CustomBuilder_SwipeActionItem;
 typedef struct Ark_Union_NoConflicts_I32 Ark_Union_NoConflicts_I32;
 typedef struct Opt_Union_NoConflicts_I32 Opt_Union_NoConflicts_I32;
 typedef struct Ark_Union_NoConflicts_Iface1 Ark_Union_NoConflicts_Iface1;
@@ -385,12 +389,18 @@ typedef struct Ark_AggregateTypedefReference Ark_AggregateTypedefReference;
 typedef struct Opt_AggregateTypedefReference Opt_AggregateTypedefReference;
 typedef struct Ark_AggregateTypedefTypedef Ark_AggregateTypedefTypedef;
 typedef struct Opt_AggregateTypedefTypedef Opt_AggregateTypedefTypedef;
+typedef struct Ark_DoubleLengthTuple Ark_DoubleLengthTuple;
+typedef struct Opt_DoubleLengthTuple Opt_DoubleLengthTuple;
 typedef struct Ark_IfaceWithFlattenedAttributes Ark_IfaceWithFlattenedAttributes;
 typedef struct Opt_IfaceWithFlattenedAttributes Opt_IfaceWithFlattenedAttributes;
 typedef struct Ark_TransitionParam Ark_TransitionParam;
 typedef struct Opt_TransitionParam Opt_TransitionParam;
+typedef struct Ark_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple Ark_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple;
+typedef struct Opt_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple Opt_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple;
 typedef struct Ark_AllCases Ark_AllCases;
 typedef struct Opt_AllCases Opt_AllCases;
+typedef struct Ark_SwipeActionOptions Ark_SwipeActionOptions;
+typedef struct Opt_SwipeActionOptions Opt_SwipeActionOptions;
 typedef enum Ark_AttributeUpdaterFlag: InteropUInt8 {
     ARK_ATTRIBUTE_UPDATER_FLAG_INITIAL = 0,
     ARK_ATTRIBUTE_UPDATER_FLAG_UPDATE = 1,
@@ -896,6 +906,26 @@ typedef struct Opt_PageTransitionOptions {
     Ark_Tag tag;
     Ark_PageTransitionOptions value;
 } Opt_PageTransitionOptions;
+typedef struct Ark_SwipeActionItem {
+    /* kind: Interface */
+    Opt_CustomBuilder builder;
+} Ark_SwipeActionItem;
+typedef struct Opt_SwipeActionItem {
+    Ark_Tag tag;
+    Ark_SwipeActionItem value;
+} Opt_SwipeActionItem;
+typedef struct Ark_Union_CustomBuilder_SwipeActionItem {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        CustomBuilder value0;
+        Ark_SwipeActionItem value1;
+    };
+} Ark_Union_CustomBuilder_SwipeActionItem;
+typedef struct Opt_Union_CustomBuilder_SwipeActionItem {
+    Ark_Tag tag;
+    Ark_Union_CustomBuilder_SwipeActionItem value;
+} Opt_Union_CustomBuilder_SwipeActionItem;
 typedef struct Ark_Union_NoConflicts_I32 {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -967,6 +997,15 @@ typedef struct Opt_AggregateTypedefTypedef {
     Ark_Tag tag;
     Ark_AggregateTypedefTypedef value;
 } Opt_AggregateTypedefTypedef;
+typedef struct Ark_DoubleLengthTuple {
+    /* kind: Interface */
+    Ark_SwipeActionItem value0;
+    CustomBuilder value1;
+} Ark_DoubleLengthTuple;
+typedef struct Opt_DoubleLengthTuple {
+    Ark_Tag tag;
+    Ark_DoubleLengthTuple value;
+} Opt_DoubleLengthTuple;
 typedef struct Ark_IfaceWithFlattenedAttributes {
     /* kind: Interface */
     Ark_Union_String_I32 aggregatedPrimitives2Different;
@@ -993,6 +1032,19 @@ typedef struct Opt_TransitionParam {
     Ark_Tag tag;
     Ark_TransitionParam value;
 } Opt_TransitionParam;
+typedef struct Ark_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        CustomBuilder value0;
+        Ark_SwipeActionItem value1;
+        Ark_DoubleLengthTuple value2;
+    };
+} Ark_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple;
+typedef struct Opt_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple {
+    Ark_Tag tag;
+    Ark_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple value;
+} Opt_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple;
 typedef struct Ark_AllCases {
     /* kind: Interface */
     Ark_AggregatedPrimitives1Different aggregatedPrimitives1Different;
@@ -1009,6 +1061,16 @@ typedef struct Opt_AllCases {
     Ark_Tag tag;
     Ark_AllCases value;
 } Opt_AllCases;
+typedef struct Ark_SwipeActionOptions {
+    /* kind: Interface */
+    Opt_Union_CustomBuilder_SwipeActionItem start;
+    Opt_Union_CustomBuilder_SwipeActionItem end;
+    Opt_Union_CustomBuilder_SwipeActionItem_DoubleLengthTuple smth;
+} Ark_SwipeActionOptions;
+typedef struct Opt_SwipeActionOptions {
+    Ark_Tag tag;
+    Ark_SwipeActionOptions value;
+} Opt_SwipeActionOptions;
 
 
 
@@ -1084,6 +1146,15 @@ typedef struct GENERATED_ArkUICheckExtendableModifier {
     void (*setCommonMethodBoolean)(Ark_NativePointer node,
                                    Ark_Boolean flag);
 } GENERATED_ArkUICheckExtendableModifier;
+
+typedef struct GENERATED_ArkUICheckExtendableNoContentModifier {
+    Ark_NativePointer (*construct)(Ark_Int32 id,
+                                   Ark_Int32 flags);
+    void (*setCheckExtendableNoContentOptions)(Ark_NativePointer node,
+                                               const Opt_CheckExtendableOptions* options);
+    void (*setCommonMethodBoolean)(Ark_NativePointer node,
+                                   Ark_Boolean flag);
+} GENERATED_ArkUICheckExtendableNoContentModifier;
 
 typedef struct GENERATED_ArkUICheckHooksModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
@@ -1179,6 +1250,13 @@ typedef struct GENERATED_ArkUIDatebookModifier {
                                     const Opt_Object* value);
 } GENERATED_ArkUIDatebookModifier;
 
+typedef struct GENERATED_ArkUIListItemModifier {
+    Ark_NativePointer (*construct)(Ark_Int32 id,
+                                   Ark_Int32 flags);
+    void (*setSwipeAction)(Ark_NativePointer node,
+                           const Opt_SwipeActionOptions* value);
+} GENERATED_ArkUIListItemModifier;
+
 typedef struct GENERATED_ArkUIRootModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
                                    Ark_Int32 flags);
@@ -1253,6 +1331,7 @@ typedef struct GENERATED_ArkUINodeModifiers {
     const GENERATED_ArkUICheckEnumModifier* (*getCheckEnumModifier)();
     const GENERATED_ArkUICheckExceptionModifier* (*getCheckExceptionModifier)();
     const GENERATED_ArkUICheckExtendableModifier* (*getCheckExtendableModifier)();
+    const GENERATED_ArkUICheckExtendableNoContentModifier* (*getCheckExtendableNoContentModifier)();
     const GENERATED_ArkUICheckHooksModifier* (*getCheckHooksModifier)();
     const GENERATED_ArkUICheckNoModifiersModifier* (*getCheckNoModifiersModifier)();
     const GENERATED_ArkUICheckOptionalModifier* (*getCheckOptionalModifier)();
@@ -1261,6 +1340,7 @@ typedef struct GENERATED_ArkUINodeModifiers {
     const GENERATED_ArkUICheckTrivialModifierModifier* (*getCheckTrivialModifierModifier)();
     const GENERATED_ArkUICheckUnitsModifier* (*getCheckUnitsModifier)();
     const GENERATED_ArkUIDatebookModifier* (*getDatebookModifier)();
+    const GENERATED_ArkUIListItemModifier* (*getListItemModifier)();
     const GENERATED_ArkUIRootModifier* (*getRootModifier)();
 } GENERATED_ArkUINodeModifiers;
 
@@ -1285,6 +1365,7 @@ typedef enum GENERATED_Ark_NodeType {
     GENERATED_ARKUI_CHECK_ENUM,
     GENERATED_ARKUI_CHECK_EXCEPTION,
     GENERATED_ARKUI_CHECK_EXTENDABLE,
+    GENERATED_ARKUI_CHECK_EXTENDABLE_NO_CONTENT,
     GENERATED_ARKUI_CHECK_HOOKS,
     GENERATED_ARKUI_CHECK_NO_MODIFIERS,
     GENERATED_ARKUI_CHECK_OPTIONAL,
@@ -1293,6 +1374,7 @@ typedef enum GENERATED_Ark_NodeType {
     GENERATED_ARKUI_CHECK_TRIVIAL_MODIFIER,
     GENERATED_ARKUI_CHECK_UNITS,
     GENERATED_ARKUI_DATEBOOK,
+    GENERATED_ARKUI_LIST_ITEM,
     GENERATED_ARKUI_ROOT
 } GENERATED_Ark_NodeType;
 

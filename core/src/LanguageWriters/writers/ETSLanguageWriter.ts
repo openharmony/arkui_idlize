@@ -238,7 +238,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             ? this.makeString(`${enumName}.values()[${value.asString()}]`)
             : this.makeMethodCall(enumName, 'fromValue', [value])
     }
-    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
+    makeDiscriminatorFromFields(convertor: ArgConvertor,
                                 value: string,
                                 accessors: string[],
                                 duplicates: Set<string>): LanguageExpression {
@@ -275,6 +275,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // the '==' operator must be used when one of the operands is a reference
         return super.makeNaryOp('==', args)
     }
+
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
         return `${value} instanceof ${withInsideInstanceof(true, () => {
             return this.getNodeName(type)
