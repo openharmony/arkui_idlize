@@ -35,6 +35,9 @@ template("npm_cmd") {
         if (defined(invoker.external_deps)) {
             external_deps = invoker.external_deps
         }
+        if (defined(invoker.external_deps)) {
+            external_deps = invoker.external_deps
+        }
 
         args = [
             "--project-path", invoker.project_path

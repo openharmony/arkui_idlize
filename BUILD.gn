@@ -53,7 +53,12 @@ npm_install("install_root") {
     project_path = rebase_path("./")
     if (idlize_ws == "ohos") {
         install_overrides = [
-            # { name = "@idlizer/libarkts", version = "workspace:*" }
+            { name = "@idlizer/libarkts" version = "file:$libarkts_path" },
+            { name = "@panda/sdk" version = "file:$panda_sdk_path" }
+        ]
+        external_deps = [
+            "ace_ets2bundle:ohos_ets_libarkts_pack_prebuilt($toolchain_linux)",
+            "ace_ets2bundle:panda_sdk($toolchain_linux)",
         ]
     }
 }
