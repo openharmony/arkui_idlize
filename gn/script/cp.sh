@@ -13,4 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cp $@
+set -e
+
+declare -a cp_args=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --rm)
+            shift
+            rm -rf "$1"
+            shift
+            ;;
+        *)
+            cp_args+=("$1")
+            shift
+            ;;
+    esac
+done
+
+cp "${cp_args[@]}"

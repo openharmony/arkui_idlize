@@ -47,8 +47,8 @@ cp("check:arkts:init") {
 _marker_file = "${target_gen_dir}/.idl_dir"
 
 scan_sources("check:arkts:generate:idl_dir") {
-    dir = rebase_path("./idl")
-    marker_file = _marker_file
+    sources = [ rebase_path("./idl/**/*") ]
+    outputs = [ _marker_file ]
 }
 
 node_cmd("check:arkts:generate") {
@@ -116,14 +116,13 @@ npm_cmd("check:arkts:build") {
     run_tasks = [ "build:arkts" ]
     deps = [
         ":check:arkts:generate:cp",
-        "${idlize_root}:external_incremental_panda",
         "${idlize_root}:external_libarkts",
     ]
 }
 
 # Native library definitions
 _interop_dir =
-        rebase_path("${idlize_root}/node_modules/@koalaui/interop/src/cpp")
+        rebase_path("${root_gen_dir}/arkui_idlize_interop/src/cpp")
 
 shared_library("check:arkts:native:ani") {
     # Sources from meson.build for unit tests (is_unit true)
@@ -199,6 +198,7 @@ shared_library("check:arkts:native:ani") {
     deps = [
         ":check:arkts:generate",
         "${idlize_root}:external_interop_native_panda",
+        "${idlize_root}:interop_copy",
     ]
 }
 
@@ -258,7 +258,10 @@ shared_library("check:arkts:native:libace") {
 
     output_name = "ace_compatible_mock"
     output_dir = "$target_out_dir/panda"
-    deps = [ ":check:arkts:generate" ]
+    deps = [
+        ":check:arkts:generate",
+        "${idlize_root}:interop_copy",
+    ]
 }
 
 cp("check:arkts:install:native:ani") {

@@ -14,19 +14,24 @@
 # limitations under the License.
 
 """
-Checks that directory content specified in input file is actual.
-Updates it if necessary.
+Collects files matching glob patterns and writes a depfile.
+Updates a marker file with a timestamp.
 """
 
 import argparse
+import glob
 import os
-import time
 
-def traverse(dir_path):
-    file_lst = []
-    for root, _, files in os.walk(dir_path):
-        file_lst += [os.path.join(root, file) for file in files]
-    return sorted(file_lst)
+
+def match_sources(patterns):
+    files = set()
+    for pattern in patterns:
+        matches = glob.glob(pattern, recursive=True)
+        for m in matches:
+            if os.path.isfile(m):
+                files.add(m)
+    return sorted(files)
+
 
 def write_depfile(depfile, output_file, deps):
     with open(depfile, 'w') as output:
@@ -38,16 +43,21 @@ def write_depfile(depfile, output_file, deps):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Walk over directory recursively and output file paths'
+        description='Collect files matching glob patterns and write a depfile'
     )
-    parser.add_argument('--dir', help='Directory to walk over')
+    parser.add_argument('--source', action='append', default=[],
+                        help='Glob pattern to match files (repeatable)')
     parser.add_argument('--marker', help='Marker file to update')
     parser.add_argument('--depfile', help='Depfile path')
     args = parser.parse_args()
-    dir_content = traverse(args.dir)
-    write_depfile(args.depfile, args.marker, dir_content)
+
+    matched_files = match_sources(args.source)
+
+    write_depfile(args.depfile, args.marker, matched_files)
     with open(args.marker, 'w') as output:
-        output.write(str(time.time()))
+        for f in matched_files:
+            output.write(f + '\n')
+
 
 if __name__ == '__main__':
     main()

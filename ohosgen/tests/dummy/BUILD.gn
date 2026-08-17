@@ -96,7 +96,6 @@ template("dummy_test") {
             ":$test_target_name:generate",
             ":${test_target_name}:generate:cp",
             "${idlize_root}:external_libarkts",
-            "${idlize_root}:external_incremental_panda",
         ]
     }
 
@@ -104,8 +103,8 @@ template("dummy_test") {
     lib_name = "DUMMYNativeModule"
 
     shared_library("${test_target_name}:compile:native") {
-        _interop_dir = "${idlize_root}/node_modules/@koalaui/interop/src/cpp"
-        _interop_build_dir = "${idlize_root}/node_modules/@koalaui/interop/build"
+        _interop_dir = "${root_gen_dir}/arkui_idlize_interop/src/cpp"
+        _interop_build_dir = "${root_gen_dir}/arkui_idlize_interop/build"
         sources = [
             "$target_gen_dir/$language/generated/native/dummy.cpp",
             "$target_gen_dir/$language/generated/native/dummyApiImpl_temp.cpp",
@@ -200,6 +199,7 @@ template("dummy_test") {
         deps = [
             "${idlize_root}:external_interop_panda",
             "${idlize_root}:external_interop_node",
+            "${idlize_root}:interop_copy",
             ":$test_target_name:generate"
         ]
         if (test_vm == "node") {

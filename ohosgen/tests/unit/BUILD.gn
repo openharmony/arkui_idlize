@@ -77,7 +77,6 @@ template("unit_test") {
             ":$test_target_name:generate",
             ":${test_target_name}:generate:cp",
             "${idlize_root}:external_libarkts",
-            "${idlize_root}:external_incremental_panda",
         ]
     }
 
@@ -85,8 +84,8 @@ template("unit_test") {
     lib_name = "UNITNativeModule"
 
     shared_library("${test_target_name}:compile:native") {
-        _interop_dir = "${idlize_root}/node_modules/@koalaui/interop/src/cpp"
-        _interop_build_dir = "${idlize_root}/node_modules/@koalaui/interop/build"
+        _interop_dir = "${root_gen_dir}/arkui_idlize_interop/src/cpp"
+        _interop_build_dir = "${root_gen_dir}/arkui_idlize_interop/build"
         sources = [
             "$target_gen_dir/$language/generated/native/unit.cpp",
             "$target_gen_dir/$language/generated/native/unitApiImpl_temp.cpp",
@@ -182,7 +181,8 @@ template("unit_test") {
         deps = [
             "${idlize_root}:external_interop_panda",
             "${idlize_root}:external_interop_node",
-            ":$test_target_name:generate"
+            "${idlize_root}:interop_copy",
+            ":$test_target_name:generate",
         ]
         if (test_vm == "node") {
             deps += [ "${idlize_root}:external_interop_native_node" ]

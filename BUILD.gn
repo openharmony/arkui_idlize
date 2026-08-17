@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("./gn/import/idlize_root.gni")
+import("./gn/import/bash.gni")
 import("./gn/import/npm.gni")
 import("./gn/import/node.gni")
 
@@ -32,6 +33,64 @@ group("all") {
     ]
 }
 
+if (idlize_ws == "ohos") {
+    if (ohos_indep_compiler_enable) {
+        libarkts_path = "//binarys/developtools/ace_ets2bundle/innerapis/ohos_ets_libarkts_pack_prebuilt/clang_x64/libs/libarkts.tgz"
+        panda_sdk_path = "//binarys/developtools/ace_ets2bundle/innerapis/panda_sdk/clang_x64/libs/panda_sdk.tgz"
+    } else {
+        if (current_os == "linux") {
+            libarkts_root_path = root_out_dir
+        } else {
+            libarkts_root_path = "$root_out_dir/clang_x64"
+        }
+        libarkts_path =
+            "$libarkts_root_path/obj/developtools/ace_ets2bundle/ets1.2/libarkts.tgz"
+        panda_sdk_path = "$libarkts_root_path/obj/developtools/ace_ets2bundle/ets1.2/libarkts/panda-sdk/panda_sdk.tgz"
+    }
+}
+
+npm_install("install_root") {
+    project_path = rebase_path("./")
+    if (idlize_ws == "ohos") {
+        install_overrides = [
+            { name = "@idlizer/libarkts" version = "file:$libarkts_path" },
+            { name = "@panda/sdk" version = "file:$panda_sdk_path" }
+        ]
+        external_deps = [
+            "ace_ets2bundle:ohos_ets_libarkts_pack_prebuilt($toolchain_linux)",
+            "ace_ets2bundle:panda_sdk($toolchain_linux)",
+        ]
+    }
+}
+
+cp("interop_copy") {
+    # tests depends on interop cpp files. But the problem is that interop files are not available
+    # before npm install execution. So, we need to have proxy task that copies interop to output
+    # directory and provides exact cpp files in gn target output files list.
+    _src_interop_dir = "${idlize_root}/node_modules/@koalaui/interop"
+    _dest_interop_dir = "${root_gen_dir}/arkui_idlize_interop"
+    src = [ rebase_path(_src_interop_dir) ]
+    dest = rebase_path(_dest_interop_dir)
+    rm = true
+    deps = [
+        ":install_root",
+        # build interop before copying to output. Assuming that interop is symlink to
+        # original folder and build will 
+        ":external_interop_node",
+        ":external_interop_panda",
+        ":external_interop_native_node",
+        ":external_interop_native_panda",
+    ]
+    outputs = [
+        "${_dest_interop_dir}/src/cpp/ani/convertors-ani.cpp",
+        "${_dest_interop_dir}/src/cpp/callback-resource.cpp",
+        "${_dest_interop_dir}/src/cpp/common-interop.cpp",
+        "${_dest_interop_dir}/src/cpp/interop-logging.cpp",
+        "${_dest_interop_dir}/src/cpp/types/signatures.cpp",
+        "${_dest_interop_dir}/src/cpp/napi/convertors-napi.cpp",
+    ]
+}
+
 # proxy dependency for external_deps in ohos buildsystem
 group("runner_compile") {
     deps = [
@@ -44,13 +103,6 @@ group("external_libarkts") {
     deps = []
     if (idlize_ws == "ohos") {
         deps += [ "${koala_mr.root_path}/libarkts:libarkts_copy" ]
-    }
-}
-
-group("external_incremental_panda") {
-    deps = []
-    if (idlize_ws == "ohos") {
-        deps += [ "${koala_mr.root_path}/incremental:incremental_abc" ]
     }
 }
 

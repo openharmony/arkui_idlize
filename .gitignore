@@ -33,4 +33,8 @@ node_modules
 *.smart-arkts.json
 *.ninja_log
 *.ninja_deps
-.claude
+__pycache__/
+
+bundled/
+
+docs/superpowers/

@@ -59,6 +59,7 @@ export class Package {
     }
 
     compile() {
+        const cwd = process.cwd()
         process.chdir(this.path)
         try {
             const script = "compile:release" in this.read("scripts")
@@ -68,14 +69,21 @@ export class Package {
         } catch(e) {
             console.log(`cannot compile package: ${this.name()}`, e)
             throw e
+        } finally {
+            process.chdir(cwd)
         }
     }
 
     pack(destination = '.') {
+        const cwd = process.cwd()
         process.chdir(this.path)
-        execSync(`npm pack --pack-destination ${destination}`, { encoding: 'utf-8' })
-        const tgzName = `${this.name()}-${this.version().toString()}.tgz`.replaceAll('/', '-').replaceAll('@', '')
-        return join(this.path, destination, tgzName)
+        try {
+            execSync(`npm pack --pack-destination ${destination}`, { encoding: 'utf-8' })
+            const tgzName = `${this.name()}-${this.version().toString()}.tgz`.replaceAll('/', '-').replaceAll('@', '')
+            return join(this.path, destination, tgzName)
+        } finally {
+            process.chdir(cwd)
+        }
     }
 
     publish() {

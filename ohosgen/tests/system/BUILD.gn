@@ -120,7 +120,7 @@ template("system_test") {
         sources = []
         ldflags = []
 
-        interop_src = "${idlize_root}/node_modules/@koalaui/interop/src/cpp"
+        interop_src = "${root_gen_dir}/arkui_idlize_interop/src/cpp"
         include_dirs += [
             "$interop_src/ani",
             "$interop_src/ani/panda",
@@ -151,7 +151,7 @@ template("system_test") {
         ]
         
         ldflags += [
-            rebase_path("${idlize_root}/node_modules/@koalaui/interop/build/libInteropNativeModule.so")
+            rebase_path("${root_gen_dir}/arkui_idlize_interop/build/libInteropNativeModule.so")
         ]
         sources += [
             "$interop_src/ani/convertors-ani.cpp",
@@ -165,7 +165,8 @@ template("system_test") {
         ]
         deps = [
             ":$test_case:generate:gen",
-            "${idlize_root}:external_interop_native_panda"
+            "${idlize_root}:external_interop_native_panda",
+            "${idlize_root}:interop_copy",
         ]
     }
 
@@ -201,7 +202,6 @@ template("system_test") {
             ":$test_case:build",
             ":$test_case:build-native",
             "${idlize_root}:external_interop_panda",
-            "${idlize_root}:external_incremental_panda",
         ]
     }
 

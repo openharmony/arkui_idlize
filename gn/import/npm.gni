@@ -16,12 +16,11 @@ import("./idlize_root.gni")
 template("npm_cmd") {
     action("$target_name") {
         script = "$idlize_root/gn/script/npm.py"
-        if (!defined(invoker.outputs)) {
-            outputs = [
-                "$target_out_dir/$target_name"
-            ]
-        } else {
-            outputs = invoker.outputs
+        outputs = [
+            "$target_out_dir/$target_name"
+        ]
+        if (defined(invoker.outputs)) {
+            outputs += invoker.outputs
         }
         if (defined(invoker.sources)) {
             sources = invoker.sources
@@ -32,6 +31,9 @@ template("npm_cmd") {
         }
         if (defined(invoker.inputs)) {
             inputs = invoker.inputs
+        }
+        if (defined(invoker.external_deps)) {
+            external_deps = invoker.external_deps
         }
         if (defined(invoker.external_deps)) {
             external_deps = invoker.external_deps
@@ -54,9 +56,25 @@ template("npm_cmd") {
         }
         if (defined(invoker.install) && invoker.install) {
             args += [ "--install" ]
-        }
-        if (defined(invoker.install_path)) {
-            args += [ "--install-path", invoker.install_path ]
+            _install_depfile = "$target_out_dir/$target_name.d"
+            _install_depfile_target = outputs[0]
+            args += [
+                "--install-depfile",
+                rebase_path(_install_depfile, root_build_dir),
+                "--install-depfile-target",
+                rebase_path(_install_depfile_target, root_build_dir),
+            ]
+            depfile = _install_depfile
+            if (defined(invoker.install_overrides)) {
+                foreach(_override, invoker.install_overrides) {
+                    args += [ "--install-override", "${_override.name}:${_override.version}" ]
+                }
+            }
+            if (defined(invoker.install_path)) {
+                args += [ "--install-path", invoker.install_path ]
+            }
+        } else {
+            deps += [ "${idlize_root}:install_root" ]
         }
         if (defined(invoker.run_tasks)) {
             args += [ "--run-tasks" ] + invoker.run_tasks
@@ -67,11 +85,6 @@ template("npm_cmd") {
 template("npm_install") {
     forward_variables_from(invoker, "*")
     npm_cmd(target_name) {
-        if (!defined(sources)) {
-            sources = [
-                "$project_path/package.json"
-            ]
-        }
         install = true
     }
 }

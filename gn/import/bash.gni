@@ -140,8 +140,8 @@ template("mkdir") {
 template("cp") {
   cp_target_name = target_name
 
-  src = invoker.src
-  dest = invoker.dest
+  _src = invoker.src
+  _dest = invoker.dest
 
   recursive = true
   if (defined(invoker.recursive)) {
@@ -154,25 +154,28 @@ template("cp") {
   }
 
   mkdir("$cp_target_name:mkdir") {
-    directories = [ get_path_info(dest, "dir") ]
+    directories = [ get_path_info(_dest, "dir") ]
     deps = []
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }
   }
 
-  bash_cmd("$cp_target_name:cp") {
+  bash_cmd(cp_target_name) {
     script = "$idlize_root/gn/script/cp.sh"
 
     args = []
+    if (defined(invoker.rm) && invoker.rm) {
+      args += [ "--rm", _dest ]
+    }
     if (recursive) {
       args += [ "-r" ]
     }
     if (force) {
       args += [ "-f" ]
     }
-    args += src
-    args += [ dest ]
+    args += _src
+    args += [ _dest ]
 
     deps = [
       ":$cp_target_name:mkdir",
@@ -180,26 +183,39 @@ template("cp") {
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }
+    if (defined(invoker.outputs)) {
+      outputs = invoker.outputs
+    }
   }
 
-  group(target_name) {
-    deps = [
-      ":$cp_target_name:mkdir",
-      ":$cp_target_name:cp",
-    ]
-  }
+  # group(target_name) {
+  #   deps = [
+  #     ":$cp_target_name:mkdir",
+  #     ":$cp_target_name:cp",
+  #   ]
+  # }
 }
 
 template("scan_sources") {
-  _dir = invoker.dir
-  _marker_file = invoker.marker_file
+  _outputs = invoker.outputs
+  _sources = invoker.sources
+  _output_file = _outputs[0]
   
   action(target_name) {
     script = "$idlize_root/gn/script/scan_sources.py"
-    depfile = "${_marker_file}.d"
-    args = [ "--dir",  _dir, "--marker", rebase_path(_marker_file), "--depfile", rebase_path(depfile)]
+    depfile = "${_output_file}.d"
+    args = []
+    foreach(_source, _sources) {
+      args += [ "--source", _source ]
+    }
+    args += [
+      "--marker",
+      rebase_path(_output_file),
+      "--depfile",
+      rebase_path(depfile),
+    ]
 
     inputs = [ script ]
-    outputs = [ _marker_file ]
+    outputs = _outputs
   }
 }
