@@ -2,12 +2,12 @@
     "name": "demo-mediaquery",
     "private": true,
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.72071-9166",
-        "@koalaui/common": "1.5.0-dev.72071-9166",
-        "@koalaui/interop": "1.5.0-dev.72071-9166"
+        "@koalaui/compat": "1.5.0-dev.78036-9868",
+        "@koalaui/common": "1.5.0-dev.78036-9868",
+        "@koalaui/interop": "1.5.0-dev.78036-9868"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.72071-9166",
+        "@koalaui/smart-arkts": "1.5.0-dev.78036-9868",
         "esbuild": "^0.27.3"
     },
     "scripts": {

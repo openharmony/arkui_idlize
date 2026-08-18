@@ -26,7 +26,7 @@
         "@idlizer/ost": "2.2.2+devel"
     },
     "devDependencies": {
-        "@koalaui/interop": "1.5.0-dev.72071-9166",
+        "@koalaui/interop": "1.5.0-dev.78036-9868",
         "@types/node": "^18.19.127",
         "@idlizer/rimraf": "2.2.2+devel"
     },

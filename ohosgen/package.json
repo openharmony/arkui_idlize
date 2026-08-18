@@ -33,9 +33,9 @@
         "typescript": "^4.9.5"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.72071-9166",
+        "@koalaui/smart-arkts": "1.5.0-dev.78036-9868",
         "@types/node": "^18.19.127",
-        "@koalaui/interop": "1.5.0-dev.72071-9166",
+        "@koalaui/interop": "1.5.0-dev.78036-9868",
         "@idlizer/rimraf": "2.2.2+devel"
     },
     "scripts": {

@@ -1218,8 +1218,8 @@ UNIT_ThrowableCallbackVoid CheckCallbackExceptions_checkThrowFromNativeImpl(OH_N
                     "Exception thrown from callback created in native CheckCallbackExceptions_checkThrowFromNative";
                 continuation.callSync(vmContext, continuation.resource.resourceId,
                     { .hasException = true,
-                        .exception = { .kind = EXCEPTION_INTERFACE,
-                            .interface = { .code = 1,
+                        .exception = { .kind = EXCEPTION_DATA,
+                            .data = { .code = 1,
                                 .message = {
                                     .chars = message,
                                     .length = static_cast<int>(strlen(message)),
@@ -1380,8 +1380,8 @@ Throws_void CheckExceptionInterface_checkExceptionImpl(OH_NativePointer thisPtr)
 {
     const char* message = "Exception from CheckExceptionInterface";
     return { .hasException = true,
-        .exception = { .kind = EXCEPTION_INTERFACE,
-            .interface = { .code = 1,
+        .exception = { .kind = EXCEPTION_DATA,
+            .data = { .code = 1,
                 .message = {
                     .chars = message,
                     .length = static_cast<InteropInt32>(strlen(message)),
@@ -1399,8 +1399,8 @@ Throws_void CheckExceptionClass_checkExceptionImpl(OH_NativePointer thisPtr)
 {
     const char* message = "Exception from CheckExceptionClass";
     return { .hasException = true,
-        .exception = { .kind = EXCEPTION_INTERFACE,
-            .interface = { .code = 1,
+        .exception = { .kind = EXCEPTION_DATA,
+            .data = { .code = 1,
                 .message = {
                     .chars = message,
                     .length = static_cast<InteropInt32>(strlen(message)),
@@ -1438,8 +1438,8 @@ Throws_void CheckExceptionClass_getThisImpl(OH_NativePointer thisPtr)
 {
     const char* message = "(Test passed) Promise for @throw annotated method with `this` return type was rejected";
     return { .hasException = true,
-        .exception = { .kind = EXCEPTION_INTERFACE,
-            .interface = { .code = 1,
+        .exception = { .kind = EXCEPTION_DATA,
+            .data = { .code = 1,
                 .message = {
                     .chars = message,
                     .length = static_cast<InteropInt32>(strlen(message)),

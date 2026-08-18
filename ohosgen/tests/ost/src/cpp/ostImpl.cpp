@@ -625,8 +625,8 @@ OH_UNIT_OST_ThrowsWrapper_I32 ost_errors_getOSTErrorBooleanIntImpl(OH_Boolean fl
     return {
         .hasException=true,
         .exception={
-            .kind=EXCEPTION_INTERFACE,
-            .interface= {
+            .kind=EXCEPTION_DATA,
+            .data= {
                 .code=1,
                 .message=to_string("Error from getOSTErrorBooleanInt")
             }
@@ -643,8 +643,8 @@ OH_UNIT_OST_ThrowsWrapper_Void ost_errors_checkOSTErrorIntBooleanImpl(OH_Int32 v
     return {
         .hasException=true,
         .exception={
-            .kind=EXCEPTION_INTERFACE,
-            .interface= {
+            .kind=EXCEPTION_DATA,
+            .data= {
                 .code=1,
                 .message=to_string("Error from checkOSTErrorIntBoolean")
             }
