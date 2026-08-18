@@ -15,7 +15,7 @@
         "build": "smart-arkts build --target main"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.72071-9166",
+        "@koalaui/smart-arkts": "1.5.0-dev.78036-9868",
         "@idlizer/rimraf": "2.2.2+devel"
     }
 }

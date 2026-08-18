@@ -27,7 +27,7 @@ export default defineConfig({
         `${generated}/**/*.ets`,
       ],
       exclude: [
-        "**/sdk/**/*",
+        `${generated}/**/sdk/**/*`,
       ],
       exports: {
         "#components": `${generated}/framework/arkts`,

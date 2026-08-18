@@ -6,14 +6,14 @@
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.72071-9166",
-        "@koalaui/common": "1.5.0-dev.72071-9166",
-        "@koalaui/interop": "1.5.0-dev.72071-9166",
+        "@koalaui/compat": "1.5.0-dev.78036-9868",
+        "@koalaui/common": "1.5.0-dev.78036-9868",
+        "@koalaui/interop": "1.5.0-dev.78036-9868",
         "@idlizer/arkgen-tests-template-arkts": "file:../../tests/template/arkts",
         "commander": "^10.0.0"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.72071-9166"
+        "@koalaui/smart-arkts": "1.5.0-dev.78036-9868"
     },
     "scripts": {
         "clean": "rimraf generated build build-arkts",

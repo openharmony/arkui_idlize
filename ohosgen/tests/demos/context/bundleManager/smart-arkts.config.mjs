@@ -22,7 +22,7 @@ export default defineConfig({
       package: "@bundleManager",
       baseUrl: "./generated/arkts",
       include: [
-        "**/*.ts",
+        "./generated/arkts/**/*.ts",
       ],
       exports: {
         "@bundleManager.ApplicationInfo": "./generated/arkts/ApplicationInfo",

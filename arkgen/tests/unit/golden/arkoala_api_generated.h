@@ -183,19 +183,19 @@ typedef struct InteropObject {
 } InteropObject;
 
 typedef enum InteropExceptionKind {
-    EXCEPTION_INTERFACE = 0,
+    EXCEPTION_DATA = 0,
     EXCEPTION_OBJECT = 1,
 } InteropExceptionKind;
 
-typedef struct InteropExceptionInterface {
+typedef struct InteropExceptionData {
     InteropInt32 code;
     InteropString message;
-} InteropExceptionInterface;
+} InteropExceptionData;
 
 typedef struct InteropException {
     InteropExceptionKind kind;
     union {
-        InteropExceptionInterface interface;
+        InteropExceptionData data;
         InteropObject object;
     };
 } InteropException;

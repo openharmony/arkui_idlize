@@ -22,7 +22,7 @@ export default defineConfig({
       package: "@application",
       baseUrl: "./generated/arkts",
       include: [
-        "**/*.ts",
+        "./generated/arkts/**/*.ts",
       ],
       exports: {
         "@application.ApplicationContext": "./generated/arkts/ApplicationContext",
