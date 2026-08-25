@@ -14,10 +14,12 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { collectDeclDependencies, collectExtendableComponents, ExtendableComponentInfo, findComponentByName,
-    getSuperComponent, IdlComponentDeclaration, PrinterResult, readLangTemplate } from "@idlizer/libohos"
-import { ImportsCollector, Language, LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerLibrary,
-    LanguageWriter, LayoutTargetDescription} from "@idlizer/core"
+import { collectDeclDependencies, collectExtendableComponents, collapseIdlPeerMethods, ExtendableComponentInfo,
+    findComponentByName, findPeerByComponentName, getSuperComponent, groupOverloads, IdlComponentDeclaration,
+    PrinterResult, readLangTemplate } from "@idlizer/libohos"
+import { ArgumentModifier, ImportsCollector, Language, LayoutNodeRole, Method, MethodModifier, MethodSignature,
+    PeerLibrary, LanguageWriter, LayoutTargetDescription, PeerClass,
+    PeerMethod } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter.js"
 
 class ExtendableComponentPrinter {
@@ -29,7 +31,8 @@ class ExtendableComponentPrinter {
         protected readonly extComponent: ExtendableComponentInfo,
         protected readonly component: IdlComponentDeclaration,
         protected readonly parentExtendable: ExtendableComponentInfo | undefined,
-        protected readonly baseComponent: IdlComponentDeclaration
+        protected readonly baseComponent: IdlComponentDeclaration,
+        protected readonly peerClass: PeerClass
     ) {
         this.className = this.getClassName(this.extComponent)
         if (parentExtendable !== undefined)
@@ -102,11 +105,11 @@ class ExtendableComponentPrinter {
                 this.printInstantiateMethods(writer)
                 this.printInstantiateImplMethod(writer)
 
-                let componentMethods = this.extComponent.extendableComponent?.methods
-                componentMethods?.push(...this.component.attributeDeclaration.methods)
-                componentMethods?.filter(method => !method.isStatic).forEach(
-                    method => this.printComponentMethod(writer, method)
-                )
+                const collapsedMethods = groupOverloads(this.peerClass.methods, this.library.language)
+                    .map(group => collapseIdlPeerMethods(this.library, group))
+                collapsedMethods.filter(
+                    method => !method.method.modifiers?.includes(MethodModifier.STATIC)).forEach(
+                    method => this.printPeerMethod(writer, method))
                 const attributeModifierSignature = generateAttributeModifierSignature(this.library, this.component)
                 writer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
                     const argNames = attributeModifierSignature.argsNames?.join(', ') ?? ''
@@ -156,20 +159,27 @@ class ExtendableComponentPrinter {
         writer.popIndent()
     }
 
-    private printComponentMethod(writer: LanguageWriter, method: idl.IDLMethod): void {
-        const methodName = method.name
-        const parameters = method.parameters.map(p => {
-            const optional = p.isOptional ? '?' : ''
-            const type = writer.getNodeName(p.type)
-            return `${p.name}${optional}: ${type}`
-        }).join(', ')
-
-        // Build the argument list for the method call
-        const argNames = method.parameters.map(p => p.name).join(', ')
+    private printPeerMethod(writer: LanguageWriter, method: PeerMethod): void {
+        const methodName = method.method.name
+        const args = method.sig.args
+        const argsModifiers = method.method.signature.argsModifiers
+        let typedParams: string[] = []
+        for (let i = 0; i < args.length; i++) {
+            let optional = ''
+            if (argsModifiers && argsModifiers.length > i) {
+                if (argsModifiers[i].includes(ArgumentModifier.OPTIONAL)) {
+                    optional = '?'
+                }
+            }
+            const type = writer.getNodeName(args[i].type)
+            typedParams.push(`${args[i].name}${optional}: ${type}`)
+        }
+        const parameters = typedParams.join(', ')
+        const argNames = args.map(arg => arg.name).join(', ')
 
         writer.print(`${methodName}(${parameters}): this {`)
         this.printComponentMethodImplementation(writer, methodName, argNames)
-        writer.print(`}`)
+        writer.print('}')
     }
 
     private printInstantiateMethods(
@@ -231,8 +241,10 @@ class ExtendableComponentVisitor {
             return []
         result.push(this.printBaseExtendableComponent(baseComponent))
         for (const extComponent of this.components) {
-            const component = findComponentByName(this.library, extComponent.componentName)
-            if (component === undefined) {
+            const compName = extComponent.componentName
+            const component = findComponentByName(this.library, compName)
+            const peerClass = findPeerByComponentName(this.library, compName)
+            if (component === undefined || peerClass === undefined) {
                 continue
             }
             const parentComponent = getSuperComponent(this.library, extComponent.componentName)
@@ -240,7 +252,8 @@ class ExtendableComponentVisitor {
             if (parentComponent) {
                 parentExtendable = this.components.find(comp => comp.componentName == parentComponent.name)
             }
-            const printer = new ExtendableComponentPrinter(this.library, extComponent, component, parentExtendable, baseComponent)
+            const printer = new ExtendableComponentPrinter(
+                this.library, extComponent, component, parentExtendable, baseComponent, peerClass)
             const extendableComponentContent = printer.print()
             if (extendableComponentContent)
                 result.push(extendableComponentContent)

@@ -38,6 +38,10 @@ export function extractContentParameter(method: idl.IDLMethod | idl.IDLCallable)
     }
 }
 
+export function findPeerByComponentName(library: PeerLibrary, compName: string): PeerClass | undefined {
+    return collectPeers(library).find(it => it.componentName === compName)
+}
+
 function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | idl.IDLCallable, peer: PeerClass, parentName?: string): PeerMethod | undefined {
     if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name!))
         return

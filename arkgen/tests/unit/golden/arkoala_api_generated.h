@@ -1143,6 +1143,8 @@ typedef struct GENERATED_ArkUICheckExtendableModifier {
                                    Ark_Int32 flags);
     void (*setCheckExtendableOptions)(Ark_NativePointer node,
                                       const Opt_CheckExtendableOptions* options);
+    void (*setFontSize)(Ark_NativePointer node,
+                        const Opt_Int32* value);
     void (*setCommonMethodBoolean)(Ark_NativePointer node,
                                    Ark_Boolean flag);
 } GENERATED_ArkUICheckExtendableModifier;
