@@ -27,6 +27,8 @@ interface CheckExtendableOptions {
 [Component]
 interface CheckExtendableAttribute: Root {
     this commonMethodBoolean(boolean flag);
+    [CommonMethod]
+    attribute (i32 or undefined) fontSize;
 };
 
 [ComponentInterface]
@@ -41,7 +43,6 @@ interface ExtendableCheckExtendable: CheckExtendableAttribute {
     static <T> T $_instantiate(ConstructorT<T> factory, optional CheckExtendableOptions options, optional CustomBuilder content_);
     [TypeAnnotations=Builder]
     static <T> void _instantiateImpl(CustomBuilderT<T> styles, ConstructorT<T> factory, optional CustomBuilder content_);
-    this setCheckExtendableOptions(optional CheckExtendableOptions options);
 };
 
 [Component]
