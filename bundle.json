@@ -26,7 +26,11 @@
       "sub_component": [
         "//foundation/arkui/idlize:idlize_bundle"
       ],
-      "inner_kits": [],
+      "inner_kits": [
+        {
+          "name": "//foundation/arkui/idlize:idlize_bundle"
+        }
+      ],
       "test": []
     }
   }
