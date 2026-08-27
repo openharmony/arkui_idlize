@@ -16,6 +16,10 @@ import("//build/ohos.gni")
 
 node_version = "v18.20.1"
 host_arch = "${host_os}-${host_cpu}"
+idlize_bundle_host_label =
+    "//foundation/arkui/idlize:idlize_bundle_host($toolchain_linux)"
+host_root_out_dir = get_label_info(idlize_bundle_host_label, "root_out_dir")
+host_target_gen_dir = get_label_info(idlize_bundle_host_label, "target_gen_dir")
 
 if (ohos_indep_compiler_enable) {
   libarkts_path = "//binarys/developtools/ace_ets2bundle/innerapis/ohos_ets_libarkts_pack_prebuilt/clang_x64/libs/libarkts.tgz"
@@ -31,10 +35,18 @@ if (ohos_indep_compiler_enable) {
   panda_sdk_path = "$libarkts_root_path/obj/developtools/ace_ets2bundle/ets1.2/libarkts/panda-sdk/panda_sdk.tgz"
 }
 
-action("idlize_bundle") {
+ohos_copy("idlize_bundle") {
+  deps = [ idlize_bundle_host_label ]
+  sources = [ "$host_target_gen_dir/idlize_bundle.stamp" ]
+  outputs = [ "$target_gen_dir/idlize_bundle.public.stamp" ]
+  subsystem_name = "arkui"
+  part_name = "idlize"
+}
+
+action("idlize_bundle_host") {
   script = "tools/ohos/build_bundle.py"
 
-  bundle_output = "$root_out_dir/arkui_idlize"
+  bundle_output = "$host_root_out_dir/arkui_idlize"
   work_dir = "$target_gen_dir/idlize_bundle_work"
   stamp = "$target_gen_dir/idlize_bundle.stamp"
   depfile_path = "$target_gen_dir/idlize_bundle.d"
