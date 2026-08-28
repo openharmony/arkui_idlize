@@ -6,14 +6,14 @@
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.78036-9868",
-        "@koalaui/common": "1.5.0-dev.78036-9868",
-        "@koalaui/interop": "1.5.0-dev.78036-9868",
+        "@koalaui/compat": "1.5.0-dev.78036-9911",
+        "@koalaui/common": "1.5.0-dev.78036-9911",
+        "@koalaui/interop": "1.5.0-dev.78036-9911",
         "@idlizer/arkgen-tests-template-arkts": "file:../../tests/template/arkts",
         "commander": "^10.0.0"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.78036-9868"
+        "@koalaui/smart-arkts": "1.5.0-dev.78036-9911"
     },
     "scripts": {
         "clean": "rimraf generated build build-arkts",
@@ -21,7 +21,7 @@
         "UNIT": "#-------------------",
         "init:arkts": "./scripts/init-arkts.sh",
         "gen:arkts": "LANG=arkts npm run gen",
-        "build:arkts": "LIBARKTS_PATH=@idlizer/ui2abc/libarkts smart-arkts build --target main -- --simultaneous",
+        "build:arkts": "LIBARKTS_PATH=@idlizer/ui2abc/libarkts smart-arkts build -- --simultaneous",
         "build:arkts:native": "cd ../../.. && npm run gn:gen && ninja -C out/dir arkgen/tests/unit:check:arkts:install:native",
         "exec:arkts": "ACE_LIBRARY_PATH=./build-arkts LD_LIBRARY_PATH=./build-arkts smart-arkts run --target main --executable main",
         "all:arkts": "cd ../../.. && npm run gn:gen && ninja -C out/dir arkgen/tests/unit:check:arkts",
