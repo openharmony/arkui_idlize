@@ -1705,13 +1705,13 @@ OH_UNIT_GestureType GlobalScope_getBaseGestureTypeImpl(OH_NativePointer ptr)
 void checkTransformFlagToState(OH_Boolean flag, InteropNumber state)
 {
     if (state.tag != INTEROP_TAG_INT32) {
-        INTEROP_FATAL("Check transform value state %d does not equal to %d\n", state.tag, INTEROP_TAG_INT32)
+        INTEROP_FATAL("Check transform value state %d does not equal to %d\n", state.tag, INTEROP_TAG_INT32);
     }
     if (!flag && state.i32 != 0) {
-        INTEROP_FATAL("Check transform value %d does not equal to %d\n", state.i32, 0)
+        INTEROP_FATAL("Check transform value %d does not equal to %d\n", state.i32, 0);
     }
     if (flag && state.i32 != 1) {
-        INTEROP_FATAL("Check transform value %d does not equal to %d\n", state.i32, 1)
+        INTEROP_FATAL("Check transform value %d does not equal to %d\n", state.i32, 1);
     }
 }
 

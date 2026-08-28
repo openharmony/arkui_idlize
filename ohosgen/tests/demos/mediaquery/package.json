@@ -2,12 +2,12 @@
     "name": "demo-mediaquery",
     "private": true,
     "dependencies": {
-        "@koalaui/compat": "1.5.0-dev.78036-9868",
-        "@koalaui/common": "1.5.0-dev.78036-9868",
-        "@koalaui/interop": "1.5.0-dev.78036-9868"
+        "@koalaui/compat": "1.5.0-dev.78036-9911",
+        "@koalaui/common": "1.5.0-dev.78036-9911",
+        "@koalaui/interop": "1.5.0-dev.78036-9911"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.78036-9868",
+        "@koalaui/smart-arkts": "1.5.0-dev.78036-9911",
         "esbuild": "^0.27.3"
     },
     "scripts": {
@@ -20,7 +20,7 @@
         "gen:arkts": "TARGET=arkts npm run gen",
         "gen:cj": "TARGET=cj npm run gen && cp ./src/cangjie/* ./generated/cangjie",
         "compile:ts": "esbuild src/node/main.ts --bundle --outfile=build/node/index.js --platform=node --target=es2017 --format=cjs --external:@koalaui/*",
-        "compile:arkts": "smart-arkts build --target main",
+        "compile:arkts": "smart-arkts build",
         "compile:cj": "",
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",

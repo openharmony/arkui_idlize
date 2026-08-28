@@ -53,7 +53,7 @@ void InteropLogFatal(const char* format, ...);
 #define INTEROP_FATAL(msg, ...)                \
     do {                                       \
         InteropLogFatal((msg), ##__VA_ARGS__); \
-    } while (0);
+    } while (0)
 
 typedef enum InteropTag {
     INTEROP_TAG_UNDEFINED = 101,

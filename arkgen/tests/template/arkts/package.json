@@ -12,10 +12,10 @@
     },
     "scripts": {
         "clean": "rimraf out",
-        "build": "smart-arkts build --target main"
+        "build": "smart-arkts build"
     },
     "devDependencies": {
-        "@koalaui/smart-arkts": "1.5.0-dev.78036-9868",
+        "@koalaui/smart-arkts": "1.5.0-dev.78036-9911",
         "@idlizer/rimraf": "2.2.2+devel"
     }
 }
