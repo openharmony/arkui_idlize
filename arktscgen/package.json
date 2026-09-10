@@ -38,7 +38,7 @@
         "external:download": "npm run download:koala_projects -C ../external",
         "external:test": "npm run --prefix ../external/koala_projects/libarkts run:current",
         "external:clean": "rimraf ../external/koala_projects/libarkts/generated",
-        "external:generate": "npm run compile && node . --panda-sdk-path ../external/koala_projects/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/koala_projects/ui2abc/ --options-file ../external/koala_projects/libarkts/generator/options.json5 --debug --no-initialize",
+        "external:generate": "npm run compile && node . --panda-sdk-path ../external/koala_projects/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/koala_projects/ui2abc/libarkts/generated --options-file ../external/koala_projects/libarkts/generator/options.json5 --debug --no-initialize",
         "all": "npm run compile && npm run external:download && npm run external:clean && npm run external:generate && npm run external:test",
         "prepack": "npm run compile",
         "test:pack": "node ./tools/main.mjs test-pack",

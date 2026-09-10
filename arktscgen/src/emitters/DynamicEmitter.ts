@@ -90,42 +90,42 @@ export class DynamicEmitter {
 
     private bridgesPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new BridgesPrinter(this.config, idl).print(),
-        `libarkts/generated/native/bridges.cpp`,
+        `native/bridges.cpp`,
         `bridges.cpp`,
         true
     )
 
     private bindingsPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new BindingsPrinter(idl).print(),
-        `libarkts/generated/Es2pandaNativeModule.ts`,
+        `Es2pandaNativeModule.ts`,
         `Es2pandaNativeModule.ts`,
         true
     )
 
     private enumsPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new EnumsPrinter(idl).print(),
-        `libarkts/generated/Es2pandaEnums.ts`,
+        `Es2pandaEnums.ts`,
         `Es2pandaEnums.ts`,
         true
     )
 
     private indexPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new IndexPrinter(this.config, idl).print(), // overriden below
-        `libarkts/generated/index.ts`,
+        `index.ts`,
         `index.ts`,
         true
     )
 
     private peersPrinter = new MultiFileEmitter(
         (idl: IDLFile) => new AllPeersPrinter(this.config, idl).print(),
-        `libarkts/generated/peers`,
+        `peers`,
         `peer.ts`,
         true
     )
 
     private factoryPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new FactoryPrinter(this.config, idl).print(),
-        `libarkts/generated/factory.ts`,
+        `factory.ts`,
         `factory.ts`,
         true
     )
