@@ -18,7 +18,7 @@ import { getHookMethod, getSuper, IfStatement, isHeir, Language, LanguageExpress
 import { collapseIdlPeerMethods, collectComponents, collectDeclDependencies, collectDeclItself, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 import { collectPeersForFile, findPeerByComponentDeclaration } from "@idlizer/libohos";
 import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter';
-import { HandwrittenModule } from '../ArkoalaLayout';
+import { HandwrittenModule, componentModifierName } from '../ArkoalaLayout';
 
 function capitalizeFirstLetter(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -120,9 +120,7 @@ class ModifiersFileVisitor {
     }
 
     generateAttributeSetName(name: string): string {
-        if (name.endsWith("Attribute"))
-            name = name.substring(0, name.length - 9)
-        return `${name}Modifier`
+        return componentModifierName(name)
     }
 
     generateOptimizerParentName(peer: PeerClass): string | undefined {

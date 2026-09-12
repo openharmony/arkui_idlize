@@ -14,7 +14,7 @@
  */
 
 import * as path from 'node:path'
-import { Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
+import { Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary, toCamelCase } from '@idlizer/core'
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration, NativeModule, peerGeneratorConfiguration } from '@idlizer/libohos'
 
@@ -32,8 +32,17 @@ export function HandwrittenModule(language: Language, isSdk = false) {
     }
 }
 
-function modifierNameGenerator(name: string): string {
-    return name.replaceAll("Attribute", "" ).concat("Modifier")
+function modifierBaseName(name: string): string {
+    const suffix = 'Attribute';
+    return name.endsWith(suffix) ? name.slice(0, -suffix.length) : name;
+}
+
+export function componentModifierName(name: string): string {
+    return `${modifierBaseName(name)}Modifier`;
+}
+
+export function componentAttributeSetName(name: string): string {
+    return `${toCamelCase(modifierBaseName(name))}AttributeSet`;
 }
 
 function toFileName(name:string) {
@@ -155,7 +164,7 @@ export class ArkTsLayout extends CommonLayoutBase {
             return 'handwritten/modifiers/hooks'
         }
         if (target.hint === 'component.modifier') {
-            return modifierNameGenerator(target.node.name)
+            return componentModifierName(target.node.name)
         }
         if (target.node.name === NativeModule.Generated.name)
             return `#components`

@@ -36,7 +36,6 @@ import {
     IDLPointerType,
     IDLStringType,
     IDLVoidType,
-    toCamelCase,
 } from '@idlizer/core'
 import {
     ImportsCollector,
@@ -52,7 +51,7 @@ import {
     peerGeneratorConfiguration,
     writePeerMethod
 } from "@idlizer/libohos";
-import { HandwrittenModule } from '../ArkoalaLayout';
+import { HandwrittenModule, componentModifierName, componentAttributeSetName } from '../ArkoalaLayout';
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -188,7 +187,7 @@ class PeerFileVisitor {
 
     protected printPeer(peer: PeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
-            writer.print(`${toCamelCase(peer.componentName)}AttributeSet?: ${peer.componentName}Modifier;`)
+            writer.print(`${componentAttributeSetName(peer.componentName)}?: ${componentModifierName(peer.componentName)};`)
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])
