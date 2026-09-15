@@ -50,7 +50,7 @@ import {
 } from '@idlizer/libohos'
 import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
-import { HandwrittenModule } from '../ArkoalaLayout'
+import { HandwrittenModule, componentModifierName } from '../ArkoalaLayout'
 
 export function shiftIfIsNotEmpty(line: string): string {
     if (line.length > 0) {
@@ -116,14 +116,22 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         return result
     }
 
+    private collectModifierImports(component: IdlComponentDeclaration, imports: ImportsCollector): void {
+        const modifierName = componentModifierName(component.name);
+        imports.addFeature(modifierName, this.library.layout.resolve({
+            node: component.attributeDeclaration, role: LayoutNodeRole.COMPONENT, hint: 'component.modifier'
+        }));
+        imports.addFeature(`hook${component.name}AttributeModifier`, '#handwritten');
+        if (this.options.attributeModifierHooks) {
+            imports.addFeature(`hook${component.name}AttributeModifier`, HandwrittenModule(this.library.language));
+        }
+    }
+
     private printImports(peer: PeerClass, component: IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
-        imports.addFeature(`${component.name}Modifier`, `${component.name}Modifier`)
-        imports.addFeature(`hook${component.name}AttributeModifier`, "#handwritten")
-        if (this.options.attributeModifierHooks)
-            imports.addFeature(`hook${component.name}AttributeModifier`, HandwrittenModule(this.library.language))
+        this.collectModifierImports(component, imports);
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('CommonMethod')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
@@ -139,7 +147,9 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
             if (this.library.language === Language.TS) {
                 imports.addFeature("isInstanceOf", "@koalaui/interop")
             }
-            imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({ node: component.attributeDeclaration, role: LayoutNodeRole.PEER }))
+            imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({
+                node: component.attributeDeclaration, role: LayoutNodeRole.PEER
+            }));
         }
         if (peer.originalParentFilename) {
             let [parentRef] = component.attributeDeclaration.inheritance
