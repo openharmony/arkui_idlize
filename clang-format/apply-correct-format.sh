@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Copyright (c) 2024-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +16,11 @@
 
 # $1 - filePath to patch (default - `./patches/clang-format.patch`)
 
-patchFile=${1:-$curDir"/patches/clang-format.patch"}
-patchFile=$(readlink -m $patchFile)
-
 curDir="$(pwd)"
 rootDir="$(git rev-parse --show-toplevel)"
+
+patchFile=${1:-$curDir"/patches/clang-format.patch"}
+patchFile=$(readlink -m $patchFile)
 
 cd $rootDir
 
