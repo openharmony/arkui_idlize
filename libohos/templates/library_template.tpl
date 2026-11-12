@@ -13,8 +13,12 @@
  * limitations under the License.
  */
 
-#include <tuple>
+#include <charconv>
+#include <cstdint>
+#include <cstring>
 #include <string>
+#include <system_error>
+#include <tuple>
 
 #include "interop-types.h"
 #include "dynamic-loader.h"
@@ -56,6 +60,34 @@ static const int API_KIND_MAX = 100;
 static const OH_AnyAPI* impls[API_KIND_MAX + 1] = { 0 };
 const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
 
+static bool ParseLibAceEntryPointHex(const char* text, unsigned long long& out)
+{
+    if (text == nullptr || text[0] == '\0') {
+        return false;
+    }
+    const char* begin = text;
+    const char* end = text + std::strlen(text);
+    while (begin < end && (*begin == ' ' || *begin == '\t' || *begin == '\n' || *begin == '\r')) {
+        ++begin;
+    }
+    if (begin >= end) {
+        return false;
+    }
+    if (end - begin >= 2 && begin[0] == '0' && (begin[1] == 'x' || begin[1] == 'X')) {
+        begin += 2;
+        if (begin >= end) {
+            return false;
+        }
+    }
+    unsigned long long value = 0;
+    auto result = std::from_chars(begin, end, value, 16);
+    if (result.ec != std::errc() || result.ptr != end) {
+        return false;
+    }
+    out = value;
+    return true;
+}
+
 #ifdef KOALA_LIBACE_LINKED
 extern "C" const OH_AnyAPI* GENERATED_GetArkAnyAPI(int kind, int version);
 #endif
@@ -77,9 +109,13 @@ const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
 
         char* envValue = getenv("__LIBACE_ENTRY_POINT");
         if (envValue) {
-            long long value = strtoll(envValue, NULL, 16);
-            if (value != 0) {
-                getAPI = reinterpret_cast<GetAPI_t>(static_cast<uintptr_t>(value));
+            unsigned long long value = 0;
+            if (ParseLibAceEntryPointHex(envValue, value)) {
+                if (value != 0) {
+                    getAPI = reinterpret_cast<GetAPI_t>(static_cast<uintptr_t>(value));
+                }
+            } else {
+                LOGE("Invalid __LIBACE_ENTRY_POINT value");
             }
         }
         if (getAPI == nullptr) {
