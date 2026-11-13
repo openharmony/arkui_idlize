@@ -14,7 +14,6 @@
 
 # $1 - filePath to patch (default - `./patches/clang-format.patch`)
 
-
 set -e
 
 curDir="$(pwd)"
