@@ -1,6 +1,4 @@
 #!/bin/bash
-set -e
-
 # Copyright (c) 2024-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +13,9 @@ set -e
 # limitations under the License.
 
 # $1 - filePath to patch (default - `./patches/clang-format.patch`)
+
+
+set -e
 
 curDir="$(pwd)"
 rootDir="$(git rev-parse --show-toplevel)"
