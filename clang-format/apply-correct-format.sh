@@ -15,11 +15,13 @@
 
 # $1 - filePath to patch (default - `./patches/clang-format.patch`)
 
-patchFile=${1:-$curDir"/patches/clang-format.patch"}
-patchFile=$(readlink -m $patchFile)
+set -e
 
 curDir="$(pwd)"
 rootDir="$(git rev-parse --show-toplevel)"
+
+patchFile=${1:-$curDir"/patches/clang-format.patch"}
+patchFile=$(readlink -m $patchFile)
 
 cd $rootDir
 

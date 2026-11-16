@@ -16,6 +16,8 @@
 # $1 - filePath to save patch
 # $2 - search path (file or directory or multiple)
 
+set -e
+
 curDir="$(pwd)"
 rootDir="$(git rev-parse --show-toplevel)"
 
