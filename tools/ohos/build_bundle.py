@@ -254,9 +254,17 @@ def ninja_escape(path):
 
 
 def write_depfile(depfile, stamp, inputs):
+    # GN and ninja interpret depfile entries relative to the root_build_dir,
+    # which is the current directory of GN action scripts. Absolute
+    # paths would tie the depfile to one machine and break relocatable or
+    # shared build output directories, so rebase every path accordingly.
     depfile.parent.mkdir(parents=True, exist_ok=True)
-    dependencies = " ".join(ninja_escape(path) for path in sorted(set(inputs)))
-    depfile.write_text(f"{ninja_escape(stamp)}: {dependencies}\n", encoding="utf-8")
+    dependencies = " ".join(
+        ninja_escape(os.path.relpath(path)) for path in sorted(set(inputs))
+    )
+    depfile.write_text(
+        f"{ninja_escape(os.path.relpath(stamp))}: {dependencies}\n", encoding="utf-8"
+    )
 
 
 def validate_mutable_paths(source_root, paths):
@@ -384,7 +392,7 @@ def main():
 
     stamp.parent.mkdir(parents=True, exist_ok=True)
     stamp.write_text("idlize bundle complete\n", encoding="utf-8")
-    write_depfile(depfile, Path(args.stamp), [*tracked_sources, libarkts, panda_sdk])
+    write_depfile(depfile, stamp, [*tracked_sources, libarkts, panda_sdk])
 
 
 if __name__ == "__main__":
